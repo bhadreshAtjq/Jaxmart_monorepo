@@ -128,3 +128,73 @@
     box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.1);
   }
 }
+
+/* Driver.js Custom Styling - JaxMart Elite Theme */
+.jaxmart-tour-popover {
+  background-color: #0C1E26 !important;
+  color: #FFFFFF !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 24px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  max-width: 320px !important;
+}
+
+.jaxmart-tour-popover .driver-popover-title {
+  font-family: var(--font-raleway), 'Raleway', sans-serif !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.02em !important;
+  color: var(--jax-accent) !important;
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.jaxmart-tour-popover .driver-popover-description {
+  font-family: var(--font-source), 'Source Sans 3', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.jaxmart-tour-popover .driver-popover-progress-text {
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+
+.jaxmart-tour-popover .driver-popover-btn {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #FFFFFF !important;
+  text-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+}
+
+.jaxmart-tour-popover .driver-popover-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.jaxmart-tour-popover .driver-popover-next-btn {
+  background-color: var(--jax-accent) !important;
+  border: none !important;
+  color: #111827 !important;
+}
+
+.jaxmart-tour-popover .driver-popover-next-btn:hover {
+  background-color: #FFFFFF !important;
+}
+
+.jaxmart-tour-popover .driver-popover-close-btn {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.jaxmart-tour-popover .driver-popover-arrow {
+  border-color: #0C1E26 !important;
+}

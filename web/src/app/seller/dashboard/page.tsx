@@ -1,9 +1,8 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
 import { FaBoxesStacked, FaStore, FaInbox, FaStar, FaArrowTrendUp, FaArrowRight } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { listingApi, rfqApi, orderApi } from '@/lib/api';
 import { Card, Badge, Button, PageLoader, StatCard, SectionHeader, EmptyState } from '@/components/ui';
+import { useMyListings } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
@@ -12,10 +11,7 @@ export default function SellerDashboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
 
-  const { data: listings, isLoading: listingsLoading } = useQuery({
-    queryKey: ['seller', 'listings-summary'],
-    queryFn: () => listingApi.getMine().then(r => r.data),
-  });
+  const { data: listings, isLoading: listingsLoading } = useMyListings();
 
   return (
     <AppLayout>

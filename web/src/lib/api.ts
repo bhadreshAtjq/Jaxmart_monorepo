@@ -28,7 +28,9 @@ api.interceptors.response.use(
         return api(error.config);
       } catch {
         localStorage.clear();
-        window.location.href = '/auth/login';
+        if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
+          window.location.href = '/auth/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -57,6 +59,7 @@ export const listingApi = {
   create: (data: any) => api.post('/listings', data),
   update: (id: string, data: any) => api.put(`/listings/${id}`, data),
   publish: (id: string) => api.patch(`/listings/${id}/publish`),
+  bulkCreate: (listings: any[]) => api.post('/listings/bulk', { listings }),
   getMine: (params?: any) => api.get('/listings/seller/me', { params }),
   uploadMedia: (id: string, file: File, isPrimary?: boolean) => {
     const fd = new FormData();

@@ -1,14 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+
 import { 
   FaPlus, FaCheck, FaIndustry, FaCubes, FaArrowRight, FaArrowLeft,
   FaFileLines, FaTag, FaIndianRupeeSign, FaBox, FaCloudArrowUp,
   FaCircleCheck, FaBolt
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { listingApi, categoryApi } from '@/lib/api';
+import { listingApi } from '@/lib/api';
+import { useCategories } from '@/lib/hooks';
 import { Card, Button, PageLoader, Container, Input } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,10 +48,7 @@ export default function NewListingPage() {
     }
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => categoryApi.getAll().then(r => r.data),
-  });
+  const { data: categories } = useCategories();
 
   const next = () => setStep(s => Math.min(STEPS.length - 1, s + 1));
   const back = () => setStep(s => Math.max(0, s - 1));

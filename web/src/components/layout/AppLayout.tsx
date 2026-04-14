@@ -12,6 +12,8 @@ import { useAuthStore } from '@/lib/store';
 import { Avatar } from '@/components/ui';
 import { useState, useEffect } from 'react';
 import { authApi } from '@/lib/api';
+import { useNotifications, useOrderCounts } from '@/lib/hooks';
+import { AppTour } from '@/components/common/AppTour';
 
 const buyerNav = [
   { href: '/home', icon: FaHouse, label: 'Marketplace Home' },
@@ -35,6 +37,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+  
+  const { data: notifications } = useNotifications();
+  const { data: counts } = useOrderCounts();
+  const unreadCount = notifications?.notifications?.filter((n: any) => !n.isRead).length ?? 0;
 
   const isSeller = ['SELLER', 'BOTH'].includes(user?.userType ?? '');
   const isSellerView = pathname.startsWith('/seller');
@@ -51,10 +57,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-[#F8FAFB]">
+      <AppTour />
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 w-[280px] bg-jax-dark flex flex-col z-30 shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-r border-white/5">
         {/* Brand Header */}
-        <div className="h-20 flex items-center px-8 border-b border-white/[0.04] bg-black/10">
+        <div id="tour-logo" className="h-20 flex items-center px-8 border-b border-white/[0.04] bg-black/10">
           <Link href="/home" className="flex items-center gap-3.5 group">
             <div className="h-9 w-9 bg-jax-blue border border-white/10 flex items-center justify-center group-hover:bg-jax-teal transition-all duration-500 shadow-xl shadow-black/40 rotate-45 rounded">
               <span className="text-white font-heading font-black text-lg -rotate-45">J</span>
@@ -68,7 +75,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Console Switcher */}
         {isSeller && (
-          <div className="px-6 pt-6">
+          <div id="tour-switcher" className="px-6 pt-6">
             <div className="flex rounded-2xl bg-white/[0.03] p-1.5 border border-white/[0.05]">
               <button
                 onClick={() => router.push('/home')}
@@ -93,7 +100,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Global Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-8 space-y-1.5 custom-scrollbar">
+        <nav id="tour-nav" className="flex-1 overflow-y-auto px-4 py-8 space-y-1.5 custom-scrollbar">
           <p className="px-4 mb-4 text-[9px] font-black text-white/50 uppercase tracking-[0.25em]">Navigation Hub</p>
           {nav.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || pathname.startsWith(href.split('?')[0] + '/');
@@ -126,6 +133,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="pt-8 mt-8 border-t border-white/[0.04]">
             <p className="px-4 mb-4 text-[9px] font-black text-white/50 uppercase tracking-[0.25em]">Direct Action</p>
             <Link
+              id="tour-rfq-button"
               href="/rfq/create"
               className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-[10px] font-heading font-black bg-jax-accent text-white hover:bg-jax-blue transition-all duration-300 shadow-xl shadow-jax-accent/20 uppercase tracking-widest"
             >
@@ -151,7 +159,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Persistent Identity Console */}
-        <div className="p-4 border-t border-white/[0.04] bg-black/20">
+        <div id="tour-profile" className="p-4 border-t border-white/[0.04] bg-black/20">
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
@@ -160,6 +168,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="relative">
                 <Avatar name={user?.fullName ?? 'U'} src={user?.avatarUrl} size="sm" className="border-2 border-jax-teal/20" />
                 <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-500 border-2 border-jax-dark rounded-full shadow-sm" />
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-jax-accent text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-jax-dark shadow-lg ring-2 ring-jax-accent/20">
+                    {unreadCount}
+                  </div>
+                )}
               </div>
               <div className="flex-1 text-left min-w-0">
                 <p className="text-[11px] font-black text-white uppercase tracking-wider truncate leading-tight">{user?.fullName}</p>
@@ -186,18 +199,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <FaUser className="h-3.5 w-3.5 text-jax-teal" /> Profile & KYC
                 </Link>
                 <Link
-                  href="/admin"
-                  onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 text-xs text-white/70 hover:text-white hover:bg-white/[0.04] transition-all"
-                >
-                  <FaShieldHalved className="h-3.5 w-3.5 text-amber-500" /> Admin Command
-                </Link>
-                <Link
                   href="/notifications"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 text-xs text-white/70 hover:text-white hover:bg-white/[0.04] transition-all"
+                  className="flex items-center justify-between px-4 py-3.5 text-xs text-white/70 hover:text-white hover:bg-white/[0.04] transition-all"
                 >
-                  <FaBell className="h-3.5 w-3.5 text-jax-blue" /> Communications
+                  <div className="flex items-center gap-3">
+                    <FaBell className="h-3.5 w-3.5 text-jax-blue" /> Communications
+                  </div>
+                  {unreadCount > 0 && <span className="bg-jax-accent px-1.5 py-0.5 rounded-full text-[8px] text-white font-black">{unreadCount}</span>}
                 </Link>
                 <div className="p-2 bg-black/20">
                    <button

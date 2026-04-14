@@ -6,10 +6,22 @@ const { generateTokens } = require('../middleware/auth');
 const { sendSms } = require('../services/smsService');
 const { logger } = require('../utils/logger');
 
+// In-memory fallback for development if Redis is unavailable
+const devOtpStore = new Map();
+
 // Generate and cache OTP
 const generateOtp = async (phone) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  await redis.setex(`otp:${phone}`, 300, otp); // 5 min TTL
+  try {
+    await redis.setex(`otp:${phone}`, 300, otp); // 5 min TTL
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      devOtpStore.set(`otp:${phone}`, { otp, expires: Date.now() + 300000 });
+      logger.warn(`Redis unavailable. Using in-memory store for OTP ${phone}`);
+    } else {
+      throw err;
+    }
+  }
   return otp;
 };
 
@@ -21,11 +33,14 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ error: 'Invalid phone number' });
     }
 
-    // Rate limit: max 3 OTPs per 15 min
-    const attempts = await redis.incr(`otp_attempts:${phone}`);
-    if (attempts === 1) await redis.expire(`otp_attempts:${phone}`, 900);
-    if (attempts > 3) {
-      return res.status(429).json({ error: 'Too many OTP requests. Try again in 15 minutes.' });
+    try {
+      const attempts = await redis.incr(`otp_attempts:${phone}`);
+      if (attempts === 1) await redis.expire(`otp_attempts:${phone}`, 900);
+      if (attempts > 3) {
+        return res.status(429).json({ error: 'Too many OTP requests. Try again in 15 minutes.' });
+      }
+    } catch (err) {
+      logger.warn(`Redis attempts tracking unavailable for ${phone}`);
     }
 
     const otp = await generateOtp(phone);
@@ -52,7 +67,18 @@ const verifyOtp = async (req, res) => {
   try {
     const { phone, otp, fullName, userType } = req.body;
 
-    const storedOtp = await redis.get(`otp:${phone}`);
+    let storedOtp;
+    try {
+      storedOtp = await redis.get(`otp:${phone}`);
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        const fall = devOtpStore.get(`otp:${phone}`);
+        if (fall && fall.expires > Date.now()) {
+          storedOtp = fall.otp;
+        }
+      }
+    }
+
     const isDevBypass = process.env.NODE_ENV !== 'production' && String(otp) === '123456';
     
     logger.debug(`Verify OTP attempt: ${phone}, provided: ${otp}, bypass: ${isDevBypass}`);
@@ -61,8 +87,12 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    await redis.del(`otp:${phone}`);
-    await redis.del(`otp_attempts:${phone}`);
+    try {
+      await redis.del(`otp:${phone}`);
+      await redis.del(`otp_attempts:${phone}`);
+    } catch (err) {
+      devOtpStore.delete(`otp:${phone}`);
+    }
 
     // Find or create user
     let user = await prisma.user.findUnique({ where: { phone } });

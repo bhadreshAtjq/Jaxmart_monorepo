@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import {
   FaMagnifyingGlass, FaPlus, FaStar, FaShieldHalved,
   FaBolt, FaBoxesStacked, FaArrowRight, FaIndustry, FaLaptop,
@@ -10,7 +9,7 @@ import {
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Card, Badge, Avatar, SectionHeader, Container, Skeleton, ListingCardSkeleton, TrustScore } from '@/components/ui';
-import { listingApi, categoryApi } from '@/lib/api';
+import { useCategories, useFeaturedListings, useRfqInbox } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -30,16 +29,10 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [searchTab, setSearchTab] = useState<'product' | 'rfq'>('product');
 
-  const { data: categories = [], isLoading: catsLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => categoryApi.getAll().then(r => r.data),
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: featured, isLoading: featuredLoading } = useQuery({
-    queryKey: ['listings', 'featured'],
-    queryFn: () => listingApi.search({ sortBy: 'featured', limit: 8 }).then(r => r.data),
-  });
+  const { data: categories = [], isLoading: catsLoading } = useCategories();
+  const { data: featured, isLoading: featuredLoading } = useFeaturedListings();
+  const { data: globalRfqs, isLoading: rfqsLoading } = useRfqInbox({ matchOnly: false, limit: 5 });
+  const liveRfqs = globalRfqs?.rfqs ?? [];
 
   return (
     <AppLayout>
@@ -241,24 +234,29 @@ export default function HomePage() {
                    </Link>
                 </div>
                 <div className="space-y-6">
-                   {[1,2,3,4].map(i => (
-                      <Card key={i} className="group border-none shadow-xl shadow-black/[0.02] hover:shadow-3xl transition-all duration-500 p-8 rounded-[2rem]">
+                   {rfqsLoading ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[2rem]" />) : liveRfqs.length === 0 ? (
+                      <Card className="py-12 flex flex-col items-center border-dashed border-2">
+                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">No active sourcing requests found</p>
+                      </Card>
+                   ) : liveRfqs.map((rfq: any) => (
+                      <Card key={rfq.id} onClick={() => router.push(`/rfq/${rfq.id}`)} className="group border-none shadow-xl shadow-black/[0.02] hover:shadow-3xl transition-all duration-500 p-8 rounded-[2rem] cursor-pointer">
                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                             <div className="flex-1">
                                <div className="flex items-center gap-4 mb-4">
-                                  <Badge status="OPEN" className="bg-jax-blue text-white font-black tracking-widest border-none px-4 py-1.5" />
-                                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">ID: HUB-RFQ-902{i}</span>
+                                  <Badge status={rfq.status} className="bg-jax-blue text-white font-black tracking-widest border-none px-4 py-1.5" />
+                                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest leading-none">ID: #{rfq.id.slice(0, 8)}</span>
                                </div>
                                <h4 className="text-xl font-black text-jax-dark group-hover:text-jax-blue transition-colors tracking-tight leading-none uppercase">
-                                  {i === 1 ? 'Bulk Solar Photovoltaic Modules (550W+)' : i === 2 ? 'Industrial Cotton Waste - Grade A' : '3-Phase Electric Motors - 15KW'}
+                                  {rfq.title}
                                </h4>
+                               <p className="text-[10px] font-bold text-jax-accent uppercase tracking-widest mt-3">{rfq.category?.name}</p>
                             </div>
                             <div className="flex items-center gap-10 border-t md:border-t-0 pt-6 md:pt-0 border-gray-50">
                                <div className="text-right">
-                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Quantity</p>
-                                  <p className="text-base font-black text-jax-dark tracking-tighter">{1200 * i} Units</p>
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Commercial Scope</p>
+                                  <p className="text-base font-black text-jax-dark tracking-tighter">₹{rfq.budgetMax?.toLocaleString() || 'Open'}</p>
                                </div>
-                               <Button className="h-12 px-8 bg-jax-accent text-white border-none shadow-xl shadow-jax-accent/20 font-black text-[10px] uppercase tracking-widest">Submit Proposal</Button>
+                               <Button className="h-12 px-8 bg-jax-accent text-white border-none shadow-xl shadow-jax-accent/20 font-black text-[10px] uppercase tracking-widest">Execute Quote</Button>
                             </div>
                          </div>
                       </Card>

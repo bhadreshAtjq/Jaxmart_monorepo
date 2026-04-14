@@ -1,45 +1,29 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import {
-   FaBoxesStacked, FaClock, FaCircleCheck,
-   FaFileInvoiceDollar, FaTruckFast, FaArrowRight,
-   FaShieldHalved, FaHandshake, FaCartShopping
+import { 
+  FaBoxesStacked, FaClock, FaCircleCheck, 
+  FaFileInvoiceDollar, FaTruckFast, FaArrowRight,
+  FaShieldHalved, FaHandshake, FaCartShopping
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { orderApi } from '@/lib/api';
 import { Card, Badge, PageLoader, Button, EmptyState, Container } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { clsx } from 'clsx';
+import { useOrders, useOrderCounts } from '@/lib/hooks';
 
 export default function OrdersPage() {
    const router = useRouter();
    const { user } = useAuthStore();
 
-   // Default to seller view if the user is a seller, otherwise buyer
    const [role, setRole] = useState<'buyer' | 'seller'>(
       user?.userType === 'SELLER' ? 'seller' : 'buyer'
    );
 
-   const { data: orderData, isLoading } = useQuery({
-      queryKey: ['orders', role],
-      queryFn: () => orderApi.getAll({ role }).then(r => r.data),
-   });
-
-   // Also fetch counts for both tabs to show in the UI
-   const { data: counts } = useQuery({
-      queryKey: ['order-counts'],
-      queryFn: async () => {
-         const [b, s] = await Promise.all([
-            orderApi.getAll({ role: 'buyer', limit: 1 }),
-            orderApi.getAll({ role: 'seller', limit: 1 })
-         ]);
-         return { buyer: b.data.total, seller: s.data.total };
-      }
-   });
+   const { data: orderData, isLoading } = useOrders(role);
+   const { data: counts } = useOrderCounts();
 
    const orders = orderData?.orders || [];
    const totalValue = useMemo(() => orders.reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0), [orders]);
@@ -119,10 +103,24 @@ export default function OrdersPage() {
                   <div className="lg:col-span-3 space-y-4">
                      <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xs font-black text-jax-dark uppercase tracking-widest">Global Order Ledger</h2>
-                        <div className="flex gap-2">
-                           <button className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-black uppercase tracking-tight text-gray-400">Export PDF</button>
-                           <button className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-black uppercase tracking-tight text-gray-400">Sort: Newest</button>
-                        </div>
+                         <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                 const headers = 'Order ID,Date,Buyer,Status,Amount,Escrow\n';
+                                 const rows = orders.map((o: any) => `${o.id},${new Date(o.createdAt).toLocaleDateString()},${o.buyer?.fullName || 'N/A'},${o.status},${o.totalAmount},${o.escrowStatus}`).join('\n');
+                                 const blob = new Blob([headers + rows], { type: 'text/csv' });
+                                 const url = window.URL.createObjectURL(blob);
+                                 const a = document.createElement('a');
+                                 a.href = url;
+                                 a.download = `jaxmart_ledger_${role}.csv`;
+                                 a.click();
+                              }}
+                              className="px-4 h-8 bg-white border border-gray-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 flex items-center gap-2 transition-all shadow-sm"
+                            >
+                               <FaFileInvoiceDollar className="h-2.5 w-2.5" /> Export CSV Ledger
+                            </button>
+                            <button className="px-4 h-8 bg-white border border-gray-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-500 shadow-sm">Sort: Newest</button>
+                         </div>
                      </div>
 
                      {orders.map((order: any, i: number) => (
@@ -156,7 +154,7 @@ export default function OrdersPage() {
                                        </div>
                                     </div>
                                  </div>
-
+                                 
                                  <div className="bg-gray-50/50 md:w-56 p-6 border-l border-gray-100 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-1 shrink-0">
                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Contract Value</p>
                                     <p className="text-xl font-heading font-black text-jax-dark tracking-tighter">₹{order.totalAmount?.toLocaleString('en-IN')}</p>

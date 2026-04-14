@@ -1,14 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   FaUsers, FaFileLines, FaTriangleExclamation, FaArrowTrendUp, 
   FaCircleCheck, FaCircleXmark, FaEye, FaChartBar, FaShieldHalved, 
   FaInbox, FaMagnifyingGlass, FaPlus, FaFilter, FaChevronRight, FaArrowRightLong
 } from 'react-icons/fa6';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, Badge, Button, Avatar, PageLoader, StatCard, EmptyState, Container, Skeleton, TrustScore } from '@/components/ui';
 import { adminApi } from '@/lib/api';
+import { useAdminStats, useAdminUsers, useAdminKycQueue, revalidate } from '@/lib/hooks';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
@@ -24,46 +24,37 @@ const TABS = [
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState('overview');
-  const qc = useQueryClient();
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['admin', 'stats'],
-    queryFn: () => adminApi.getPlatformStats().then(r => r.data),
-  });
+  const { data: stats, isLoading: statsLoading } = useAdminStats();
+  const { data: users, isLoading: usersLoading } = useAdminUsers(tab === 'users');
+  const { data: kycQueue, isLoading: kycLoading } = useAdminKycQueue(tab === 'kyc');
 
-  const { data: users, isLoading: usersLoading } = useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: () => adminApi.getUsers({ limit: 50 }).then(r => r.data),
-    enabled: tab === 'users',
-  });
-
-  const { data: kycQueue, isLoading: kycLoading } = useQuery({
-    queryKey: ['admin', 'kyc'],
-    queryFn: () => adminApi.getKycQueue().then(r => r.data),
-    enabled: tab === 'kyc',
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: ({ type, id }: { type: string; id: string }) =>
-      type === 'kyc' ? adminApi.approveKyc(id) : adminApi.approveListing(id),
-    onSuccess: (_, { type }) => {
-      qc.invalidateQueries({ queryKey: ['admin', type === 'kyc' ? 'kyc' : 'listings'] });
+  const handleApprove = async (type: string, id: string) => {
+    try {
+      if (type === 'kyc') await adminApi.approveKyc(id);
+      else await adminApi.approveListing(id);
+      revalidate.admin();
       toast.success('Approved successfully');
-    },
-    onError: () => toast.error('Action failed'),
-  });
+    } catch {
+      toast.error('Action failed');
+    }
+  };
 
-  const rejectMutation = useMutation({
-    mutationFn: ({ type, id, reason }: { type: string; id: string; reason: string }) =>
-      type === 'kyc' ? adminApi.rejectKyc(id, reason) : adminApi.rejectListing(id, reason),
-    onSuccess: (_, { type }) => {
-      qc.invalidateQueries({ queryKey: ['admin', type === 'kyc' ? 'kyc' : 'listings'] });
+  const handleReject = async (type: string, id: string) => {
+    const reason = prompt('Reject reason:');
+    if (!reason) return;
+    try {
+      if (type === 'kyc') await adminApi.rejectKyc(id, reason);
+      else await adminApi.rejectListing(id, reason);
+      revalidate.admin();
       toast.success('Rejected');
-    },
-  });
+    } catch {
+      toast.error('Action failed');
+    }
+  };
 
   return (
-    <AppLayout>
+    <AdminLayout>
       <Container size="xl" className="py-8">
         {/* Admin Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -180,8 +171,8 @@ export default function AdminDashboard() {
                                    </div>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full md:w-auto">
-                                   <Button variant="success" className="h-11" icon={<FaCircleCheck />} onClick={() => approveMutation.mutate({ type: 'kyc', id: item.userId })}>Verify Entity</Button>
-                                   <Button variant="outline" className="h-11 text-red-500 border-red-100 hover:bg-red-50" icon={<FaCircleXmark />} onClick={() => { const reason = prompt('Reject reason:'); if (reason) rejectMutation.mutate({ type: 'kyc', id: item.userId, reason }); }}>Flag & Reject</Button>
+                                   <Button variant="success" className="h-11" icon={<FaCircleCheck />} onClick={() => handleApprove('kyc', item.userId)}>Verify Entity</Button>
+                                   <Button variant="outline" className="h-11 text-red-500 border-red-100 hover:bg-red-50" icon={<FaCircleXmark />} onClick={() => handleReject('kyc', item.userId)}>Flag & Reject</Button>
                                 </div>
                              </div>
                           </Card>
@@ -269,7 +260,7 @@ export default function AdminDashboard() {
            )}
         </motion.div>
       </Container>
-    </AppLayout>
+    </AdminLayout>
   );
 }
 

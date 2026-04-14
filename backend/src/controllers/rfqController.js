@@ -21,7 +21,7 @@ const createRfq = async (req, res) => {
     const rfq = await prisma.rfqRequest.create({
       data: {
         buyerId: req.user.id,
-        rfqType: rfqType.toUpperCase(),
+        rfqType: (rfqType || 'PRODUCT').toUpperCase(),
         title,
         description,
         categoryId,
@@ -145,21 +145,24 @@ const getRfq = async (req, res) => {
 // GET /api/rfq/seller/inbox (RFQs matched to seller)
 const getSellerRfqInbox = async (req, res) => {
   try {
-    const { page = 1, limit = 20, rfqType, search } = req.query;
+    const { page = 1, limit = 20, rfqType, search, matchOnly = 'false' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Find categories this seller lists in
-    const sellerCategories = await prisma.listing.findMany({
-      where: { sellerId: req.user.id, status: 'ACTIVE' },
-      select: { categoryId: true },
-      distinct: ['categoryId'],
-    });
-    const categoryIds = sellerCategories.map(l => l.categoryId);
+    // Find categories this seller lists in (for matching)
+    let categoryIds = [];
+    if (matchOnly === 'true') {
+      const sellerCategories = await prisma.listing.findMany({
+        where: { sellerId: req.user.id, status: 'ACTIVE' },
+        select: { categoryId: true },
+        distinct: ['categoryId'],
+      });
+      categoryIds = sellerCategories.map(l => l.categoryId);
+    }
 
     const where = {
       status: 'OPEN',
-      categoryId: { in: categoryIds },
       expiresAt: { gt: new Date() },
+      ...(matchOnly === 'true' && { categoryId: { in: categoryIds } }),
       ...(rfqType && { rfqType: rfqType.toUpperCase() }),
       ...(search && {
         OR: [
@@ -274,7 +277,7 @@ const awardQuote = async (req, res) => {
           status: 'CREATED',
           escrowStatus: 'HELD',
           milestones: {
-            create: (quote.milestonePlan || [{ title: 'Full delivery', amount: quote.quotedAmount }]).map(
+            create: (quote.milestonePlan?.length > 0 ? quote.milestonePlan : [{ title: 'Full delivery', amount: quote.quotedAmount }]).map(
               (m, i) => ({
                 title: m.title,
                 amount: parseFloat(m.amount),

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+
 import { useParams, useRouter } from 'next/navigation';
 import { 
   FaCartShopping, FaComment, FaShieldHalved, FaLocationDot, 
@@ -8,7 +8,8 @@ import {
   FaStar, FaCircleCheck, FaBolt, FaArrowRight, FaBoxOpen, FaGlobe
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { listingApi } from '@/lib/api';
+import { useListing } from '@/lib/hooks';
+import { rfqApi } from '@/lib/api';
 import { Button, Card, Badge, Avatar, TrustScore, Container, Skeleton } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
@@ -18,12 +19,9 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
+  const [quickQuoteOpen, setQuickQuoteOpen] = useState(false);
 
-  const { data: listing, isLoading, error } = useQuery({
-    queryKey: ['listing', id],
-    queryFn: () => listingApi.get(id as string).then(r => r.data),
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: listing, isLoading, error } = useListing(id as string);
 
   if (isLoading) return <ListingSkeleton />;
   
@@ -41,13 +39,24 @@ export default function ListingDetailPage() {
   );
 
   const pd = listing.productDetail;
-  const sd = listing.serviceDetail;
-  const isProduct = listing.listingType === 'PRODUCT';
   const price = pd?.pricePerUnit;
 
   return (
     <AppLayout>
       <Container size="xl" className="pb-32 pt-6">
+        <AnimatePresence>
+          {quickQuoteOpen && (
+            <QuickQuoteModal 
+              listing={listing} 
+              onClose={() => setQuickQuoteOpen(false)} 
+              onSuccess={() => {
+                setQuickQuoteOpen(false);
+                router.push('/rfq');
+              }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-8">
            <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
@@ -147,7 +156,7 @@ export default function ListingDetailPage() {
                 size="lg" 
                 className="h-16 text-sm font-black uppercase tracking-widest shadow-2xl shadow-jax-blue/20" 
                 icon={<FaBolt className="h-4 w-4" />} 
-                onClick={() => router.push(`/rfq/create?listingId=${listing.id}`)}
+                onClick={() => setQuickQuoteOpen(true)}
               >
                 Initiate Instant Quote
               </Button>
@@ -260,6 +269,185 @@ export default function ListingDetailPage() {
         </div>
       </Container>
     </AppLayout>
+  );
+}
+
+function QuickQuoteModal({ listing, onClose, onSuccess }: { listing: any, onClose: () => void, onSuccess: () => void }) {
+  const [step, setStep] = useState(1);
+  const [qty, setQty] = useState(listing.productDetail?.minOrderQty || 100);
+  const [route, setRoute] = useState('ROAD');
+  const [loading, setLoading] = useState(false);
+
+  const total = (listing.productDetail?.pricePerUnit || 0) * qty;
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      await rfqApi.create({
+        title: `Instant Quote: ${listing.title}`,
+        description: `Automated instant quote request for ${qty} units of ${listing.title}.`,
+        rfqType: listing.listingType,
+        categoryId: listing.categoryId,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        items: [{
+          listingId: listing.id,
+          quantity: qty,
+          targetPrice: listing.productDetail?.pricePerUnit,
+          specifications: { logistics: route }
+        }]
+      });
+      toast.success('Procurement Request Initiated');
+      onSuccess();
+    } catch (err) {
+      toast.error('Failed to initiate quote');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-jax-dark/60 backdrop-blur-xl" 
+        onClick={onClose} 
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20"
+      >
+        <div className="p-10">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-10">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-6 w-6 rounded-lg bg-jax-blue/10 flex items-center justify-center text-jax-blue">
+                   <FaBolt className="h-3 w-3" />
+                </div>
+                <span className="text-[10px] font-black text-jax-blue uppercase tracking-widest">Instant Sourcing Wizard</span>
+              </div>
+              <h2 className="text-3xl font-heading font-black text-jax-dark tracking-tighter leading-tight">
+                {step === 1 ? 'Select Quantity' : step === 2 ? 'Logistics Route' : 'Finalize Request'}
+              </h2>
+            </div>
+            <button onClick={onClose} className="text-gray-300 hover:text-gray-500 transition-colors">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Stepper Display */}
+          <div className="flex gap-2 mb-10">
+             {[1,2,3].map(s => (
+                <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${s <= step ? 'bg-jax-blue' : 'bg-gray-100'}`} />
+             ))}
+          </div>
+
+          <div className="min-h-[240px]">
+            {step === 1 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="grid grid-cols-3 gap-4">
+                  {[100, 500, 1000].map(v => (
+                    <button 
+                       key={v}
+                       onClick={() => setQty(v)}
+                       className={clsx(
+                         "py-6 rounded-3xl border-2 font-heading font-black text-xl transition-all",
+                         qty === v ? "bg-jax-blue border-jax-blue text-white shadow-xl shadow-jax-blue/20" : "bg-white border-gray-100 text-gray-400 hover:border-jax-blue/30"
+                       )}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Custom Volume</label>
+                   <input 
+                     type="number" 
+                     className="w-full h-16 px-6 bg-gray-50 border-none rounded-2xl text-xl font-heading font-black text-jax-dark focus:ring-2 focus:ring-jax-blue/20 transition-all font-heading"
+                     value={qty}
+                     onChange={(e) => setQty(Number(e.target.value))}
+                   />
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                {[
+                  { id: 'ROAD', label: 'Land Freight', sub: '7-10 Days Delivery', icon: FaTruck },
+                  { id: 'SEA', label: 'Ocean Freight', sub: '20-30 Days Economy', icon: FaGlobe },
+                  { id: 'AIR', label: 'Priority Air', sub: '3-5 Days Express', icon: FaBolt },
+                ].map(r => (
+                  <button 
+                    key={r.id}
+                    onClick={() => setRoute(r.id)}
+                    className={clsx(
+                      "flex items-center gap-6 p-6 rounded-3xl border-2 transition-all text-left",
+                      route === r.id ? "bg-jax-blue/5 border-jax-blue shadow-sm" : "bg-white border-gray-100 opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
+                    )}
+                  >
+                    <div className={clsx("h-14 w-14 rounded-2xl flex items-center justify-center", route === r.id ? "bg-jax-blue text-white" : "bg-gray-100 text-gray-400")}>
+                       <r.icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                       <p className={clsx("font-heading font-black text-base tracking-tight", route === r.id ? "text-jax-blue" : "text-jax-dark")}>{r.label}</p>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{r.sub}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <Card variant="dark" className="p-8 border-none shadow-2xl overflow-hidden relative">
+                   <div className="relative z-10 space-y-6">
+                      <div className="flex justify-between items-end border-b border-white/10 pb-6">
+                         <div>
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Contract Value</p>
+                            <p className="text-3xl font-heading font-black text-jax-teal tracking-tighter">{'\u20B9'}{total.toLocaleString('en-IN')}</p>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Quantity</p>
+                            <p className="text-xl font-heading font-black text-white">{qty} Units</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                         <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-jax-teal"><FaShieldHalved /></div>
+                         <p className="text-[9px] font-black uppercase tracking-widest leading-loose text-white/80">
+                           Escrow Safeguard <span className="text-jax-teal mx-1">/</span> 
+                           Direct Factory Inspection <span className="text-jax-teal mx-1">/</span> 
+                           Verified Logistics
+                         </p>
+                      </div>
+                   </div>
+                   <FaShieldHalved className="h-40 w-40 absolute -bottom-10 -right-10 text-white/[0.03]" />
+                </Card>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-12 flex gap-4">
+            {step > 1 && (
+              <Button variant="outline" className="h-16 w-20 rounded-3xl" onClick={() => setStep(step - 1)}>
+                <FaArrowRight className="h-5 w-5 rotate-180" />
+              </Button>
+            )}
+            <Button 
+               className="h-16 flex-1 rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-jax-blue/20"
+               loading={loading}
+               onClick={() => step < 3 ? setStep(step + 1) : handleSubmit()}
+            >
+              {step < 3 ? 'Proceed to Logistics' : 'Establish Trade Contract'}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 

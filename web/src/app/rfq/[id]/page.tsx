@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   FaFileLines, FaClock, FaCubes, FaComment, 
@@ -9,37 +8,40 @@ import {
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { rfqApi } from '@/lib/api';
-import { Button, Card, Badge, PageLoader, Avatar, SectionHeader, EmptyState, Container, TrustScore } from '@/components/ui';
+import { useRfq, revalidate } from '@/lib/hooks';
+import { Button, Card, Badge, Avatar, SectionHeader, EmptyState, Container, TrustScore, RfqDetailSkeleton } from '@/components/ui';
+import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '@/lib/store';
 
 export default function RfqDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const qc = useQueryClient();
 
-  const { data: rfq, isLoading } = useQuery({
-    queryKey: ['rfq', id],
-    queryFn: () => rfqApi.get(id as string).then(r => r.data),
-  });
+  const { data: rfq, isLoading, mutate } = useRfq(id as string);
 
   const { user } = useAuthStore();
   const isSeller = user?.userType === 'SELLER' || user?.userType === 'BOTH';
   const hasQuoted = rfq?.quotes && rfq.quotes.length > 0;
 
-  const awardMutation = useMutation({
-    mutationFn: (quoteId: string) => rfqApi.awardQuote(id as string, quoteId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rfq', id] });
+  const [awarding, setAwarding] = useState(false);
+  const handleAward = async (quoteId: string) => {
+    setAwarding(true);
+    try {
+      await rfqApi.awardQuote(id as string, quoteId);
+      mutate(); // Revalidate this specific RFQ
+      revalidate.rfqs(); // Revalidate all RFQ lists
       toast.success('Quote awarded -- Order created successfully.');
       router.push('/orders');
-    },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to award quote'),
-  });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to award quote');
+    } finally {
+      setAwarding(false);
+    }
+  };
 
-  if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
+  if (isLoading) return <AppLayout><RfqDetailSkeleton /></AppLayout>;
   if (!rfq) return <AppLayout><EmptyState title="Sourcing Request Not Found" /></AppLayout>;
 
   return (
@@ -176,8 +178,8 @@ export default function RfqDetailPage() {
                                   size="sm" 
                                   variant="primary" 
                                   className="bg-jax-accent border-none shadow-xl shadow-jax-accent/20 px-8"
-                                  loading={awardMutation.isPending} 
-                                  onClick={() => awardMutation.mutate(quote.id)}
+                                  loading={awarding} 
+                                  onClick={() => handleAward(quote.id)}
                                 >
                                   Award Contract
                                 </Button>

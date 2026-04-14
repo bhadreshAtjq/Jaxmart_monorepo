@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+
 import { formatDistanceToNow } from 'date-fns';
 import { clsx } from 'clsx';
 import { 
@@ -13,7 +13,7 @@ import {
   FaMagnifyingGlass
 } from 'react-icons/fa6';
 
-import { rfqApi } from '@/lib/api';
+import { useRfqInbox } from '@/lib/hooks';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
   PageLoader, 
@@ -36,10 +36,7 @@ export default function SellerRfqInboxPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: inbox, isLoading } = useQuery({
-    queryKey: ['seller', 'rfq-inbox', matchOnly, debouncedSearch],
-    queryFn: () => rfqApi.getInbox({ matchOnly, search: debouncedSearch }).then(r => r.data),
-  });
+  const { data: inbox, isLoading } = useRfqInbox({ matchOnly, search: debouncedSearch });
 
   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
 

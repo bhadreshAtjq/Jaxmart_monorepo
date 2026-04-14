@@ -131,29 +131,35 @@ const submitMilestone = async (req, res) => {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.sellerId !== req.user.id) return res.status(403).json({ error: 'Only seller can submit milestones' });
-    if (order.status !== 'ACTIVE') return res.status(400).json({ error: 'Order is not active' });
-
-    await prisma.milestone.update({
-      where: { id: milestoneId },
-      data: {
-        status: 'SUBMITTED',
-        submissionNote,
-        submissionFiles: submissionFiles || [],
-      },
-    });
+    
+    if (milestoneId === 'FULL') {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'SHIPPED' },
+      });
+    } else {
+      await prisma.milestone.update({
+        where: { id: milestoneId },
+        data: {
+          status: 'SUBMITTED',
+          submissionNote,
+          submissionFiles: submissionFiles || [],
+        },
+      });
+    }
 
     await sendNotification({
       userId: order.buyerId,
       type: 'MILESTONE_SUBMITTED',
-      title: 'Milestone submitted for review',
-      body: 'Your seller has submitted a milestone. Please review and approve or raise a dispute.',
+      title: 'Order shipped / Milestone submitted',
+      body: 'Your seller has updated the fulfillment status. Please review.',
       data: { orderId, milestoneId },
     });
 
-    res.json({ message: 'Milestone submitted successfully' });
+    res.json({ message: 'Status updated successfully' });
   } catch (err) {
     logger.error('submitMilestone error:', err);
-    res.status(500).json({ error: 'Failed to submit milestone' });
+    res.status(500).json({ error: 'Failed to update milestone' });
   }
 };
 
@@ -169,6 +175,18 @@ const approveMilestone = async (req, res) => {
 
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.buyerId !== req.user.id) return res.status(403).json({ error: 'Only buyer can approve milestones' });
+
+    if (milestoneId === 'FULL') {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+           status: 'COMPLETED',
+           escrowStatus: 'FULLY_RELEASED',
+           completedAt: new Date(),
+        },
+      });
+      return res.json({ message: 'Order completed and payment released', orderCompleted: true });
+    }
 
     const milestone = order.milestones.find(m => m.id === milestoneId);
     if (!milestone) return res.status(404).json({ error: 'Milestone not found' });

@@ -275,4 +275,50 @@ const publishListing = async (req, res) => {
   }
 };
 
-module.exports = { searchListings, getListing, createListing, updateListing, getMyListings, publishListing };
+const bulkCreateListings = async (req, res) => {
+  try {
+    const { listings } = req.body;
+    if (!Array.isArray(listings)) return res.status(400).json({ error: 'Listings array required' });
+
+    const results = await prisma.$transaction(
+      listings.map((l) =>
+        prisma.listing.create({
+          data: {
+            sellerId: req.user.id,
+            listingType: l.listingType.toUpperCase(),
+            title: l.title,
+            description: l.description,
+            categoryId: l.categoryId,
+            tags: l.tags || [],
+            status: 'ACTIVE', // Auto-publish for bulk upload
+            ...(l.listingType.toUpperCase() === 'PRODUCT' && {
+              productDetail: {
+                create: {
+                  brand: l.brand,
+                  sku: l.sku,
+                  unitOfMeasure: l.unitOfMeasure || 'pcs',
+                  minOrderQty: l.minOrderQty || 1,
+                  pricePerUnit: l.pricePerUnit,
+                  priceOnRequest: l.priceOnRequest || false,
+                  stockAvailable: l.stockAvailable !== false,
+                  leadTimeDays: l.leadTimeDays,
+                },
+              },
+            }),
+          },
+        })
+      )
+    );
+
+    res.status(201).json({ count: results.length });
+  } catch (err) {
+    logger.error('bulkCreateListings error:', err);
+    res.status(500).json({ error: 'Failed to bulk create listings' });
+  }
+};
+
+module.exports = { 
+  searchListings, getListing, createListing, 
+  updateListing, getMyListings, publishListing, 
+  bulkCreateListings 
+};

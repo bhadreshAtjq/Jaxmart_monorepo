@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   FaBolt, FaArrowLeft, FaClock, FaTag, 
   FaFileLines, FaShieldHalved, FaCircleInfo 
@@ -15,6 +14,7 @@ import {
   Button, Card, Input, Textarea, 
   PageLoader, Badge, SectionHeader, Container 
 } from '@/components/ui';
+import { useRfq, revalidate } from '@/lib/hooks';
 
 export default function SubmitQuotePage() {
   const { id } = useParams();
@@ -26,32 +26,30 @@ export default function SubmitQuotePage() {
     timelineDays: '',
   });
 
-  const { data: rfq, isLoading } = useQuery({
-    queryKey: ['rfq', id],
-    queryFn: () => rfqApi.get(id as string).then(r => r.data),
-  });
+  const { data: rfq, isLoading } = useRfq(id as string);
 
-  const mutation = useMutation({
-    mutationFn: (data: any) => rfqApi.submitQuote(id as string, data),
-    onSuccess: () => {
-      toast.success('Your quote has been transmitted successfully.');
-      router.push('/seller/rfq-inbox');
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Failed to submit quote');
-    }
-  });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.quotedAmount || !form.proposalText || !form.timelineDays) {
       return toast.error('Please complete all protocol fields');
     }
-    mutation.mutate({
-      ...form,
-      quotedAmount: parseFloat(form.quotedAmount),
-      timelineDays: parseInt(form.timelineDays),
-    });
+    setSubmitting(true);
+    try {
+      await rfqApi.submitQuote(id as string, {
+        ...form,
+        quotedAmount: parseFloat(form.quotedAmount),
+        timelineDays: parseInt(form.timelineDays),
+      });
+      revalidate.rfqs();
+      toast.success('Your quote has been transmitted successfully.');
+      router.push('/seller/rfq-inbox');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Failed to submit quote');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
@@ -118,7 +116,7 @@ export default function SubmitQuotePage() {
                 <div className="flex items-center gap-4">
                   <Button 
                     type="submit" 
-                    loading={mutation.isPending} 
+                    loading={submitting} 
                     className="flex-1 h-14 bg-jax-dark text-white rounded-2xl shadow-xl shadow-jax-dark/20 font-black uppercase tracking-widest text-[11px]"
                   >
                     Transmit Proposal

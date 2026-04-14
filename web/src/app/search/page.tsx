@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+
 import { 
   FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot, 
   FaShieldHalved, FaCubes, FaXmark, FaBolt, FaBoxesStacked,
@@ -10,7 +10,7 @@ import {
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore } from '@/components/ui';
 import { clsx } from 'clsx';
-import { listingApi } from '@/lib/api';
+import { useListingSearch } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -39,11 +39,7 @@ export default function SearchPage() {
     ...(filters.city && { city: filters.city }),
   };
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['listings', 'search', params],
-    queryFn: () => listingApi.search(params).then(r => r.data),
-    placeholderData: (prev) => prev,
-  });
+  const { data, isLoading, isValidating: isFetching } = useListingSearch(params);
 
   const listings = data?.listings ?? [];
   const total = data?.pagination?.total ?? 0;

@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import { 
   FaFileLines, FaPlus, FaClock, FaCircleCheck, 
   FaChevronRight, FaMagnifyingGlass, FaFilter,
@@ -9,7 +8,7 @@ import {
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Card, Badge, EmptyState, PageLoader, Container } from '@/components/ui';
-import { rfqApi } from '@/lib/api';
+import { useMyRfqs } from '@/lib/hooks';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { clsx } from 'clsx';
@@ -19,15 +18,16 @@ export default function RfqListPage() {
   const [tab, setTab] = useState<'OPEN' | 'AWARDED' | 'CLOSED'>('OPEN');
   const [search, setSearch] = useState('');
   
-  const { data, isLoading } = useQuery({
-    queryKey: ['rfqs', 'mine', tab],
-    queryFn: () => rfqApi.getMine({ status: tab }).then(r => r.data),
-  });
+  const { data, isLoading } = useMyRfqs(tab);
 
-  const rfqs = data?.rfqs ?? [];
+  const rfqs = (data?.rfqs ?? []).filter((r: any) => 
+    r.title.toLowerCase().includes(search.toLowerCase()) || 
+    r.id.toLowerCase().includes(search.toLowerCase())
+  );
+  
   const stats = {
-    total: rfqs.length,
-    quotes: rfqs.reduce((acc: number, r: any) => acc + (r._count?.quotes || 0), 0),
+    total: (data?.rfqs ?? []).length,
+    quotes: (data?.rfqs ?? []).reduce((acc: number, r: any) => acc + (r._count?.quotes || 0), 0),
   };
 
   return (

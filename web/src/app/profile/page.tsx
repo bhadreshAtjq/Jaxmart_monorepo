@@ -1,18 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+
 import { FaUser, FaShieldHalved, FaEnvelope, FaPhone, FaBuilding, FaPenToSquare, FaCircleCheck, FaTriangleExclamation, FaClock, FaUpload } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { userApi } from '@/lib/api';
+import { useProfile as useProfileHook } from '@/lib/hooks';
 import { Button, Card, Badge, PageLoader, Input, Avatar, SectionHeader } from '@/components/ui';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const { data: user, isLoading, refetch } = useQuery({
-    queryKey: ['profile', 'me'],
-    queryFn: () => userApi.getProfile().then(r => r.data),
-  });
+  const { data: user, isLoading, mutate: refetch } = useProfileHook();
 
   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
 
@@ -28,6 +26,7 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none">Identity & Trust</h1>
           </div>
           <Button 
+            id="tour-edit"
             onClick={() => setIsEditing(!isEditing)} 
             variant={isEditing ? 'ghost' : 'outline'} 
             size="sm" 
@@ -70,7 +69,7 @@ export default function ProfilePage() {
               <h3 className="text-[10px] font-black text-jax-dark uppercase tracking-widest mb-4 flex items-center gap-2">
                 <FaShieldHalved className="h-3.5 w-3.5 text-jax-accent" /> Security Badge
               </h3>
-              <div className="p-4 rounded-2xl bg-white border border-jax-accent/10 shadow-sm">
+              <div id="tour-kyc" className="p-4 rounded-2xl bg-white border border-jax-accent/10 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
                   {user.kycStatus === 'VERIFIED' ? (
                     <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><FaCircleCheck className="h-4 w-4 text-emerald-500" /></div>
@@ -94,7 +93,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="md:col-span-2 space-y-8">
-            <Card className="p-8 border-none shadow-xl shadow-black/[0.02]">
+            <Card id="tour-profile-id" className="p-8 border-none shadow-xl shadow-black/[0.02]">
               <SectionHeader title="Core Identity Schema" />
               {isEditing ? (
                 <ProfileEditForm user={user} onComplete={() => { setIsEditing(false); refetch(); }} />
@@ -116,7 +115,7 @@ export default function ProfilePage() {
             </Card>
 
             {(user.accountType === 'BUSINESS' || isEditing) && (
-              <Card className="p-8 border-l-4 border-l-jax-accent shadow-xl shadow-black/[0.02]">
+              <Card id="tour-business" className="p-8 border-l-4 border-l-jax-accent shadow-xl shadow-black/[0.02]">
                 <SectionHeader title="Business Intelligence Profile" />
                 <div className="flex items-start gap-5 p-6 rounded-2xl bg-gray-50 border border-gray-100">
                   <div className="h-12 w-12 rounded-2xl bg-jax-accent/10 flex items-center justify-center shrink-0">
@@ -136,7 +135,7 @@ export default function ProfilePage() {
               </Card>
             )}
 
-            <Card className="p-8 border-none shadow-xl shadow-black/[0.02]">
+            <Card id="tour-docs" className="p-8 border-none shadow-xl shadow-black/[0.02]">
               <SectionHeader title="Compliance Document Vault" action={<button className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors">+ Append Registry</button>} />
               {user.kycDocuments?.length ? (
                 <div className="grid grid-cols-1 gap-3">

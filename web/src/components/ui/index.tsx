@@ -41,6 +41,42 @@ export function StatCardSkeleton() {
   );
 }
 
+export function OrderDetailSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto pb-20 animate-pulse">
+      <div className="h-4 w-32 bg-gray-200 rounded mb-6" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="h-[400px] border-none shadow-sm" />
+          <Card className="h-[200px] border-none shadow-sm" />
+        </div>
+        <div className="space-y-6">
+          <Card className="h-[300px] border-none shadow-sm" />
+          <Card className="h-[150px] border-none shadow-sm" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function RfqDetailSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto py-8 animate-pulse">
+      <div className="h-20 bg-white rounded-3xl mb-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-12">
+          <div className="h-64 bg-white rounded-3xl" />
+          <div className="h-96 bg-white rounded-3xl" />
+        </div>
+        <div className="space-y-8">
+          <div className="h-72 bg-jax-dark rounded-3xl opacity-20" />
+          <div className="h-64 bg-white rounded-3xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Container ───────────────────────────────────────────────────────────────
 export function Container({ children, className, size = 'xl' }: { children: React.ReactNode; className?: string; size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' }) {
   const sizes = {
@@ -101,6 +137,7 @@ const STATUS_BADGE: Record<string, string> = {
   DISPUTED:     'bg-red-50 text-red-700 border border-red-200/60',
   PENDING:      'bg-gray-100 text-gray-600 border border-gray-200/60',
   SUBMITTED:    'bg-jax-teal/10 text-jax-blue border border-jax-teal/20',
+  SHIPPED:      'bg-indigo-50 text-indigo-700 border border-indigo-200/60',
   RELEASED:     'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
   OPEN:         'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
   AWARDED:      'bg-jax-teal/10 text-jax-blue border border-jax-teal/20',
@@ -122,7 +159,9 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: 'Awaiting payment',
+  CREATED: 'Awaiting execution',
+  ACTIVE: 'In fulfillment',
+  SHIPPED: 'In transit',
   UNDER_REVIEW: 'Under review',
   PARTIAL_RELEASED: 'Partial released',
   FULLY_RELEASED: 'Fully released',
@@ -142,19 +181,41 @@ export function Avatar({ name, src, size = 'md', className }: {
   name: string; src?: string; size?: 'sm' | 'md' | 'lg' | 'xl'; className?: string;
 }) {
   const initials = name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+  
+  // Generative color palette for premium industrial feel
+  const getGradient = (n: string) => {
+    const colors = [
+      'from-jax-blue to-jax-dark',
+      'from-jax-teal to-jax-blue',
+      'from-jax-accent to-jax-blue',
+      'from-emerald-600 to-jax-dark',
+      'from-indigo-600 to-jax-blue',
+    ];
+    let hash = 0;
+    for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   const sizes: Record<string, string> = {
     sm: 'h-8 w-8 text-[10px]',
     md: 'h-10 w-10 text-xs',
     lg: 'h-12 w-12 text-sm',
-    xl: 'h-16 w-16 text-lg',
+    xl: 'h-24 w-24 text-2xl',
   };
-  if (src) return <img src={src} alt={name} className={clsx('rounded-xl object-cover ring-2 ring-white', sizes[size], className)} />;
+
+  if (src) return (
+    <div className={clsx('rounded-2xl overflow-hidden ring-4 ring-white shadow-xl flex-shrink-0', sizes[size], className)}>
+       <img src={src} alt={name} className="h-full w-full object-cover" />
+    </div>
+  );
+
   return (
     <div className={clsx(
-      'rounded-xl bg-jax-teal/10 text-jax-blue font-heading font-bold flex items-center justify-center flex-shrink-0 border border-jax-teal/20',
+      'rounded-2xl flex items-center justify-center flex-shrink-0 text-white font-heading font-black tracking-tighter shadow-lg bg-gradient-to-br transition-all duration-500',
+      getGradient(name),
       sizes[size], className
     )}>
-      {initials}
+       <span className="leading-none select-none">{initials}</span>
     </div>
   );
 }
@@ -166,7 +227,7 @@ export function Spinner({ className }: { className?: string }) {
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 export function Card({ children, className, onClick, padding = true, variant = 'white' }: {
-  children: React.ReactNode; className?: string; onClick?: () => void; padding?: boolean; variant?: 'white' | 'dark' | 'glass';
+  children?: React.ReactNode; className?: string; onClick?: () => void; padding?: boolean; variant?: 'white' | 'dark' | 'glass';
 }) {
   return (
     <div
@@ -275,18 +336,24 @@ export function Select({ label, options, error, className, ...props }: SelectPro
 }
 
 // ── StatCard ──────────────────────────────────────────────────────────────────
-export function StatCard({ label, value, sub, icon, trend }: {
-  label: string; value: string | number; sub?: string; icon?: React.ReactNode; trend?: string;
+export function StatCard({ label, value, sub, icon, trend, variant = 'default' }: {
+  label: string; value: string | number; sub?: string; icon?: React.ReactNode; trend?: string; variant?: 'default' | 'warning' | 'danger';
 }) {
+  const themes: Record<string, string> = {
+    default: 'text-jax-dark',
+    warning: 'text-amber-500',
+    danger: 'text-red-500',
+  };
+
   return (
     <Card className="relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity group-hover:scale-110 duration-500">
+      <div className={clsx("absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity group-hover:scale-110 duration-500", themes[variant])}>
         {icon}
       </div>
       <div className="flex flex-col">
         <p className="text-xs font-heading font-bold text-gray-500 uppercase tracking-widest leading-none mb-3">{label}</p>
         <div className="flex items-baseline gap-2">
-          {value && <p className="text-3xl font-heading font-black text-jax-dark tracking-tighter">{value}</p>}
+          {value && <p className={clsx("text-3xl font-heading font-black tracking-tighter", themes[variant])}>{value}</p>}
           {trend && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase tracking-wider">{trend}</span>}
         </div>
         {sub && <p className="text-[11px] text-jax-blue/80 font-medium mt-2">{sub}</p>}

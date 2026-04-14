@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* JaxMart Brand Tokens - Professional B2B */
+    --jax-dark: #0A1921;     /* Deeper industrial navy */
+    --jax-blue: #164E63;     /* Corporate cyan-blue */
+    --jax-teal: #0D9488;     /* Direct Teal */
+    --jax-accent: #06B6D4;   /* High-impact industrial cyan */
+    --jax-light: #F8FAFB;    /* Ultra-clean background */
+
+    /* Semantic */
+    --success: #059669;
+    --warning: #D97706;
+    --error: #DC2626;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--jax-light);
+    color: var(--jax-dark);
+    font-family: var(--font-source), 'Source Sans 3', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: rgba(29, 84, 109, 0.15);
+    color: #061E29;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1D546D30;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1D546D50;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl border border-gray-200/60 p-5 transition-all duration-300 shadow-sm;
+  }
+  .card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    @apply border-jax-blue/10;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
+           focus:outline-none focus:border-transparent
+           placeholder:text-gray-400 transition-all duration-150;
+    font-family: var(--font-source), 'Source Sans 3', system-ui, sans-serif;
+    box-shadow: none;
+  }
+  .input-field:focus {
+    border-color: var(--jax-blue);
+    box-shadow: 0 0 0 2px rgba(29, 84, 109, 0.15);
+  }
+
+  .label {
+    display: block;
+    font-size: 11px;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold tracking-wide;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--jax-dark);
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-offset-2 focus:ring-offset-white;
+    --tw-ring-color: rgba(29, 84, 109, 0.2);
+  }
+  .focus-ring:focus {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(29, 84, 109, 0.2);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .font-heading {
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+  }
+  .font-body {
+    font-family: var(--font-source), 'Source Sans 3', system-ui, sans-serif;
+  }
+
+  .bg-jax-accent { background-color: var(--jax-accent); }
+  .text-jax-accent { color: var(--jax-accent); }
+  .border-jax-accent { border-color: var(--jax-accent); }
+
+  .b2b-gradient {
+    @apply bg-gradient-to-br from-[#164E63] to-[#0A1921];
+  }
+
+  .industrial-shadow {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.1);
+  }
+}

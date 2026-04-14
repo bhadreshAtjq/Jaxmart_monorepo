@@ -66,11 +66,28 @@ app.get('/ping', (req, res) => {
 // Deep health check (DB + Redis)
 app.get('/health', async (req, res) => {
   try {
+    // Primary signal check
     await prisma.$queryRaw`SELECT 1`;
-    await redis.ping();
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    
+    // Cache signal (Optional)
+    let redisStatus = 'degraded';
+    try {
+      const ping = await redis.ping();
+      if (ping === 'PONG') redisStatus = 'ok';
+    } catch {
+      // Redis offline - platform remains functional
+    }
+
+    res.json({ 
+      status: 'ok', 
+      services: {
+        database: 'ok',
+        cache: redisStatus
+      },
+      timestamp: new Date().toISOString() 
+    });
   } catch (err) {
-    res.status(503).json({ status: 'error', message: err.message });
+    res.status(503).json({ status: 'error', database: 'down', message: err.message });
   }
 });
 

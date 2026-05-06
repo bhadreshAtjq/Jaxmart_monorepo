@@ -226,11 +226,12 @@ export function Spinner({ className }: { className?: string }) {
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-export function Card({ children, className, onClick, padding = true, variant = 'white' }: {
-  children?: React.ReactNode; className?: string; onClick?: () => void; padding?: boolean; variant?: 'white' | 'dark' | 'glass';
+export function Card({ id, children, className, onClick, padding = true, variant = 'white' }: {
+  id?: string; children?: React.ReactNode; className?: string; onClick?: () => void; padding?: boolean; variant?: 'white' | 'dark' | 'glass';
 }) {
   return (
     <div
+      id={id}
       onClick={onClick}
       className={clsx(
         'rounded-2xl border transition-all duration-300',
@@ -285,9 +286,10 @@ export function Input({ label, error, hint, icon, className, ...props }: InputPr
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
+  hint?: string;
 }
 
-export function Textarea({ label, error, className, ...props }: TextareaProps) {
+export function Textarea({ label, error, hint, className, ...props }: TextareaProps) {
   return (
     <div className="w-full">
       {label && <label className="label">{label}</label>}
@@ -300,6 +302,7 @@ export function Textarea({ label, error, className, ...props }: TextareaProps) {
         {...props}
       />
       {error && <p className="mt-1.5 text-xs text-red-600 font-medium">{error}</p>}
+      {hint && !error && <p className="mt-1.5 text-xs text-gray-500">{hint}</p>}
     </div>
   );
 }

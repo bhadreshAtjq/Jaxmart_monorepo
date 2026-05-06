@@ -88,7 +88,7 @@ export default function RfqPostPage() {
     });
 
     // Combine and deduplicate
-    const combined = [...new Set([...keywordMatches, ...nameMatches])].slice(0, 5);
+    const combined = Array.from(new Set([...keywordMatches, ...nameMatches])).slice(0, 5);
     setSuggestedCategories(combined);
   }, [form.title, categories]);
 

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { 
@@ -17,6 +17,14 @@ import { motion } from 'framer-motion';
 type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<ListingCardSkeleton />}>
+      <SearchPageContent />
+    </Suspense>
+  );
+}
+
+function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

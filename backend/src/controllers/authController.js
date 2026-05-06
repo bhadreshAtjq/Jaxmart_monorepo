@@ -136,6 +136,8 @@ const verifyOtp = async (req, res) => {
         accountType: user.accountType,
         kycStatus: user.kycStatus,
         trustScore: user.trustScore,
+        isAdmin: user.isAdmin,
+        hasSeenTour: user.hasSeenTour,
       },
     });
   } catch (err) {

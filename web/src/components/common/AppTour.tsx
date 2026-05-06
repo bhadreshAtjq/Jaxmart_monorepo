@@ -5,15 +5,20 @@ import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useAuthStore } from '@/lib/store';
 
+import { userApi } from '@/lib/api';
+
 export function AppTour() {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const pathname = usePathname();
 
   useEffect(() => {
     // Determine if we should show the tour
+    if (!user || user.hasSeenTour) return;
+
+    // We can still use localStorage as a fallback or for specific page tours if needed,
+    // but the primary check is now the database.
     const tourKey = pathname === '/profile' ? `tour_profile_seen_${user?.id}` : `tour_main_seen_${user?.id}`;
-    const hasSeenTour = localStorage.getItem(tourKey);
-    if (hasSeenTour || !user) return;
+    if (localStorage.getItem(tourKey)) return;
 
     const baseSteps: DriveStep[] = [
       { 
@@ -92,8 +97,14 @@ export function AppTour() {
       animate: true,
       popoverClass: 'jaxmart-tour-popover',
       steps: steps,
-      onDestroyed: () => {
+      onDestroyed: async () => {
         localStorage.setItem(tourKey, 'true');
+        try {
+          await userApi.update({ hasSeenTour: true });
+          updateUser({ hasSeenTour: true });
+        } catch (err) {
+          console.error('Failed to update tour status in DB:', err);
+        }
       }
     });
 
@@ -102,7 +113,7 @@ export function AppTour() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [user, pathname]);
+  }, [user, pathname, updateUser]);
 
   return null;
 }

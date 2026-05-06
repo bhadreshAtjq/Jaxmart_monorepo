@@ -12,6 +12,7 @@ export interface User {
   kycStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'UNDER_REVIEW';
   trustScore: number;
   avatarUrl?: string;
+  hasSeenTour: boolean;
   isAdmin: boolean;
 }
 

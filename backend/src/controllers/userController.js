@@ -22,13 +22,14 @@ const getMe = async (req, res) => {
 // PUT /api/users/profile
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, accountType, userType, businessName, gstNumber } = req.body;
+    const { fullName, email, accountType, userType, businessName, gstNumber, hasSeenTour } = req.body;
 
     const data = {
       fullName,
       email,
       accountType,
       userType,
+      hasSeenTour: hasSeenTour !== undefined ? hasSeenTour : undefined,
     };
 
     // If business details provided, create or update business profile
@@ -65,6 +66,7 @@ const updateProfile = async (req, res) => {
         kycStatus: user.kycStatus,
         trustScore: user.trustScore,
         businessProfile: user.businessProfile,
+        hasSeenTour: user.hasSeenTour,
       },
     });
   } catch (err) {

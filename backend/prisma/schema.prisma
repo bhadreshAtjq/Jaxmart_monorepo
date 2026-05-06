@@ -152,6 +152,7 @@ model User {
   isAdmin     Boolean     @default(false)
   avatarUrl   String?
   fcmToken    String?
+  hasSeenTour Boolean     @default(false)
   language    String      @default("en")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

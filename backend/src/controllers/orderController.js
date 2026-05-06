@@ -220,6 +220,9 @@ const approveMilestone = async (req, res) => {
           data: { escrowStatus: 'PARTIAL_RELEASED' },
         });
       }
+    }, {
+      maxWait: 5000,
+      timeout: 15000
     });
 
     await sendNotification({

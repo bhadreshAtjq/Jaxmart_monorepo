@@ -59,8 +59,21 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Basic process health check
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'online', 
+    message: 'Jaxmart API is running',
+    documentation: '/api-docs (if available)',
+    health: '/health'
+  });
+});
+
 app.get('/ping', (req, res) => {
   res.json({ status: 'alive', message: 'Server is running' });
+});
+
+app.get('/api', (req, res) => {
+  res.json({ status: 'api_active', version: '1.0.0' });
 });
 
 // Deep health check (DB + Redis)

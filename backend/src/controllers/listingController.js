@@ -299,15 +299,31 @@ const bulkCreateListings = async (req, res) => {
                   unitOfMeasure: l.unitOfMeasure || 'pcs',
                   minOrderQty: l.minOrderQty || 1,
                   pricePerUnit: l.pricePerUnit,
-                  priceOnRequest: l.priceOnRequest || false,
                   stockAvailable: l.stockAvailable !== false,
                   leadTimeDays: l.leadTimeDays,
                 },
               },
             }),
+            ...(l.listingType.toUpperCase() === 'SERVICE' && {
+              serviceDetail: {
+                create: {
+                  serviceMode: l.serviceMode || 'REMOTE',
+                  providerType: l.providerType || 'BUSINESS',
+                  typicalDuration: l.typicalDuration,
+                },
+              },
+            }),
+            media: {
+              create: (l.images || []).map((url, i) => ({
+                url: url,
+                mediaType: 'IMAGE',
+                isPrimary: i === 0,
+              })),
+            },
           },
         })
-      )
+      ),
+      { timeout: 30000 }
     );
 
     res.status(201).json({ count: results.length });

@@ -297,6 +297,9 @@ const awardQuote = async (req, res) => {
       await tx.rfqRequest.update({ where: { id: rfqId }, data: { status: 'AWARDED' } });
 
       return newOrder;
+    }, {
+      maxWait: 5000,
+      timeout: 20000
     });
 
     // Notify seller

@@ -29,21 +29,44 @@ const uploadRoutes = require('./routes/upload');
 const app = express();
 const httpServer = createServer(app);
 
+// Security & CORS Configuration
+const allowedOrigins = [
+  process.env.WEB_URL,
+  'https://jaxmart.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+].filter(Boolean);
+
 // Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: [process.env.WEB_URL, process.env.ADMIN_URL],
+    origin: allowedOrigins,
     credentials: true,
   },
 });
 socketHandler(io);
 app.set('io', io);
 
-// Security
-app.use(helmet());
 app.use(cors({
-  origin: [process.env.WEB_URL, process.env.ADMIN_URL, 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS blocked for origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
 }));
 
 // Rate limiting
@@ -60,8 +83,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Basic process health check
 app.get('/', (req, res) => {
-  res.json({ 
-    status: 'online', 
+  res.json({
+    status: 'online',
     message: 'Jaxmart API is running',
     documentation: '/api-docs (if available)',
     health: '/health'
@@ -81,7 +104,7 @@ app.get('/health', async (req, res) => {
   try {
     // Primary signal check
     await prisma.$queryRaw`SELECT 1`;
-    
+
     // Cache signal (Optional)
     let redisStatus = 'degraded';
     try {
@@ -91,13 +114,13 @@ app.get('/health', async (req, res) => {
       // Redis offline - platform remains functional
     }
 
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       services: {
         database: 'ok',
         cache: redisStatus
       },
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     });
   } catch (err) {
     res.status(503).json({ status: 'error', database: 'down', message: err.message });

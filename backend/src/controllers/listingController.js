@@ -143,6 +143,8 @@ const createListing = async (req, res) => {
       // Service-specific
       serviceMode, serviceArea, capacitySlots, typicalDuration,
       skillsTags, languages, certifications,
+      // Media
+      images, // array of { url, isPrimary }
     } = req.body;
 
     const listing = await prisma.listing.create({
@@ -175,6 +177,15 @@ const createListing = async (req, res) => {
               languages: languages || ['English'],
               certifications: certifications || [],
             },
+          },
+        }),
+        ...(images && images.length > 0 && {
+          media: {
+            create: images.map((img, i) => ({
+              url: img.url,
+              mediaType: 'IMAGE',
+              isPrimary: img.isPrimary || i === 0,
+            })),
           },
         }),
       },

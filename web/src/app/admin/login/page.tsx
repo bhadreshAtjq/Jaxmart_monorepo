@@ -37,11 +37,12 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleGateVerify = async () => {
-    if (otp.length !== 6) return;
+  const handleGateVerify = async (val?: string) => {
+    const otpToVerify = val || otp;
+    if (otpToVerify.length !== 6) return;
     setLoading(true);
     try {
-      const { data } = await authApi.verifyOtp(phone, otp);
+      const { data } = await authApi.verifyOtp(phone, otpToVerify);
       if (!data.user.isAdmin) {
         toast.error('Unauthorized Access: Administrative Credentials Not Detected');
         return;
@@ -126,7 +127,7 @@ export default function AdminLoginPage() {
                       onChange={e => {
                         const val = e.target.value.replace(/\D/g, '');
                         setOtp(val);
-                        if (val.length === 6) handleGateVerify();
+                        if (val.length === 6) handleGateVerify(val);
                       }}
                       className="w-full bg-black/40 border border-white/10 rounded-2xl h-16 text-center text-3xl text-jax-accent font-black tracking-[0.5em] focus:ring-2 ring-jax-accent/20 outline-none transition-all placeholder:text-white/5"
                       placeholder="000000"

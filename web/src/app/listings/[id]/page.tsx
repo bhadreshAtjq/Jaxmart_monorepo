@@ -10,6 +10,7 @@ import {
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useListing } from '@/lib/hooks';
 import { rfqApi } from '@/lib/api';
+import { useAuthStore } from '@/lib/store';
 import { Button, Card, Badge, Avatar, TrustScore, Container, Skeleton } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
@@ -22,6 +23,8 @@ export default function ListingDetailPage() {
   const [quickQuoteOpen, setQuickQuoteOpen] = useState(false);
 
   const { data: listing, isLoading, error } = useListing(id as string);
+  const { user } = useAuthStore();
+  const isOwner = user?.id === listing?.sellerId;
 
   if (isLoading) return <ListingSkeleton />;
   
@@ -154,11 +157,15 @@ export default function ListingDetailPage() {
             <div className="flex flex-col gap-3">
               <Button 
                 size="lg" 
-                className="h-16 text-sm font-black uppercase tracking-widest shadow-2xl shadow-jax-blue/20" 
+                disabled={isOwner}
+                className={clsx(
+                   "h-16 text-sm font-black uppercase tracking-widest",
+                   isOwner ? "bg-gray-100 text-gray-400 shadow-none cursor-not-allowed" : "shadow-2xl shadow-jax-blue/20"
+                )}
                 icon={<FaBolt className="h-4 w-4" />} 
                 onClick={() => setQuickQuoteOpen(true)}
               >
-                Initiate Instant Quote
+                {isOwner ? 'Ownership Console' : 'Initiate Instant Quote'}
               </Button>
               <div className="grid grid-cols-2 gap-3">
                  <Button variant="outline" className="h-12 text-[10px] uppercase font-black tracking-widest border-gray-200">Contact Factory</Button>

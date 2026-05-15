@@ -5,6 +5,8 @@ import { FaArrowRight, FaSpinner } from 'react-icons/fa6';
 import { authApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,11 +21,23 @@ export default function LoginPage() {
   useEffect(() => { if (isLoggedIn) router.replace('/home'); }, [isLoggedIn]);
 
   useEffect(() => {
+    // Detect country based on IP
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.country_code) setCountry(data.country_code.toLowerCase());
+      })
+      .catch(() => {});
+  }, []);
+
+  const [country, setCountry] = useState('in');
+
+  useEffect(() => {
     if (countdown > 0) { const t = setTimeout(() => setCountdown(c => c - 1), 1000); return () => clearTimeout(t); }
   }, [countdown]);
 
   const handleSendOtp = async () => {
-    if (!/^[6-9]\d{9}$/.test(phone)) { toast.error('Enter a valid 10-digit Indian mobile number'); return; }
+    if (phone.length < 7) { toast.error('Enter a valid mobile number'); return; }
     setLoading(true);
     try {
       await authApi.sendOtp(phone);
@@ -113,23 +127,33 @@ export default function LoginPage() {
               <>
                 <h2 className="text-xl font-heading font-bold text-jax-dark mb-1">Sign in or create account</h2>
                 <p className="text-sm text-gray-400 mb-8">Enter your mobile number to continue</p>
-                <div className="mb-6">
-                  <label className="label">Mobile number</label>
-                  <div className="flex gap-2">
-                    <div className="flex items-center px-3.5 bg-jax-light border border-gray-200 rounded-xl text-sm font-heading font-semibold text-jax-dark">+91</div>
-                    <input
-                      type="tel" maxLength={10} value={phone}
-                      onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                      onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
-                      placeholder="9876543210"
-                      className="input-field flex-1"
-                      autoFocus
-                    />
-                  </div>
+                <div className="mb-8 phone-input-container">
+                  <label className="label mb-3 block">Mobile number</label>
+                  <PhoneInput
+                    country={country}
+                    value={phone}
+                    onChange={val => setPhone(val)}
+                    containerClass="!w-full"
+                    inputClass="!w-full !h-14 !bg-jax-light !border-gray-200 !rounded-xl !text-sm !font-heading !font-semibold !text-jax-dark !pl-16 focus:!ring-2 focus:!ring-jax-blue/20"
+                    buttonClass="!bg-jax-light !border-gray-200 !rounded-l-xl !w-12 !flex !justify-center"
+                    dropdownClass="!rounded-xl !shadow-2xl !border-gray-100 !mt-2"
+                    enableSearch={true}
+                    searchPlaceholder="Search country..."
+                  />
                 </div>
+                <style jsx global>{`
+                  .phone-input-container .react-tel-input .flag-dropdown:hover,
+                  .phone-input-container .react-tel-input .flag-dropdown.open {
+                    background-color: #f8fafc !important;
+                  }
+                  .phone-input-container .react-tel-input .selected-flag {
+                    width: 48px !important;
+                    padding: 0 0 0 12px !important;
+                  }
+                `}</style>
                 <button
                   onClick={handleSendOtp}
-                  disabled={loading || phone.length !== 10}
+                  disabled={loading || phone.length < 7}
                   className="w-full flex items-center justify-center gap-2.5 bg-jax-blue text-white font-heading font-semibold rounded-xl py-3.5 hover:bg-jax-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-btn"
                 >
                   {loading ? <FaSpinner className="h-4 w-4 animate-spin" /> : <><span>Get OTP</span><FaArrowRight className="h-3.5 w-3.5" /></>}

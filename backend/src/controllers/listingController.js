@@ -1,6 +1,7 @@
 const { prisma } = require('../config/database');
 const { cacheGet, cacheSet, cacheDel, CACHE_TTL } = require('../config/redis');
 const { logger } = require('../utils/logger');
+const { signListingMedia, cleanS3Url } = require('../utils/s3');
 
 // GET /api/listings/search
 const searchListings = async (req, res) => {
@@ -71,8 +72,10 @@ const searchListings = async (req, res) => {
       prisma.listing.count({ where }),
     ]);
 
+    const signedListings = await Promise.all(listings.map(l => signListingMedia(l)));
+
     res.json({
-      listings,
+      listings: signedListings,
       pagination: {
         page: parseInt(page),
         limit: take,
@@ -93,7 +96,10 @@ const getListing = async (req, res) => {
 
     const cacheKey = `listing:${id}`;
     const cached = await cacheGet(cacheKey);
-    if (cached) return res.json(cached);
+    if (cached) {
+      const signedListing = await signListingMedia(cached);
+      return res.json(signedListing);
+    }
 
     const listing = await prisma.listing.findUnique({
       where: { id },
@@ -124,7 +130,8 @@ const getListing = async (req, res) => {
     }).catch(() => {});
 
     await cacheSet(cacheKey, listing, CACHE_TTL.MEDIUM);
-    res.json(listing);
+    const signedListing = await signListingMedia(listing);
+    res.json(signedListing);
   } catch (err) {
     logger.error('getListing error:', err);
     res.status(500).json({ error: 'Failed to fetch listing' });
@@ -155,7 +162,7 @@ const createListing = async (req, res) => {
         description,
         categoryId,
         tags: tags || [],
-        status: 'DRAFT',
+        status: 'ACTIVE',
         ...(listingType.toUpperCase() === 'PRODUCT' && {
           productDetail: {
             create: {
@@ -182,7 +189,7 @@ const createListing = async (req, res) => {
         ...(images && images.length > 0 && {
           media: {
             create: images.map((img, i) => ({
-              url: img.url,
+              url: cleanS3Url(img.url),
               mediaType: 'IMAGE',
               isPrimary: img.isPrimary || i === 0,
             })),
@@ -251,7 +258,8 @@ const getMyListings = async (req, res) => {
       prisma.listing.count({ where }),
     ]);
 
-    res.json({ listings, total, page: parseInt(page) });
+    const signedListings = await Promise.all(listings.map(l => signListingMedia(l)));
+    res.json({ listings: signedListings, total, page: parseInt(page) });
   } catch (err) {
     logger.error('getMyListings error:', err);
     res.status(500).json({ error: 'Failed to fetch listings' });

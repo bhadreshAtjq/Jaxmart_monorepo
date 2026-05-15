@@ -538,3 +538,276 @@
 {"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-07 12:42:20"}
 {"level":"info","message":"Socket connected: b939d309-6352-4863-835f-fda507bc6274","service":"b2b-platform-backend","timestamp":"2026-05-07 12:42:21"}
 {"level":"info","message":"Socket disconnected: b939d309-6352-4863-835f-fda507bc6274","service":"b2b-platform-backend","timestamp":"2026-05-07 13:36:12"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:03:35"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:03:36"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:03:38"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:13"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:13"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:15"}
+{"level":"info","message":"DEV OTP for 9998882221: 984092 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:44"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:46"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:04:49"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:06:28"}
+{"level":"info","message":"DEV OTP for 9998882221: 247329 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:07:06"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:07:08"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:07:12"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:07:50"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:07:51"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findUnique. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:13:17"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:16:02"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:16:02"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:16:04"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:16:05"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:17:49"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:17:49"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:17:51"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:17:52"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:17:58"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:18:09"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:18:09"}
+{"level":"info","message":"DEV OTP for 9998882221: 338803 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:19:23"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:19:27"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:19:56"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:19:56"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:19:58"}
+{"level":"info","message":"DEV OTP for 9998882221: 404268 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:21:42"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:21:46"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:21:48"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:23:36"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:23:36"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:23:38"}
+{"0":"C","1":"a","10":"h","100":" ","101":"i","102":"s","103":" ","104":"r","105":"u","106":"n","107":"n","108":"i","109":"n","11":" ","110":"g","111":" ","112":"a","113":"t","114":" ","115":"`","116":"t","117":"r","118":"o","119":"l","12":"d","120":"l","121":"e","122":"y","123":".","124":"p","125":"r","126":"o","127":"x","128":"y","129":".","13":"a","130":"r","131":"l","132":"w","133":"y","134":".","135":"n","136":"e","137":"t","138":":","139":"4","14":"t","140":"3","141":"6","142":"1","143":"1","144":"`","145":".","15":"a","16":"b","17":"a","18":"s","19":"e","2":"n","20":" ","21":"s","22":"e","23":"r","24":"v","25":"e","26":"r","27":" ","28":"a","29":"t","3":"'","30":" ","31":"`","32":"t","33":"r","34":"o","35":"l","36":"l","37":"e","38":"y","39":".","4":"t","40":"p","41":"r","42":"o","43":"x","44":"y","45":".","46":"r","47":"l","48":"w","49":"y","5":" ","50":".","51":"n","52":"e","53":"t","54":":","55":"4","56":"3","57":"6","58":"1","59":"1","6":"r","60":"`","61":"\n","62":"\n","63":"P","64":"l","65":"e","66":"a","67":"s","68":"e","69":" ","7":"e","70":"m","71":"a","72":"k","73":"e","74":" ","75":"s","76":"u","77":"r","78":"e","79":" ","8":"a","80":"y","81":"o","82":"u","83":"r","84":" ","85":"d","86":"a","87":"t","88":"a","89":"b","9":"c","90":"a","91":"s","92":"e","93":" ","94":"s","95":"e","96":"r","97":"v","98":"e","99":"r","level":"error","message":"Database: Handshake 1 failed:","service":"b2b-platform-backend","timestamp":"2026-05-15 13:23:41"}
+{"clientVersion":"5.22.0","level":"error","message":"getCategories error: \nInvalid `prisma.category.findMany()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/categoryController.js:7:46\n\n  4 const getCategories = async (req, res) => {\n  5   try {\n  6     const { parentId } = req.query;\n→ 7     const categories = await prisma.category.findMany(\nCan't reach database server at `trolley.proxy.rlwy.net:43611`\n\nPlease make sure your database server is running at `trolley.proxy.rlwy.net:43611`.","name":"PrismaClientInitializationError","service":"b2b-platform-backend","stack":"PrismaClientInitializationError: \nInvalid `prisma.category.findMany()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/categoryController.js:7:46\n\n  4 const getCategories = async (req, res) => {\n  5   try {\n  6     const { parentId } = req.query;\n→ 7     const categories = await prisma.category.findMany(\nCan't reach database server at `trolley.proxy.rlwy.net:43611`\n\nPlease make sure your database server is running at `trolley.proxy.rlwy.net:43611`.\n    at $n.handleRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:7615)\n    at $n.handleAndLogRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6623)\n    at $n.request (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6307)\n    at async Array.$allOperations (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/config/database.js:18:18)\n    at async l (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:130:9633)\n    at async getCategories (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/categoryController.js:7:24)","timestamp":"2026-05-15 13:23:41"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:23:44"}
+{"level":"info","message":"DEV OTP for 9998882221: 231529 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:24:02"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:24:04"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:24:06"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:08"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:08"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:08"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:09"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:10"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:20"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:20"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:20"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:21"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:27:22"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:04"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:04"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:05"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:06"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:07"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:52"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:52"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:52"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:53"}
+{"0":"C","1":"a","10":"h","100":" ","101":"i","102":"s","103":" ","104":"r","105":"u","106":"n","107":"n","108":"i","109":"n","11":" ","110":"g","111":" ","112":"a","113":"t","114":" ","115":"`","116":"t","117":"r","118":"o","119":"l","12":"d","120":"l","121":"e","122":"y","123":".","124":"p","125":"r","126":"o","127":"x","128":"y","129":".","13":"a","130":"r","131":"l","132":"w","133":"y","134":".","135":"n","136":"e","137":"t","138":":","139":"4","14":"t","140":"3","141":"6","142":"1","143":"1","144":"`","145":".","15":"a","16":"b","17":"a","18":"s","19":"e","2":"n","20":" ","21":"s","22":"e","23":"r","24":"v","25":"e","26":"r","27":" ","28":"a","29":"t","3":"'","30":" ","31":"`","32":"t","33":"r","34":"o","35":"l","36":"l","37":"e","38":"y","39":".","4":"t","40":"p","41":"r","42":"o","43":"x","44":"y","45":".","46":"r","47":"l","48":"w","49":"y","5":" ","50":".","51":"n","52":"e","53":"t","54":":","55":"4","56":"3","57":"6","58":"1","59":"1","6":"r","60":"`","61":"\n","62":"\n","63":"P","64":"l","65":"e","66":"a","67":"s","68":"e","69":" ","7":"e","70":"m","71":"a","72":"k","73":"e","74":" ","75":"s","76":"u","77":"r","78":"e","79":" ","8":"a","80":"y","81":"o","82":"u","83":"r","84":" ","85":"d","86":"a","87":"t","88":"a","89":"b","9":"c","90":"a","91":"s","92":"e","93":" ","94":"s","95":"e","96":"r","97":"v","98":"e","99":"r","level":"error","message":"Database: Handshake 1 failed:","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:57"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:58"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:28:58"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:00"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:00"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:05"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:05"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:07"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:08"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:14"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:14"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:16"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:17"}
+{"level":"info","message":"DEV OTP for 9998882221: 196943 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:18"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:20"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:29:22"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:12"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:12"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:13"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:14"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:14"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:43"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:43"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:46"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:46"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:47"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:32:54"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findUnique. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:33:02"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:05"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:05"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:06"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:07"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:27"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:27"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:29"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:30"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:44"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during count. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:44"}
+{"level":"info","message":"DEV OTP for 9998882221: 194411 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:48"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:50"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:35:52"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during count. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:46"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:46"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:53"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:53"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:54"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:37:55"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 13:38:13"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 13:38:13"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:38:14"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 13:38:15"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 13:38:35"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:15"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:15"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:19"}
+{"level":"info","message":"DEV OTP for 9998882221: 893151 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:36"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:38"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:40"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:33:42"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:35:44"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:35:44"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:35:46"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:36:06"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:36:06"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:36:09"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:37:50"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:37:50"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:37:53"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:37:57"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:37:57"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:38:00"}
+{"level":"error","message":"ReferenceError: logger is not defined\n    at uploadMultiple (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/uploadController.js:42:3)\n    at Layer.handle [as handle_request] (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/express/lib/router/route.js:149:13)\n    at /home/bhadresh/Desktop/jaxmart_monorepo/backend/src/routes/upload.js:23:5\n    at done (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/multer/lib/make-middleware.js:47:7)\n    at indicateDone (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/multer/lib/make-middleware.js:51:68)\n    at /home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/multer/lib/make-middleware.js:157:11\n    at /home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/multer-s3/index.js:225:7\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","service":"b2b-platform-backend","timestamp":"2026-05-15 14:38:30"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:38:48"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:38:48"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:38:51"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:39:21"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.storageapi.dev/compact-gyoza-ufcdjppjpqk/uploads/0762d460-8e1d-441b-8cb0-f7553ab8417f.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:39:21"}
+{"clientVersion":"5.22.0","code":"P2003","level":"error","message":"createListing error: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`","meta":{"field_name":"listings_categoryId_fkey (index)","modelName":"Listing"},"name":"PrismaClientKnownRequestError","service":"b2b-platform-backend","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`\n    at $n.handleRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:7315)\n    at $n.handleAndLogRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6623)\n    at $n.request (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6307)\n    at async Array.$allOperations (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/config/database.js:18:18)\n    at async l (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:130:9633)\n    at async createListing (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:21)","timestamp":"2026-05-15 14:39:34"}
+{"clientVersion":"5.22.0","code":"P2003","level":"error","message":"createListing error: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`","meta":{"field_name":"listings_categoryId_fkey (index)","modelName":"Listing"},"name":"PrismaClientKnownRequestError","service":"b2b-platform-backend","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`\n    at $n.handleRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:7315)\n    at $n.handleAndLogRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6623)\n    at $n.request (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6307)\n    at async Array.$allOperations (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/config/database.js:18:18)\n    at async l (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:130:9633)\n    at async createListing (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:21)","timestamp":"2026-05-15 14:39:37"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:39:48"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.storageapi.dev/compact-gyoza-ufcdjppjpqk/uploads/a66b2e49-e513-4ffb-926f-7ff0806f92cf.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:39:48"}
+{"clientVersion":"5.22.0","code":"P2003","level":"error","message":"createListing error: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`","meta":{"field_name":"listings_categoryId_fkey (index)","modelName":"Listing"},"name":"PrismaClientKnownRequestError","service":"b2b-platform-backend","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.listing.create()` invocation in\n/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:42\n\n  147   images, // array of { url, isPrimary }\n  148 } = req.body;\n  149 \n→ 150 const listing = await prisma.listing.create(\nForeign key constraint violated: `listings_categoryId_fkey (index)`\n    at $n.handleRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:7315)\n    at $n.handleAndLogRequestError (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6623)\n    at $n.request (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:121:6307)\n    at async Array.$allOperations (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/config/database.js:18:18)\n    at async l (/home/bhadresh/Desktop/jaxmart_monorepo/backend/node_modules/@prisma/client/runtime/library.js:130:9633)\n    at async createListing (/home/bhadresh/Desktop/jaxmart_monorepo/backend/src/controllers/listingController.js:150:21)","timestamp":"2026-05-15 14:39:52"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:19"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:19"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:21"}
+{"level":"info","message":"DEV OTP for 9998882221: 847330 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:37"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:40"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:41:41"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:42:16"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.storageapi.dev/compact-gyoza-ufcdjppjpqk/uploads/bd62640b-cb38-4dee-851e-74e525f6262d.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:42:16"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:42:52"}
+{"level":"info","message":"DEV OTP for 9998882221: 526091 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 14:43:08"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 14:43:10"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:43:11"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:48:13"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:48:13"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:48:14"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:48:15"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:18"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:18"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:20"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:21"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:27"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:27"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:28"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:50:29"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:51:20"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:51:20"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:51:21"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:51:22"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 14:51:25"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:56:47"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://compact-gyoza-ufcdjppjpqk.t3.storageapi.dev/uploads/38e4bf2b-94d5-40cf-9eb7-bc1ff3608733.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:56:47"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:09"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:09"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:12"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:47"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:47"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:49"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:56"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.storageapi.dev/compact-gyoza-ufcdjppjpqk/uploads/4e284d7c-6dad-4138-92f3-c904db38940f.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:57:56"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:00"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:00"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:02"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:08"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.tigrisfiles.io/compact-gyoza-ufcdjppjpqk/uploads/bef8d976-4ac1-4f01-b415-4a58843d6136.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:08"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:13"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:13"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:15"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:21"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:21"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:23"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:54"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.tigrisfiles.io/compact-gyoza-ufcdjppjpqk/uploads/e39e302c-b91b-435e-9194-d4abcfed18ab.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:58:54"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 14:59:35"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.tigrisfiles.io/compact-gyoza-ufcdjppjpqk/uploads/28707877-f409-493a-88e6-a15510e1bee0.png","service":"b2b-platform-backend","timestamp":"2026-05-15 14:59:35"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 15:01:34"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.tigrisfiles.io/compact-gyoza-ufcdjppjpqk/uploads/7f6d4df9-327c-4cb4-a055-f563c60772ad.png","service":"b2b-platform-backend","timestamp":"2026-05-15 15:01:34"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 15:05:24"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files. First URL: https://t3.tigrisfiles.io/compact-gyoza-ufcdjppjpqk/uploads/1d46ed30-d195-4ea5-be3b-8f4c34dca47f.png","service":"b2b-platform-backend","timestamp":"2026-05-15 15:05:24"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:07:49"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:07:49"}
+{"0":"C","1":"a","10":"h","100":" ","101":"i","102":"s","103":" ","104":"r","105":"u","106":"n","107":"n","108":"i","109":"n","11":" ","110":"g","111":" ","112":"a","113":"t","114":" ","115":"`","116":"t","117":"r","118":"o","119":"l","12":"d","120":"l","121":"e","122":"y","123":".","124":"p","125":"r","126":"o","127":"x","128":"y","129":".","13":"a","130":"r","131":"l","132":"w","133":"y","134":".","135":"n","136":"e","137":"t","138":":","139":"4","14":"t","140":"3","141":"6","142":"1","143":"1","144":"`","145":".","15":"a","16":"b","17":"a","18":"s","19":"e","2":"n","20":" ","21":"s","22":"e","23":"r","24":"v","25":"e","26":"r","27":" ","28":"a","29":"t","3":"'","30":" ","31":"`","32":"t","33":"r","34":"o","35":"l","36":"l","37":"e","38":"y","39":".","4":"t","40":"p","41":"r","42":"o","43":"x","44":"y","45":".","46":"r","47":"l","48":"w","49":"y","5":" ","50":".","51":"n","52":"e","53":"t","54":":","55":"4","56":"3","57":"6","58":"1","59":"1","6":"r","60":"`","61":"\n","62":"\n","63":"P","64":"l","65":"e","66":"a","67":"s","68":"e","69":" ","7":"e","70":"m","71":"a","72":"k","73":"e","74":" ","75":"s","76":"u","77":"r","78":"e","79":" ","8":"a","80":"y","81":"o","82":"u","83":"r","84":" ","85":"d","86":"a","87":"t","88":"a","89":"b","9":"c","90":"a","91":"s","92":"e","93":" ","94":"s","95":"e","96":"r","97":"v","98":"e","99":"r","level":"error","message":"Database: Handshake 1 failed:","service":"b2b-platform-backend","timestamp":"2026-05-15 15:07:54"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:07:57"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:28"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:28"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:30"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:51"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:51"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:10:54"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:00"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:00"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:02"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:08"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:08"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:10"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:15"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:15"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:18"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:23"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:23"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:26"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:33"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:33"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:36"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:58"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:11:58"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:12:00"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 15:12:42"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files with signed URLs","service":"b2b-platform-backend","timestamp":"2026-05-15 15:12:42"}
+{"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-15 15:32:55"}
+{"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files with signed URLs","service":"b2b-platform-backend","timestamp":"2026-05-15 15:32:55"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:37:38"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:37:38"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:37:40"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:00"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:00"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:02"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:24"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:24"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:26"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:56"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:56"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:38:59"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:33"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:33"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:35"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:40"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:40"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:42"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:47"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:47"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 15:39:49"}
+{"level":"info","message":"RFQ 068f8dbd-2528-49d7-8567-7470d22960fc: Notified 1 matched providers","service":"b2b-platform-backend","timestamp":"2026-05-15 15:43:08"}
+{"level":"info","message":"DEV OTP for 9998887776: 535765 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 15:43:37"}
+{"level":"debug","message":"Verify OTP attempt: 9998887776, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 15:43:40"}
+{"level":"info","message":"Socket connected: ad5c721c-1d4f-4f31-bef3-43b24a7b2f20","service":"b2b-platform-backend","timestamp":"2026-05-15 15:43:42"}
+{"level":"info","message":"DEV OTP for 9998882221: 196442 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 15:45:48"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 15:45:51"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 15:45:53"}
+{"level":"info","message":"DEV OTP for 9998882221: 166764 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 16:13:07"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 16:13:10"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 16:13:12"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-15 16:13:27"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-15 16:16:10"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-15 16:16:10"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-15 16:16:12"}
+{"level":"info","message":"DEV OTP for 919998882221: 432691 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-15 16:18:24"}
+{"level":"debug","message":"Verify OTP attempt: 919998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-15 16:18:27"}
+{"level":"info","message":"Socket connected: 8cfe7a40-dffd-4b2e-a52a-94434fa14cda","service":"b2b-platform-backend","timestamp":"2026-05-15 16:18:29"}

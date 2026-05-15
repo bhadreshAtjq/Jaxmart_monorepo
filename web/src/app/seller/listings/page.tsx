@@ -142,7 +142,7 @@ export default function SellerListingsPage() {
                         <td className="px-8 py-6">
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => router.push(`/listings/${l.id}`)} className="h-9 w-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-jax-blue hover:bg-jax-blue/5 transition-all"><FaArrowUpRightFromSquare className="h-4 w-4" /></button>
-                            <button className="h-9 w-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-jax-accent hover:bg-jax-accent/5 transition-all"><FaPenToSquare className="h-4 w-4" /></button>
+                            <button onClick={() => router.push(`/seller/listings/${l.id}/edit`)} className="h-9 w-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-jax-accent hover:bg-jax-accent/5 transition-all"><FaPenToSquare className="h-4 w-4" /></button>
                             <button onClick={() => toast.error('Shielded: Cannot delete active inventory')} className="h-9 w-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"><FaTrash className="h-4 w-4" /></button>
                           </div>
                         </td>

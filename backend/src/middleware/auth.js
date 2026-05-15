@@ -34,9 +34,20 @@ const authenticate = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
+    console.error('[DEBUG] Authentication Error:', err);
+    
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
     }
+    
+    // Handle Prisma/Database errors specifically
+    if (err.code && err.code.startsWith('P')) {
+      return res.status(503).json({ 
+        error: 'Database connection failed. Please try again in a few moments.', 
+        code: 'DATABASE_ERROR' 
+      });
+    }
+
     return res.status(401).json({ error: 'Invalid token' });
   }
 };

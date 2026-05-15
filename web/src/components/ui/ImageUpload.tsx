@@ -33,7 +33,7 @@ export function ImageUpload({ onUpload, maxFiles = 5 }: ImageUploadProps) {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/upload/multiple`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // simple token retrieval
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Corrected token key
         }
       });
       

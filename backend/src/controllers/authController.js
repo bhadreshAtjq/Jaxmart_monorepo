@@ -29,7 +29,7 @@ const generateOtp = async (phone) => {
 const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
-    if (!phone || !/^[6-9]\d{9}$/.test(phone)) {
+    if (!phone || !/^\d{7,15}$/.test(phone)) {
       return res.status(400).json({ error: 'Invalid phone number' });
     }
 

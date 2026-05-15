@@ -3,6 +3,22 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting seeding...');
+  
+  // 0. Create Admin User
+  const adminPhone = '9998882221';
+  const admin = await prisma.user.upsert({
+    where: { phone: adminPhone },
+    update: { isAdmin: true },
+    create: {
+      phone: adminPhone,
+      fullName: 'System Admin',
+      email: 'admin@jaxmart.com',
+      isAdmin: true,
+      userType: 'BOTH',
+      kycStatus: 'VERIFIED',
+    }
+  });
+  console.log('✅ Admin user created/updated');
 
   // 1. Create Categories
   const categories = [

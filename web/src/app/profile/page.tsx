@@ -12,7 +12,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const { data: user, isLoading, mutate: refetch } = useProfileHook();
 
-  if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
+  if (isLoading || !user) return <AppLayout><PageLoader /></AppLayout>;
 
   return (
     <AppLayout>

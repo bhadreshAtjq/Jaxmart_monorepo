@@ -17,9 +17,8 @@ import {
 } from 'react-icons/fa6';
 import { RequirementGate } from '@/components/common/RequirementGate';
 
-const STEPS = ['Identity & Category', 'Specifications', 'Trade Terms'];
+const STEPS = ['Category & Type', 'Details', 'Shipping & Budget'];
 
-// Keywords mapping for the JaxMart ecosystem
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'electronics': ['solar', 'panel', 'battery', 'wiring', 'chip', 'sensor', 'led', 'camera', 'monitor'],
   'industrial-supplies': ['drill', 'machinery', 'pump', 'valve', 'bearing', 'seal', 'motor', 'compressor'],
@@ -49,16 +48,15 @@ export default function RfqPostPage() {
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
-  // Scoring Logic based on the reference image
   const scoreData = useMemo(() => {
     const checks = [
       { label: 'Product Name', score: 3, met: form.title.length >= 3 },
-      { label: 'Product Category', score: 5, met: !!form.categoryId },
-      { label: 'About Your Product', score: 43, met: form.description.length > 50 },
+      { label: 'Category', score: 5, met: !!form.categoryId },
+      { label: 'Product Details', score: 43, met: form.description.length > 50 },
       { label: 'Sourcing Type', score: 3, met: !!form.rfqType },
-      { label: 'Location Preference', score: 3, met: !!form.locationPreference },
-      { label: 'Preferred Unit Price', score: 3, met: form.hasBudget && !!form.budgetMax },
-      { label: 'Valid To', score: 1, met: !!form.deadline },
+      { label: 'Delivery Location', score: 3, met: !!form.locationPreference },
+      { label: 'Target Price', score: 3, met: form.hasBudget && !!form.budgetMax },
+      { label: 'Valid Until', score: 1, met: !!form.deadline },
     ];
     
     const currentScore = checks.filter(c => c.met).reduce((acc, c) => acc + c.score, 0);
@@ -68,7 +66,6 @@ export default function RfqPostPage() {
     return { checks, percentage };
   }, [form]);
 
-  // Suggested categories logic based on title AND keywords
   useEffect(() => {
     if (form.title.length < 3) {
       setSuggestedCategories([]);
@@ -77,18 +74,15 @@ export default function RfqPostPage() {
     const titleLower = form.title.toLowerCase();
     const keywords = titleLower.split(' ').filter(k => k.length > 2);
     
-    // 1. Direct name matches
     const nameMatches = categories.filter(c => 
       keywords.some(k => c.name.toLowerCase().includes(k))
     );
 
-    // 2. Keyword mapping matches
     const keywordMatches = categories.filter(c => {
       const catKeywords = CATEGORY_KEYWORDS[c.slug] || [];
       return catKeywords.some(kw => titleLower.includes(kw));
     });
 
-    // Combine and deduplicate
     const combined = Array.from(new Set([...keywordMatches, ...nameMatches])).slice(0, 5);
     setSuggestedCategories(combined);
   }, [form.title, categories]);
@@ -108,9 +102,9 @@ export default function RfqPostPage() {
         payload.budgetMax = parseFloat(form.budgetMax) || 0;
       }
       const { data } = await rfqApi.create(payload);
-      toast.success('RFQ posted -- Providers are being notified.');
+      toast.success('Request posted. Sellers are being notified.');
       router.push(`/rfq/${data.id}`);
-    } catch { toast.error('Failed to post RFQ. Please try again.'); }
+    } catch { toast.error('Failed to post request. Please try again.'); }
     finally { setLoading(false); }
   };
 
@@ -129,8 +123,8 @@ export default function RfqPostPage() {
             {/* Main Form Area */}
             <div className="flex-1 w-full max-w-3xl">
               <div className="mb-10">
-                <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-3">Request for Quotation</h1>
-                <p className="text-sm text-gray-400 font-medium italic">Broadcast your requirements to thousands of verified manufacturers.</p>
+                <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-3">Post a Request</h1>
+                <p className="text-sm text-gray-400 font-medium italic">Post your request and get quotes from verified sellers.</p>
               </div>
 
               {/* Progress Header */}
@@ -152,7 +146,6 @@ export default function RfqPostPage() {
               </div>
 
               <Card className="p-10 mb-8 border-gray-100 shadow-xl shadow-gray-100/20 rounded-[32px]">
-                {/* Step 0: Identity & Category */}
                 {step === 0 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div>
@@ -160,13 +153,13 @@ export default function RfqPostPage() {
                       <Input 
                         value={form.title} 
                         onChange={e => set('title', e.target.value)} 
-                        placeholder="e.g. Industrial Rolex Professional Edition Watches"
+                        placeholder="e.g. Stainless steel bolts, cotton yarns..."
                         className="text-lg font-heading font-bold h-16 rounded-2xl border-gray-100 focus:border-jax-blue transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. Select Product Category</label>
+                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. Select Category</label>
                       <Select 
                         value={form.categoryId} 
                         onChange={e => set('categoryId', e.target.value)}
@@ -188,7 +181,7 @@ export default function RfqPostPage() {
                                 className="text-left px-4 py-3 bg-white border border-gray-100 hover:border-jax-blue hover:shadow-sm rounded-xl transition-all group"
                               >
                                 <p className="text-xs font-bold text-jax-dark group-hover:text-jax-blue">{c.name}</p>
-                                <p className="text-[9px] text-gray-400 mt-1 uppercase tracking-tight">Marketplace &gt;&gt; Global Supply</p>
+                                <p className="text-[9px] text-gray-400 mt-1 uppercase tracking-tight">Marketplace &gt;&gt; Products</p>
                               </button>
                             ))}
                           </div>
@@ -197,10 +190,10 @@ export default function RfqPostPage() {
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">3. Sourcing Protocol</label>
+                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">3. What do you need?</label>
                       <div className="grid grid-cols-2 gap-4">
-                        {[{ v: 'PRODUCT', icon: FaCubes, title: 'Product Sourcing', sub: 'Inventory, Raw Materials, components' },
-                          { v: 'SERVICE', icon: FaWrench, title: 'Service Contract', sub: 'Maintenance, Consultation, Logistics' }].map(({ v, icon: Icon, title, sub }) => (
+                        {[{ v: 'PRODUCT', icon: FaCubes, title: 'Products', sub: 'Materials, machinery, parts' },
+                          { v: 'SERVICE', icon: FaWrench, title: 'Services', sub: 'Installation, logistics, support' }].map(({ v, icon: Icon, title, sub }) => (
                           <button key={v} onClick={() => set('rfqType', v)} className={clsx('p-5 rounded-2xl border-2 text-left transition-all duration-300 relative overflow-hidden group', form.rfqType === v ? 'border-jax-blue bg-jax-blue/[0.02]' : 'border-gray-50 hover:border-gray-200')}>
                             <div className={clsx('h-10 w-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110', form.rfqType === v ? 'bg-jax-blue text-white shadow-lg' : 'bg-gray-100 text-gray-400')}>
                               <Icon className="h-4 w-4" />
@@ -215,15 +208,14 @@ export default function RfqPostPage() {
                   </div>
                 )}
 
-                {/* Step 1: Describe Need */}
                 {step === 1 && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">Technical specifications</label>
+                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">Product Details</label>
                       <Textarea 
                         value={form.description} 
                         onChange={e => set('description', e.target.value)} 
-                        placeholder="Enter detailed requirements including quantity, material specs, quality certifications required, and preferred manufacturing process..." 
+                        placeholder="Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms..." 
                         className="min-h-[300px] rounded-2xl border-gray-100 focus:border-jax-blue p-6 leading-relaxed italic"
                         hint={`${form.description.length} chars -- Aim for at least 100 for high quality responses`} 
                       />
@@ -231,12 +223,11 @@ export default function RfqPostPage() {
                   </div>
                 )}
 
-                {/* Step 2: Trade Terms */}
                 {step === 2 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input label="Fulfilment Location" value={form.locationPreference} onChange={e => set('locationPreference', e.target.value)} placeholder="e.g. Mumbai Hub, India" />
-                      <Input label="Desired Delivery" type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                      <Input label="Delivery Location" value={form.locationPreference} onChange={e => set('locationPreference', e.target.value)} placeholder="e.g. Mumbai Hub, India" />
+                      <Input label="Desired Delivery Date" type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} min={new Date().toISOString().split('T')[0]} />
                     </div>
                     
                     <Select label="Partner Verification Tier" value={form.preferredProviderType} onChange={e => set('preferredProviderType', e.target.value)}
@@ -262,7 +253,7 @@ export default function RfqPostPage() {
               <div className="flex gap-4">
                 {step > 0 && (
                   <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1 h-14 rounded-2xl border-gray-200">
-                    Return to Phase {step}
+                    Back
                   </Button>
                 )}
                 <Button 
@@ -271,7 +262,7 @@ export default function RfqPostPage() {
                   loading={loading} 
                   className={clsx("flex-1 h-14 rounded-2xl shadow-lg transition-all", step === 2 ? "bg-jax-blue" : "bg-jax-dark")}
                 >
-                  {step === 2 ? 'Initiate Broadcast' : 'Continue Execution'}
+                  {step === 2 ? 'Post Request' : 'Next'}
                 </Button>
               </div>
             </div>
@@ -284,7 +275,7 @@ export default function RfqPostPage() {
                 </div>
 
                 <div className="relative z-10 text-center mb-10">
-                  <p className="text-[10px] font-black text-jax-blue uppercase tracking-[0.2em] mb-6">Requirement Health Score</p>
+                  <p className="text-[10px] font-black text-jax-blue uppercase tracking-[0.2em] mb-6">Request Quality Score</p>
                   
                   <div className="relative inline-flex items-center justify-center">
                     <svg className="w-40 h-40 transform -rotate-90">
@@ -315,7 +306,7 @@ export default function RfqPostPage() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t border-gray-50">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Precision Audit</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Details Checklist</p>
                   {scoreData.checks.map((check, idx) => (
                     <div key={idx} className="flex items-center justify-between group">
                       <div className="flex items-center gap-3">
@@ -341,9 +332,9 @@ export default function RfqPostPage() {
                 <div className="mt-10 p-5 bg-jax-dark rounded-2xl text-white">
                   <div className="flex items-center gap-3 mb-2">
                     <FaShieldHalved className="text-jax-teal h-4 w-4" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Privacy Protocol</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Safety Guarantee</p>
                   </div>
-                  <p className="text-[9px] text-white/60 leading-relaxed font-medium">Your contact details are protected. Only selected bidders can access your secure profile during negotiation.</p>
+                  <p className="text-[9px] text-white/60 leading-relaxed font-medium">Your contact details are protected. Only selected sellers can access your profile during negotiation.</p>
                 </div>
               </Card>
             </aside>

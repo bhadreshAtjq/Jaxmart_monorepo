@@ -52,10 +52,10 @@ export default function NotificationsPage() {
               <div>
                  <div className="flex items-center gap-2 mb-3">
                     <FaBell className="h-3 w-3 text-jax-accent" />
-                    <span className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Communication Center</span>
+                    <span className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Notifications</span>
                  </div>
-                 <h1 className="text-4xl font-heading font-black text-jax-dark tracking-tighter leading-none mb-2">Internal Alerts</h1>
-                 <p className="text-sm text-gray-500 font-medium">Real-time signal stream for RFQs, orders, and fulfillment updates.</p>
+                 <h1 className="text-4xl font-heading font-black text-jax-dark tracking-tighter leading-none mb-2">Notifications</h1>
+                 <p className="text-sm text-gray-500 font-medium">Real-time notifications for RFQs, orders, and updates.</p>
               </div>
               
               <Button 
@@ -75,8 +75,8 @@ export default function NotificationsPage() {
         {!notifications.length ? (
           <EmptyState 
             icon={<FaBell className="h-12 w-12 text-gray-200" />}
-            title="Clean State Protocol"
-            description="You have no active alerts. New signals from trade partners will appear here in real-time."
+            title="No notifications yet"
+            description="You have no active alerts. New notifications from partners will appear here."
           />
         ) : (
           <div className="space-y-4">
@@ -94,30 +94,30 @@ export default function NotificationsPage() {
                     onClick={() => !notif.isRead && handleMarkRead(notif.id)}
                   >
                     <div className="flex items-start p-6 gap-6">
-                      <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${Config.color}`}>
-                        <Config.icon className="h-5 w-5" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className={`font-heading font-black text-sm uppercase tracking-tight ${!notif.isRead ? 'text-jax-dark' : 'text-gray-500'}`}>
-                            {notif.title}
-                          </h3>
-                          <span className="text-[10px] font-bold text-gray-400">
-                             {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
-                          </span>
-                        </div>
-                        <p className={`text-xs leading-relaxed max-w-2xl ${!notif.isRead ? 'text-gray-600 font-medium' : 'text-gray-400'}`}>
-                          {notif.body}
-                        </p>
-                        
-                        {!notif.isRead && (
-                          <div className="mt-4 flex items-center gap-2">
-                             <div className="h-1.5 w-1.5 rounded-full bg-jax-accent animate-pulse" />
-                             <span className="text-[8px] font-black text-jax-accent uppercase tracking-widest">New Priority Signal</span>
-                          </div>
-                        )}
-                      </div>
+                       <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${Config.color}`}>
+                         <Config.icon className="h-5 w-5" />
+                       </div>
+                       
+                       <div className="flex-1 min-w-0">
+                         <div className="flex items-center justify-between mb-1">
+                           <h3 className={`font-heading font-black text-sm uppercase tracking-tight ${!notif.isRead ? 'text-jax-dark' : 'text-gray-500'}`}>
+                             {notif.title}
+                           </h3>
+                           <span className="text-[10px] font-bold text-gray-400">
+                              {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                           </span>
+                         </div>
+                         <p className={`text-xs leading-relaxed max-w-2xl ${!notif.isRead ? 'text-gray-600 font-medium' : 'text-gray-400'}`}>
+                           {notif.body}
+                         </p>
+                         
+                         {!notif.isRead && (
+                           <div className="mt-4 flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-jax-accent animate-pulse" />
+                              <span className="text-[8px] font-black text-jax-accent uppercase tracking-widest">New</span>
+                           </div>
+                         )}
+                       </div>
                     </div>
                   </Card>
                 </motion.div>

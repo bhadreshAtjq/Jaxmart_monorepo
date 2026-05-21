@@ -67,8 +67,10 @@ export function useListing(id: string | undefined) {
 }
 
 export function useMyListings(params?: Record<string, any>) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    ['/listings/seller/me', params || {}],
+    token ? ['/listings/seller/me', params || {}] : null,
     fetcherWithParams
   );
 }
@@ -76,8 +78,10 @@ export function useMyListings(params?: Record<string, any>) {
 // ─── RFQ ──────────────────────────────────────────────────────────────────────
 
 export function useMyRfqs(status: string) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    ['/rfq/my', { status }],
+    token ? ['/rfq/my', { status }] : null,
     fetcherWithParams,
     {
       refreshInterval: 15_000,  // Poll every 15s for new quotes
@@ -98,8 +102,10 @@ export function useRfq(id: string | undefined) {
 }
 
 export function useRfqInbox(params?: Record<string, any>) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    ['/rfq/seller/inbox', params || {}],
+    token ? ['/rfq/seller/inbox', params || {}] : null,
     fetcherWithParams,
     {
       refreshInterval: 20_000,  // Poll for new RFQ matches
@@ -122,8 +128,10 @@ export function useAwardQuote(rfqId: string, quoteId: string) {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 export function useOrders(role: 'buyer' | 'seller') {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    ['/orders', { role }],
+    token ? ['/orders', { role }] : null,
     fetcherWithParams,
     {
       refreshInterval: 30_000,  // Moderate polling for order updates
@@ -133,7 +141,9 @@ export function useOrders(role: 'buyer' | 'seller') {
 }
 
 export function useOrderCounts() {
-  return useSWR('order-counts', async () => {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(token ? 'order-counts' : null, async () => {
     const [b, s] = await Promise.all([
       api.get('/orders', { params: { role: 'buyer', limit: 1 } }),
       api.get('/orders', { params: { role: 'seller', limit: 1 } }),
@@ -168,7 +178,9 @@ export function useApproveMilestone(orderId: string, milestoneId: string) {
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export function useProfile() {
-  return useSWR('/users/me', fetcher, {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(token ? '/users/me' : null, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
   });
@@ -177,21 +189,27 @@ export function useProfile() {
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 export function useAdminStats() {
-  return useSWR('/admin/analytics', fetcher, {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(token ? '/admin/analytics' : null, fetcher, {
     refreshInterval: 60_000,
   });
 }
 
 export function useAdminUsers(enabled: boolean) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    enabled ? ['/admin/users', { limit: 50 }] : null,
+    token && enabled ? ['/admin/users', { limit: 50 }] : null,
     fetcherWithParams
   );
 }
 
 export function useAdminKycQueue(enabled: boolean) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    enabled ? '/admin/kyc/queue' : null,
+    token && enabled ? '/admin/kyc/queue' : null,
     fetcher
   );
 }

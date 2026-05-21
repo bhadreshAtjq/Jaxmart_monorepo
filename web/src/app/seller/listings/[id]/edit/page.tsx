@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { 
   FaCheck, FaIndustry, FaArrowRight, FaArrowLeft,
   FaFileLines, FaIndianRupeeSign, FaCloudArrowUp,
-  FaCircleCheck, FaBox, FaBolt
+  FaCircleCheck, FaBox, FaBolt, FaPlus
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { listingApi } from '@/lib/api';
@@ -46,6 +46,7 @@ export default function EditListingPage() {
       priceOnRequest: false,
       leadTimeDays: 7,
       countryOfOrigin: 'India',
+      specifications: {} as Record<string, string>,
     },
     serviceDetail: {
       serviceMode: 'REMOTE',
@@ -53,6 +54,10 @@ export default function EditListingPage() {
     },
     images: []
   });
+
+  const [specRows, setSpecRows] = useState<{ key: string, val: string }[]>([
+    { key: '', val: '' }
+  ]);
 
   const { data: categories } = useCategories();
 
@@ -65,13 +70,28 @@ export default function EditListingPage() {
   const fetchListing = async () => {
     try {
       const { data } = await listingApi.get(id);
-      setFormData({
+      
+      const parsedData = {
         ...data,
         listingType: data.listingType,
         productDetail: data.productDetail || formData.productDetail,
         serviceDetail: data.serviceDetail || formData.serviceDetail,
         images: data.media.map((m: any) => ({ url: m.url, isPrimary: m.isPrimary }))
-      });
+      };
+      
+      setFormData(parsedData);
+
+      const specsObj = parsedData.productDetail?.specifications;
+      if (specsObj && typeof specsObj === 'object') {
+        const rows = Object.entries(specsObj).map(([k, v]) => ({
+          key: k,
+          val: String(v)
+        }));
+        setSpecRows(rows.length > 0 ? rows : [{ key: '', val: '' }]);
+      } else {
+        setSpecRows([{ key: '', val: '' }]);
+      }
+
     } catch (err) {
       toast.error('Failed to load listing data');
       router.push('/seller/listings');
@@ -82,6 +102,39 @@ export default function EditListingPage() {
 
   const next = () => setStep(s => Math.min(STEPS.length - 1, s + 1));
   const back = () => setStep(s => Math.max(0, s - 1));
+
+  const addSpecRow = () => {
+    setSpecRows(r => [...r, { key: '', val: '' }]);
+  };
+
+  const removeSpecRow = (index: number) => {
+    const updated = specRows.filter((_, i) => i !== index);
+    setSpecRows(updated);
+    syncSpecRows(updated);
+  };
+
+  const updateSpecRow = (index: number, key: string, val: string) => {
+    const updated = [...specRows];
+    updated[index] = { key, val };
+    setSpecRows(updated);
+    syncSpecRows(updated);
+  };
+
+  const syncSpecRows = (rows: { key: string, val: string }[]) => {
+    const specObj: Record<string, string> = {};
+    rows.forEach(r => {
+      if (r.key.trim()) {
+        specObj[r.key.trim()] = r.val;
+      }
+    });
+    setFormData((d: any) => ({
+      ...d,
+      productDetail: {
+        ...d.productDetail,
+        specifications: specObj
+      }
+    }));
+  };
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -202,6 +255,56 @@ export default function EditListingPage() {
                       </div>
                       <Input label="Brand / Manufacturer" placeholder="Organization name" value={formData.productDetail.brand} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, brand: e.target.value } })} />
                       <Input label="Part Number / SKU" placeholder="Internal registry ID" value={formData.productDetail.sku} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, sku: e.target.value } })} />
+                      
+                      {formData.listingType === 'PRODUCT' && (
+                        <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Key Product Specifications (Custom Attributes)</label>
+                            <button 
+                              type="button" 
+                              onClick={addSpecRow} 
+                              className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
+                            >
+                              <FaPlus className="h-3 w-3" /> Add Row
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {specRows.map((row, idx) => (
+                              <div key={idx} className="flex gap-4 items-center animate-in fade-in duration-300">
+                                <div className="flex-1">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Specification Name (e.g. Material)" 
+                                    value={row.key} 
+                                    onChange={e => updateSpecRow(idx, e.target.value, row.val)}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Value (e.g. Stainless Steel)" 
+                                    value={row.val} 
+                                    onChange={e => updateSpecRow(idx, row.key, e.target.value)}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  />
+                                </div>
+                                {specRows.length > 1 && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => removeSpecRow(idx)}
+                                    className="h-9 w-9 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="md:col-span-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 pl-2">Market Prospectus (Description)</label>
                           <textarea 
@@ -271,7 +374,7 @@ export default function EditListingPage() {
                           {formData.images.map((img: any, i: number) => (
                             <div key={i} className="aspect-square rounded-xl overflow-hidden border border-gray-100 relative group">
                               <img src={img.url} className="w-full h-full object-cover" alt="" />
-                              <button onClick={() => setFormData((d: any) => ({ ...d, images: d.images.filter((_: any, idx: number) => idx !== i) }))} className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><FaCircleCheck className="rotate-45" /></button>
+                              <button onClick={() => setFormData((d: any) => ({ ...d, images: d.images.filter((_: any, idx: number) => idx !== i) }))} className="absolute top-1 right-1 h-5 w-5 bg-red-50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold text-[10px]">✕</button>
                             </div>
                           ))}
                         </div>

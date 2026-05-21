@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   FaFileLines, FaPlus, FaClock, FaCircleCheck, 
-  FaChevronRight, FaMagnifyingGlass, FaFilter,
+  FaChevronRight, FaMagnifyingGlass,
   FaBolt, FaChartLine, FaBoxOpen
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Button, Card, Badge, EmptyState, PageLoader, Container } from '@/components/ui';
+import { Button, Card, Badge, PageLoader, Container } from '@/components/ui';
 import { useMyRfqs } from '@/lib/hooks';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
@@ -38,28 +38,28 @@ export default function RfqListPage() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                  <span className="h-2 w-2 rounded-full bg-jax-accent animate-pulse" />
-                 <span className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Procurement Control Room</span>
+                 <span className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">My Requests</span>
               </div>
-              <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter leading-none mb-2">RFQ Master Console</h1>
-              <p className="text-sm text-gray-500 font-medium">Coordinate your global sourcing requirements and quote pipelines.</p>
+              <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter leading-none mb-2">My Requests</h1>
+              <p className="text-sm text-gray-500 font-medium">Manage your sourcing requests and get quotes from sellers.</p>
             </div>
             
             <div className="flex items-center gap-3">
                <div className="hidden lg:flex items-center gap-8 px-8 py-3 bg-gray-50 rounded-2xl border border-gray-100 mr-4">
                   <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active RFQs</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Your Requests</p>
                     <p className="text-xl font-black text-jax-dark leading-none">{stats.total}</p>
                   </div>
                   <div className="h-8 w-px bg-gray-200" />
                   <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Live Quotes</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Quotes Received</p>
                     <p className="text-xl font-black text-jax-blue leading-none">{stats.quotes}</p>
                   </div>
                </div>
                <Link href="/rfq/create">
-                 <Button className="h-14 px-8 bg-jax-accent text-white border-none shadow-xl shadow-jax-accent/20" icon={<FaPlus />}>
-                    New Requirement
-                 </Button>
+                  <Button className="h-14 px-8 bg-jax-accent text-white border-none shadow-xl shadow-jax-accent/20" icon={<FaPlus />}>
+                     New Request
+                  </Button>
                </Link>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function RfqListPage() {
                  <input 
                    value={search}
                    onChange={e => setSearch(e.target.value)}
-                   placeholder="Search RFQ ID, Title..."
+                   placeholder="Search requests..."
                    className="w-full h-11 bg-white border border-gray-200 rounded-xl pl-11 pr-4 text-xs font-heading font-bold focus:border-jax-accent/30 outline-none shadow-sm"
                  />
               </div>
@@ -102,11 +102,11 @@ export default function RfqListPage() {
                 <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center shadow-sm mb-6">
                    <FaBoxOpen className="h-8 w-8 text-gray-200" />
                 </div>
-                <h3 className="text-lg font-black text-jax-dark mb-2 uppercase tracking-tight">No Active Requirements</h3>
-                <p className="text-xs text-gray-500 max-w-xs mb-8">Launch a new sourcing request to start receiving competitive quotes from verified manufacturers.</p>
+                <h3 className="text-lg font-black text-jax-dark mb-2 uppercase tracking-tight">No Requests Yet</h3>
+                <p className="text-xs text-gray-500 max-w-xs mb-8">Post a new request to start getting quotes from verified sellers.</p>
                 <Link href="/rfq/create">
                   <Button variant="outline" className="border-jax-accent text-jax-accent hover:bg-jax-accent hover:text-white">
-                     Start Sourcing Session
+                     Post a Request
                   </Button>
                 </Link>
               </Card>
@@ -153,7 +153,7 @@ export default function RfqListPage() {
                               </div>
                               <div className="md:mt-auto">
                                  <Button variant="ghost" size="sm" className="w-full justify-between text-jax-blue hover:bg-jax-blue/5">
-                                    Manage Command <FaChevronRight className="h-2.5 w-2.5" />
+                                    View Details <FaChevronRight className="h-2.5 w-2.5" />
                                  </Button>
                               </div>
                            </div>
@@ -170,12 +170,12 @@ export default function RfqListPage() {
           <div className="lg:w-80 shrink-0 space-y-6">
              <Card variant="dark" className="p-6 relative overflow-hidden group">
                 <FaChartLine className="absolute -top-6 -right-6 h-24 w-24 text-white/[0.03] rotate-12" />
-                <h4 className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em] mb-4">Trade Tips</h4>
+                <h4 className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em] mb-4">Tips</h4>
                 <p className="text-xs text-white/70 font-medium mb-6 leading-relaxed">
-                   Detailed RFQs with specific quantity and budget constraints receive up to <strong>40% more</strong> competitive quotes.
+                   Detailed requests with quantities and budgets get up to <strong>40% more</strong> quotes.
                 </p>
                 <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-1">Active Hub Capacity</p>
+                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-1">Sellers Online</p>
                    <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-white">8,204 Suppliers</span>
                       <span className="text-[10px] font-black text-emerald-400">Online</span>
@@ -185,17 +185,17 @@ export default function RfqListPage() {
 
              <div className="p-6 border border-gray-100 rounded-3xl bg-white shadow-sm">
                 <h4 className="text-[10px] font-black text-jax-blue uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <FaCircleCheck /> Quality Assurance
+                   <FaCircleCheck /> Trust & Safety
                 </h4>
                 <div className="space-y-4">
                    <div className="flex items-start gap-4">
                       <div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
                          <FaBolt className="h-3.5 w-3.5 text-jax-accent" />
                       </div>
-                      <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Verified quotes arrive with full factory profiles and KYC status.</p>
+                      <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Quotes come from verified suppliers with full profiles.</p>
                    </div>
                    <button className="w-full py-3 bg-gray-50 rounded-xl text-[9px] font-black text-jax-dark uppercase tracking-[0.2em] hover:bg-gray-100 transition-colors">
-                      Learn About Escrow
+                      How Escrow Works
                    </button>
                 </div>
              </div>

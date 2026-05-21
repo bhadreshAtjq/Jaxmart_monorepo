@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
+import Image from 'next/image';
+
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth, isLoggedIn } = useAuthStore();
@@ -80,10 +82,14 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-jax-dark via-jax-blue/30 to-jax-dark" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="h-10 w-10 rounded-xl bg-jax-teal flex items-center justify-center">
-              <span className="text-white font-heading font-extrabold text-lg">J</span>
-            </div>
-            <span className="font-heading font-bold text-white text-xl tracking-tight">JaxMart</span>
+            <Image
+              src="/JaxMart_bg.png"
+              alt="JaxMart"
+              width={108}
+              height={42}
+              priority
+              className="h-9 w-auto object-contain brightness-0 invert opacity-95"
+            />
           </div>
           <h1 className="text-4xl font-heading font-bold text-white leading-tight mb-4">
             India&apos;s trusted<br />B2B marketplace
@@ -115,10 +121,14 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <div className="inline-flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-jax-teal flex items-center justify-center">
-                <span className="text-white font-heading font-extrabold text-lg">J</span>
-              </div>
-              <span className="font-heading font-bold text-jax-dark text-xl tracking-tight">JaxMart</span>
+              <Image
+                src="/JaxMart_bg.png"
+                alt="JaxMart"
+                width={108}
+                height={42}
+                priority
+                className="h-10 w-auto object-contain"
+              />
             </div>
           </div>
 

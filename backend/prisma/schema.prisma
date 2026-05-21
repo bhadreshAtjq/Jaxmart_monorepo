@@ -333,6 +333,12 @@ model ProductDetail {
   gstRate         Float?
   specifications  Json?
   countryOfOrigin String?
+  supplyAbility   String?
+  deliveryTime    String?
+  packagingDetails String?
+  paymentTerms    String?
+  fobPort         String?
+  smallOrders     String?
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 

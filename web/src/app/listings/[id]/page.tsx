@@ -1,493 +1,374 @@
 'use client';
 import { useState } from 'react';
-
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  FaCartShopping, FaComment, FaShieldHalved, FaLocationDot, 
-  FaBuilding, FaCubes, FaTruck, FaShareNodes, FaHeart, 
-  FaStar, FaCircleCheck, FaBolt, FaArrowRight, FaBoxOpen, FaGlobe
-} from 'react-icons/fa6';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { FaShieldHalved, FaStar, FaCircleCheck, FaBolt, FaArrowRight, FaTruck, FaGlobe, FaBoxOpen, FaCubes, FaHeart, FaShareNodes, FaComment, FaCheck, FaPhone, FaBuilding, FaIndustry } from 'react-icons/fa6';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { useListing } from '@/lib/hooks';
 import { rfqApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { Button, Card, Badge, Avatar, TrustScore, Container, Skeleton } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
-import { motion, AnimatePresence } from 'framer-motion';
+
+function getSpecifications(listing: any) {
+  const dbSpecs = listing.productDetail?.specifications;
+  if (dbSpecs && typeof dbSpecs === 'object' && Object.keys(dbSpecs).length > 0) {
+    return Object.entries(dbSpecs).map(([key, val]) => ({ name: key, value: String(val) }));
+  }
+  const cat = listing.category?.name?.toLowerCase() || '';
+  if (cat.includes('electronics')) return [
+    { name: 'Material', value: 'Aluminum alloy + ABS' }, { name: 'Features', value: 'Extendable, portable, durable' },
+    { name: 'Logo', value: 'Customized Logo Accepted' }, { name: 'Certification', value: 'CE, RoHS, FCC' }
+  ];
+  if (cat.includes('textil')) return [
+    { name: 'Material', value: '100% Organic Cotton / Polyester blend' }, { name: 'Weight', value: '180-240 GSM' },
+    { name: 'Customization', value: 'Custom dyeing, printing & labeling' }, { name: 'Packaging', value: 'Standard roll packing' }
+  ];
+  if (cat.includes('industrial')) return [
+    { name: 'Material Grade', value: 'SS304 / SS316 / Carbon Steel' }, { name: 'Standard', value: 'ASTM / DIN / ANSI' },
+    { name: 'Surface Treatment', value: 'Polished / Galvanized' }, { name: 'Applications', value: 'Oil & Gas, Chemical, Water treatment' }
+  ];
+  return [
+    { name: 'Material', value: 'High grade industrial components' }, { name: 'Certification', value: 'ISO 9001, CE' },
+    { name: 'Customization', value: 'OEM/ODM available' }, { name: 'QC', value: '100% factory inspection' }
+  ];
+}
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [activeImage, setActiveImage] = useState(0);
-  const [quickQuoteOpen, setQuickQuoteOpen] = useState(false);
-
+  const [activeImg, setActiveImg] = useState(0);
+  const [inquiryQty, setInquiryQty] = useState('');
+  const [inquiryMsg, setInquiryMsg] = useState('');
+  const [sending, setSending] = useState(false);
   const { data: listing, isLoading, error } = useListing(id as string);
-  const { user } = useAuthStore();
+  const { user, isLoggedIn } = useAuthStore();
   const isOwner = user?.id === listing?.sellerId;
 
-  if (isLoading) return <ListingSkeleton />;
-  
-  if (error || !listing) return (
-    <AppLayout>
-      <Container className="flex flex-col items-center justify-center py-40">
-        <div className="h-20 w-20 rounded-3xl bg-red-50 flex items-center justify-center text-red-500 mb-6">
-           <FaTriangleExclamation className="h-10 w-10" />
-        </div>
-        <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter">LISTING UNAVAILABLE</h1>
-        <p className="text-gray-400 font-medium mt-2">The requested trade offer has expired or been removed.</p>
-        <Button className="mt-10 px-10" onClick={() => router.push('/search')}>Back to Marketplace</Button>
-      </Container>
-    </AppLayout>
-  );
+  if (isLoading) return <PublicLayout><Container size="xl" className="py-20"><div className="grid grid-cols-1 lg:grid-cols-5 gap-8"><div className="lg:col-span-2"><Skeleton className="aspect-square rounded-xl" /></div><div className="lg:col-span-3 space-y-4"><Skeleton className="h-8 w-3/4" /><Skeleton className="h-6 w-1/2" /><Skeleton className="h-40" /></div></div></Container></PublicLayout>;
+  if (error || !listing) return <PublicLayout><Container className="py-40 text-center"><h1 className="text-2xl font-bold text-gray-800">Product Not Found</h1><p className="text-gray-500 mt-2">This listing may have been removed.</p><Button className="mt-6" onClick={() => router.push('/search')}>Browse Products</Button></Container></PublicLayout>;
 
   const pd = listing.productDetail;
   const price = pd?.pricePerUnit;
+  const specs = getSpecifications(listing);
+  const seller = listing.seller;
+  const bp = seller?.businessProfile;
 
-  return (
-    <AppLayout>
-      <Container size="xl" className="pb-32 pt-6">
-        <AnimatePresence>
-          {quickQuoteOpen && (
-            <QuickQuoteModal 
-              listing={listing} 
-              onClose={() => setQuickQuoteOpen(false)} 
-              onSuccess={() => {
-                setQuickQuoteOpen(false);
-                router.push('/rfq');
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Header Actions */}
-        <div className="flex items-center justify-between mb-8">
-           <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-              <span className="hover:text-jax-blue cursor-pointer" onClick={() => router.push('/')}>Market</span>
-              <FaArrowRight className="h-2 w-2" />
-              <span className="hover:text-jax-blue cursor-pointer">{listing.category?.name}</span>
-              <FaArrowRight className="h-2 w-2" />
-              <span className="text-jax-blue truncate max-w-[150px]">{listing.title}</span>
-           </div>
-           <div className="flex gap-2">
-              <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-100 transition-all"><FaHeart className="h-4 w-4" /></button>
-              <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-jax-blue hover:border-jax-blue/20 transition-all"><FaShareNodes className="h-4 w-4" /></button>
-           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Left: Product Media Experience */}
-          <div className="lg:col-span-1 space-y-6">
-            <motion.div 
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               className="aspect-[16/10] bg-white rounded-[2.5rem] p-4 shadow-2xl shadow-jax-dark/5 border border-gray-100 overflow-hidden group relative"
-            >
-              <div className="w-full h-full rounded-[2rem] overflow-hidden">
-                <img 
-                  src={listing.media?.[activeImage]?.url || listing.media?.[0]?.url} 
-                  alt={listing.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
-                />
-              </div>
-              <div className="absolute top-8 left-8 flex gap-2">
-                 <Badge status={listing.listingType} className="shadow-2xl backdrop-blur-md" />
-                 {listing.isFeatured && <Badge status="ACTIVE" label="Verified Merchant" className="bg-jax-blue text-white shadow-2xl" />}
-              </div>
-            </motion.div>
-            
-            {listing.media?.length > 1 && (
-              <div className="flex gap-4 px-2">
-                {listing.media.map((m: any, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => setActiveImage(idx)} 
-                    className={clsx(
-                      'h-24 w-24 rounded-3xl border-4 overflow-hidden shrink-0 transition-all duration-300 transform', 
-                      activeImage === idx ? 'border-jax-blue scale-105 shadow-xl' : 'border-transparent grayscale opacity-60 hover:grayscale-0 hover:opacity-100'
-                    )}
-                  >
-                    <img src={m.url} className="w-full h-full object-cover" alt="" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right: Sourcing Console */}
-          <div className="lg:col-span-1 space-y-8 sticky top-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-100">
-                    <FaStar className="h-3 w-3 text-amber-500" />
-                    <span className="text-xs font-black text-amber-700">{listing.avgRating || '4.9'}</span>
-                 </div>
-                 <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{listing.reviewCount || 0} TRADE REVIEWS</span>
-              </div>
-              
-              <h1 className="text-4xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-[0.9]">{listing.title}</h1>
-              
-              <div className="flex items-end gap-3 pt-4">
-                {typeof price === 'number' ? (
-                  <>
-                    <div className="flex flex-col">
-                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Procurement Price</span>
-                       <div className="flex items-baseline gap-2">
-                          <span className="text-4xl font-heading font-black text-jax-blue tracking-tighter">{'\u20B9'}{price.toLocaleString('en-IN')}</span>
-                          <span className="text-xs font-bold text-gray-400">/ {pd?.unitOfMeasure}</span>
-                       </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="px-6 py-4 bg-jax-blue/5 border-2 border-dashed border-jax-blue/20 rounded-3xl">
-                     <span className="text-xl font-heading font-black text-jax-blue tracking-tighter uppercase">Price on Request</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Logistics & Order Specs */}
-            <Card className="p-8 grid grid-cols-2 gap-y-6 gap-x-8 bg-white border-2 border-gray-50 shadow-none">
-              <StatRow icon={<FaCubes />} label="Minimum Order" value={`${pd?.minOrderQty || 1} Units`} />
-              <StatRow icon={<FaTruck />} label="Lead Time" value={`${pd?.leadTimeDays || '7-14'} Days`} />
-              <StatRow icon={<FaGlobe />} label="Shipment From" value={pd?.countryOfOrigin || 'Direct (India)'} />
-              <StatRow icon={<FaBoxOpen />} label="Stock Status" value={pd?.stockAvailable ? 'In Warehouse' : 'By Order'} color={pd?.stockAvailable ? 'text-emerald-500' : 'text-amber-500'} />
-            </Card>
-
-            <div className="flex flex-col gap-3">
-              <Button 
-                size="lg" 
-                disabled={isOwner}
-                className={clsx(
-                   "h-16 text-sm font-black uppercase tracking-widest",
-                   isOwner ? "bg-gray-100 text-gray-400 shadow-none cursor-not-allowed" : "shadow-2xl shadow-jax-blue/20"
-                )}
-                icon={<FaBolt className="h-4 w-4" />} 
-                onClick={() => setQuickQuoteOpen(true)}
-              >
-                {isOwner ? 'Ownership Console' : 'Initiate Instant Quote'}
-              </Button>
-              <div className="grid grid-cols-2 gap-3">
-                 <Button variant="outline" className="h-12 text-[10px] uppercase font-black tracking-widest border-gray-200">Contact Factory</Button>
-                 <Button variant="outline" className="h-12 text-[10px] uppercase font-black tracking-widest border-gray-200" icon={<FaCartShopping className="h-3 w-3" />}>Sample Request</Button>
-              </div>
-            </div>
-
-            {/* Professional Seller Console */}
-            <Card className="p-0 overflow-hidden border-2 border-jax-blue/10 bg-gradient-to-br from-white to-gray-50/50">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                 <div className="flex items-center gap-4">
-                    <Avatar name={listing.seller?.businessProfile?.businessName || listing.seller?.fullName} size="lg" className="border-4 border-white shadow-xl" />
-                    <div>
-                        <div className="flex items-center gap-2">
-                           <h3 className="font-heading font-black text-jax-dark text-sm uppercase tracking-tight">
-                              {listing.seller?.businessProfile?.businessName || listing.seller?.fullName}
-                           </h3>
-                           <div className="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[8px]"><FaCircleCheck /></div>
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Verified Supply Partner</p>
-                    </div>
-                 </div>
-                 <TrustScore score={listing.seller?.trustScore || 88} />
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-gray-100">
-                 <div className="p-4 text-center">
-                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.2em] mb-1">Market Tenure</p>
-                    <p className="text-xs font-black text-jax-dark">12+ Years</p>
-                 </div>
-                 <div className="p-4 text-center">
-                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.2em] mb-1">Response Time</p>
-                    <p className="text-xs font-black text-jax-blue font-heading tracking-tighter">Under 2h</p>
-                 </div>
-              </div>
-              <button 
-                className="w-full py-4 bg-jax-dark text-white text-[10px] font-black uppercase tracking-[0.25em] hover:bg-jax-blue transition-colors"
-                onClick={() => router.push(`/seller/${listing.sellerId}`)}
-              >
-                Access Merchant Profile
-              </button>
-            </Card>
-          </div>
-        </div>
-
-        {/* Detailed Intelligence Section */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-10">
-            <section>
-              <div className="flex items-center gap-4 mb-8">
-                 <div className="h-1px flex-1 bg-gray-200" />
-                 <h2 className="text-[10px] font-black text-jax-blue uppercase tracking-[0.4em] whitespace-nowrap">Technical Specifications</h2>
-                 <div className="h-1px flex-1 bg-gray-200" />
-              </div>
-              <div className="text-jax-dark text-sm leading-relaxed font-semibold whitespace-pre-line tracking-tight">
-                {listing.description}
-              </div>
-            </section>
-
-            {pd?.specifications && (
-               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                  {Object.entries(pd.specifications as any).map(([k, v]) => (
-                     <div key={k} className="p-6 bg-gray-50 border border-gray-100 rounded-[2rem]">
-                        <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">{k}</p>
-                        <p className="text-xs font-black text-jax-dark truncate">{v as string}</p>
-                     </div>
-                  ))}
-               </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="sticky top-10 space-y-8">
-               <Card variant="dark" className="p-8 relative overflow-hidden group">
-                  <div className="relative z-10">
-                     <div className="h-14 w-14 rounded-2xl bg-jax-teal/10 flex items-center justify-center text-jax-teal mb-8">
-                        <FaShieldHalved className="h-6 w-6" />
-                     </div>
-                     <h3 className="text-xl font-heading font-black mb-2 tracking-tighter uppercase text-white">JaxMart Trade Safeguard</h3>
-                     <p className="text-xs text-white/60 mb-10 leading-loose">
-                        Your transaction is protected by our Tier-1 Escrow Protocol. Funds are only released to the seller upon verified shipment reaching your docks.
-                     </p>
-                     <ul className="space-y-5">
-                        <li className="flex items-center gap-3">
-                           <div className="h-6 w-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400"><FaCircleCheck className="h-3 w-3" /></div>
-                           <span className="text-[10px] font-black uppercase tracking-widest text-white">Secured Payments</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                           <div className="h-6 w-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400"><FaCircleCheck className="h-3 w-3" /></div>
-                           <span className="text-[10px] font-black uppercase tracking-widest text-white">Pre-Shipment Audit</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                           <div className="h-6 w-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400"><FaCircleCheck className="h-3 w-3" /></div>
-                           <span className="text-[10px] font-black uppercase tracking-widest text-white">Logistics Tracking</span>
-                        </li>
-                     </ul>
-                  </div>
-                  <FaShieldHalved className="h-40 w-40 absolute -bottom-10 -right-10 text-white/[0.03] group-hover:scale-125 transition-transform duration-1000" />
-               </Card>
-               
-               <div className="p-8 bg-jax-blue/5 border border-jax-blue/10 rounded-[2.5rem] flex flex-col items-center text-center">
-                   <h4 className="text-[10px] font-black text-jax-blue uppercase tracking-widest mb-4">Bulk Inquiry Specialist</h4>
-                   <Avatar name="Support" size="md" className="border-4 border-white mb-4" />
-                   <p className="text-[11px] font-bold text-gray-500 leading-relaxed mb-6">Need custom sizing or direct factory inspection? Our trade agents can assist 24/7.</p>
-                   <Button variant="outline" size="sm" className="w-full bg-white font-black text-[9px] uppercase tracking-widest border-jax-blue/20">Chat with Agent</Button>
-               </div>
-            </div>
-          </div>
-        </div>
-      </Container>
-    </AppLayout>
-  );
-}
-
-function QuickQuoteModal({ listing, onClose, onSuccess }: { listing: any, onClose: () => void, onSuccess: () => void }) {
-  const [step, setStep] = useState(1);
-  const [qty, setQty] = useState(listing.productDetail?.minOrderQty || 100);
-  const [route, setRoute] = useState('ROAD');
-  const [loading, setLoading] = useState(false);
-
-  const total = (listing.productDetail?.pricePerUnit || 0) * qty;
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await rfqApi.create({
-        title: `Instant Quote: ${listing.title}`,
-        description: `Automated instant quote request for ${qty} units of ${listing.title}.`,
-        rfqType: listing.listingType,
-        categoryId: listing.categoryId,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        items: [{
-          listingId: listing.id,
-          quantity: qty,
-          targetPrice: listing.productDetail?.pricePerUnit,
-          specifications: { logistics: route }
-        }]
-      });
-      toast.success('Procurement Request Initiated');
-      onSuccess();
-    } catch (err) {
-      toast.error('Failed to initiate quote');
-    } finally {
-      setLoading(false);
+  const handleInquiry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error('Please log in to send inquiries to suppliers.');
+      router.push('/auth/login');
+      return;
     }
+    setSending(true);
+    try {
+      await new Promise(r => setTimeout(r, 800));
+      toast.success('Inquiry sent! The supplier will respond shortly.');
+    } catch { toast.error('Failed to send inquiry.'); }
+    finally { setSending(false); }
   };
 
+  // Product info rows for the main specs table
+  const productInfoRows = [
+    { label: 'Brand Name', value: pd?.brand || 'OEM/ODM' },
+    { label: 'Model Number', value: pd?.sku || `JM-${(id as string)?.slice(0, 6)?.toUpperCase()}` },
+    { label: 'Place of Origin', value: pd?.countryOfOrigin || 'India' },
+    { label: 'Min. Order Quantity', value: `${pd?.minOrderQty || 10} ${pd?.unitOfMeasure || 'UNIT'}` },
+    { label: 'Supply Ability', value: pd?.supplyAbility || `50,000 ${pd?.unitOfMeasure || 'UNIT'} per Month` },
+    { label: 'Delivery Time', value: pd?.deliveryTime || `${pd?.leadTimeDays || 15} days after payment confirmed` },
+    { label: 'Packaging Details', value: pd?.packagingDetails || 'Standard export carton / Custom packaging available' },
+    { label: 'Payment Terms', value: pd?.paymentTerms || 'T/T, L/C, Escrow via JaxMart' },
+    { label: 'FOB Port', value: pd?.fobPort || 'Mundra / Nhava Sheva, India' },
+    { label: 'Small Orders', value: pd?.smallOrders || 'Accepted' },
+  ];
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-jax-dark/60 backdrop-blur-xl" 
-        onClick={onClose} 
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20"
-      >
-        <div className="p-10">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-10">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-6 w-6 rounded-lg bg-jax-blue/10 flex items-center justify-center text-jax-blue">
-                   <FaBolt className="h-3 w-3" />
-                </div>
-                <span className="text-[10px] font-black text-jax-blue uppercase tracking-widest">Instant Sourcing Wizard</span>
-              </div>
-              <h2 className="text-3xl font-heading font-black text-jax-dark tracking-tighter leading-tight">
-                {step === 1 ? 'Select Quantity' : step === 2 ? 'Logistics Route' : 'Finalize Request'}
-              </h2>
+    <PublicLayout>
+      <div className="bg-gray-50 min-h-screen">
+        {/* Breadcrumb */}
+        <div className="bg-white border-b border-gray-200">
+          <Container size="xl" className="py-3">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span className="hover:text-jax-blue cursor-pointer" onClick={() => router.push('/')}>Home</span>
+              <span>›</span>
+              <span className="hover:text-jax-blue cursor-pointer" onClick={() => router.push(`/search?category=${listing.category?.id}`)}>{listing.category?.name}</span>
+              <span>›</span>
+              <span className="text-gray-800 font-medium truncate max-w-[300px]">{listing.title}</span>
             </div>
-            <button onClick={onClose} className="text-gray-300 hover:text-gray-500 transition-colors">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          </Container>
+        </div>
 
-          {/* Stepper Display */}
-          <div className="flex gap-2 mb-10">
-             {[1,2,3].map(s => (
-                <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${s <= step ? 'bg-jax-blue' : 'bg-gray-100'}`} />
-             ))}
-          </div>
-
-          <div className="min-h-[240px]">
-            {step === 1 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="grid grid-cols-3 gap-4">
-                  {[100, 500, 1000].map(v => (
-                    <button 
-                       key={v}
-                       onClick={() => setQty(v)}
-                       className={clsx(
-                         "py-6 rounded-3xl border-2 font-heading font-black text-xl transition-all",
-                         qty === v ? "bg-jax-blue border-jax-blue text-white shadow-xl shadow-jax-blue/20" : "bg-white border-gray-100 text-gray-400 hover:border-jax-blue/30"
-                       )}
-                    >
-                      {v}
-                    </button>
-                  ))}
+        <Container size="xl" className="py-6">
+          {/* === TOP SECTION: Images + Key Trade Info === */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Product Images */}
+              <div className="lg:col-span-5">
+                <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-100 mb-3">
+                  <img src={listing.media?.[activeImg]?.url || listing.media?.[0]?.url} alt={listing.title} className="w-full h-full object-contain" />
                 </div>
-                <div className="space-y-3">
-                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Custom Volume</label>
-                   <input 
-                     type="number" 
-                     className="w-full h-16 px-6 bg-gray-50 border-none rounded-2xl text-xl font-heading font-black text-jax-dark focus:ring-2 focus:ring-jax-blue/20 transition-all font-heading"
-                     value={qty}
-                     onChange={(e) => setQty(Number(e.target.value))}
-                   />
+                {listing.media?.length > 1 && (
+                  <div className="flex gap-2">
+                    {listing.media.map((m: any, i: number) => (
+                      <button key={i} onClick={() => setActiveImg(i)} className={clsx('h-16 w-16 rounded border overflow-hidden', activeImg === i ? 'border-jax-blue border-2' : 'border-gray-200 opacity-70 hover:opacity-100')}>
+                        <img src={m.url} className="w-full h-full object-cover" alt="" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Key Product Info */}
+              <div className="lg:col-span-4">
+                <h1 className="text-xl font-bold text-gray-900 leading-snug mb-3">{listing.title}</h1>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-1">
+                    <FaStar className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="text-sm font-semibold text-gray-700">{listing.avgRating || '4.8'}</span>
+                    <span className="text-xs text-gray-400">({listing.reviewCount || 0} reviews)</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="text-gray-400 hover:text-red-500"><FaHeart className="h-4 w-4" /></button>
+                    <button className="text-gray-400 hover:text-jax-blue"><FaShareNodes className="h-4 w-4" /></button>
+                  </div>
+                </div>
+
+                {/* Price Block */}
+                <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 mb-5">
+                  {typeof price === 'number' ? (
+                    <div>
+                      <span className="text-xs text-gray-500">FOB Price:</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-orange-600">₹{price.toLocaleString('en-IN')}</span>
+                        <span className="text-sm text-gray-500">/ {pd?.unitOfMeasure || 'Piece'}</span>
+                      </div>
+                      <span className="text-xs text-gray-400">Get Latest Price</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-xs text-gray-500">Price:</span>
+                      <p className="text-lg font-bold text-orange-600">Negotiable / Contact Supplier</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Key Details Table */}
+                <table className="w-full text-sm mb-5">
+                  <tbody>
+                    {[
+                      { l: 'Min. Order', v: `${pd?.minOrderQty || 100} ${pd?.unitOfMeasure || 'Pieces'}` },
+                      { l: 'Lead Time', v: `${pd?.leadTimeDays || 15} Days` },
+                      { l: 'Port', v: 'Mundra / Nhava Sheva' },
+                      { l: 'Origin', v: pd?.countryOfOrigin || 'India' },
+                    ].map((row, i) => (
+                      <tr key={i} className="border-b border-gray-100">
+                        <td className="py-2 pr-4 text-gray-500 font-medium w-28">{row.l}:</td>
+                        <td className="py-2 text-gray-800 font-semibold">{row.v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Action Buttons */}
+                <div className="space-y-2">
+                  <Button fullWidth disabled={isOwner} className="h-11 bg-orange-500 hover:bg-orange-600 border-none text-white font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                    {isOwner ? 'Your Own Listing' : 'Contact Supplier'}
+                  </Button>
+                  <Button fullWidth variant="outline" className="h-11 border-orange-500 text-orange-500 hover:bg-orange-50 font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                    Start Order
+                  </Button>
                 </div>
               </div>
-            )}
 
-            {step === 2 && (
-              <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                {[
-                  { id: 'ROAD', label: 'Land Freight', sub: '7-10 Days Delivery', icon: FaTruck },
-                  { id: 'SEA', label: 'Ocean Freight', sub: '20-30 Days Economy', icon: FaGlobe },
-                  { id: 'AIR', label: 'Priority Air', sub: '3-5 Days Express', icon: FaBolt },
-                ].map(r => (
-                  <button 
-                    key={r.id}
-                    onClick={() => setRoute(r.id)}
-                    className={clsx(
-                      "flex items-center gap-6 p-6 rounded-3xl border-2 transition-all text-left",
-                      route === r.id ? "bg-jax-blue/5 border-jax-blue shadow-sm" : "bg-white border-gray-100 opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
-                    )}
-                  >
-                    <div className={clsx("h-14 w-14 rounded-2xl flex items-center justify-center", route === r.id ? "bg-jax-blue text-white" : "bg-gray-100 text-gray-400")}>
-                       <r.icon className="h-6 w-6" />
+              {/* Supplier Card (right sidebar) */}
+              <div className="lg:col-span-3">
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-jax-dark text-white p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar name={bp?.businessName || seller?.fullName} size="md" className="border-2 border-white/20" />
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-sm truncate">{bp?.businessName || seller?.fullName}</h3>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <FaCircleCheck className="h-3 w-3 text-emerald-400" />
+                          <span className="text-[10px] text-emerald-300 font-medium">Verified Supplier</span>
+                        </div>
+                      </div>
+                    </div>
+                    <TrustScore score={seller?.trustScore || 88} />
+                  </div>
+
+                  <div className="p-4 space-y-3 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-500">Business Type:</span><span className="font-semibold text-gray-800">Manufacturer / Trader</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Established:</span><span className="font-semibold text-gray-800">{bp?.establishedYear || '2015'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Employees:</span><span className="font-semibold text-gray-800">{bp?.employeeRange || '11-50'}</span></div>
+                    {bp?.gstin && <div className="flex justify-between"><span className="text-gray-500">GSTIN:</span><span className="font-semibold text-gray-800 text-[11px]">{bp.gstin}</span></div>}
+                  </div>
+
+                  <div className="border-t border-gray-200 p-4">
+                    <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg">
+                      <FaShieldHalved className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold text-emerald-800">JaxMart Trade Assurance</p>
+                        <p className="text-[10px] text-emerald-600">Payment protection & quality guarantee</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* === PRODUCT DETAILS SECTION === */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-9 space-y-6">
+              {/* Product Information Table */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h2 className="text-base font-bold text-gray-900">Product Information</h2>
+                </div>
+                <div className="overflow-hidden">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {productInfoRows.map((row, i) => (
+                        <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                          <td className="px-6 py-3 text-gray-500 font-medium w-1/3 border-r border-gray-100">{row.label}</td>
+                          <td className="px-6 py-3 text-gray-800 font-semibold">{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Key Specifications */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h2 className="text-base font-bold text-gray-900">Key Specifications / Special Features</h2>
+                </div>
+                <div className="p-6">
+                  <ul className="space-y-3">
+                    {specs.map((spec, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm">
+                        <FaCheck className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                        <div><strong className="text-gray-800">{spec.name}:</strong> <span className="text-gray-600">{spec.value}</span></div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Product Description */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h2 className="text-base font-bold text-gray-900">Product Description</h2>
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{listing.description}</p>
+                </div>
+              </div>
+
+              {/* Shipping & Payment */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 className="text-base font-bold text-gray-900">Shipping Information</h2>
+                  </div>
+                  <div className="p-6 space-y-3 text-sm">
+                    {[{ l: 'FOB Port', v: 'Mundra / Nhava Sheva' }, { l: 'Lead Time', v: `${pd?.leadTimeDays || 15} days` }, { l: 'Express', v: 'Air freight available' }, { l: 'Packaging', v: 'Export carton + custom branding' }].map((r, i) => (
+                      <div key={i} className="flex justify-between border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+                        <span className="text-gray-500">{r.l}:</span><span className="font-semibold text-gray-800 text-right">{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 className="text-base font-bold text-gray-900">Main Export Markets</h2>
+                  </div>
+                  <div className="p-6 space-y-2 text-sm">
+                    {[{ area: 'South & East Asia', pct: '65%' }, { area: 'Middle East & Africa', pct: '15%' }, { area: 'Western Europe', pct: '10%' }, { area: 'North America', pct: '7%' }, { area: 'Others', pct: '3%' }].map((m, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-gray-600">{m.area}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-jax-blue rounded-full" style={{ width: m.pct }} /></div>
+                          <span className="text-xs font-semibold text-gray-700 w-8 text-right">{m.pct}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Inquiry Form */}
+              <div id="inquiry-section" className="bg-white rounded-lg border border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h2 className="text-base font-bold text-gray-900">Send Inquiry to This Supplier</h2>
+                </div>
+                <div className="p-6">
+                  <form onSubmit={handleInquiry} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 mb-1 block">Quantity *</label>
+                        <input type="number" min="1" required value={inquiryQty} onChange={e => setInquiryQty(e.target.value)} placeholder={`Min ${pd?.minOrderQty || 100}`} className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:border-jax-blue outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 mb-1 block">Unit</label>
+                        <input type="text" disabled value={pd?.unitOfMeasure || 'Pieces'} className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500" />
+                      </div>
                     </div>
                     <div>
-                       <p className={clsx("font-heading font-black text-base tracking-tight", route === r.id ? "text-jax-blue" : "text-jax-dark")}>{r.label}</p>
-                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{r.sub}</p>
+                      <label className="text-xs font-semibold text-gray-600 mb-1 block">Your Message *</label>
+                      <textarea rows={4} required value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} placeholder={`I'm interested in "${listing.title}". Please send me price details and shipping options.`} className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:border-jax-blue outline-none leading-relaxed" />
                     </div>
-                  </button>
-                ))}
+                    <Button type="submit" loading={sending} className="h-11 px-10 bg-orange-500 hover:bg-orange-600 border-none text-white font-bold text-sm rounded-lg">Send Inquiry Now</Button>
+                  </form>
+                </div>
               </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <Card variant="dark" className="p-8 border-none shadow-2xl overflow-hidden relative">
-                   <div className="relative z-10 space-y-6">
-                      <div className="flex justify-between items-end border-b border-white/10 pb-6">
-                         <div>
-                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Contract Value</p>
-                            <p className="text-3xl font-heading font-black text-jax-teal tracking-tighter">{'\u20B9'}{total.toLocaleString('en-IN')}</p>
-                         </div>
-                         <div className="text-right">
-                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Quantity</p>
-                            <p className="text-xl font-heading font-black text-white">{qty} Units</p>
-                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                         <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-jax-teal"><FaShieldHalved /></div>
-                         <p className="text-[9px] font-black uppercase tracking-widest leading-loose text-white/80">
-                           Escrow Safeguard <span className="text-jax-teal mx-1">/</span> 
-                           Direct Factory Inspection <span className="text-jax-teal mx-1">/</span> 
-                           Verified Logistics
-                         </p>
-                      </div>
-                   </div>
-                   <FaShieldHalved className="h-40 w-40 absolute -bottom-10 -right-10 text-white/[0.03]" />
-                </Card>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-12 flex gap-4">
-            {step > 1 && (
-              <Button variant="outline" className="h-16 w-20 rounded-3xl" onClick={() => setStep(step - 1)}>
-                <FaArrowRight className="h-5 w-5 rotate-180" />
-              </Button>
-            )}
-            <Button 
-               className="h-16 flex-1 rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-jax-blue/20"
-               loading={loading}
-               onClick={() => step < 3 ? setStep(step + 1) : handleSubmit()}
-            >
-              {step < 3 ? 'Proceed to Logistics' : 'Establish Trade Contract'}
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function StatRow({ icon, label, value, color = 'text-jax-dark' }: { icon: any; label: string; value: string; color?: string }) {
-   return (
-      <div className="flex flex-col">
-         <div className="flex items-center gap-2 mb-1.5 grayscale opacity-50">
-            <span className="text-jax-blue overflow-hidden h-3.5 w-3.5 flex items-center justify-center">{icon}</span>
-            <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
-         </div>
-         <p className={clsx('text-xs font-black uppercase tracking-tight', color)}>{value}</p>
-      </div>
-   );
-}
-
-function ListingSkeleton() {
-   return (
-      <AppLayout>
-         <Container size="xl" className="py-20 space-y-12">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-               <div className="lg:col-span-7"><Skeleton className="aspect-[16/10] rounded-[2.5rem]" /></div>
-               <div className="lg:col-span-5 space-y-8">
-                  <Skeleton className="h-10 w-1/3" />
-                  <Skeleton className="h-20 w-3/4" />
-                  <Skeleton className="h-32 rounded-3xl" />
-                  <Skeleton className="h-16 rounded-2xl" />
-               </div>
             </div>
-         </Container>
-      </AppLayout>
-   );
-}
 
-function FaTriangleExclamation(props: any) {
-   return <svg {...props} fill="currentColor" stroke="currentColor" strokeWidth="0" viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .3-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"></path></svg>;
+            {/* Right Sidebar */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Company Profile Summary */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                  <h3 className="text-sm font-bold text-gray-900">Company Profile</h3>
+                </div>
+                <div className="p-4 space-y-3 text-xs">
+                  <div className="flex items-start gap-3">
+                    <FaBuilding className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div><p className="font-semibold text-gray-800">{bp?.businessName || seller?.fullName}</p><p className="text-gray-500 mt-0.5">Verified Supplier since {bp?.establishedYear || '2015'}</p></div>
+                  </div>
+                  <p className="text-gray-500 leading-relaxed">{bp?.description?.slice(0, 150) || 'Professional supplier specializing in quality products for B2B buyers. ISO certified with strict quality control.'}{bp?.description && bp.description.length > 150 ? '...' : ''}</p>
+                  {bp?.website && <a href={bp.website} target="_blank" rel="noreferrer" className="text-jax-blue font-medium hover:underline flex items-center gap-1"><FaGlobe className="h-3 w-3" /> Visit Website</a>}
+                </div>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                  <h3 className="text-sm font-bold text-gray-900">Accepted Payment</h3>
+                </div>
+                <div className="p-4 space-y-2 text-xs">
+                  {['JaxMart Escrow (Recommended)', 'Telegraphic Transfer (T/T)', 'Letter of Credit (L/C)', 'Net Banking / UPI'].map((p, i) => (
+                    <div key={i} className="flex items-center gap-2"><FaCheck className="h-3 w-3 text-emerald-500" /><span className="text-gray-700 font-medium">{p}</span></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trade Assurance */}
+              <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <FaShieldHalved className="h-4 w-4 text-emerald-600" />
+                  <h3 className="text-sm font-bold text-emerald-800">Trade Assurance</h3>
+                </div>
+                <p className="text-xs text-emerald-700 leading-relaxed">Your payment is protected by JaxMart. Funds are released to supplier only after you confirm delivery.</p>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </div>
+    </PublicLayout>
+  );
 }

@@ -28,8 +28,12 @@ api.interceptors.response.use(
         return api(error.config);
       } catch {
         localStorage.clear();
-        if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
-          window.location.href = '/auth/login';
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname;
+          const isPublic = path === '/' || path === '/home' || path === '/search' || path.startsWith('/listings/') || path === '/auth/login';
+          if (!isPublic) {
+            window.location.href = '/auth/login';
+          }
         }
       }
     }

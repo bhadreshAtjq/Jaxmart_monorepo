@@ -159,12 +159,12 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: 'Awaiting execution',
-  ACTIVE: 'In fulfillment',
-  SHIPPED: 'In transit',
-  UNDER_REVIEW: 'Under review',
-  PARTIAL_RELEASED: 'Partial released',
-  FULLY_RELEASED: 'Fully released',
+  CREATED: 'Processing',
+  ACTIVE: 'Active',
+  SHIPPED: 'Shipped',
+  UNDER_REVIEW: 'Under Review',
+  PARTIAL_RELEASED: 'Partly Released',
+  FULLY_RELEASED: 'Released',
 };
 
 export function Badge({ status, label, className }: { status?: string; label?: string; className?: string }) {
@@ -401,7 +401,7 @@ export function TrustScore({ score }: { score: number }) {
       <div className="h-2 w-16 bg-gray-100 rounded-full overflow-hidden">
         <div className={clsx('h-full rounded-full transition-all duration-1000', color)} style={{ width: `${score}%` }} />
       </div>
-      <span className={clsx('text-[11px] font-heading font-black uppercase tracking-wider', textColor)}>{score}% TRUST</span>
+      <span className={clsx('text-[11px] font-heading font-black uppercase tracking-wider', textColor)}>{score}% Trust</span>
     </div>
   );
 }
@@ -415,7 +415,7 @@ export function PageLoader() {
           <div className="h-12 w-12 rounded-2xl border-4 border-jax-blue/10 animate-pulse" />
           <Spinner className="h-6 w-6 absolute inset-0 m-auto text-jax-blue" />
         </div>
-        <p className="text-[10px] font-heading font-bold text-jax-blue uppercase tracking-[0.2em] animate-pulse">Loading Platform</p>
+        <p className="text-[10px] font-heading font-bold text-jax-blue uppercase tracking-[0.2em] animate-pulse">Loading...</p>
       </div>
     </div>
   );

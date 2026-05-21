@@ -43,6 +43,7 @@ export default function NewListingPage() {
       priceOnRequest: false,
       leadTimeDays: 7,
       countryOfOrigin: 'India',
+      specifications: {} as Record<string, string>,
     },
     serviceDetail: {
       serviceMode: 'REMOTE',
@@ -50,10 +51,47 @@ export default function NewListingPage() {
     }
   });
 
+  const [specRows, setSpecRows] = useState<{ key: string, val: string }[]>([
+    { key: '', val: '' }
+  ]);
+
   const { data: categories } = useCategories();
 
   const next = () => setStep(s => Math.min(STEPS.length - 1, s + 1));
   const back = () => setStep(s => Math.max(0, s - 1));
+
+  const addSpecRow = () => {
+    setSpecRows(r => [...r, { key: '', val: '' }]);
+  };
+
+  const removeSpecRow = (index: number) => {
+    const updated = specRows.filter((_, i) => i !== index);
+    setSpecRows(updated);
+    syncSpecRows(updated);
+  };
+
+  const updateSpecRow = (index: number, key: string, val: string) => {
+    const updated = [...specRows];
+    updated[index] = { key, val };
+    setSpecRows(updated);
+    syncSpecRows(updated);
+  };
+
+  const syncSpecRows = (rows: { key: string, val: string }[]) => {
+    const specObj: Record<string, string> = {};
+    rows.forEach(r => {
+      if (r.key.trim()) {
+        specObj[r.key.trim()] = r.val;
+      }
+    });
+    setFormData(d => ({
+      ...d,
+      productDetail: {
+        ...d.productDetail,
+        specifications: specObj
+      }
+    }));
+  };
 
   const handleCreate = async () => {
     setLoading(true);
@@ -171,6 +209,56 @@ export default function NewListingPage() {
                       </div>
                       <Input label="Brand / Manufacturer" placeholder="Organization name" value={formData.productDetail.brand} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, brand: e.target.value } })} />
                       <Input label="Part Number / SKU" placeholder="Internal registry ID" value={formData.productDetail.sku} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, sku: e.target.value } })} />
+                      
+                      {formData.listingType === 'PRODUCT' && (
+                        <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Key Product Specifications (Custom Attributes)</label>
+                            <button 
+                              type="button" 
+                              onClick={addSpecRow} 
+                              className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
+                            >
+                              <FaPlus className="h-3 w-3" /> Add Row
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {specRows.map((row, idx) => (
+                              <div key={idx} className="flex gap-4 items-center animate-in fade-in duration-300">
+                                <div className="flex-1">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Specification Name (e.g. Material)" 
+                                    value={row.key} 
+                                    onChange={e => updateSpecRow(idx, e.target.value, row.val)}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Value (e.g. Stainless Steel)" 
+                                    value={row.val} 
+                                    onChange={e => updateSpecRow(idx, row.key, e.target.value)}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  />
+                                </div>
+                                {specRows.length > 1 && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => removeSpecRow(idx)}
+                                    className="h-9 w-9 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="md:col-span-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 pl-2">Market Prospectus (Description)</label>
                           <textarea 

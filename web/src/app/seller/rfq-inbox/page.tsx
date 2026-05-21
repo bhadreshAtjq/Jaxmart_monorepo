@@ -40,7 +40,6 @@ export default function SellerRfqInboxPage() {
 
   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
 
-  // Assuming inbox returns { rfqs: [...] } based on the user snippet's use of inbox?.rfqs
   const rfqs = (inbox as any)?.rfqs || [];
 
   return (
@@ -48,8 +47,8 @@ export default function SellerRfqInboxPage() {
       <div className="max-w-6xl mx-auto pb-20 pt-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Sourcing Command</h1>
-            <p className="text-sm text-gray-500 font-medium italic">Active industrial requirements awaiting factory responses.</p>
+            <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Buyer Requests</h1>
+            <p className="text-sm text-gray-500 font-medium italic">Active buyer requests awaiting quotes.</p>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
@@ -70,7 +69,7 @@ export default function SellerRfqInboxPage() {
                   !matchOnly ? "bg-jax-dark text-white shadow-lg" : "text-gray-400 hover:bg-gray-50"
                 )}
               >
-                Global Board
+                All Requests
               </button>
               <button
                 onClick={() => setMatchOnly(true)}
@@ -79,7 +78,7 @@ export default function SellerRfqInboxPage() {
                   matchOnly ? "bg-jax-dark text-white shadow-lg" : "text-gray-400 hover:bg-gray-50"
                 )}
               >
-                My Matches
+                Matched Requests
               </button>
             </div>
           </div>
@@ -90,8 +89,8 @@ export default function SellerRfqInboxPage() {
             icon={<FaInbox className="h-10 w-10 text-gray-300" />}
             title={search ? "No results found" : "Inbox is empty"}
             description={search 
-              ? `We couldn't find any requirements matching "${search}".`
-              : "Requirements matching your categories will appear here."
+              ? `We couldn't find any requests matching "${search}".`
+              : "Requests matching your categories will appear here."
             }
           />
         ) : (
@@ -119,18 +118,18 @@ export default function SellerRfqInboxPage() {
                         {rfq.category?.name}
                       </div>
                       <div className="h-1 w-1 bg-gray-200 rounded-full" />
-                      <span className="label mb-0">{rfq.quotesCount} QUOTES RECEIVED</span>
+                      <span className="label mb-0">{rfq.quotesCount} Quotes Received</span>
                     </div>
                   </div>
                   <div className="flex flex-col justify-between items-end shrink-0">
                     <div className="text-right">
-                      <p className="label mb-0">Budget Range</p>
+                      <p className="label mb-0">Budget</p>
                       <p className="text-lg font-heading font-extrabold text-jax-dark">
                         {'\u20B9'}{rfq.budgetMin?.toLocaleString() || '0'} - {rfq.budgetMax?.toLocaleString() || 'Open'}
                       </p>
                     </div>
                     <Button onClick={() => router.push(`/rfq/${rfq.id}/quote`)} className="mt-4">
-                      Submit Quote <FaArrowRight className="h-3.5 w-3.5 ml-2" />
+                      Send Quote <FaArrowRight className="h-3.5 w-3.5 ml-2" />
                     </Button>
                   </div>
                 </div>

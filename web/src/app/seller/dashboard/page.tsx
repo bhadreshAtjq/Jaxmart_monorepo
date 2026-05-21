@@ -15,26 +15,26 @@ export default function SellerDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto pb-20">
+      <div className="max-w-6xl mx-auto pb-20 pt-12">
         <div className="mb-8">
-          <h1 className="text-xl font-heading font-bold text-jax-dark">
-            Seller Dashboard
+          <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none">
+            Seller Home
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-400 mt-1 font-medium">
             {user?.fullName ? `Welcome back, ${user.fullName.split(' ')[0]}` : 'Manage your store and performance'}
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-10">
-          <StatCard label="Active Listings" value={listings?.listings?.filter((l: any) => l.status === 'ACTIVE').length ?? 0} icon={<FaStore className="h-4 w-4" />} />
-          <StatCard label="Total Listings" value={listings?.total ?? 0} icon={<FaBoxesStacked className="h-4 w-4" />} />
-          <StatCard label="RFQ Matches" value={0} sub="Coming soon" icon={<FaInbox className="h-4 w-4" />} />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+          <StatCard label="Active Products" value={listings?.listings?.filter((l: any) => l.status === 'ACTIVE').length ?? 0} icon={<FaStore className="h-4 w-4" />} />
+          <StatCard label="Total Products" value={listings?.total ?? 0} icon={<FaBoxesStacked className="h-4 w-4" />} />
+          <StatCard label="Buyer Requests" value={0} sub="Coming soon" icon={<FaInbox className="h-4 w-4" />} />
           <StatCard label="Avg Rating" value="4.8" sub="Based on 0 reviews" icon={<FaStar className="h-4 w-4" />} />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           <Card>
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-jax-teal/10 text-jax-blue shrink-0">
@@ -44,7 +44,7 @@ export default function SellerDashboardPage() {
                 <h3 className="font-heading font-bold text-jax-dark text-sm mb-1">Add Product</h3>
                 <p className="text-xs text-gray-400 mb-3">List your products or services on JaxMart</p>
                 <Button size="sm" variant="outline" onClick={() => router.push('/seller/listings')}>
-                  Manage Listings <FaArrowRight className="h-3 w-3 ml-1" />
+                  Manage Products <FaArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </div>
@@ -55,10 +55,10 @@ export default function SellerDashboardPage() {
                 <FaInbox className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-heading font-bold text-jax-dark text-sm mb-1">RFQ Inbox</h3>
+                <h3 className="font-heading font-bold text-jax-dark text-sm mb-1">Buyer Requests</h3>
                 <p className="text-xs text-gray-400 mb-3">View and respond to buyer requirements</p>
                 <Button size="sm" variant="outline" onClick={() => router.push('/seller/rfq-inbox')}>
-                  View Inbox <FaArrowRight className="h-3 w-3 ml-1" />
+                  View Requests <FaArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </div>
@@ -78,16 +78,16 @@ export default function SellerDashboardPage() {
         </div>
 
         {/* Recent Listings */}
-        <SectionHeader title="Recent Listings" action={<Link href="/seller/listings" className="text-sm text-jax-blue font-heading font-semibold">View all</Link>} />
+        <SectionHeader title="Recent Products" action={<Link href="/seller/listings" className="text-sm text-jax-blue font-heading font-semibold">View all</Link>} />
         {listingsLoading ? <PageLoader /> : !(listings?.listings?.length) ? (
           <EmptyState
             icon={<FaStore className="h-10 w-10 text-gray-300" />}
-            title="No listings yet"
+            title="No products listed yet"
             description="Create your first product or service listing to start getting enquiries."
             action={<Button onClick={() => router.push('/seller/listings/new')}>Create Listing</Button>}
           />
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(listings?.listings ?? []).slice(0, 6).map((l: any) => (
               <Card key={l.id} onClick={() => router.push(`/listings/${l.id}`)} className="group" padding={false}>
                 <div className="h-32 bg-gray-100 overflow-hidden">

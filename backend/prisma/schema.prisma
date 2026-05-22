@@ -576,3 +576,18 @@ model Notification {
   @@index([isRead])
   @@map("notifications")
 }
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  date        DateTime @default(now())
+  location    String?
+  mediaUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
+}
+

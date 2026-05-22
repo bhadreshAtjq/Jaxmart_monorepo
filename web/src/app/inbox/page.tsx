@@ -235,7 +235,7 @@ function InboxContent() {
                 placeholder="Search contact or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-3 text-xs outline-none focus:border-orange-500 focus:bg-white transition-colors"
+                className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-3 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
               />
             </div>
 
@@ -260,8 +260,8 @@ function InboxContent() {
                       key={conv.id}
                       onClick={() => setSelectedConv(conv)}
                       className={clsx(
-                        "p-4 cursor-pointer hover:bg-orange-50/20 transition-colors flex gap-3 relative",
-                        isSelected ? "bg-orange-50/40 border-l-4 border-orange-500 pl-3" : "bg-white"
+                        "p-4 cursor-pointer hover:bg-jungle-green-50/20 transition-colors flex gap-3 relative",
+                        isSelected ? "bg-jungle-green-50/40 border-l-4 border-jungle-green-500 pl-3" : "bg-white"
                       )}
                     >
                       <Avatar name={recipient?.fullName || 'B2B Trade'} size="sm" className="rounded-lg shadow-sm shrink-0" />
@@ -286,14 +286,14 @@ function InboxContent() {
 
                         <p className={clsx(
                           "text-xs truncate mt-1.5",
-                          isUnread ? "text-orange-950 font-bold" : "text-gray-500 font-normal"
+                          isUnread ? "text-jungle-green-950 font-bold" : "text-gray-500 font-normal"
                         )}>
                           {conv.latestMessage?.content || 'Click to begin messaging'}
                         </p>
                       </div>
 
                       {isUnread && (
-                        <span className="absolute top-4 right-4 h-2 w-2 rounded-full bg-orange-500" />
+                        <span className="absolute top-4 right-4 h-2 w-2 rounded-full bg-jungle-green-500" />
                       )}
                     </div>
                   );
@@ -327,14 +327,14 @@ function InboxContent() {
                   <div className="flex items-center gap-2">
                     {selectedConv.rfqId && (
                       <Link href={`/rfq/${selectedConv.rfqId}`}>
-                        <button className="h-8 border border-orange-200 text-orange-600 bg-orange-50/50 hover:bg-orange-50 text-[10px] font-bold uppercase tracking-wider px-3 rounded-lg flex items-center gap-1">
+                        <button className="h-8 border border-jungle-green-200 text-jungle-green-600 bg-jungle-green-50/50 hover:bg-jungle-green-50 text-[10px] font-bold uppercase tracking-wider px-3 rounded-lg flex items-center gap-1">
                           <FaFileContract className="h-3.5 w-3.5" /> View RFQ
                         </button>
                       </Link>
                     )}
                     {selectedConv.orderId && (
                       <Link href={`/orders/${selectedConv.orderId}`}>
-                        <button className="h-8 border border-orange-200 text-orange-600 bg-orange-50/50 hover:bg-orange-50 text-[10px] font-bold uppercase tracking-wider px-3 rounded-lg flex items-center gap-1">
+                        <button className="h-8 border border-jungle-green-200 text-jungle-green-600 bg-jungle-green-50/50 hover:bg-jungle-green-50 text-[10px] font-bold uppercase tracking-wider px-3 rounded-lg flex items-center gap-1">
                           <FaBoxesStacked className="h-3.5 w-3.5" /> View Order
                         </button>
                       </Link>
@@ -364,7 +364,7 @@ function InboxContent() {
                             className={clsx(
                               "p-3 rounded-2xl text-xs leading-relaxed shadow-sm",
                               isMe
-                                ? "bg-orange-500 text-white rounded-tr-none"
+                                ? "bg-jungle-green-500 text-white rounded-tr-none"
                                 : "bg-white border border-gray-200 text-gray-800 rounded-tl-none"
                             )}
                           >
@@ -373,7 +373,7 @@ function InboxContent() {
                           <span className="text-[9px] text-gray-400 font-semibold mt-1">
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {isMe && (
-                              <span className={clsx("ml-1 font-bold", msg.isRead ? "text-orange-500" : "text-gray-350")}>
+                              <span className={clsx("ml-1 font-bold", msg.isRead ? "text-jungle-green-500" : "text-gray-350")}>
                                 {msg.isRead ? '• Read' : '• Sent'}
                               </span>
                             )}
@@ -393,7 +393,7 @@ function InboxContent() {
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(undefined, tmpl)}
-                        className="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 border border-gray-200 rounded-lg px-3 py-1.5 text-[10px] text-gray-600 font-semibold whitespace-nowrap transition-all shrink-0"
+                        className="bg-gray-50 hover:bg-jungle-green-50 hover:text-jungle-green-600 border border-gray-200 rounded-lg px-3 py-1.5 text-[10px] text-gray-600 font-semibold whitespace-nowrap transition-all shrink-0"
                       >
                         {tmpl.substring(0, 32)}...
                       </button>
@@ -408,11 +408,11 @@ function InboxContent() {
                     placeholder="Type your message here..."
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    className="flex-1 h-10 border border-gray-200 rounded-xl px-4 text-xs outline-none focus:border-orange-500 focus:bg-gray-50/30 transition-colors"
+                    className="flex-1 h-10 border border-gray-200 rounded-xl px-4 text-xs outline-none focus:border-jungle-green-500 focus:bg-gray-50/30 transition-colors"
                   />
                   <button
                     type="submit"
-                    className="h-10 w-10 bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
+                    className="h-10 w-10 bg-jungle-green-500 hover:bg-jungle-green-600 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
                   >
                     <FaPaperPlane className="h-4 w-4" />
                   </button>
@@ -421,7 +421,7 @@ function InboxContent() {
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50/20">
                 <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-4 border border-gray-100">
-                  <FaComments className="h-8 w-8 text-orange-500" />
+                  <FaComments className="h-8 w-8 text-jungle-green-500" />
                 </div>
                 <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">Message Center</h3>
                 <p className="text-xs text-gray-500 max-w-sm text-center mt-1 leading-relaxed">

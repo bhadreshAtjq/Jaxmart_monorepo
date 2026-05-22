@@ -65,7 +65,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               <>
                 <Link href="/auth/login" className="text-gray-400 hover:text-white transition-colors">Sign In</Link>
                 <span className="text-gray-600">|</span>
-                <Link href="/auth/login" className="text-orange-400 hover:text-orange-300 transition-colors font-semibold">Join Free</Link>
+                <Link href="/auth/login" className="text-jungle-green-400 hover:text-jungle-green-300 transition-colors font-semibold">Join Free</Link>
               </>
             )}
           </div>
@@ -90,14 +90,14 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl">
-              <div className="flex border border-gray-300 rounded-lg overflow-hidden hover:border-orange-400 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-200 transition-all">
+              <div className="flex border border-gray-300 rounded-lg overflow-hidden hover:border-jungle-green-400 focus-within:border-jungle-green-500 focus-within:ring-1 focus-within:ring-jungle-green-200 transition-all">
                 <input
                   value={search} onChange={e => setSearch(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   placeholder="Search products, suppliers, categories..."
                   className="flex-1 h-10 px-4 text-sm outline-none"
                 />
-                <button onClick={handleSearch} className="bg-orange-500 hover:bg-orange-600 text-white px-5 transition-colors">
+                <button onClick={handleSearch} className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white px-5 transition-all duration-300">
                   <FaMagnifyingGlass className="h-4 w-4" />
                 </button>
               </div>
@@ -108,7 +108,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               {NAV_LINKS.map(link => (
                 <Link key={link.href} href={link.href}
                   className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    pathname === link.href || pathname.startsWith(link.href + '/') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    pathname === link.href || pathname.startsWith(link.href + '/') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}>
                   {link.label}
                 </Link>
@@ -117,13 +117,13 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 <>
                   <Link href="/inbox"
                     className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      pathname.startsWith('/inbox') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      pathname.startsWith('/inbox') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     )}>
                     Messages
                   </Link>
                   <Link href="/seller/dashboard"
                     className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      pathname.startsWith('/seller') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      pathname.startsWith('/seller') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     )}>
                     Dashboard
                   </Link>
@@ -134,7 +134,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             {/* Action Buttons */}
             <div className="flex items-center gap-3 shrink-0">
               <Link href="/rfq/create">
-                <button className="hidden md:flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 h-10 rounded-lg transition-colors">
+                <button className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white text-sm font-semibold px-4 h-10 rounded-lg transition-all duration-300 shadow-sm">
                   Post Request
                 </button>
               </Link>
@@ -160,7 +160,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             ))}
             {!showAuth && (
               <Link href="/auth/login" onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-orange-600 bg-orange-50">
+                className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-jungle-green-600 bg-jungle-green-50">
                 Sign In / Register
               </Link>
             )}

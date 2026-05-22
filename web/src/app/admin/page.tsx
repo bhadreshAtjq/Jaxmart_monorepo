@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { 
   FaUsers, FaFileLines, FaTriangleExclamation, FaArrowTrendUp, 
   FaCircleCheck, FaCircleXmark, FaEye, FaChartBar, FaShieldHalved, 
-  FaInbox, FaMagnifyingGlass, FaPlus, FaFilter, FaChevronRight, FaArrowRightLong
+  FaInbox, FaMagnifyingGlass, FaPlus, FaFilter, FaChevronRight, FaArrowRightLong,
+  FaCalendarDays, FaPen, FaTrash
 } from 'react-icons/fa6';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, Badge, Button, Avatar, PageLoader, StatCard, EmptyState, Container, Skeleton, TrustScore } from '@/components/ui';
 import { adminApi } from '@/lib/api';
-import { useAdminStats, useAdminUsers, useAdminKycQueue, revalidate } from '@/lib/hooks';
+import { useAdminStats, useAdminUsers, useAdminKycQueue, useAdminEvents, revalidate } from '@/lib/hooks';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
@@ -20,6 +21,7 @@ const TABS = [
   { id: 'listings', label: 'Inventory Review', icon: FaInbox, color: 'text-jax-teal' },
   { id: 'disputes', label: 'Dispute Center', icon: FaTriangleExclamation, color: 'text-red-500' },
   { id: 'users', label: 'User Directory', icon: FaUsers, color: 'text-jax-dark' },
+  { id: 'events', label: 'Global Events', icon: FaCalendarDays, color: 'text-[#36ADA3]' },
 ];
 
 export default function AdminDashboard() {
@@ -29,6 +31,83 @@ export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: users, isLoading: usersLoading } = useAdminUsers(tab === 'users', userSearch);
   const { data: kycQueue, isLoading: kycLoading } = useAdminKycQueue(tab === 'kyc');
+  const { data: eventsData, isLoading: eventsLoading } = useAdminEvents(tab === 'events');
+  const events = eventsData?.events ?? [];
+
+  // Event modal states
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    date: '',
+    location: '',
+    mediaUrl: '',
+    isActive: true
+  });
+
+  const openCreateModal = () => {
+    setEditingEvent(null);
+    setEventForm({
+      title: '',
+      description: '',
+      date: '',
+      location: '',
+      mediaUrl: '',
+      isActive: true
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const openEditModal = (event: any) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title || '',
+      description: event.description || '',
+      date: event.date ? new Date(event.date).toISOString().substring(0, 16) : '',
+      location: event.location || '',
+      mediaUrl: event.mediaUrl || '',
+      isActive: event.isActive ?? true
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eventForm.title || !eventForm.description) {
+      toast.error('Title and description are required');
+      return;
+    }
+    
+    try {
+      const payload = {
+        ...eventForm,
+        date: eventForm.date ? new Date(eventForm.date).toISOString() : null
+      };
+      if (editingEvent) {
+        await adminApi.updateEvent(editingEvent.id, payload);
+        toast.success('Event updated successfully');
+      } else {
+        await adminApi.createEvent(payload);
+        toast.success('Event created successfully');
+      }
+      setIsEventModalOpen(false);
+      revalidate.admin();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to save event');
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await adminApi.deleteEvent(id);
+      toast.success('Event deleted successfully');
+      revalidate.admin();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to delete event');
+    }
+  };
 
   const handleApprove = async (type: string, id: string) => {
     try {
@@ -264,8 +343,198 @@ export default function AdminDashboard() {
            {tab === 'disputes' && (
               <EmptyState icon={<FaTriangleExclamation className="h-10 w-10 text-red-400" />} title="Peaceful Marketplace" description="No active transaction disputes require moderator intervention." />
            )}
+
+           {tab === 'events' && (
+              <div className="space-y-6">
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 border-b border-gray-100">
+                    <SectionHeader title="Global B2B Events" subtitle="Manage upcoming exhibitions, summits, and sourcing fairs" className="mb-0" />
+                    <Button variant="outline" className="border-jax-teal/20 text-[#36ADA3] hover:bg-jax-teal/10 font-bold uppercase tracking-widest text-[10px] h-10 px-4 flex items-center gap-1.5" onClick={openCreateModal}>
+                       <FaPlus className="h-3 w-3" /> Add New Event
+                    </Button>
+                 </div>
+
+                 {eventsLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <Skeleton className="h-48" />
+                       <Skeleton className="h-48" />
+                    </div>
+                 ) : events.length === 0 ? (
+                    <EmptyState 
+                       icon={<FaCalendarDays className="h-10 w-10 text-[#36ADA3]" />} 
+                       title="No scheduled events" 
+                       description="Start creating events to display in the homepage global events carousel."
+                       action={<Button variant="outline" icon={<FaPlus />} onClick={openCreateModal}>Create First Event</Button>}
+                    />
+                 ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                       {events.map((event: any) => (
+                          <Card key={event.id} className="overflow-hidden flex flex-col justify-between border border-gray-200/60 shadow-sm rounded-2xl group hover:border-jax-teal/30 hover:shadow-md transition-all duration-300">
+                             <div className="relative h-44 w-full bg-gray-100 overflow-hidden">
+                                <img 
+                                   src={event.mediaUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800"} 
+                                   alt={event.title}
+                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 right-3">
+                                   <Badge status={event.isActive ? "ACTIVE" : "DRAFT"} label={event.isActive ? "Active" : "Inactive"} className={event.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-600 border border-gray-200"} />
+                                </div>
+                             </div>
+                             <div className="p-5 flex-1 flex flex-col justify-between">
+                                <div className="space-y-2">
+                                   <span className="text-[9px] font-black text-[#36ADA3] uppercase tracking-widest block font-mono">
+                                      {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'No Date Set'}
+                                   </span>
+                                   <h3 className="text-base font-heading font-black text-jax-dark tracking-tight leading-snug line-clamp-1">{event.title}</h3>
+                                   <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">{event.description}</p>
+                                </div>
+                                
+                                <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-400">
+                                   <span className="truncate max-w-[150px]">📍 {event.location || 'Online'}</span>
+                                   <div className="flex items-center gap-2">
+                                      <button 
+                                         onClick={() => openEditModal(event)}
+                                         className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 flex items-center justify-center hover:bg-jax-teal/10 hover:text-[#36ADA3] hover:border-jax-teal/30 transition-colors"
+                                         title="Edit Event"
+                                      >
+                                         <FaPen className="h-3.5 w-3.5" />
+                                      </button>
+                                      <button 
+                                         onClick={() => handleDeleteEvent(event.id)}
+                                         className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 flex items-center justify-center hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                                         title="Delete Event"
+                                      >
+                                         <FaTrash className="h-3.5 w-3.5" />
+                                      </button>
+                                   </div>
+                                </div>
+                             </div>
+                          </Card>
+                       ))}
+                    </div>
+                 )}
+              </div>
+           )}
         </motion.div>
       </Container>
+
+      {/* EVENT EDIT/CREATE MODAL */}
+      <AnimatePresence>
+        {isEventModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEventModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative bg-white rounded-[2rem] border border-gray-100 shadow-2xl max-w-lg w-full p-8 overflow-hidden z-10"
+            >
+              <div className="mb-6">
+                <span className="text-[10px] font-black text-[#36ADA3] uppercase tracking-widest block mb-1">
+                  Event Control Panel
+                </span>
+                <h3 className="text-2xl font-heading font-black text-jax-dark tracking-tighter uppercase">
+                  {editingEvent ? 'Edit Global Event' : 'Create Global Event'}
+                </h3>
+              </div>
+
+              <form onSubmit={handleSaveEvent} className="space-y-4">
+                <div>
+                  <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Event Title *</label>
+                  <input 
+                    type="text"
+                    required
+                    value={eventForm.title}
+                    onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                    placeholder="e.g. India Machinery Trade Show 2026"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-teal/30 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Description *</label>
+                  <textarea 
+                    required
+                    rows={3}
+                    value={eventForm.description}
+                    onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                    placeholder="Detail the event objectives, suppliers list, and other registration details..."
+                    className="w-full p-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-teal/30 outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Date & Time</label>
+                    <input 
+                      type="datetime-local"
+                      value={eventForm.date}
+                      onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-teal/30 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Location</label>
+                    <input 
+                      type="text"
+                      value={eventForm.location}
+                      onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
+                      placeholder="e.g. Pragati Maidan, Delhi"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-teal/30 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Banner Image URL</label>
+                  <input 
+                    type="url"
+                    value={eventForm.mediaUrl}
+                    onChange={(e) => setEventForm({ ...eventForm, mediaUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-teal/30 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <input 
+                    type="checkbox"
+                    id="isActive"
+                    checked={eventForm.isActive}
+                    onChange={(e) => setEventForm({ ...eventForm, isActive: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-[#36ADA3] focus:ring-[#36ADA3]"
+                  />
+                  <label htmlFor="isActive" className="text-xs font-semibold text-gray-600 cursor-pointer">
+                    Publish active (Visible on Homepage Carousel)
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-6 font-bold uppercase tracking-widest text-[10px]">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsEventModalOpen(false)}
+                    className="h-10 px-4"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="h-10 px-4 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white border-none font-bold"
+                  >
+                    {editingEvent ? 'Save Changes' : 'Create Event'}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
   );
 }

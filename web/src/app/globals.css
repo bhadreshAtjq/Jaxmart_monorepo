@@ -4,17 +4,127 @@
 
 @layer base {
   :root {
-    /* JaxMart Brand Tokens - Professional B2B */
-    --jax-dark: #0A1921;     /* Deeper industrial navy */
-    --jax-blue: #164E63;     /* Corporate cyan-blue */
-    --jax-teal: #0D9488;     /* Direct Teal */
-    --jax-accent: #06B6D4;   /* High-impact industrial cyan */
-    --jax-light: #F8FAFB;    /* Ultra-clean background */
+    /* Design.md Theme Base Colors */
+    --color-surface: #F6F8FB;
+    --color-surface-dim: #C6D4E5;
+    --color-surface-bright: #F6F8FB;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #F1F4F8;
+    --color-surface-container: #EBF0F6;
+    --color-surface-container-high: #E1E8F1;
+    --color-surface-container-highest: #D7E1ED;
+    --color-on-surface: #121358;
+    --color-on-surface-variant: #4E5D78;
+    --color-inverse-surface: #121358;
+    --color-inverse-on-surface: #F6F8FB;
+    --color-outline: #7B8C9F;
+    --color-outline-variant: #D0D9E4;
+    --color-surface-tint: #232F72;
+    --color-primary: #232F72;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #121358;
+    --color-on-primary-container: #E8EAF6;
+    --color-inverse-primary: #8FA4D6;
+    --color-secondary: #36ADA3;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #E3F5F3;
+    --color-on-secondary-container: #165A54;
+    --color-tertiary: #2F578A;
+    --color-on-tertiary: #ffffff;
+    --color-tertiary-container: #EEF2F6;
+    --color-on-tertiary-container: #1E3A5F;
+    --color-error: #ba1a1a;
+    --color-on-error: #ffffff;
+    --color-error-container: #ffdad6;
+    --color-on-error-container: #93000a;
+    --color-primary-fixed: #E8EAF6;
+    --color-primary-fixed-dim: #8FA4D6;
+    --color-on-primary-fixed: #121358;
+    --color-on-primary-fixed-variant: #232F72;
+    --color-secondary-fixed: #E3F5F3;
+    --color-secondary-fixed-dim: #85D3CB;
+    --color-on-secondary-fixed: #0E3330;
+    --color-on-secondary-fixed-variant: #165A54;
+    --color-tertiary-fixed: #EEF2F6;
+    --color-tertiary-fixed-dim: #A0B7D1;
+    --color-on-tertiary-fixed: #102137;
+    --color-on-tertiary-fixed-variant: #1E3A5F;
+    --color-background: #F6F8FB;
+    --color-on-background: #121358;
+    --color-surface-variant: #EBF0F6;
+
+    /* Theme Mappings to match user colors dynamically */
+    --color-jungle-green-50: #EBF7F6;
+    --color-jungle-green-100: #D2EFEA;
+    --color-jungle-green-200: #A6DDD3;
+    --color-jungle-green-300: #74C7BA;
+    --color-jungle-green-400: #4EB3A4;
+    --color-jungle-green-500: #36ADA3;
+    --color-jungle-green-600: #2C9A91;
+    --color-jungle-green-700: #22827A;
+    --color-jungle-green-800: #165A54;
+    --color-jungle-green-900: #14554F;
+    --color-jungle-green-950: #0C3733;
+
+    --color-platinum-50: var(--color-background);
+    --color-platinum-100: var(--color-surface-container-low);
+    --color-platinum-200: var(--color-surface-container);
+    --color-platinum-300: var(--color-surface-container-high);
+    --color-platinum-400: var(--color-surface-container-highest);
+    --color-platinum-500: var(--color-surface-dim);
+    --color-platinum-600: var(--color-outline-variant);
+    --color-platinum-700: var(--color-outline);
+    --color-platinum-800: var(--color-on-surface-variant);
+    --color-platinum-900: var(--color-inverse-surface);
+    --color-platinum-950: var(--color-on-surface);
+
+    --color-dusk-blue-50: #F0F4F8;
+    --color-dusk-blue-100: #E1E9F0;
+    --color-dusk-blue-200: #C3D2E2;
+    --color-dusk-blue-300: #A1B7D1;
+    --color-dusk-blue-400: #7E9BBE;
+    --color-dusk-blue-500: #2F578A;
+    --color-dusk-blue-600: #274974;
+    --color-dusk-blue-700: #1F3B5D;
+    --color-dusk-blue-800: #182C47;
+    --color-dusk-blue-900: #101E30;
+    --color-dusk-blue-950: #0B1421;
+
+    --color-regal-navy-50: var(--color-primary-fixed);
+    --color-regal-navy-100: var(--color-primary-fixed-dim);
+    --color-regal-navy-200: #8FA4D6;
+    --color-regal-navy-300: #5D72B2;
+    --color-regal-navy-400: var(--color-on-primary-fixed-variant);
+    --color-regal-navy-500: var(--color-primary-container);
+    --color-regal-navy-600: var(--color-primary);
+    --color-regal-navy-700: #1C265C;
+    --color-regal-navy-800: var(--color-on-primary-fixed);
+    --color-regal-navy-900: #0E103F;
+    --color-regal-navy-950: var(--color-on-surface);
+
+    --color-smart-blue-50: #F2F3F7;
+    --color-smart-blue-100: #E5E6EE;
+    --color-smart-blue-200: #CACCDD;
+    --color-smart-blue-300: #AAADCB;
+    --color-smart-blue-400: #878BB5;
+    --color-smart-blue-500: #61669E;
+    --color-smart-blue-600: #4B5086;
+    --color-smart-blue-700: #373C6E;
+    --color-smart-blue-800: #252857;
+    --color-smart-blue-900: #121358;
+    --color-smart-blue-950: #0B0C39;
+
+    /* JaxMart Brand Tokens - Professional B2B mapped to design.md theme */
+    --jax-dark: var(--color-on-surface);
+    --jax-blue: var(--color-primary);
+    --jax-teal: var(--color-secondary);
+    --jax-accent: var(--color-on-secondary-container);
+    --jax-light: var(--color-surface-container-lowest);
 
     /* Semantic */
-    --success: #059669;
+    --success: var(--color-secondary);
     --warning: #D97706;
-    --error: #DC2626;
+    --error: var(--color-error);
   }
 
   * {
@@ -45,11 +155,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #1D546D30;
+    background: rgba(47, 87, 138, 0.2); /* #2F578A */
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #1D546D50;
+    background: rgba(47, 87, 138, 0.4);
   }
 }
 
@@ -98,10 +208,10 @@
 
   .focus-ring {
     @apply focus:outline-none focus:ring-offset-2 focus:ring-offset-white;
-    --tw-ring-color: rgba(29, 84, 109, 0.2);
+    --tw-ring-color: rgba(35, 47, 114, 0.2); /* #232F72 */
   }
   .focus-ring:focus {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(29, 84, 109, 0.2);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(35, 47, 114, 0.2);
   }
 }
 
@@ -121,7 +231,7 @@
   .border-jax-accent { border-color: var(--jax-accent); }
 
   .b2b-gradient {
-    @apply bg-gradient-to-br from-[#164E63] to-[#0A1921];
+    @apply bg-gradient-to-br from-[#232F72] to-[#121358];
   }
 
   .industrial-shadow {

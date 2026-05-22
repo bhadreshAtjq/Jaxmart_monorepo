@@ -14,19 +14,56 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    if (error.response?.status === 401 && error.config && !error.config._retry) {
-      error.config._retry = true;
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const refresh = localStorage.getItem('refresh_token');
         const { data } = await axios.post(`${api.defaults.baseURL}/auth/refresh`, { refreshToken: refresh });
         localStorage.setItem('access_token', data.accessToken);
         localStorage.setItem('refresh_token', data.refreshToken);
-        error.config.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(error.config);
-      } catch {
+        
+        processQueue(null, data.accessToken);
+        isRefreshing = false;
+        
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        isRefreshing = false;
+        
         localStorage.clear();
         if (typeof window !== 'undefined') {
           const path = window.location.pathname;
@@ -35,6 +72,7 @@ api.interceptors.response.use(
             window.location.href = '/auth/login';
           }
         }
+        return Promise.reject(err);
       }
     }
     return Promise.reject(error);
@@ -139,4 +177,9 @@ export const adminApi = {
   getDisputes: () => api.get('/admin/disputes'),
   resolveDispute: (id: string, data: any) => api.patch(`/admin/disputes/${id}/resolve`, data),
   getPlatformStats: () => api.get('/admin/analytics'),
+  getEvents: () => api.get('/admin/events'),
+  createEvent: (data: any) => api.post('/admin/events', data),
+  updateEvent: (id: string, data: any) => api.put(`/admin/events/${id}`, data),
+  deleteEvent: (id: string) => api.delete(`/admin/events/${id}`),
 };
+

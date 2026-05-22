@@ -10,6 +10,12 @@ const {
   getDisputes,
   resolveDispute
 } = require('../controllers/adminController');
+const {
+  adminGetEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent
+} = require('../controllers/eventController');
 
 // All admin routes are protected
 router.use(authenticate, requireAdmin);
@@ -25,4 +31,11 @@ router.get('/users', getUsers);
 router.get('/disputes', getDisputes);
 router.patch('/disputes/:id/resolve', resolveDispute);
 
+// Admin Event Management
+router.get('/events', adminGetEvents);
+router.post('/events', createEvent);
+router.put('/events/:id', updateEvent);
+router.delete('/events/:id', deleteEvent);
+
 module.exports = router;
+

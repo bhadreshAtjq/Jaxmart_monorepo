@@ -140,7 +140,7 @@ function SearchPageContent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                <Link href="/home" className="hover:text-orange-500">Home</Link>
+                <Link href="/home" className="hover:text-jungle-green-500">Home</Link>
                 <span>›</span>
                 <span className="text-gray-800 font-semibold">Search Results</span>
               </div>
@@ -157,7 +157,7 @@ function SearchPageContent() {
                   onClick={() => setViewMode('list')}
                   className={clsx(
                     "p-1.5 rounded-md text-gray-500 transition-all",
-                    viewMode === 'list' ? "bg-white text-orange-500 shadow-sm" : "hover:text-gray-850"
+                    viewMode === 'list' ? "bg-white text-jungle-green-500 shadow-sm" : "hover:text-gray-850"
                   )}
                   title="List View"
                 >
@@ -167,7 +167,7 @@ function SearchPageContent() {
                   onClick={() => setViewMode('grid')}
                   className={clsx(
                     "p-1.5 rounded-md text-gray-500 transition-all",
-                    viewMode === 'grid' ? "bg-white text-orange-500 shadow-sm" : "hover:text-gray-850"
+                    viewMode === 'grid' ? "bg-white text-jungle-green-500 shadow-sm" : "hover:text-gray-850"
                   )}
                   title="Grid View"
                 >
@@ -192,7 +192,7 @@ function SearchPageContent() {
                 {activeFilterCount > 0 && (
                   <button
                     onClick={resetAllFilters}
-                    className="text-[10px] text-orange-600 font-bold uppercase tracking-wider hover:underline"
+                    className="text-[10px] text-jungle-green-600 font-bold uppercase tracking-wider hover:underline"
                   >
                     Reset All
                   </button>
@@ -207,7 +207,7 @@ function SearchPageContent() {
                     onClick={() => setCategoryId('')}
                     className={clsx(
                       "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
-                      categoryId === '' ? "bg-orange-50 text-orange-600 font-bold" : "text-gray-600 hover:bg-gray-50"
+                      categoryId === '' ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
                     )}
                   >
                     <span>All Categories</span>
@@ -218,7 +218,7 @@ function SearchPageContent() {
                       onClick={() => setCategoryId(cat.id)}
                       className={clsx(
                         "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
-                        categoryId === cat.id ? "bg-orange-50 text-orange-600 font-bold" : "text-gray-600 hover:bg-gray-50"
+                        categoryId === cat.id ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
                       )}
                     >
                       <span className="truncate">{cat.name}</span>
@@ -235,10 +235,10 @@ function SearchPageContent() {
                     type="checkbox"
                     checked={filters.isVerified}
                     onChange={(e) => setFilters(f => ({ ...f, isVerified: e.target.checked }))}
-                    className="accent-orange-500 w-4 h-4 rounded border-gray-300"
+                    className="accent-jungle-green-500 w-4 h-4 rounded border-gray-300"
                   />
                   <div>
-                    <span className="block text-xs font-bold text-gray-700 group-hover:text-orange-600 transition-colors">
+                    <span className="block text-xs font-bold text-gray-700 group-hover:text-jungle-green-600 transition-colors">
                       Verified Supplier
                     </span>
                     <span className="block text-[9px] text-gray-400 font-medium">GSTIN & PAN Audited</span>
@@ -250,7 +250,7 @@ function SearchPageContent() {
                   <select
                     value={filters.minTrust}
                     onChange={(e) => setFilters(f => ({ ...f, minTrust: e.target.value }))}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 transition-colors cursor-pointer"
                   >
                     <option value="">Any Trust Level</option>
                     <option value="90">90% + Trust (Top tier)</option>
@@ -268,7 +268,7 @@ function SearchPageContent() {
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-orange-500 focus:bg-white text-center"
+                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 focus:bg-white text-center"
                   />
                   <span className="text-gray-300 text-xs">-</span>
                   <input
@@ -276,7 +276,7 @@ function SearchPageContent() {
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-orange-500 focus:bg-white text-center"
+                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 focus:bg-white text-center"
                   />
                 </div>
               </div>
@@ -289,7 +289,7 @@ function SearchPageContent() {
                   placeholder="e.g. 50"
                   value={minQty}
                   onChange={(e) => setMinQty(e.target.value)}
-                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-3 text-xs outline-none focus:border-orange-500 focus:bg-white transition-colors"
+                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-3 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
                 />
               </div>
 
@@ -299,7 +299,7 @@ function SearchPageContent() {
                 <select
                   value={selectedPort}
                   onChange={(e) => setSelectedPort(e.target.value)}
-                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 transition-colors cursor-pointer"
                 >
                   <option value="">All Ports</option>
                   <option value="Mundra">Mundra Port (Gujarat)</option>
@@ -316,7 +316,7 @@ function SearchPageContent() {
                     value={filters.city}
                     onChange={(e) => setFilters(f => ({ ...f, city: e.target.value }))}
                     placeholder="Search supplier city"
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 text-xs outline-none focus:border-orange-500 focus:bg-white transition-colors"
+                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
                   />
                 </div>
               </div>
@@ -336,11 +336,11 @@ function SearchPageContent() {
                   onChange={e => setQ(e.target.value)} 
                   onKeyDown={e => e.key === 'Enter' && setPage(1)} 
                   placeholder="Enter keywords to search wholesale products..." 
-                  className="w-full h-11 bg-white border border-gray-300 rounded-lg pl-10 pr-6 text-sm text-gray-800 focus:border-orange-500 outline-none transition-colors shadow-sm" 
+                  className="w-full h-11 bg-white border border-gray-300 rounded-lg pl-10 pr-6 text-sm text-gray-800 focus:border-jungle-green-500 outline-none transition-colors shadow-sm" 
                 />
                 {isFetching && !isLoading && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="h-4 w-4 border-2 border-jungle-green-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
               </div>
@@ -349,7 +349,7 @@ function SearchPageContent() {
                 onClick={() => setShowFilters(!showFilters)} 
                 className={clsx(
                   'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors', 
-                  activeFilterCount > 0 ? 'bg-orange-500 text-white' : 'bg-gray-900 text-white shadow'
+                  activeFilterCount > 0 ? 'bg-jungle-green-500 text-white' : 'bg-gray-900 text-white shadow'
                 )}
               >
                 <FaSliders className="h-4 w-4" />
@@ -365,7 +365,7 @@ function SearchPageContent() {
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.isVerified
-                    ? "bg-orange-50 border-orange-200 text-orange-600 font-bold"
+                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
                     : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                 )}
               >
@@ -378,7 +378,7 @@ function SearchPageContent() {
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.minTrust === '90'
-                    ? "bg-orange-50 border-orange-200 text-orange-600 font-bold"
+                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
                     : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                 )}
               >
@@ -391,7 +391,7 @@ function SearchPageContent() {
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.minRating === '4.5'
-                    ? "bg-orange-50 border-orange-200 text-orange-600 font-bold"
+                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
                     : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                 )}
               >
@@ -409,7 +409,7 @@ function SearchPageContent() {
                     onClick={() => setSortBy(s)}
                     className={clsx(
                       'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-colors',
-                      sortBy === s ? 'bg-white border border-gray-200 text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      sortBy === s ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
                     )}
                   >
                     {s}
@@ -438,7 +438,7 @@ function SearchPageContent() {
                   We couldn't find items that match your search filters. Try widening your filters or post a request.
                 </p>
                 <Link href="/rfq/create">
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider px-8 h-10 rounded-lg border-none shadow">
+                  <Button className="bg-jungle-green-500 hover:bg-jungle-green-600 text-white font-bold text-xs uppercase tracking-wider px-8 h-10 rounded-lg border-none shadow">
                     Post Sourcing Request
                   </Button>
                 </Link>
@@ -479,7 +479,7 @@ function SearchPageContent() {
                   size="sm" 
                   onClick={() => setPage(p => Math.max(1, p - 1))} 
                   disabled={page === 1}
-                  className="text-orange-600 font-bold"
+                  className="text-jungle-green-600 font-bold"
                 >
                   PREV
                 </Button>
@@ -491,7 +491,7 @@ function SearchPageContent() {
                   size="sm" 
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
                   disabled={page === totalPages}
-                  className="text-orange-600 font-bold"
+                  className="text-jungle-green-600 font-bold"
                 >
                   NEXT
                 </Button>
@@ -516,7 +516,7 @@ function SearchListingRow({ listing }: { listing: any }) {
   return (
     <div 
       onClick={() => router.push(`/listings/${listing.id}`)}
-      className="bg-white border border-gray-200 rounded-xl hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer p-4 flex flex-col md:flex-row gap-5"
+      className="bg-white border border-gray-200 rounded-xl hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer p-4 flex flex-col md:flex-row gap-5"
     >
       
       {/* Listing Image */}
@@ -538,10 +538,10 @@ function SearchListingRow({ listing }: { listing: any }) {
       {/* Product Information Core Column */}
       <div className="flex-1 flex flex-col justify-between">
         <div>
-          <span className="text-[10px] font-black text-orange-650 uppercase tracking-wider">
+          <span className="text-[10px] font-black text-jungle-green-650 uppercase tracking-wider">
             {listing.category?.name}
           </span>
-          <h3 className="font-bold text-sm text-gray-900 hover:text-orange-650 transition-colors uppercase tracking-tight leading-tight mt-1 mb-2">
+          <h3 className="font-bold text-sm text-gray-900 hover:text-jungle-green-650 transition-colors uppercase tracking-tight leading-tight mt-1 mb-2">
             {listing.title}
           </h3>
 
@@ -631,7 +631,7 @@ function SearchListingRow({ listing }: { listing: any }) {
           <Button 
             fullWidth 
             size="sm" 
-            className="bg-orange-500 hover:bg-orange-600 border-none text-white text-[11px] h-9 rounded-lg"
+            className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[11px] h-9 rounded-lg"
             onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
           >
             Chat Now
@@ -655,7 +655,7 @@ function SearchListingGridCard({ listing }: { listing: any }) {
     <Card 
       onClick={() => router.push(`/listings/${listing.id}`)} 
       padding={false} 
-      className="group overflow-hidden border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-300 bg-white cursor-pointer h-full flex flex-col justify-between"
+      className="group overflow-hidden border border-gray-200 hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 bg-white cursor-pointer h-full flex flex-col justify-between"
     >
       <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-150 flex items-center justify-center shrink-0">
         {listing.media?.[0] ? (
@@ -682,14 +682,14 @@ function SearchListingGridCard({ listing }: { listing: any }) {
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black text-orange-655 uppercase tracking-widest">
+            <span className="text-[9px] font-black text-jungle-green-655 uppercase tracking-widest">
               {listing.category?.name}
             </span>
             <span className="text-[10px] text-gray-500 font-semibold">
               Trust: {seller?.trustScore || 85}%
             </span>
           </div>
-          <h3 className="font-bold text-xs text-gray-900 group-hover:text-orange-655 transition-colors line-clamp-2 min-h-[2rem] leading-snug uppercase tracking-tight mb-3">
+          <h3 className="font-bold text-xs text-gray-900 group-hover:text-jungle-green-655 transition-colors line-clamp-2 min-h-[2rem] leading-snug uppercase tracking-tight mb-3">
             {listing.title}
           </h3>
         </div>
@@ -727,7 +727,7 @@ function SearchListingGridCard({ listing }: { listing: any }) {
             <Button 
               fullWidth 
               size="sm" 
-              className="bg-orange-500 hover:bg-orange-600 border-none text-white text-[10px] h-8 rounded-lg"
+              className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[10px] h-8 rounded-lg"
               onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
             >
               Chat Now

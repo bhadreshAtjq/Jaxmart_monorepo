@@ -1,0 +1,10 @@
+{
+  "name": "jaxmart-monorepo",
+  "version": "1.0.0",
+  "description": "B2B Platform Monorepo Root",
+  "private": true,
+  "scripts": {
+    "dev": "npx -y concurrently --kill-others --names \"Backend,Web\" --prefix \"[{name}]\" --prefix-colors \"cyan,green\" \"npm run dev --prefix backend\" \"npm run dev --prefix web\"",
+    "start": "npx -y concurrently --kill-others --names \"Backend,Web\" --prefix \"[{name}]\" --prefix-colors \"cyan,green\" \"npm start --prefix backend\" \"npm start --prefix web\""
+  }
+}

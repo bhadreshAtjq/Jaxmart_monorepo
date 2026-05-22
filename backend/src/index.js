@@ -25,6 +25,7 @@ const notificationRoutes = require('./routes/notifications');
 const categoryRoutes = require('./routes/categories');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/upload');
+const eventRoutes = require('./routes/events');
 
 const app = express();
 const httpServer = createServer(app);
@@ -141,6 +142,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/events', eventRoutes);
 
 // 404
 app.use((req, res) => {

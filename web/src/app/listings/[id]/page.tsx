@@ -144,12 +144,12 @@ export default function ListingDetailPage() {
                 </div>
 
                 {/* Price Block */}
-                <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 mb-5">
+                <div className="bg-jungle-green-50 border border-jungle-green-100 rounded-lg p-4 mb-5">
                   {typeof price === 'number' ? (
                     <div>
                       <span className="text-xs text-gray-500">FOB Price:</span>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-orange-600">₹{price.toLocaleString('en-IN')}</span>
+                        <span className="text-2xl font-bold text-jungle-green-600">₹{price.toLocaleString('en-IN')}</span>
                         <span className="text-sm text-gray-500">/ {pd?.unitOfMeasure || 'Piece'}</span>
                       </div>
                       <span className="text-xs text-gray-400">Get Latest Price</span>
@@ -157,7 +157,7 @@ export default function ListingDetailPage() {
                   ) : (
                     <div>
                       <span className="text-xs text-gray-500">Price:</span>
-                      <p className="text-lg font-bold text-orange-600">Negotiable / Contact Supplier</p>
+                      <p className="text-lg font-bold text-jungle-green-600">Negotiable / Contact Supplier</p>
                     </div>
                   )}
                 </div>
@@ -181,10 +181,10 @@ export default function ListingDetailPage() {
 
                 {/* Action Buttons */}
                 <div className="space-y-2">
-                  <Button fullWidth disabled={isOwner} className="h-11 bg-orange-500 hover:bg-orange-600 border-none text-white font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                  <Button fullWidth disabled={isOwner} className="h-11 bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
                     {isOwner ? 'Your Own Listing' : 'Contact Supplier'}
                   </Button>
-                  <Button fullWidth variant="outline" className="h-11 border-orange-500 text-orange-500 hover:bg-orange-50 font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                  <Button fullWidth variant="outline" className="h-11 border-jungle-green-500 text-jungle-green-500 hover:bg-jungle-green-50 font-bold text-sm rounded-lg" onClick={() => document.getElementById('inquiry-section')?.scrollIntoView({ behavior: 'smooth' })}>
                     Start Order
                   </Button>
                 </div>
@@ -331,7 +331,7 @@ export default function ListingDetailPage() {
                       <label className="text-xs font-semibold text-gray-600 mb-1 block">Your Message *</label>
                       <textarea rows={4} required value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} placeholder={`I'm interested in "${listing.title}". Please send me price details and shipping options.`} className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:border-jax-blue outline-none leading-relaxed" />
                     </div>
-                    <Button type="submit" loading={sending} className="h-11 px-10 bg-orange-500 hover:bg-orange-600 border-none text-white font-bold text-sm rounded-lg">Send Inquiry Now</Button>
+                    <Button type="submit" loading={sending} className="h-11 px-10 bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white font-bold text-sm rounded-lg">Send Inquiry Now</Button>
                   </form>
                 </div>
               </div>

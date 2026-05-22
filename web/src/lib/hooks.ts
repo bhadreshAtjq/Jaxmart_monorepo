@@ -214,6 +214,40 @@ export function useAdminKycQueue(enabled: boolean) {
   );
 }
 
+// ─── Events ───────────────────────────────────────────────────────────────────
+
+export function useEvents() {
+  return useSWR('/events', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30_000,
+  });
+}
+
+export function useAdminEvents(enabled: boolean) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(
+    token && enabled ? '/admin/events' : null,
+    fetcher
+  );
+}
+
+export function useCreateEvent() {
+  return useSWRMutation('/admin/events', postMutation);
+}
+
+export function useUpdateEvent(id: string) {
+  return useSWRMutation(`/admin/events/${id}`, putMutation);
+}
+
+export function useDeleteEvent(id: string) {
+  return useSWRMutation(`/admin/events/${id}`, async (url) => {
+    const res = await api.delete(url);
+    return res.data;
+  });
+}
+
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 export function useNotifications() {

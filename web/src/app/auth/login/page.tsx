@@ -164,7 +164,7 @@ export default function LoginPage() {
                 <button
                   onClick={handleSendOtp}
                   disabled={loading || phone.length < 7}
-                  className="w-full flex items-center justify-center gap-2.5 bg-jax-blue text-white font-heading font-semibold rounded-xl py-3.5 hover:bg-jax-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-btn"
+                  className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-heading font-semibold rounded-xl py-3.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-btn"
                 >
                   {loading ? <FaSpinner className="h-4 w-4 animate-spin" /> : <><span>Get OTP</span><FaArrowRight className="h-3.5 w-3.5" /></>}
                 </button>

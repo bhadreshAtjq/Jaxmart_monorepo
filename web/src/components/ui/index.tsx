@@ -104,8 +104,8 @@ export function Button({
 }: ButtonProps) {
   const base = 'inline-flex items-center justify-center gap-2 font-heading font-semibold rounded-xl transition-all duration-200 focus-ring disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98] outline-none';
   const variants: Record<string, string> = {
-    primary: 'bg-jax-blue text-white hover:bg-jax-dark hover:shadow-lg hover:shadow-jax-blue/20',
-    secondary: 'bg-jax-teal/10 text-jax-blue border border-jax-teal/20 hover:bg-jax-teal/20',
+    primary: 'bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white hover:from-[#1C265B] hover:to-[#244774] hover:shadow-lg hover:shadow-jax-blue/20',
+    secondary: 'bg-jax-blue/10 text-jax-blue border border-jax-blue/20 hover:bg-jax-blue/20',
     ghost: 'text-gray-500 hover:bg-gray-100 hover:text-jax-dark shadow-none',
     danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20',
     success: 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20',

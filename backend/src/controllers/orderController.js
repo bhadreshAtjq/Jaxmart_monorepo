@@ -101,6 +101,10 @@ const signContract = async (req, res) => {
     const isParty = [order.buyerId, order.sellerId].includes(req.user.id);
     if (!isParty) return res.status(403).json({ error: 'Not authorized' });
 
+    if (order.proposerId && order.proposerId === req.user.id) {
+      return res.status(400).json({ error: 'You proposed this deal. Waiting for the other party to accept.' });
+    }
+
     await prisma.order.update({
       where: { id },
       data: { contractSignedAt: new Date(), status: 'ACTIVE' },
@@ -115,10 +119,75 @@ const signContract = async (req, res) => {
       data: { orderId: id },
     });
 
+    const conversation = await prisma.conversation.findFirst({
+      where: { orderId: id }
+    });
+    if (conversation) {
+      await prisma.message.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: req.user.id,
+          content: `✅ Deal Proposal Accepted! Contract is now Active.`,
+        }
+      });
+    }
+
     res.json({ message: 'Contract signed. Order is now active.' });
   } catch (err) {
     logger.error('signContract error:', err);
     res.status(500).json({ error: 'Failed to sign contract' });
+  }
+};
+
+const rejectContract = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const isParty = [order.buyerId, order.sellerId].includes(req.user.id);
+    if (!isParty) return res.status(403).json({ error: 'Not authorized' });
+
+    if (order.proposerId && order.proposerId === req.user.id) {
+      return res.status(400).json({ error: 'You proposed this deal. You cannot reject it.' });
+    }
+
+    await prisma.order.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { orderId: id }
+    });
+    if (conversation) {
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { orderId: null },
+      });
+
+      await prisma.message.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: req.user.id,
+          content: `❌ Deal Proposal Declined.`,
+        }
+      });
+    }
+
+    const otherId = order.buyerId === req.user.id ? order.sellerId : order.buyerId;
+    await sendNotification({
+      userId: otherId,
+      type: 'ORDER_CREATED',
+      title: 'Deal proposal declined',
+      body: 'The deal proposal was declined by the other party.',
+      data: { orderId: id },
+    });
+
+    res.json({ message: 'Deal proposal declined successfully.' });
+  } catch (err) {
+    logger.error('rejectContract error:', err);
+    res.status(500).json({ error: 'Failed to decline deal proposal' });
   }
 };
 
@@ -340,8 +409,130 @@ const getSellerDashboard = async (req, res) => {
   }
 };
 
+// POST /api/orders (Propose a direct deal)
+const createDirectOrder = async (req, res) => {
+  try {
+    const { conversationId, totalAmount, orderType, title, milestones } = req.body;
+
+    if (!conversationId || !totalAmount) {
+      return res.status(400).json({ error: 'Conversation ID and total amount are required' });
+    }
+
+    // Find conversation and participants
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: { participants: true },
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    // Verify req.user is a participant
+    const isParticipant = conversation.participants.some(p => p.userId === req.user.id);
+    if (!isParticipant) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    // Check if there is already an active or pending deal
+    if (conversation.orderId) {
+      const activeOrder = await prisma.order.findUnique({
+        where: { id: conversation.orderId }
+      });
+      if (activeOrder && ['CREATED', 'ACTIVE', 'DISPUTED'].includes(activeOrder.status)) {
+        return res.status(400).json({ error: 'An active or pending deal already exists for this conversation' });
+      }
+    }
+
+    // Determine buyer and seller from participants
+    const otherParticipant = conversation.participants.find(p => p.userId !== req.user.id);
+    const otherUser = await prisma.user.findUnique({ where: { id: otherParticipant.userId } });
+
+    let buyerId, sellerId;
+    if (req.user.userType === 'SELLER') {
+      buyerId = otherUser.id;
+      sellerId = req.user.id;
+    } else if (req.user.userType === 'BUYER') {
+      buyerId = req.user.id;
+      sellerId = otherUser.id;
+    } else {
+      if (otherUser.userType === 'SELLER') {
+        buyerId = req.user.id;
+        sellerId = otherUser.id;
+      } else {
+        buyerId = req.user.id;
+        sellerId = otherUser.id;
+      }
+    }
+
+    const platformFeeRate = 0.05; // 5%
+    const platformFee = parseFloat(totalAmount) * platformFeeRate;
+    const sellerPayout = parseFloat(totalAmount) - platformFee;
+
+    const order = await prisma.$transaction(async (tx) => {
+      // 1. Create order
+      const newOrder = await tx.order.create({
+        data: {
+          buyerId,
+          sellerId,
+          orderType: (orderType || 'PRODUCT').toUpperCase(),
+          totalAmount: parseFloat(totalAmount),
+          platformFee,
+          sellerPayout,
+          status: 'CREATED',
+          escrowStatus: 'HELD',
+          proposerId: req.user.id,
+          milestones: {
+            create: (milestones && milestones.length > 0
+              ? milestones
+              : [{ title: title || 'Full delivery', amount: parseFloat(totalAmount) }]
+            ).map((m, i) => ({
+              title: m.title,
+              amount: parseFloat(m.amount),
+              dueDate: m.dueDate ? new Date(m.dueDate) : null,
+              sortOrder: i,
+            })),
+          },
+        },
+      });
+
+      // 2. Link conversation to order
+      await tx.conversation.update({
+        where: { id: conversationId },
+        data: { orderId: newOrder.id },
+      });
+
+      // 3. Create System message in the conversation
+      await tx.message.create({
+        data: {
+          conversationId,
+          senderId: req.user.id,
+          content: `📢 [DEAL PROPOSAL] Proposed a direct deal for ₹${parseFloat(totalAmount).toLocaleString('en-IN')}. Please review the contract details.`,
+        },
+      });
+
+      return newOrder;
+    });
+
+    // Notify other party
+    await sendNotification({
+      userId: otherParticipant.userId,
+      type: 'ORDER_CREATED',
+      title: 'New deal proposed!',
+      body: `A new direct deal of ₹${parseFloat(totalAmount).toLocaleString('en-IN')} was proposed. Check your chat to review.`,
+      data: { orderId: order.id, conversationId },
+    });
+
+    res.status(201).json(order);
+  } catch (err) {
+    logger.error('createDirectOrder error:', err);
+    res.status(500).json({ error: 'Failed to create direct order' });
+  }
+};
+
 module.exports = {
-  getOrders, getOrder, signContract,
+  getOrders, getOrder, signContract, rejectContract,
   submitMilestone, approveMilestone,
   raiseDispute, getSellerDashboard,
+  createDirectOrder,
 };

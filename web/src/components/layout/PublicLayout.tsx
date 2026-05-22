@@ -46,7 +46,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top Bar */}
       <div className="bg-gray-900 text-white">
-        <div className="max-w-[1400px] mx-auto px-4 flex items-center justify-between h-8 text-[11px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8 text-[11px]">
           <div className="flex items-center gap-4 text-gray-400">
             <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
             <span className="hidden md:inline">|</span>
@@ -74,7 +74,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Navbar */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-[1400px] mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-6">
             {/* Logo */}
             <Link href="/home" className="flex items-center shrink-0">
@@ -173,7 +173,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white">
-        <div className="max-w-[1400px] mx-auto px-4 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
               <h4 className="font-bold text-sm mb-4">JaxMart</h4>

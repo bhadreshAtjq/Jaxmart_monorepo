@@ -159,7 +159,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: 'Processing',
+  CREATED: 'Proposed',
   ACTIVE: 'Active',
   SHIPPED: 'Shipped',
   UNDER_REVIEW: 'Under Review',

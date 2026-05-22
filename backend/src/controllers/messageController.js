@@ -48,18 +48,44 @@ const getConversations = async (req, res) => {
       },
     });
 
+    // Batch-fetch listing data for conversations that have a listingId
+    const listingIds = conversations.map(c => c.listingId).filter(Boolean);
+    let listingMap = {};
+    if (listingIds.length > 0) {
+      const listings = await prisma.listing.findMany({
+        where: { id: { in: listingIds } },
+        select: {
+          id: true, title: true,
+          media: { where: { isPrimary: true }, take: 1, select: { url: true } },
+          productDetail: { select: { pricePerUnit: true, unitOfMeasure: true, minOrderQty: true } },
+        },
+      });
+      listingMap = Object.fromEntries(listings.map(l => [l.id, l]));
+    }
+
     // Format output to include unread count and rename fields
     const formatted = conversations.map((conv) => {
       // Find other participant
       const otherParticipant = conv.participants.find((p) => p.userId !== userId);
       const latestMessage = conv.messages[0] || null;
 
+      const listing = conv.listingId ? listingMap[conv.listingId] || null : null;
+
       return {
         id: conv.id,
         rfqId: conv.rfqId,
         orderId: conv.orderId,
+        listingId: conv.listingId,
         createdAt: conv.createdAt,
         latestMessage,
+        listing: listing ? {
+          id: listing.id,
+          title: listing.title,
+          imageUrl: listing.media?.[0]?.url || null,
+          pricePerUnit: listing.productDetail?.pricePerUnit || null,
+          unitOfMeasure: listing.productDetail?.unitOfMeasure || null,
+          minOrderQty: listing.productDetail?.minOrderQty || null,
+        } : null,
         recipient: otherParticipant?.user
           ? {
               id: otherParticipant.user.id,
@@ -121,7 +147,7 @@ const getMessages = async (req, res) => {
 // POST /api/messages/conversations
 const startConversation = async (req, res) => {
   try {
-    const { recipientId, rfqId, orderId, initialMessage } = req.body;
+    const { recipientId, rfqId, orderId, listingId, initialMessage } = req.body;
     const senderId = req.user.id;
 
     if (!recipientId) {
@@ -147,6 +173,7 @@ const startConversation = async (req, res) => {
         conversation: {
           ...(rfqId && { rfqId }),
           ...(orderId && { orderId }),
+          ...(listingId && { listingId }),
         },
       },
       include: {
@@ -193,6 +220,7 @@ const startConversation = async (req, res) => {
         id: conv.id,
         rfqId: conv.rfqId,
         orderId: conv.orderId,
+        listingId: conv.listingId,
         createdAt: conv.createdAt,
         latestMessage: conv.messages[0] || null,
         recipient: otherParticipant?.user
@@ -212,6 +240,7 @@ const startConversation = async (req, res) => {
         data: {
           rfqId: rfqId || null,
           orderId: orderId || null,
+          listingId: listingId || null,
         },
       });
 
@@ -264,6 +293,7 @@ const startConversation = async (req, res) => {
       id: completeConv.id,
       rfqId: completeConv.rfqId,
       orderId: completeConv.orderId,
+      listingId: completeConv.listingId,
       createdAt: completeConv.createdAt,
       latestMessage: completeConv.messages[0] || null,
       recipient: otherParticipant?.user
@@ -281,8 +311,49 @@ const startConversation = async (req, res) => {
   }
 };
 
+// GET /api/messages/conversations/:id/listing
+const getConversationListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const participant = await prisma.conversationParticipant.findFirst({
+      where: { conversationId: id, userId },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not authorized' });
+
+    const conv = await prisma.conversation.findUnique({
+      where: { id },
+      select: { listingId: true },
+    });
+
+    if (!conv?.listingId) return res.json(null);
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: conv.listingId },
+      include: {
+        media: { where: { isPrimary: true }, take: 1 },
+        productDetail: true,
+        category: { select: { name: true } },
+        seller: {
+          select: {
+            id: true, fullName: true,
+            businessProfile: { select: { businessName: true } },
+          },
+        },
+      },
+    });
+
+    res.json(listing);
+  } catch (err) {
+    logger.error('getConversationListing error:', err);
+    res.status(500).json({ error: 'Failed to fetch listing' });
+  }
+};
+
 module.exports = {
   getConversations,
   getMessages,
   startConversation,
+  getConversationListing,
 };

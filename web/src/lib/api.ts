@@ -127,7 +127,9 @@ export const rfqApi = {
 export const orderApi = {
   getAll: (params?: any) => api.get('/orders', { params }),
   get: (id: string) => api.get(`/orders/${id}`),
+  propose: (data: any) => api.post('/orders', data),
   sign: (id: string) => api.post(`/orders/${id}/contract-sign`),
+  reject: (id: string) => api.post(`/orders/${id}/contract-reject`),
   submitMilestone: (orderId: string, milestoneId: string, data: any) =>
     api.post(`/orders/${orderId}/milestones/${milestoneId}/submit`, data),
   approveMilestone: (orderId: string, milestoneId: string) =>
@@ -160,8 +162,9 @@ export const notificationApi = {
 export const messageApi = {
   getConversations: () => api.get('/messages/conversations'),
   getMessages: (id: string) => api.get(`/messages/conversations/${id}/messages`),
-  startConversation: (recipientId: string, initialMessage?: string, rfqId?: string, orderId?: string) =>
-    api.post('/messages/conversations', { recipientId, initialMessage, rfqId, orderId }),
+  getConversationListing: (id: string) => api.get(`/messages/conversations/${id}/listing`),
+  startConversation: (recipientId: string, initialMessage?: string, rfqId?: string, orderId?: string, listingId?: string) =>
+    api.post('/messages/conversations', { recipientId, initialMessage, rfqId, orderId, listingId }),
 };
 
 // ── Admin ─────────────────────────────────────────────────────────────────────

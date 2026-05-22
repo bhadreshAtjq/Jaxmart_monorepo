@@ -62,6 +62,24 @@ check_env "web" "Web" ".env.example" ".env"
 check_deps "backend" "Backend"
 check_deps "web" "Web"
 
+# Function to kill process on a port if in use
+kill_port() {
+    local port=$1
+    if lsof -t -i :$port >/dev/null 2>&1; then
+        echo -e "${YELLOW}[System] Port $port is in use. Freeing port...${NC}"
+        if [ -x "$(command -v fuser)" ]; then
+            fuser -k ${port}/tcp >/dev/null 2>&1
+        else
+            lsof -t -i:${port} | xargs kill -9 >/dev/null 2>&1
+        fi
+        sleep 1
+    fi
+}
+
+# Free ports 3000 and 4000 if in use
+kill_port 3000
+kill_port 4000
+
 # Run concurrently using npx (automatic install if needed, via -y)
 echo -e "${GREEN}[System] Running Backend and Web servers concurrently...${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop both services.${NC}"

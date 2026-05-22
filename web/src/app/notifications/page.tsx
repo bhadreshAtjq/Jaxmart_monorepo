@@ -10,6 +10,7 @@ import {
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const NOTIF_ICONS: Record<string, any> = {
   RFQ_MATCH: { icon: FaStore, color: 'text-jax-blue bg-jax-blue/10' },
@@ -22,6 +23,7 @@ const NOTIF_ICONS: Record<string, any> = {
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const { data, isLoading, mutate } = useNotifications();
   const notifications = data?.notifications || [];
 
@@ -40,6 +42,24 @@ export default function NotificationsPage() {
       await api.patch(`/notifications/${id}/read`);
       mutate();
     } catch (err) {}
+  };
+
+  const getNotificationLink = (notif: any) => {
+    const d = notif.data || {};
+    if (d.conversationId) return `/inbox?id=${d.conversationId}`;
+    if (d.orderId) return `/orders/${d.orderId}`;
+    if (d.rfqId) return `/rfq/${d.rfqId}`;
+    return null;
+  };
+
+  const handleNotifClick = async (notif: any) => {
+    if (!notif.isRead) {
+      await handleMarkRead(notif.id);
+    }
+    const link = getNotificationLink(notif);
+    if (link) {
+      router.push(link);
+    }
   };
 
   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
@@ -90,8 +110,8 @@ export default function NotificationsPage() {
                   transition={{ delay: i * 0.05 }}
                 >
                   <Card 
-                    className={`group border-transparent transition-all p-0 overflow-hidden ${!notif.isRead ? 'bg-white shadow-xl shadow-jax-blue/5 border-jax-blue/10' : 'bg-gray-50/50'}`}
-                    onClick={() => !notif.isRead && handleMarkRead(notif.id)}
+                    className={`group border-transparent transition-all p-0 overflow-hidden cursor-pointer hover:border-jax-blue/20 hover:shadow-2xl ${!notif.isRead ? 'bg-white shadow-xl shadow-jax-blue/5 border-jax-blue/10' : 'bg-gray-50/50'}`}
+                    onClick={() => handleNotifClick(notif)}
                   >
                     <div className="flex items-start p-6 gap-6">
                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${Config.color}`}>

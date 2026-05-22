@@ -68,7 +68,7 @@ export default function ListingDetailPage() {
     setSending(true);
     try {
       const msg = inquiryMsg.trim() || `Hi, I am interested in sourcing your product: "${listing.title}". Please send catalog and FOB price.`;
-      const { data: conv } = await messageApi.startConversation(listing.sellerId, msg);
+      const { data: conv } = await messageApi.startConversation(listing.sellerId, msg, undefined, undefined, listing.id);
       toast.success('Inquiry initiated!');
       router.push(`/inbox?id=${conv.id}`);
     } catch {

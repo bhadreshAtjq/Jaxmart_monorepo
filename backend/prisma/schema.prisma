@@ -440,6 +440,7 @@ model Order {
   razorpayPaymentId String?
   contractSignedAt DateTime?
   completedAt      DateTime?
+  proposerId       String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
@@ -523,6 +524,7 @@ model Conversation {
   id        String   @id @default(uuid())
   rfqId     String?
   orderId   String?
+  listingId String?
   createdAt DateTime @default(now())
 
   participants ConversationParticipant[]

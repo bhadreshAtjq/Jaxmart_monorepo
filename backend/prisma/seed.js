@@ -5,7 +5,7 @@ async function main() {
   console.log('🌱 Starting seeding...');
   
   // 0. Create Admin User
-  const adminPhone = '9998882221';
+  const adminPhone = '919998882221';
   const admin = await prisma.user.upsert({
     where: { phone: adminPhone },
     update: { isAdmin: true },
@@ -41,7 +41,7 @@ async function main() {
   console.log('✅ Categories seeded');
 
   // 2. Create Mock Sellers
-  const sellerPhone = '9998887776';
+  const sellerPhone = '919998887776';
   const seller = await prisma.user.upsert({
     where: { phone: sellerPhone },
     update: {},
@@ -157,6 +157,73 @@ async function main() {
     });
   }
   console.log('✅ Mock events seeded');
+
+  // 5. Create Mock RFQs
+  console.log('🌱 Seeding mock RFQs...');
+  await prisma.rfqQuote.deleteMany();
+  await prisma.rfqRequest.deleteMany();
+
+  const mockBuyerPhone = '919991112223';
+  const mockBuyer = await prisma.user.upsert({
+    where: { phone: mockBuyerPhone },
+    update: {},
+    create: {
+      phone: mockBuyerPhone,
+      fullName: 'TechPro Industries',
+      email: 'procurement@techpro.com',
+      userType: 'BUYER',
+      accountType: 'BUSINESS',
+      kycStatus: 'VERIFIED',
+    }
+  });
+
+  const rfqs = [
+    {
+      title: 'Heavy Duty Centrifugal Water Pumps (25 units)',
+      description: 'Need industrial grade centrifugal water pumps for a chemical processing plant. Must support 500L/min flow rate, stainless steel impeller, and ATEX certification.',
+      rfqType: 'PRODUCT',
+      budgetMin: 80000,
+      budgetMax: 120000,
+      category: catRecords[0], // Industrial
+      isPublic: true,
+    },
+    {
+      title: 'Monocrystalline Solar Cell Wiring Harnesses',
+      description: 'Looking for bulk supply of customized wiring harnesses for 400W solar cell arrays. Daily demand is high. Require samples first.',
+      rfqType: 'PRODUCT',
+      budgetMin: 15000,
+      budgetMax: 25000,
+      category: catRecords[1], // Electronics
+      isPublic: true,
+    },
+    {
+      title: 'Grade A TMT Steel Rebars (5 Tons)',
+      description: 'Procurement of TMT steel rebars (Fe 500D) for a commercial building project in Mumbai. Immediate delivery required.',
+      rfqType: 'PRODUCT',
+      budgetMin: 200000,
+      budgetMax: 250000,
+      category: catRecords[2], // Construction
+      isPublic: true,
+    }
+  ];
+
+  for (const r of rfqs) {
+    await prisma.rfqRequest.create({
+      data: {
+        buyerId: mockBuyer.id,
+        categoryId: r.category.id,
+        rfqType: r.rfqType,
+        title: r.title,
+        description: r.description,
+        budgetMin: r.budgetMin,
+        budgetMax: r.budgetMax,
+        isPublic: r.isPublic,
+        status: 'OPEN',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      }
+    });
+  }
+  console.log('✅ Mock RFQs seeded');
 
   console.log('🏁 Seeding finished successfully!');
 }

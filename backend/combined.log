@@ -955,3 +955,94 @@
 {"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 15:34:46"}
 {"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 15:34:46"}
 {"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 15:34:48"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:15:56"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:15:56"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:15:58"}
+{"level":"info","message":"DEV OTP for 919998882221: 768763 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:17:48"}
+{"level":"debug","message":"Verify OTP attempt: 919998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:17:50"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:17:52"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:08"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:13"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:46"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:52"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:52"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:53"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:56"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:18:56"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:22:44"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:25:55"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:25:55"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:25:57"}
+{"level":"info","message":"DEV OTP for 919000000042: 944987 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:27:52"}
+{"level":"debug","message":"Verify OTP attempt: 919000000042, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:27:55"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:27:57"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:28:02"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:28:06"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:28:25"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:28:57"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:33"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:33"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:33"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:35"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:45"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:29:46"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:30:30"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:30:31"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:30:35"}
+{"level":"info","message":"DEV OTP for 9998882221: 631227 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:04"}
+{"level":"debug","message":"Verify OTP attempt: 9998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:08"}
+{"level":"info","message":"DEV OTP for 919998882221: 952727 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:18"}
+{"level":"debug","message":"Verify OTP attempt: 919998882221, provided: 123457, bypass: false","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:26"}
+{"level":"debug","message":"Verify OTP attempt: 919998882221, provided: 123457, bypass: false","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:29"}
+{"level":"debug","message":"Verify OTP attempt: 919998882221, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:34"}
+{"level":"info","message":"Socket connected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:35"}
+{"level":"info","message":"Socket disconnected: 69e5a4d7-0ffa-4c35-9ead-16585a707762","service":"b2b-platform-backend","timestamp":"2026-05-21 17:31:49"}
+{"level":"info","message":"DEV OTP for 919000000042: 726113 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:36:42"}
+{"level":"debug","message":"Verify OTP attempt: 919000000042, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:36:44"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:36:49"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:37:38"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:37:38"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:37:38"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:37:40"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:38:28"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:38:28"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:38:29"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:38:30"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:40:26"}
+{"level":"info","message":"DEV OTP for 919000000042: 515654 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:40:30"}
+{"level":"debug","message":"Verify OTP attempt: 919000000042, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:40:33"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:40:34"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:21"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:21"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:21"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:23"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:35"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:35"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:36"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:41:38"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:19"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:19"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:19"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:21"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:34"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:34"}
+{"level":"info","message":"Socket connected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:34"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:36"}
+{"level":"info","message":"Socket disconnected: fc5b91d5-9caf-43f9-941f-8806296d3737","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:39"}
+{"level":"info","message":"DEV OTP for 919000000042: 523590 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:45"}
+{"level":"debug","message":"Verify OTP attempt: 919000000042, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:47"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:49"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:42:54"}
+{"level":"info","message":"Socket disconnected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:43:01"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:43:01"}
+{"level":"info","message":"Socket disconnected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:43:27"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:43:27"}
+{"level":"info","message":"Socket disconnected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:43:42"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:45:17"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:45:17"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:45:18"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:45:20"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-05-21 17:46:27"}
+{"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-05-21 17:46:27"}
+{"level":"info","message":"Socket connected: cd73641a-ffa9-4a2d-a4dd-c583a43ef667","service":"b2b-platform-backend","timestamp":"2026-05-21 17:46:28"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-05-21 17:46:29"}

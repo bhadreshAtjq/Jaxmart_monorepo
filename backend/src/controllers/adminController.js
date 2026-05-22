@@ -82,12 +82,31 @@ const getListingQueue = async (req, res) => {
 // GET /api/admin/users
 const getUsers = async (req, res) => {
   try {
+    const { search, limit } = req.query;
+    const parsedLimit = parseInt(limit, 10) || 100;
+
+    const where = {};
+    if (search && search.trim() !== '') {
+      const cleanSearch = search.trim();
+      where.OR = [
+        { fullName: { contains: cleanSearch, mode: 'insensitive' } },
+        { email: { contains: cleanSearch, mode: 'insensitive' } },
+        { phone: { contains: cleanSearch, mode: 'insensitive' } },
+        { businessProfile: { businessName: { contains: cleanSearch, mode: 'insensitive' } } }
+      ];
+    }
+
     const users = await prisma.user.findMany({
-      take: 20,
-      orderBy: { createdAt: 'desc' }
+      where,
+      take: parsedLimit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        businessProfile: true
+      }
     });
     res.json({ users });
   } catch (err) {
+    logger.error('getUsers error:', err);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 };

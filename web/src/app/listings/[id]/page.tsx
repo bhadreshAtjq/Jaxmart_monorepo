@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { FaShieldHalved, FaStar, FaCircleCheck, FaBolt, FaArrowRight, FaTruck, FaGlobe, FaBoxOpen, FaCubes, FaHeart, FaShareNodes, FaComment, FaCheck, FaPhone, FaBuilding, FaIndustry } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { useListing } from '@/lib/hooks';
-import { rfqApi } from '@/lib/api';
+import { rfqApi, messageApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { Button, Card, Badge, Avatar, TrustScore, Container, Skeleton } from '@/components/ui';
 import toast from 'react-hot-toast';
@@ -61,12 +61,21 @@ export default function ListingDetailPage() {
       router.push('/auth/login');
       return;
     }
+    if (listing.sellerId === user?.id) {
+      toast.error('You cannot start a conversation with yourself.');
+      return;
+    }
     setSending(true);
     try {
-      await new Promise(r => setTimeout(r, 800));
-      toast.success('Inquiry sent! The supplier will respond shortly.');
-    } catch { toast.error('Failed to send inquiry.'); }
-    finally { setSending(false); }
+      const msg = inquiryMsg.trim() || `Hi, I am interested in sourcing your product: "${listing.title}". Please send catalog and FOB price.`;
+      const { data: conv } = await messageApi.startConversation(listing.sellerId, msg);
+      toast.success('Inquiry initiated!');
+      router.push(`/inbox?id=${conv.id}`);
+    } catch {
+      toast.error('Failed to send inquiry.');
+    } finally {
+      setSending(false);
+    }
   };
 
   // Product info rows for the main specs table

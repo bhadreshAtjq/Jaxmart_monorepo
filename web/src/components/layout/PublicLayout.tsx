@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import {
   FaMagnifyingGlass, FaBars, FaXmark, FaUser,
@@ -30,6 +30,13 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoggedIn } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showAuth = mounted && isLoggedIn;
 
   const handleSearch = () => {
     if (search.trim()) router.push(`/search?q=${encodeURIComponent(search.trim())}`);
@@ -46,7 +53,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
           </div>
           <div className="flex items-center gap-3">
-            {isLoggedIn ? (
+            {showAuth ? (
               <>
                 <Link href="/orders" className="text-gray-400 hover:text-white transition-colors">My Orders</Link>
                 <span className="text-gray-600">|</span>
@@ -106,13 +113,21 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   {link.label}
                 </Link>
               ))}
-              {isLoggedIn && (
-                <Link href="/seller/dashboard"
-                  className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    pathname.startsWith('/seller') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  )}>
-                  Dashboard
-                </Link>
+              {showAuth && (
+                <>
+                  <Link href="/inbox"
+                    className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                      pathname.startsWith('/inbox') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    )}>
+                    Messages
+                  </Link>
+                  <Link href="/seller/dashboard"
+                    className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                      pathname.startsWith('/seller') ? 'text-orange-600 bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    )}>
+                    Dashboard
+                  </Link>
+                </>
               )}
             </nav>
 
@@ -133,13 +148,17 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile Menu */}
         {mobileOpen && (
           <div className="lg:hidden border-t border-gray-200 bg-white py-3 px-4 space-y-1">
-            {[...NAV_LINKS, ...(isLoggedIn ? AUTH_LINKS : [])].map(link => (
+            {[
+              ...NAV_LINKS, 
+              ...(showAuth ? [{ href: '/inbox', label: 'Messages' }] : []),
+              ...(showAuth ? AUTH_LINKS : [])
+            ].map(link => (
               <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {link.label}
               </Link>
             ))}
-            {!isLoggedIn && (
+            {!showAuth && (
               <Link href="/auth/login" onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-orange-600 bg-orange-50">
                 Sign In / Register

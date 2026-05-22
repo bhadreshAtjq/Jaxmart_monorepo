@@ -39,10 +39,11 @@ module.exports = (io) => {
 
         io.to(`conv:${conversationId}`).emit('new_message', message);
 
-        // Notify offline participants
+        // Also emit directly to non-sender participants' user rooms to update their lists/states in real-time
         message.conversation.participants
           .filter(p => p.userId !== socket.userId)
           .forEach(p => {
+            io.to(`user:${p.userId}`).emit('new_message', message);
             io.to(`user:${p.userId}`).emit('notification', {
               type: 'new_message',
               conversationId,

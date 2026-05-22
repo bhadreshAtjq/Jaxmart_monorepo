@@ -118,6 +118,14 @@ export const notificationApi = {
   markAllRead: () => api.patch('/notifications/read-all'),
 };
 
+// ── Messages ──────────────────────────────────────────────────────────────────
+export const messageApi = {
+  getConversations: () => api.get('/messages/conversations'),
+  getMessages: (id: string) => api.get(`/messages/conversations/${id}/messages`),
+  startConversation: (recipientId: string, initialMessage?: string, rfqId?: string, orderId?: string) =>
+    api.post('/messages/conversations', { recipientId, initialMessage, rfqId, orderId }),
+};
+
 // ── Admin ─────────────────────────────────────────────────────────────────────
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),

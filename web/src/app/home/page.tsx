@@ -43,6 +43,13 @@ export default function HomePage() {
   const [searchTab, setSearchTab] = useState<'products' | 'suppliers'>('products');
   const [heroSearch, setHeroSearch] = useState('');
   const [feedIndex, setFeedIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showAuth = mounted && isLoggedIn;
 
   // Quick RFQ form states
   const [rfqProduct, setRfqProduct] = useState('');
@@ -410,7 +417,7 @@ export default function HomePage() {
             </section>
 
             {/* 3. Live Buyer Requests Board */}
-            {isLoggedIn && (
+            {showAuth && (
               <section>
                 <div className="flex items-center justify-between mb-5 border-b border-gray-100 pb-3">
                   <div>
@@ -542,7 +549,7 @@ export default function HomePage() {
               <p className="text-[11px] text-white/90 leading-relaxed mb-4">
                 List your products, register your GSTIN, and quote on thousands of active RFQ requests.
               </p>
-              <Link href={isLoggedIn ? "/seller/dashboard" : "/auth/login"}>
+              <Link href={showAuth ? "/seller/dashboard" : "/auth/login"}>
                 <button className="w-full h-9 bg-white text-orange-600 font-bold text-xs uppercase tracking-wider rounded-lg hover:bg-orange-50 transition-colors shadow-sm">
                   Register Factory Center
                 </button>

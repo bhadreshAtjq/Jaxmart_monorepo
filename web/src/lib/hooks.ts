@@ -196,11 +196,11 @@ export function useAdminStats() {
   });
 }
 
-export function useAdminUsers(enabled: boolean) {
+export function useAdminUsers(enabled: boolean, search?: string) {
   const isServer = typeof window === 'undefined';
   const token = !isServer ? localStorage.getItem('access_token') : null;
   return useSWR(
-    token && enabled ? ['/admin/users', { limit: 50 }] : null,
+    token && enabled ? ['/admin/users', { limit: 200, search }] : null,
     fetcherWithParams
   );
 }
@@ -226,6 +226,30 @@ export function useNotifications() {
   });
 }
 
+// ─── Messaging ────────────────────────────────────────────────────────────────
+
+export function useConversations() {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(token ? '/messages/conversations' : null, fetcher, {
+    refreshInterval: 10_000,
+    revalidateOnFocus: true,
+  });
+}
+
+export function useMessages(conversationId: string | null) {
+  const isServer = typeof window === 'undefined';
+  const token = !isServer ? localStorage.getItem('access_token') : null;
+  return useSWR(
+    token && conversationId ? `/messages/conversations/${conversationId}/messages` : null,
+    fetcher,
+    {
+      refreshInterval: 5000,
+      revalidateOnFocus: true,
+    }
+  );
+}
+
 // ─── Global Revalidation Helpers ──────────────────────────────────────────────
 // Call these after mutations to instantly refresh cached data
 
@@ -242,8 +266,13 @@ export const revalidate = {
     typeof key === 'string' ? key.startsWith('/listings') : Array.isArray(key) && key[0]?.startsWith('/listings'),
     undefined, { revalidate: true }
   ),
+  messages: () => globalMutate((key: any) => 
+    typeof key === 'string' ? key.startsWith('/messages') : Array.isArray(key) && key[0]?.startsWith('/messages'),
+    undefined, { revalidate: true }
+  ),
   admin: () => globalMutate((key: any) => 
     typeof key === 'string' ? key.startsWith('/admin') : Array.isArray(key) && key[0]?.startsWith('/admin'),
     undefined, { revalidate: true }
   ),
 };
+

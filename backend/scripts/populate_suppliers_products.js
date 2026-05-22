@@ -330,8 +330,8 @@ function generatePan() {
 }
 
 function generatePhone(index) {
-  // Generate unique 10-digit number starting with 9
-  return `9${String(index).padStart(9, '0')}`;
+  // Generate unique number starting with country code 91
+  return `919${String(index).padStart(9, '0')}`;
 }
 
 async function runInBatches(items, batchSize, iteratorFn) {

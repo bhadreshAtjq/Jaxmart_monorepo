@@ -610,7 +610,6 @@ function SearchListingRow({ listing }: { listing: any }) {
 
           <div className="space-y-1.5">
             <TrustScore score={seller?.trustScore || 85} />
-            
             <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold">
               <FaShieldHalved className="h-3.5 w-3.5" />
               <span>Verified B2B Manufacturer</span>
@@ -619,12 +618,13 @@ function SearchListingRow({ listing }: { listing: any }) {
         </div>
 
         {/* Call to action */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
           <Button 
             fullWidth 
             size="sm" 
             variant="outline" 
             className="text-[11px] h-9 rounded-lg"
+            onClick={() => router.push(`/listings/${listing.id}`)}
           >
             Details
           </Button>
@@ -632,8 +632,9 @@ function SearchListingRow({ listing }: { listing: any }) {
             fullWidth 
             size="sm" 
             className="bg-orange-500 hover:bg-orange-600 border-none text-white text-[11px] h-9 rounded-lg"
+            onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
           >
-            Get Quote
+            Chat Now
           </Button>
         </div>
 
@@ -681,14 +682,14 @@ function SearchListingGridCard({ listing }: { listing: any }) {
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black text-orange-650 uppercase tracking-widest">
+            <span className="text-[9px] font-black text-orange-655 uppercase tracking-widest">
               {listing.category?.name}
             </span>
             <span className="text-[10px] text-gray-500 font-semibold">
               Trust: {seller?.trustScore || 85}%
             </span>
           </div>
-          <h3 className="font-bold text-xs text-gray-900 group-hover:text-orange-650 transition-colors line-clamp-2 min-h-[2rem] leading-snug uppercase tracking-tight mb-3">
+          <h3 className="font-bold text-xs text-gray-900 group-hover:text-orange-655 transition-colors line-clamp-2 min-h-[2rem] leading-snug uppercase tracking-tight mb-3">
             {listing.title}
           </h3>
         </div>
@@ -711,6 +712,26 @@ function SearchListingGridCard({ listing }: { listing: any }) {
             <span className="text-[10px] text-gray-600 truncate font-semibold">
               {sellerName}
             </span>
+          </div>
+
+          <div className="flex gap-2 pt-2.5 mt-1 border-t border-gray-50" onClick={(e) => e.stopPropagation()}>
+            <Button 
+              fullWidth 
+              size="sm" 
+              variant="outline" 
+              className="text-[10px] h-8 rounded-lg"
+              onClick={() => router.push(`/listings/${listing.id}`)}
+            >
+              Details
+            </Button>
+            <Button 
+              fullWidth 
+              size="sm" 
+              className="bg-orange-500 hover:bg-orange-600 border-none text-white text-[10px] h-8 rounded-lg"
+              onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
+            >
+              Chat Now
+            </Button>
           </div>
         </div>
       </div>

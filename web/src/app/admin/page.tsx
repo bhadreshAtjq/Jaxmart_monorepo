@@ -25,8 +25,9 @@ const TABS = [
 export default function AdminDashboard() {
   const [tab, setTab] = useState('overview');
 
+  const [userSearch, setUserSearch] = useState('');
   const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: users, isLoading: usersLoading } = useAdminUsers(tab === 'users');
+  const { data: users, isLoading: usersLoading } = useAdminUsers(tab === 'users', userSearch);
   const { data: kycQueue, isLoading: kycLoading } = useAdminKycQueue(tab === 'kyc');
 
   const handleApprove = async (type: string, id: string) => {
@@ -189,7 +190,12 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                        <div className="relative">
                           <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 h-3 w-3" />
-                          <input placeholder="Search members..." className="h-10 pl-9 pr-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-blue/20 outline-none transition-all w-60" />
+                          <input 
+                            placeholder="Search members..." 
+                            value={userSearch}
+                            onChange={(e) => setUserSearch(e.target.value)}
+                            className="h-10 pl-9 pr-4 rounded-xl border border-gray-200 text-xs focus:ring-1 focus:ring-jax-blue/20 outline-none transition-all w-60" 
+                          />
                        </div>
                        <Button variant="outline" size="sm" icon={<FaFilter className="h-3 w-3" />} className="h-10">Advanced</Button>
                     </div>

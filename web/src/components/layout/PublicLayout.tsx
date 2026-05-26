@@ -66,6 +66,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   }, [mounted, syncing, isLoggedIn, user, pathname, router]);
 
   const showAuth = mounted && isLoggedIn;
+  const isSeller = user ? ['SELLER', 'BOTH'].includes(user.userType) : false;
 
   const handleSearch = () => {
     if (search.trim()) router.push(`/search?q=${encodeURIComponent(search.trim())}`);
@@ -155,12 +156,14 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                     )}>
                     Messages
                   </Link>
-                  <Link href="/seller/dashboard"
-                    className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      pathname.startsWith('/seller') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    )}>
-                    Dashboard
-                  </Link>
+                  {isSeller && (
+                    <Link href="/seller/dashboard"
+                      className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                        pathname.startsWith('/seller') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      )}>
+                      Dashboard
+                    </Link>
+                  )}
                 </>
               )}
             </nav>
@@ -185,7 +188,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             {[
               ...NAV_LINKS, 
               ...(showAuth ? [{ href: '/inbox', label: 'Messages' }] : []),
-              ...(showAuth ? AUTH_LINKS : [])
+              ...(showAuth ? AUTH_LINKS.filter(link => link.href !== '/seller/dashboard' || isSeller) : [])
             ].map(link => (
               <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">

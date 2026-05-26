@@ -14,6 +14,7 @@ import useSWR, { mutate as globalMutate } from 'swr';
 import useSWRMutation from 'swr/mutation';
 import api from './api';
 import { fetcher, fetcherWithParams } from './fetcher';
+import { useAuthStore } from './store';
 
 // ─── Mutation Helper ──────────────────────────────────────────────────────────
 // SWR doesn't have useMutation built-in like TanStack Query.
@@ -74,10 +75,9 @@ export function useListing(id: string | undefined) {
 }
 
 export function useMyListings(params?: Record<string, any>) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token ? ['/listings/seller/me', params || {}] : null,
+    isLoggedIn ? ['/listings/seller/me', params || {}] : null,
     fetcherWithParams
   );
 }
@@ -85,10 +85,9 @@ export function useMyListings(params?: Record<string, any>) {
 // ─── RFQ ──────────────────────────────────────────────────────────────────────
 
 export function useMyRfqs(status: string) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token ? ['/rfq/my', { status }] : null,
+    isLoggedIn ? ['/rfq/my', { status }] : null,
     fetcherWithParams,
     {
       refreshInterval: 15_000,  // Poll every 15s for new quotes
@@ -109,10 +108,9 @@ export function useRfq(id: string | undefined) {
 }
 
 export function useRfqInbox(params?: Record<string, any>) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token ? ['/rfq/seller/inbox', params || {}] : null,
+    isLoggedIn ? ['/rfq/seller/inbox', params || {}] : null,
     fetcherWithParams,
     {
       refreshInterval: 20_000,  // Poll for new RFQ matches
@@ -135,10 +133,9 @@ export function useAwardQuote(rfqId: string, quoteId: string) {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 export function useOrders(role: 'buyer' | 'seller') {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token ? ['/orders', { role }] : null,
+    isLoggedIn ? ['/orders', { role }] : null,
     fetcherWithParams,
     {
       refreshInterval: 30_000,  // Moderate polling for order updates
@@ -148,9 +145,8 @@ export function useOrders(role: 'buyer' | 'seller') {
 }
 
 export function useOrderCounts() {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
-  return useSWR(token ? 'order-counts' : null, async () => {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? 'order-counts' : null, async () => {
     const [b, s] = await Promise.all([
       api.get('/orders', { params: { role: 'buyer', limit: 1 } }),
       api.get('/orders', { params: { role: 'seller', limit: 1 } }),
@@ -185,9 +181,8 @@ export function useApproveMilestone(orderId: string, milestoneId: string) {
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export function useProfile() {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
-  return useSWR(token ? '/users/me' : null, fetcher, {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/users/me' : null, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
   });
@@ -196,27 +191,24 @@ export function useProfile() {
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 export function useAdminStats() {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
-  return useSWR(token ? '/admin/analytics' : null, fetcher, {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/admin/analytics' : null, fetcher, {
     refreshInterval: 60_000,
   });
 }
 
 export function useAdminUsers(enabled: boolean, search?: string) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token && enabled ? ['/admin/users', { limit: 200, search }] : null,
+    isLoggedIn && enabled ? ['/admin/users', { limit: 200, search }] : null,
     fetcherWithParams
   );
 }
 
 export function useAdminKycQueue(enabled: boolean) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token && enabled ? '/admin/kyc/queue' : null,
+    isLoggedIn && enabled ? '/admin/kyc/queue' : null,
     fetcher
   );
 }
@@ -231,10 +223,9 @@ export function useEvents() {
 }
 
 export function useAdminEvents(enabled: boolean) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token && enabled ? '/admin/events' : null,
+    isLoggedIn && enabled ? '/admin/events' : null,
     fetcher
   );
 }
@@ -258,10 +249,9 @@ export function useDeleteEvent(id: string) {
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 export function useNotifications() {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   
-  return useSWR(token ? '/notifications' : null, fetcher, {
+  return useSWR(isLoggedIn ? '/notifications' : null, fetcher, {
     refreshInterval: 10_000, 
     revalidateOnFocus: true,
   });
@@ -270,19 +260,17 @@ export function useNotifications() {
 // ─── Messaging ────────────────────────────────────────────────────────────────
 
 export function useConversations() {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
-  return useSWR(token ? '/messages/conversations' : null, fetcher, {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/messages/conversations' : null, fetcher, {
     refreshInterval: 10_000,
     revalidateOnFocus: true,
   });
 }
 
 export function useMessages(conversationId: string | null) {
-  const isServer = typeof window === 'undefined';
-  const token = !isServer ? localStorage.getItem('access_token') : null;
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    token && conversationId ? `/messages/conversations/${conversationId}/messages` : null,
+    isLoggedIn && conversationId ? `/messages/conversations/${conversationId}/messages` : null,
     fetcher,
     {
       refreshInterval: 5000,

@@ -1,5 +1,6 @@
 // src/lib/api.ts
 import axios from 'axios';
+import { useAuthStore } from './store';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
@@ -64,7 +65,7 @@ api.interceptors.response.use(
         processQueue(err, null);
         isRefreshing = false;
         
-        localStorage.clear();
+        useAuthStore.getState().logout();
         if (typeof window !== 'undefined') {
           const path = window.location.pathname;
           const isPublic = path === '/' || path === '/home' || path === '/search' || path.startsWith('/listings/') || path === '/auth/login';

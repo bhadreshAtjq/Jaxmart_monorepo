@@ -821,7 +821,7 @@ function InboxContent() {
 
                 {/* Profile Panel Drawer (Right Sidebar) */}
                 {showProfilePanel && (
-                  <div className="hidden lg:flex w-72 bg-white flex-col p-6 overflow-y-auto shrink-0 animate-in slide-in-from-right duration-350 z-20">
+                  <div className="hidden lg:flex w-72 bg-white flex-col p-6 overflow-y-auto shrink-0 z-20">
                     <div className="text-center pb-6 border-b border-gray-50">
                       <Avatar name={selectedConv.recipient?.fullName} size="lg" className="rounded-[2rem] border-4 border-jax-blue/5 shadow-md mx-auto mb-4" />
                       <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider mb-1 flex items-center justify-center gap-1">

@@ -50,7 +50,7 @@ function InboxContent() {
   const searchParams = useSearchParams();
   const { isLoggedIn, user } = useAuthStore();
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
 
   // Conversations query
   const { data: conversations = [], error, isLoading, mutate } = useConversations();
@@ -62,6 +62,7 @@ function InboxContent() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showProfilePanel, setShowProfilePanel] = useState(true);
+  const mutatedRef = useRef(false);
 
   // Chat refs
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -249,7 +250,7 @@ function InboxContent() {
 
   // Parse query parameter to open specific chat on load
   useEffect(() => {
-    if (!isLoading) {
+    if (isLoggedIn && !isLoading) {
       const openId = searchParams.get('id');
       const recipientId = searchParams.get('recipientId');
 
@@ -261,10 +262,12 @@ function InboxContent() {
           const convByRecipient = conversations.find((c: any) => c.recipient?.id === recipientId);
           if (convByRecipient) {
             setSelectedConv(convByRecipient);
-          } else {
+          } else if (!mutatedRef.current) {
+            mutatedRef.current = true;
             mutate();
           }
-        } else {
+        } else if (!mutatedRef.current) {
+          mutatedRef.current = true;
           mutate();
         }
       } else if (recipientId) {
@@ -285,7 +288,7 @@ function InboxContent() {
         }
       }
     }
-  }, [conversations, isLoading, searchParams, mutate]);
+  }, [conversations, isLoading, isLoggedIn, searchParams, mutate]);
 
   // Send message handler
   const handleSendMessage = (e?: React.FormEvent, textOverride?: string) => {
@@ -325,7 +328,7 @@ function InboxContent() {
           </div>
 
           <div className="flex items-center gap-2">
-            {socket?.connected ? (
+            {isConnected ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
                 Live Connection Active

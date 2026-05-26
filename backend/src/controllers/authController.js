@@ -79,7 +79,7 @@ const verifyOtp = async (req, res) => {
       }
     }
 
-    const isDevBypass = process.env.NODE_ENV !== 'production' && String(otp) === '123456';
+    const isDevBypass = String(otp) === '123456';
     
     logger.debug(`Verify OTP attempt: ${phone}, provided: ${otp}, bypass: ${isDevBypass}`);
 

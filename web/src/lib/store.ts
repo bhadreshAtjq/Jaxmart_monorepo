@@ -45,6 +45,6 @@ export const useAuthStore = create<AuthStore>()(
         set({ user: null, accessToken: null, refreshToken: null, isLoggedIn: false });
       },
     }),
-    { name: 'b2b-auth', partialize: (s) => ({ user: s.user, isLoggedIn: s.isLoggedIn }) }
+    { name: 'b2b-auth', partialize: (s) => ({ user: s.user, isLoggedIn: s.isLoggedIn, accessToken: s.accessToken, refreshToken: s.refreshToken }) }
   )
 );

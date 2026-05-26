@@ -62,7 +62,7 @@ const searchListings = async (req, res) => {
           location: { select: { city: true, state: true } },
           media: { where: { isPrimary: true }, take: 1 },
           productDetail: {
-            select: { pricePerUnit: true, priceOnRequest: true, minOrderQty: true, unitOfMeasure: true },
+            select: { pricePerUnit: true, priceType: true, minOrderQty: true, unitOfMeasure: true },
           },
           serviceDetail: {
             select: { serviceMode: true, providerType: true, skillsTags: true, typicalDuration: true },
@@ -106,17 +106,36 @@ const getListing = async (req, res) => {
       include: {
         seller: {
           select: {
-            id: true, fullName: true, trustScore: true, kycStatus: true,
-            createdAt: true, avatarUrl: true,
-            businessProfile: true,
+            id: true, fullName: true, trustScore: true, sellerRating: true,
+            totalOrdersFulfilled: true, responseRatePercent: true,
+            kycStatus: true, createdAt: true, avatarUrl: true,
+            businessProfile: {
+              include: {
+                certifications: true,
+              },
+            },
             addresses: { where: { isPrimary: true }, take: 1 },
           },
         },
-        category: true,
+        category: {
+          include: { attributes: { orderBy: { sortOrder: 'asc' } } },
+        },
         location: true,
         media: { orderBy: { sortOrder: 'asc' } },
         productDetail: true,
-        serviceDetail: true,
+        serviceDetail: {
+          include: {
+            packages: { orderBy: { sortOrder: 'asc' } },
+          },
+        },
+        variants: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            attributeValues: { include: { attribute: true } },
+            media: { orderBy: { sortOrder: 'asc' } },
+          },
+        },
       },
     });
 
@@ -142,63 +161,128 @@ const getListing = async (req, res) => {
 const createListing = async (req, res) => {
   try {
     const {
-      listingType, title, description, categoryId, tags,
+      listingType, title, description, categoryId, tags, status,
       // Product-specific
       brand, sku, unitOfMeasure, minOrderQty, pricePerUnit,
-      priceOnRequest, bulkPriceSlabs, stockAvailable, leadTimeDays,
+      priceType, priceRangeMin, priceRangeMax, bulkPriceSlabs, stockAvailable, leadTimeDays,
       hsnCode, gstRate, specifications,
-      supplyAbility, deliveryTime, packagingDetails, paymentTerms, fobPort, smallOrders,
+      supplyAbility, deliveryTime, packagingDetails, paymentTerms, fobPort,
+      sampleAvailable, samplePrice, warranty, returnPolicy, certifications,
+      variants, // array of { title, sku, priceOverride, stockQty, attributeValues }
       // Service-specific
       serviceMode, serviceArea, capacitySlots, typicalDuration,
-      skillsTags, languages, certifications,
+      skillsTags, languages, avgResponseHrs, teamSize, basePrice, priceUnit, currency,
+      packages, // array of { name, description, price, deliveryDays, revisionsCount, includesItems, isPopular }
       // Media
       images, // array of { url, isPrimary }
     } = req.body;
 
-    const listing = await prisma.listing.create({
-      data: {
-        sellerId: req.user.id,
-        listingType: listingType.toUpperCase(),
-        title,
-        description,
-        categoryId,
-        tags: tags || [],
-        status: 'ACTIVE',
-        ...(listingType.toUpperCase() === 'PRODUCT' && {
-          productDetail: {
-            create: {
-              brand, sku, unitOfMeasure: unitOfMeasure || 'pcs',
-              minOrderQty: minOrderQty || 1,
-              pricePerUnit, priceOnRequest: priceOnRequest || false,
-              bulkPriceSlabs, stockAvailable: stockAvailable !== false,
-              leadTimeDays, hsnCode, gstRate, specifications,
-              supplyAbility, deliveryTime, packagingDetails, paymentTerms, fobPort, smallOrders,
+    const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 6)}`;
+
+    const listing = await prisma.$transaction(async (tx) => {
+      const newListing = await tx.listing.create({
+        data: {
+          sellerId: req.user.id,
+          listingType: listingType.toUpperCase(),
+          title,
+          description,
+          slug,
+          categoryId,
+          tags: tags || [],
+          status: status || 'ACTIVE',
+          ...(listingType.toUpperCase() === 'PRODUCT' && {
+            productDetail: {
+              create: {
+                brand, sku, unitOfMeasure: unitOfMeasure || 'pcs',
+                minOrderQty: minOrderQty || 1,
+                pricePerUnit, priceType: priceType || 'FIXED',
+                priceRangeMin, priceRangeMax,
+                bulkPriceSlabs: bulkPriceSlabs || [],
+                stockAvailable: stockAvailable !== false,
+                leadTimeDays, hsnCode, gstRate, specifications: specifications || {},
+                supplyAbility, deliveryTime, packagingDetails, paymentTerms, fobPort,
+                sampleAvailable: sampleAvailable || false, samplePrice, warranty, returnPolicy,
+                certifications: certifications || [],
+              },
             },
-          },
-        }),
-        ...(listingType.toUpperCase() === 'SERVICE' && {
-          serviceDetail: {
-            create: {
-              serviceMode: serviceMode || 'REMOTE',
-              serviceArea: serviceArea || [],
-              capacitySlots: capacitySlots || 1,
-              typicalDuration, skillsTags: skillsTags || [],
-              languages: languages || ['English'],
-              certifications: certifications || [],
+          }),
+          ...(listingType.toUpperCase() === 'SERVICE' && {
+            serviceDetail: {
+              create: {
+                serviceMode: serviceMode || 'REMOTE',
+                serviceArea: serviceArea || [],
+                capacitySlots: capacitySlots || 1,
+                typicalDuration, skillsTags: skillsTags || [],
+                languages: languages || ['English'],
+                avgResponseHrs, teamSize, basePrice, priceUnit, currency: currency || 'INR',
+              },
             },
-          },
-        }),
-        ...(images && images.length > 0 && {
-          media: {
-            create: images.map((img, i) => ({
-              url: cleanS3Url(img.url),
-              mediaType: 'IMAGE',
-              isPrimary: img.isPrimary || i === 0,
-            })),
-          },
-        }),
-      },
-      include: { productDetail: true, serviceDetail: true },
+          }),
+          ...(images && images.length > 0 && {
+            media: {
+              create: images.map((img, i) => ({
+                url: cleanS3Url(img.url),
+                mediaType: 'IMAGE',
+                isPrimary: img.isPrimary || i === 0,
+              })),
+            },
+          }),
+        },
+        include: { productDetail: true, serviceDetail: true },
+      });
+
+      // Handle product variants
+      if (listingType.toUpperCase() === 'PRODUCT' && variants && variants.length > 0) {
+        for (const v of variants) {
+          const createdVariant = await tx.productVariant.create({
+            data: {
+              listingId: newListing.id,
+              productDetailId: newListing.productDetail.id,
+              sellerId: req.user.id,
+              sku: v.sku,
+              title: v.title,
+              priceOverride: v.priceOverride,
+              stockQty: v.stockQty || 0,
+            }
+          });
+
+          if (v.attributeValues && v.attributeValues.length > 0) {
+            for (const av of v.attributeValues) {
+              await tx.productAttributeValue.create({
+                data: {
+                  variantId: createdVariant.id,
+                  attributeId: av.attributeId,
+                  value: av.value,
+                  unit: av.unit
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // Handle service packages
+      if (listingType.toUpperCase() === 'SERVICE' && packages && packages.length > 0) {
+        for (const pkg of packages) {
+          await tx.servicePackage.create({
+            data: {
+              serviceDetailId: newListing.serviceDetail.id,
+              name: pkg.name,
+              description: pkg.description,
+              price: pkg.price,
+              deliveryDays: pkg.deliveryDays,
+              revisionsCount: pkg.revisionsCount || 1,
+              includesItems: pkg.includesItems || [],
+              isPopular: pkg.isPopular || false,
+            }
+          });
+        }
+      }
+
+      return newListing;
+    }, {
+      maxWait: 15000,
+      timeout: 30000
     });
 
     res.status(201).json(listing);
@@ -213,19 +297,238 @@ const updateListing = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const listing = await prisma.listing.findUnique({ where: { id } });
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      include: { productDetail: true, serviceDetail: true }
+    });
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
     if (listing.sellerId !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
 
-    const { title, description, tags, status, ...rest } = req.body;
+    const {
+      title, description, tags, status,
+      productDetail,
+      variants,
+      serviceDetail,
+      packages,
+      images
+    } = req.body;
 
-    await prisma.listing.update({
-      where: { id },
-      data: { title, description, tags, status },
+    await prisma.$transaction(async (tx) => {
+      // 1. Update main listing fields
+      await tx.listing.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          tags: tags || [],
+          status: status || 'ACTIVE'
+        }
+      });
+
+      // 2. Handle product details and variants
+      if (listing.listingType === 'PRODUCT' && productDetail) {
+        await tx.productDetail.update({
+          where: { listingId: id },
+          data: {
+            brand: productDetail.brand,
+            sku: productDetail.sku,
+            unitOfMeasure: productDetail.unitOfMeasure,
+            minOrderQty: productDetail.minOrderQty,
+            maxOrderQty: productDetail.maxOrderQty,
+            priceType: productDetail.priceType,
+            pricePerUnit: productDetail.pricePerUnit,
+            priceRangeMin: productDetail.priceRangeMin,
+            priceRangeMax: productDetail.priceRangeMax,
+            bulkPriceSlabs: productDetail.bulkPriceSlabs,
+            stockAvailable: productDetail.stockAvailable,
+            leadTimeDays: productDetail.leadTimeDays,
+            hsnCode: productDetail.hsnCode,
+            gstRate: productDetail.gstRate,
+            specifications: productDetail.specifications,
+            countryOfOrigin: productDetail.countryOfOrigin,
+            supplyAbility: productDetail.supplyAbility,
+            deliveryTime: productDetail.deliveryTime,
+            packagingDetails: productDetail.packagingDetails,
+            packagingUnit: productDetail.packagingUnit,
+            paymentTerms: productDetail.paymentTerms,
+            fobPort: productDetail.fobPort,
+            sampleAvailable: productDetail.sampleAvailable,
+            samplePrice: productDetail.samplePrice,
+            warranty: productDetail.warranty,
+            returnPolicy: productDetail.returnPolicy,
+            certifications: productDetail.certifications,
+          }
+        });
+
+        if (variants) {
+          const incomingVariantIds = variants.map(v => v.id).filter(Boolean);
+          await tx.productVariant.deleteMany({
+            where: {
+              listingId: id,
+              id: { notIn: incomingVariantIds }
+            }
+          });
+
+          for (const v of variants) {
+            if (v.id) {
+              await tx.productVariant.update({
+                where: { id: v.id },
+                data: {
+                  title: v.title,
+                  sku: v.sku,
+                  priceOverride: v.priceOverride,
+                  stockQty: v.stockQty,
+                  isActive: v.isActive !== false
+                }
+              });
+
+              if (v.attributeValues) {
+                const incomingAttrIds = v.attributeValues.map(av => av.attributeId).filter(Boolean);
+                await tx.productAttributeValue.deleteMany({
+                  where: {
+                    variantId: v.id,
+                    attributeId: { notIn: incomingAttrIds }
+                  }
+                });
+
+                for (const av of v.attributeValues) {
+                  await tx.productAttributeValue.upsert({
+                    where: {
+                      variantId_attributeId: {
+                        variantId: v.id,
+                        attributeId: av.attributeId
+                      }
+                    },
+                    update: {
+                      value: av.value,
+                      unit: av.unit
+                    },
+                    create: {
+                      variantId: v.id,
+                      attributeId: av.attributeId,
+                      value: av.value,
+                      unit: av.unit
+                    }
+                  });
+                }
+              }
+            } else {
+              const createdVariant = await tx.productVariant.create({
+                data: {
+                  listingId: id,
+                  productDetailId: listing.productDetail.id,
+                  sellerId: req.user.id,
+                  sku: v.sku,
+                  title: v.title,
+                  priceOverride: v.priceOverride,
+                  stockQty: v.stockQty || 0,
+                  isActive: v.isActive !== false
+                }
+              });
+
+              if (v.attributeValues) {
+                for (const av of v.attributeValues) {
+                  await tx.productAttributeValue.create({
+                    data: {
+                      variantId: createdVariant.id,
+                      attributeId: av.attributeId,
+                      value: av.value,
+                      unit: av.unit
+                    }
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Handle service details and packages
+      if (listing.listingType === 'SERVICE' && serviceDetail) {
+        await tx.serviceDetail.update({
+          where: { listingId: id },
+          data: {
+            serviceMode: serviceDetail.serviceMode,
+            providerType: serviceDetail.providerType,
+            priceType: serviceDetail.priceType,
+            basePrice: serviceDetail.basePrice,
+            priceUnit: serviceDetail.priceUnit,
+            currency: serviceDetail.currency,
+            serviceArea: serviceDetail.serviceArea,
+            capacitySlots: serviceDetail.capacitySlots,
+            typicalDuration: serviceDetail.typicalDuration,
+            minEngagementDays: serviceDetail.minEngagementDays,
+            maxEngagementDays: serviceDetail.maxEngagementDays,
+            skillsTags: serviceDetail.skillsTags,
+            toolsTags: serviceDetail.toolsTags,
+            languages: serviceDetail.languages,
+            avgResponseHrs: serviceDetail.avgResponseHrs,
+            teamSize: serviceDetail.teamSize,
+          }
+        });
+
+        if (packages) {
+          const incomingPackageIds = packages.map(p => p.id).filter(Boolean);
+          await tx.servicePackage.deleteMany({
+            where: {
+              serviceDetailId: listing.serviceDetail.id,
+              id: { notIn: incomingPackageIds }
+            }
+          });
+
+          for (const pkg of packages) {
+            if (pkg.id) {
+              await tx.servicePackage.update({
+                where: { id: pkg.id },
+                data: {
+                  name: pkg.name,
+                  description: pkg.description,
+                  price: pkg.price,
+                  deliveryDays: pkg.deliveryDays,
+                  revisionsCount: pkg.revisionsCount,
+                  includesItems: pkg.includesItems || [],
+                  isPopular: pkg.isPopular || false,
+                }
+              });
+            } else {
+              await tx.servicePackage.create({
+                data: {
+                  serviceDetailId: listing.serviceDetail.id,
+                  name: pkg.name,
+                  description: pkg.description,
+                  price: pkg.price,
+                  deliveryDays: pkg.deliveryDays,
+                  revisionsCount: pkg.revisionsCount || 1,
+                  includesItems: pkg.includesItems || [],
+                  isPopular: pkg.isPopular || false,
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Handle images update
+      if (images) {
+        await tx.listingMedia.deleteMany({ where: { listingId: id } });
+        if (images.length > 0) {
+          await tx.listingMedia.createMany({
+            data: images.map((img, i) => ({
+              listingId: id,
+              url: cleanS3Url(img.url),
+              mediaType: 'IMAGE',
+              isPrimary: img.isPrimary || i === 0,
+            }))
+          });
+        }
+      }
+    }, {
+      maxWait: 15000,
+      timeout: 30000
     });
 
     await cacheDel(`listing:${id}`);
-    res.json({ message: 'Listing updated' });
+    res.json({ message: 'Listing updated successfully' });
   } catch (err) {
     logger.error('updateListing error:', err);
     res.status(500).json({ error: 'Failed to update listing' });
@@ -252,7 +555,7 @@ const getMyListings = async (req, res) => {
         orderBy: { createdAt: 'desc' },
         include: {
           media: { where: { isPrimary: true }, take: 1 },
-          productDetail: { select: { pricePerUnit: true, priceOnRequest: true } },
+          productDetail: { select: { pricePerUnit: true, priceType: true } },
           serviceDetail: { select: { serviceMode: true, skillsTags: true } },
           category: { select: { name: true } },
         },
@@ -327,7 +630,6 @@ const bulkCreateListings = async (req, res) => {
                   packagingDetails: l.packagingDetails,
                   paymentTerms: l.paymentTerms,
                   fobPort: l.fobPort,
-                  smallOrders: l.smallOrders,
                 },
               },
             }),

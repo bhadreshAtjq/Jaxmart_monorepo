@@ -8,7 +8,8 @@ import {
   FaShieldHalved, FaCircleCheck, FaArrowRight
 } from 'react-icons/fa6';
 import { useAuthStore } from '@/lib/store';
-import { Avatar } from '@/components/ui';
+import { Avatar, PageLoader } from '@/components/ui';
+import { userApi } from '@/lib/api';
 
 import Image from 'next/image';
 
@@ -27,20 +28,53 @@ const AUTH_LINKS = [
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoggedIn } = useAuthStore();
+  const { user, isLoggedIn, updateUser } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [syncing, setSyncing] = useState(isLoggedIn);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    if (isLoggedIn) {
+      userApi.getProfile()
+        .then((res) => {
+          if (res.data) {
+            updateUser(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to sync profile:', err);
+        })
+        .finally(() => {
+          setSyncing(false);
+        });
+    } else {
+      setSyncing(false);
+    }
+  }, [isLoggedIn, updateUser]);
+
+  useEffect(() => {
+    if (mounted && !syncing && isLoggedIn && user) {
+      const isIncomplete = !user.email || user.fullName === 'New User';
+      const isAuthPage = pathname.startsWith('/auth');
+      if (isIncomplete && !isAuthPage) {
+        router.replace('/auth/setup');
+      }
+    }
+  }, [mounted, syncing, isLoggedIn, user, pathname, router]);
 
   const showAuth = mounted && isLoggedIn;
 
   const handleSearch = () => {
     if (search.trim()) router.push(`/search?q=${encodeURIComponent(search.trim())}`);
   };
+
+  const isCachedIncomplete = isLoggedIn && user && (!user.email || user.fullName === 'New User');
+  if (syncing && isCachedIncomplete) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

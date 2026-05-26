@@ -29,20 +29,22 @@ const updateProfile = async (req, res) => {
       email,
       accountType,
       userType,
+      kycStatus: 'VERIFIED', // Auto-verify KYC in development
       hasSeenTour: hasSeenTour !== undefined ? hasSeenTour : undefined,
     };
 
-    // If business details provided, create or update business profile
-    if (accountType === 'BUSINESS' && (businessName || gstNumber)) {
+    // If business details provided, or account is business, or user is seller/both, create or update business profile
+    if ((accountType === 'BUSINESS' || userType === 'SELLER' || userType === 'BOTH') && (businessName || gstNumber || fullName)) {
+      const bName = businessName || (fullName ? `${fullName}'s Business` : 'My Business');
       data.businessProfile = {
         upsert: {
           create: {
-            businessName: businessName || 'My Business',
-            gstin: gstNumber,
+            businessName: bName,
+            gstin: gstNumber || null,
           },
           update: {
-            businessName,
-            gstin: gstNumber,
+            businessName: bName,
+            gstin: gstNumber || null,
           },
         },
       };

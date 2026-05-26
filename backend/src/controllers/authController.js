@@ -108,6 +108,7 @@ const verifyOtp = async (req, res) => {
           phone,
           fullName: name,
           userType: userType || 'BUYER',
+          kycStatus: 'VERIFIED',
         },
       });
     }
@@ -132,6 +133,7 @@ const verifyOtp = async (req, res) => {
         id: user.id,
         phone: user.phone,
         fullName: user.fullName,
+        email: user.email,
         userType: user.userType,
         accountType: user.accountType,
         kycStatus: user.kycStatus,

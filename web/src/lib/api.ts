@@ -92,6 +92,7 @@ export const authApi = {
 // ── Categories ────────────────────────────────────────────────────────────────
 export const categoryApi = {
   getAll: (parentId?: string) => api.get('/categories', { params: { parentId } }),
+  getAttributes: (id: string) => api.get(`/categories/${id}/attributes`),
 };
 
 // ── Listings ──────────────────────────────────────────────────────────────────

@@ -3,14 +3,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { 
-  FaPlus, FaCheck, FaIndustry, FaCubes, FaArrowRight, FaArrowLeft,
-  FaFileLines, FaTag, FaIndianRupeeSign, FaBox, FaCloudArrowUp,
-  FaCircleCheck, FaBolt
+  FaPlus, FaCheck, FaIndustry, FaArrowRight, FaArrowLeft,
+  FaFileLines, FaIndianRupeeSign, FaCloudArrowUp,
+  FaCircleCheck, FaBox, FaBolt, FaTrashCan
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { listingApi } from '@/lib/api';
-import { useCategories } from '@/lib/hooks';
-import { Card, Button, PageLoader, Container, Input } from '@/components/ui';
+import { useCategories, useCategoryAttributes } from '@/lib/hooks';
+import { Card, Button, Container, Input, Textarea } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -24,83 +24,252 @@ const STEPS = [
   { id: 'media', label: 'Media Index', icon: FaCloudArrowUp },
 ];
 
+interface BulkSlab {
+  minQty: number;
+  maxQty: number;
+  price: number;
+}
+
+interface VariantAttribute {
+  attributeId: string;
+  value: string;
+}
+
+interface ProductVariantInput {
+  title: string;
+  sku: string;
+  priceOverride?: number;
+  stockQty: number;
+  attributeValues: VariantAttribute[];
+}
+
+interface ServicePackageInput {
+  name: string;
+  description: string;
+  price: number;
+  deliveryDays: number;
+  revisionsCount: number;
+  includesItems: string[];
+  isPopular: boolean;
+}
+
 export default function NewListingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    listingType: 'PRODUCT' as 'PRODUCT' | 'SERVICE',
-    categoryId: '',
-    title: '',
-    description: '',
-    tags: [] as string[],
-    productDetail: {
-      brand: '',
-      sku: '',
-      unitOfMeasure: 'Units',
-      minOrderQty: 1,
-      pricePerUnit: 0,
-      priceOnRequest: false,
-      leadTimeDays: 7,
-      countryOfOrigin: 'India',
-      specifications: {} as Record<string, string>,
-    },
-    serviceDetail: {
-      serviceMode: 'REMOTE',
-      typicalDuration: '',
-    }
-  });
 
-  const [specRows, setSpecRows] = useState<{ key: string, val: string }[]>([
-    { key: '', val: '' }
+  // Core Form State
+  const [listingType, setListingType] = useState<'PRODUCT' | 'SERVICE'>('PRODUCT');
+  const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [tagsInput, setTagsInput] = useState('');
+
+  // Product Specific State
+  const [brand, setBrand] = useState('');
+  const [sku, setSku] = useState('');
+  const [unitOfMeasure, setUnitOfMeasure] = useState('Pieces');
+  const [minOrderQty, setMinOrderQty] = useState(1);
+  const [priceType, setPriceType] = useState<'FIXED' | 'RANGE' | 'NEGOTIABLE' | 'ON_REQUEST'>('FIXED');
+  const [pricePerUnit, setPricePerUnit] = useState(0);
+  const [priceRangeMin, setPriceRangeMin] = useState(0);
+  const [priceRangeMax, setPriceRangeMax] = useState(0);
+  const [leadTimeDays, setLeadTimeDays] = useState(7);
+  const [countryOfOrigin, setCountryOfOrigin] = useState('India');
+  const [hsnCode, setHsnCode] = useState('');
+  const [gstRate, setGstRate] = useState(18);
+  const [supplyAbility, setSupplyAbility] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState('');
+  const [packagingDetails, setPackagingDetails] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [fobPort, setFobPort] = useState('');
+  const [warranty, setWarranty] = useState('');
+  const [returnPolicy, setReturnPolicy] = useState('');
+  const [sampleAvailable, setSampleAvailable] = useState(false);
+  const [samplePrice, setSamplePrice] = useState(0);
+
+  // Specifications (Dynamic Category Attributes + Custom spec rows)
+  const [specifications, setSpecifications] = useState<Record<string, string>>({});
+  const [customSpecRows, setCustomSpecRows] = useState<{ key: string; val: string }[]>([]);
+
+  // Product Variants State
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<ProductVariantInput[]>([]);
+
+  // Service Specific State
+  const [serviceMode, setServiceMode] = useState<'REMOTE' | 'ON_SITE' | 'HYBRID'>('REMOTE');
+  const [typicalDuration, setTypicalDuration] = useState('');
+  const [teamSize, setTeamSize] = useState(1);
+  const [avgResponseHrs, setAvgResponseHrs] = useState(24);
+  const [languages, setLanguages] = useState('English');
+  const [skillsTagsInput, setSkillsTagsInput] = useState('');
+  
+  // Tiered Service Packages
+  const [packages, setPackages] = useState<ServicePackageInput[]>([
+    { name: 'Basic', description: '', price: 0, deliveryDays: 3, revisionsCount: 1, includesItems: [], isPopular: false },
+    { name: 'Standard', description: '', price: 0, deliveryDays: 7, revisionsCount: 3, includesItems: [], isPopular: true },
+    { name: 'Premium', description: '', price: 0, deliveryDays: 14, revisionsCount: 10, includesItems: [], isPopular: false },
   ]);
 
+  // Bulk Price Slabs State
+  const [bulkPriceSlabs, setBulkPriceSlabs] = useState<BulkSlab[]>([]);
+
+  // Certifications Checklist State
+  const [certs, setCerts] = useState<string[]>([]);
+  const [customCertInput, setCustomCertInput] = useState('');
+
+  // Media State
+  const [images, setImages] = useState<{ url: string; isPrimary: boolean }[]>([]);
+
+  // Fetching categories and attributes
   const { data: categories } = useCategories();
+  const { data: categoryAttributes } = useCategoryAttributes(categoryId);
 
   const next = () => setStep(s => Math.min(STEPS.length - 1, s + 1));
   const back = () => setStep(s => Math.max(0, s - 1));
 
-  const addSpecRow = () => {
-    setSpecRows(r => [...r, { key: '', val: '' }]);
+  // Specs helper functions
+  const addCustomSpecRow = () => {
+    setCustomSpecRows(r => [...r, { key: '', val: '' }]);
   };
 
-  const removeSpecRow = (index: number) => {
-    const updated = specRows.filter((_, i) => i !== index);
-    setSpecRows(updated);
-    syncSpecRows(updated);
+  const removeCustomSpecRow = (index: number) => {
+    setCustomSpecRows(customSpecRows.filter((_, i) => i !== index));
   };
 
-  const updateSpecRow = (index: number, key: string, val: string) => {
-    const updated = [...specRows];
+  const updateCustomSpecRow = (index: number, key: string, val: string) => {
+    const updated = [...customSpecRows];
     updated[index] = { key, val };
-    setSpecRows(updated);
-    syncSpecRows(updated);
+    setCustomSpecRows(updated);
   };
 
-  const syncSpecRows = (rows: { key: string, val: string }[]) => {
-    const specObj: Record<string, string> = {};
-    rows.forEach(r => {
-      if (r.key.trim()) {
-        specObj[r.key.trim()] = r.val;
-      }
-    });
-    setFormData(d => ({
-      ...d,
-      productDetail: {
-        ...d.productDetail,
-        specifications: specObj
-      }
-    }));
+  // Variants helpers
+  const addVariantRow = () => {
+    const defaultAttrs = categoryAttributes ? categoryAttributes.map((attr: any) => ({
+      attributeId: attr.id,
+      value: '',
+    })) : [];
+    
+    setVariants(v => [
+      ...v,
+      { title: '', sku: '', priceOverride: undefined, stockQty: 0, attributeValues: defaultAttrs }
+    ]);
+  };
+
+  const removeVariantRow = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const updateVariant = (index: number, field: keyof ProductVariantInput, value: any) => {
+    const updated = [...variants];
+    updated[index] = { ...updated[index], [field]: value };
+    setVariants(updated);
+  };
+
+  const updateVariantAttr = (varIndex: number, attrId: string, val: string) => {
+    const updated = [...variants];
+    const attrs = [...updated[varIndex].attributeValues];
+    const idx = attrs.findIndex(a => a.attributeId === attrId);
+    if (idx > -1) {
+      attrs[idx] = { attributeId: attrId, value: val };
+    } else {
+      attrs.push({ attributeId: attrId, value: val });
+    }
+    updated[varIndex] = { ...updated[varIndex], attributeValues: attrs };
+    setVariants(updated);
+  };
+
+  // Bulk Price Slabs helper functions
+  const addBulkPriceSlab = () => {
+    setBulkPriceSlabs(s => [...s, { minQty: 1, maxQty: 10, price: 0 }]);
+  };
+
+  const removeBulkPriceSlab = (index: number) => {
+    setBulkPriceSlabs(bulkPriceSlabs.filter((_, i) => i !== index));
+  };
+
+  const updateBulkPriceSlab = (index: number, field: keyof BulkSlab, value: number) => {
+    const updated = [...bulkPriceSlabs];
+    updated[index] = { ...updated[index], [field]: value };
+    setBulkPriceSlabs(updated);
+  };
+
+  // Service package helper functions
+  const updateServicePackage = (index: number, field: keyof ServicePackageInput, value: any) => {
+    const updated = [...packages];
+    updated[index] = { ...updated[index], [field]: value };
+    setPackages(updated);
   };
 
   const handleCreate = async () => {
     setLoading(true);
     try {
-      const { data } = await listingApi.create(formData);
-      toast.success('Inventory Indexed Successfully');
+      // 1. Gather all specifications (Category Attribute inputs + Custom Spec rows)
+      const finalSpecifications: Record<string, string> = { ...specifications };
+      customSpecRows.forEach(row => {
+        if (row.key.trim()) {
+          finalSpecifications[row.key.trim()] = row.val;
+        }
+      });
+
+      // 2. Prepare payload matching listingController structure
+      const payload: any = {
+        listingType,
+        title,
+        description,
+        categoryId,
+        tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
+        status: 'ACTIVE',
+        images,
+      };
+
+      if (listingType === 'PRODUCT') {
+        payload.brand = brand;
+        payload.sku = sku;
+        payload.unitOfMeasure = unitOfMeasure;
+        payload.minOrderQty = minOrderQty;
+        payload.pricePerUnit = pricePerUnit;
+        payload.priceType = priceType;
+        payload.priceRangeMin = priceRangeMin;
+        payload.priceRangeMax = priceRangeMax;
+        payload.bulkPriceSlabs = bulkPriceSlabs;
+        payload.stockAvailable = true;
+        payload.leadTimeDays = leadTimeDays;
+        payload.hsnCode = hsnCode;
+        payload.gstRate = gstRate;
+        payload.specifications = finalSpecifications;
+        payload.supplyAbility = supplyAbility;
+        payload.deliveryTime = deliveryTime;
+        payload.packagingDetails = packagingDetails;
+        payload.paymentTerms = paymentTerms;
+        payload.fobPort = fobPort;
+        payload.sampleAvailable = sampleAvailable;
+        payload.samplePrice = samplePrice;
+        payload.warranty = warranty;
+        payload.returnPolicy = returnPolicy;
+        payload.certifications = certs;
+
+        if (hasVariants && variants.length > 0) {
+          payload.variants = variants;
+        }
+      } else {
+        payload.serviceMode = serviceMode;
+        payload.typicalDuration = typicalDuration;
+        payload.teamSize = teamSize;
+        payload.avgResponseHrs = avgResponseHrs;
+        payload.languages = languages.split(',').map(l => l.trim()).filter(Boolean);
+        payload.skillsTags = skillsTagsInput.split(',').map(s => s.trim()).filter(Boolean);
+        payload.basePrice = packages[0]?.price || 0; // Use Basic tier price as base
+        payload.priceUnit = 'PROJECT';
+        payload.currency = 'INR';
+        payload.packages = packages;
+      }
+
+      await listingApi.create(payload);
+      toast.success('Inventory Cataloged & Indexed Successfully');
       router.push('/seller/listings');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Protocol Sync Failed');
+      toast.error(err?.response?.data?.message || 'Provisioning sequence failed');
     } finally {
       setLoading(false);
     }
@@ -117,7 +286,7 @@ export default function NewListingPage() {
                     <FaArrowLeft className="h-3 w-3" /> Back to Ledger
                   </button>
                   <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Initialize Storefront SKU</h1>
-                  <p className="text-sm text-gray-500 font-medium">Provision a new industrial product or technical service into the global search index.</p>
+                  <p className="text-sm text-gray-500 font-medium font-sans">Provision a new industrial product or technical service into the global search index.</p>
                 </div>
                 
                 <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
@@ -149,30 +318,32 @@ export default function NewListingPage() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
+                {/* STEP 1: CLASSIFICATION */}
                 {step === 0 && (
                   <Card className="p-10 border-none shadow-2xl shadow-black/[0.03] space-y-10 text-center">
                     <div className="space-y-4">
                       <p className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Step 01 / Registry Type</p>
-                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight">How is this asset classified?</h2>
+                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight font-heading">How is this asset classified?</h2>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {(['PRODUCT', 'SERVICE'] as const).map(type => (
                         <button
                           key={type}
-                          onClick={() => setFormData({ ...formData, listingType: type })}
+                          type="button"
+                          onClick={() => setListingType(type)}
                           className={clsx(
                             "relative p-8 rounded-3xl border-2 transition-all group overflow-hidden",
-                            formData.listingType === type ? "border-jax-accent bg-jax-accent/5" : "border-gray-100 bg-white hover:border-gray-200"
+                            listingType === type ? "border-jax-accent bg-jax-accent/5" : "border-gray-100 bg-white hover:border-gray-200"
                           )}
                         >
                           <div className={clsx(
                             "h-16 w-16 rounded-2xl mx-auto mb-6 flex items-center justify-center transition-all",
-                            formData.listingType === type ? "bg-jax-accent text-white" : "bg-gray-50 text-gray-300 group-hover:bg-gray-100"
+                            listingType === type ? "bg-jax-accent text-white" : "bg-gray-50 text-gray-300 group-hover:bg-gray-100"
                           )}>
                             {type === 'PRODUCT' ? <FaBox className="h-7 w-7" /> : <FaBolt className="h-7 w-7" />}
                           </div>
-                          <h3 className="font-black text-jax-dark uppercase tracking-tight mb-2">{type === 'PRODUCT' ? 'Industrial Good' : 'Technical Service'}</h3>
+                          <h3 className="font-black text-jax-dark uppercase tracking-tight mb-2 font-heading">{type === 'PRODUCT' ? 'Industrial Good' : 'Technical Service'}</h3>
                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
                             {type === 'PRODUCT' ? 'Movable assets, machinery, spare parts or raw materials' : 'Consulting, installation, maintenance or specialized labor'}
                           </p>
@@ -180,58 +351,138 @@ export default function NewListingPage() {
                       ))}
                     </div>
 
-                    <div className="max-w-md mx-auto text-left space-y-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Technical Industry Vertical</label>
-                      <select 
-                        value={formData.categoryId} 
-                        onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                        className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
-                      >
-                        <option value="">Select Vertical Registry...</option>
-                        {categories?.map((c: any) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Technical Industry Vertical</label>
+                        <select 
+                          value={categoryId} 
+                          onChange={e => setCategoryId(e.target.value)}
+                          className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
+                        >
+                          <option value="">Select Vertical Registry...</option>
+                          {categories?.map((c: any) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <Input 
+                        label="Search Tags (Comma separated)" 
+                        placeholder="e.g. steel, high-tensile, construction" 
+                        value={tagsInput} 
+                        onChange={e => setTagsInput(e.target.value)} 
+                      />
                     </div>
                   </Card>
                 )}
 
+                {/* STEP 2: TECHNICAL SPECS */}
                 {step === 1 && (
                   <Card className="p-10 border-none shadow-2xl shadow-black/[0.03] space-y-10">
                     <div className="space-y-4 text-center">
                       <p className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Step 02 / Spec Sheet</p>
-                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight">Core Marketplace Identification</h2>
+                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight font-heading">Core Marketplace Identification</h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="md:col-span-2">
-                          <Input label="Registry Title" placeholder="e.g. Industrial Grade High-Torque AC Motor 5HP" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
+                          <Input label="Registry Title" placeholder="e.g. Industrial Grade High-Torque AC Motor 5HP" value={title} onChange={e => setTitle(e.target.value)} required />
                       </div>
-                      <Input label="Brand / Manufacturer" placeholder="Organization name" value={formData.productDetail.brand} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, brand: e.target.value } })} />
-                      <Input label="Part Number / SKU" placeholder="Internal registry ID" value={formData.productDetail.sku} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, sku: e.target.value } })} />
-                      
-                      {formData.listingType === 'PRODUCT' && (
+
+                      {listingType === 'PRODUCT' ? (
+                        <>
+                          <Input label="Brand / Manufacturer" placeholder="Organization name" value={brand} onChange={e => setBrand(e.target.value)} />
+                          <Input label="Part Number / SKU" placeholder="Internal registry ID" value={sku} onChange={e => setSku(e.target.value)} />
+                          <Input label="Sourcing Unit" placeholder="e.g. Kg, Pcs, Metric Tons" value={unitOfMeasure} onChange={e => setUnitOfMeasure(e.target.value)} />
+                          <Input type="number" label="Global Lead Time (Days)" value={leadTimeDays} onChange={e => setLeadTimeDays(Number(e.target.value))} />
+                          <Input label="Country of Origin" value={countryOfOrigin} onChange={e => setCountryOfOrigin(e.target.value)} />
+                          <Input label="HSN Code" placeholder="Harmonized System Nomenclature" value={hsnCode} onChange={e => setHsnCode(e.target.value)} />
+                          <Input type="number" label="GST Rate (%)" value={gstRate} onChange={e => setGstRate(Number(e.target.value))} />
+                          <Input label="FOB Port" placeholder="e.g. Port of Mumbai" value={fobPort} onChange={e => setFobPort(e.target.value)} />
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Service Delivery Mode</label>
+                            <select 
+                              value={serviceMode} 
+                              onChange={e => setServiceMode(e.target.value as any)}
+                              className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
+                            >
+                              <option value="REMOTE">Fully Remote / Digital</option>
+                              <option value="ON_SITE">On-Site Client Office</option>
+                              <option value="HYBRID">Hybrid Operational Model</option>
+                            </select>
+                          </div>
+                          <Input label="Typical Project Duration" placeholder="e.g. 4-6 Weeks" value={typicalDuration} onChange={e => setTypicalDuration(e.target.value)} />
+                          <Input type="number" label="Dedicated Team Size" value={teamSize} onChange={e => setTeamSize(Number(e.target.value))} />
+                          <Input type="number" label="Avg Response Time (Hours)" value={avgResponseHrs} onChange={e => setAvgResponseHrs(Number(e.target.value))} />
+                          <div className="md:col-span-2">
+                            <Input label="Supported Operational Languages" placeholder="e.g. English, Hindi, German" value={languages} onChange={e => setLanguages(e.target.value)} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Input label="Specialized Skills / Tools Tags" placeholder="e.g. ISO 27001, Penetration Testing, Python" value={skillsTagsInput} onChange={e => setSkillsTagsInput(e.target.value)} />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Dynamic Specifications based on categoryAttributes */}
+                      {listingType === 'PRODUCT' && categoryAttributes && categoryAttributes.length > 0 && (
+                        <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Category-Specific Technical Attributes</label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {categoryAttributes.map((attr: any) => (
+                              <div key={attr.id} className="space-y-1">
+                                <label className="text-xs font-black text-jax-dark uppercase tracking-tight">{attr.name} {attr.isRequired && <span className="text-red-500">*</span>}</label>
+                                {attr.options && attr.options.length > 0 ? (
+                                  <select
+                                    value={specifications[attr.name] || ''}
+                                    onChange={e => setSpecifications({ ...specifications, [attr.name]: e.target.value })}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  >
+                                    <option value="">Select option...</option>
+                                    {attr.options.map((opt: string) => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    placeholder={`Enter ${attr.name.toLowerCase()}...`}
+                                    value={specifications[attr.name] || ''}
+                                    onChange={e => setSpecifications({ ...specifications, [attr.name]: e.target.value })}
+                                    className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Custom Specifications */}
+                      {listingType === 'PRODUCT' && (
                         <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
                           <div className="flex justify-between items-center">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Key Product Specifications (Custom Attributes)</label>
                             <button 
                               type="button" 
-                              onClick={addSpecRow} 
+                              onClick={addCustomSpecRow} 
                               className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
                             >
-                              <FaPlus className="h-3 w-3" /> Add Row
+                              <FaPlus className="h-3 w-3" /> Add Custom Spec
                             </button>
                           </div>
 
                           <div className="space-y-3">
-                            {specRows.map((row, idx) => (
+                            {customSpecRows.map((row, idx) => (
                               <div key={idx} className="flex gap-4 items-center animate-in fade-in duration-300">
                                 <div className="flex-1">
                                   <input 
                                     type="text" 
                                     placeholder="Specification Name (e.g. Material)" 
                                     value={row.key} 
-                                    onChange={e => updateSpecRow(idx, e.target.value, row.val)}
+                                    onChange={e => updateCustomSpecRow(idx, e.target.value, row.val)}
                                     className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
                                   />
                                 </div>
@@ -240,32 +491,118 @@ export default function NewListingPage() {
                                     type="text" 
                                     placeholder="Value (e.g. Stainless Steel)" 
                                     value={row.val} 
-                                    onChange={e => updateSpecRow(idx, row.key, e.target.value)}
+                                    onChange={e => updateCustomSpecRow(idx, row.key, e.target.value)}
                                     className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
                                   />
                                 </div>
-                                {specRows.length > 1 && (
-                                  <button 
-                                    type="button" 
-                                    onClick={() => removeSpecRow(idx)}
-                                    className="h-9 w-9 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
+                                <button 
+                                  type="button" 
+                                  onClick={() => removeCustomSpecRow(idx)}
+                                  className="h-9 w-9 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
 
+                      {/* Product Variants Section */}
+                      {listingType === 'PRODUCT' && (
+                        <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
+                          <label className="flex items-center gap-3 cursor-pointer group">
+                            <input 
+                              type="checkbox" 
+                              checked={hasVariants} 
+                              onChange={e => {
+                                setHasVariants(e.target.checked);
+                                if (e.target.checked && variants.length === 0) addVariantRow();
+                              }}
+                              className="rounded border-gray-300 text-jax-accent focus:ring-jax-accent h-4 w-4"
+                            />
+                            <span className="text-xs font-black text-jax-dark uppercase tracking-widest">This product has variants (e.g. size, color, configuration overrides)</span>
+                          </label>
+
+                          {hasVariants && (
+                            <div className="space-y-4 mt-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                              <div className="flex justify-between items-center">
+                                <h3 className="text-xs font-black text-jax-dark uppercase tracking-widest">Configure SKUs / Variants</h3>
+                                <button
+                                  type="button"
+                                  onClick={addVariantRow}
+                                  className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
+                                >
+                                  <FaPlus className="h-3.5 w-3.5" /> Add Variant
+                                </button>
+                              </div>
+
+                              <div className="space-y-6">
+                                {variants.map((v, varIdx) => (
+                                  <div key={varIdx} className="bg-white p-4 rounded-xl border border-gray-150 space-y-4 relative shadow-sm">
+                                    <button 
+                                      type="button" 
+                                      onClick={() => removeVariantRow(varIdx)}
+                                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+                                    >
+                                      <FaTrashCan className="h-4 w-4" />
+                                    </button>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                      <div className="md:col-span-2">
+                                        <Input label="Variant Name (e.g. Silver / 128GB)" placeholder="Variant descriptor" value={v.title} onChange={e => updateVariant(varIdx, 'title', e.target.value)} required />
+                                      </div>
+                                      <Input label="Variant SKU" placeholder="Unique SKU ID" value={v.sku} onChange={e => updateVariant(varIdx, 'sku', e.target.value)} required />
+                                      <Input type="number" label="Stock Quantity" value={v.stockQty} onChange={e => updateVariant(varIdx, 'stockQty', Number(e.target.value))} required />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                      <Input type="number" label="Price Override (Optional)" placeholder="Leave empty for base price" value={v.priceOverride || ''} onChange={e => updateVariant(varIdx, 'priceOverride', e.target.value ? Number(e.target.value) : undefined)} />
+                                      
+                                      {/* Match variant attributes dynamically */}
+                                      {categoryAttributes && categoryAttributes.map((attr: any) => {
+                                        const valObj = v.attributeValues.find(av => av.attributeId === attr.id);
+                                        return (
+                                          <div key={attr.id} className="space-y-1">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{attr.name} Value</label>
+                                            {attr.options && attr.options.length > 0 ? (
+                                              <select
+                                                value={valObj?.value || ''}
+                                                onChange={e => updateVariantAttr(varIdx, attr.id, e.target.value)}
+                                                className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                              >
+                                                <option value="">Select option...</option>
+                                                {attr.options.map((opt: string) => (
+                                                  <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                              </select>
+                                            ) : (
+                                              <input
+                                                type="text"
+                                                placeholder={`Variant ${attr.name.toLowerCase()} value`}
+                                                value={valObj?.value || ''}
+                                                onChange={e => updateVariantAttr(varIdx, attr.id, e.target.value)}
+                                                className="w-full h-11 bg-gray-50 border border-gray-150 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                              />
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="md:col-span-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 pl-2">Market Prospectus (Description)</label>
-                          <textarea 
+                          <Textarea 
                             rows={6} 
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 text-sm font-medium outline-none focus:ring-2 ring-jax-accent/10" 
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
                             placeholder="Provide detailed technical specifications, certifications, and capabilities..."
                           />
                       </div>
@@ -273,54 +610,226 @@ export default function NewListingPage() {
                   </Card>
                 )}
 
+                {/* STEP 3: COMMERCIAL OPS */}
                 {step === 2 && (
                   <Card className="p-10 border-none shadow-2xl shadow-black/[0.03] space-y-10">
                     <div className="space-y-4 text-center">
                       <p className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Step 03 / Commercial Ops</p>
-                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight">Supply Chain Terms & Pricing</h2>
+                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight font-heading">Supply Chain Terms & Pricing</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="md:col-span-3 pb-4 border-b border-gray-100">
-                          <label className="flex items-center gap-4 cursor-pointer group">
-                            <div className={clsx(
-                              "h-6 w-11 rounded-full relative transition-colors",
-                              formData.productDetail.priceOnRequest ? "bg-jax-accent" : "bg-gray-200"
-                            )}>
-                                <div className={clsx(
-                                  "absolute top-1 h-4 w-4 rounded-full bg-white transition-all",
-                                  formData.productDetail.priceOnRequest ? "left-6" : "left-1"
-                                )} />
-                                <input type="checkbox" className="hidden" checked={formData.productDetail.priceOnRequest} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, priceOnRequest: e.target.checked } })} />
+                    {listingType === 'PRODUCT' ? (
+                      <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* Product Pricing Controls */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                          <div className="space-y-2 md:col-span-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Pricing Operational Model</label>
+                            <select 
+                              value={priceType} 
+                              onChange={e => setPriceType(e.target.value as any)}
+                              className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
+                            >
+                              <option value="FIXED">Fixed Unit Price</option>
+                              <option value="RANGE">Variable Price Range</option>
+                              <option value="NEGOTIABLE">Fully Negotiable / Target Price</option>
+                              <option value="ON_REQUEST">Request For Quote (RFQ) Mode</option>
+                            </select>
+                          </div>
+
+                          {priceType === 'FIXED' && (
+                            <Input type="number" label="Unit Price (INR)" value={pricePerUnit} onChange={e => setPricePerUnit(Number(e.target.value))} />
+                          )}
+
+                          {priceType === 'RANGE' && (
+                            <>
+                              <Input type="number" label="Min Price (INR)" value={priceRangeMin} onChange={e => setPriceRangeMin(Number(e.target.value))} />
+                              <Input type="number" label="Max Price (INR)" value={priceRangeMax} onChange={e => setPriceRangeMax(Number(e.target.value))} />
+                            </>
+                          )}
+
+                          {priceType === 'NEGOTIABLE' && (
+                            <Input type="number" label="Target Price (INR)" value={pricePerUnit} onChange={e => setPricePerUnit(Number(e.target.value))} />
+                          )}
+
+                          <Input type="number" label="Minimum Order Qty" value={minOrderQty} onChange={e => setMinOrderQty(Number(e.target.value))} />
+                        </div>
+
+                        {/* Bulk Price Slabs */}
+                        {priceType !== 'ON_REQUEST' && (
+                          <div className="pt-6 border-t border-gray-100 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h3 className="text-xs font-black text-jax-dark uppercase tracking-widest">Tiered Wholesale/Bulk Pricing Slabs</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Specify custom unit price based on larger volume sizes.</p>
+                              </div>
+                              <button 
+                                type="button" 
+                                onClick={addBulkPriceSlab} 
+                                className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
+                              >
+                                <FaPlus className="h-3 w-3" /> Add Pricing Slab
+                              </button>
                             </div>
-                            <span className="text-[11px] font-black text-jax-dark uppercase tracking-widest">Hide exact price (Request Quote Mode)</span>
-                          </label>
-                      </div>
 
-                      {!formData.productDetail.priceOnRequest && (
-                        <Input type="number" label="Unit Price (INR)" value={formData.productDetail.pricePerUnit} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, pricePerUnit: Number(e.target.value) } })} />
-                      )}
-                      <Input label="Sourcing Unit" placeholder="e.g. Kg, Pcs, MT" value={formData.productDetail.unitOfMeasure} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, unitOfMeasure: e.target.value } })} />
-                      <Input type="number" label="Minimum Order Qty" value={formData.productDetail.minOrderQty} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, minOrderQty: Number(e.target.value) } })} />
-                      <Input type="number" label="Global Lead Time (Days)" value={formData.productDetail.leadTimeDays} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, leadTimeDays: Number(e.target.value) } })} />
-                      <Input label="Origin Hierarchy" placeholder="Country of manufacture" value={formData.productDetail.countryOfOrigin} onChange={e => setFormData({ ...formData, productDetail: { ...formData.productDetail, countryOfOrigin: e.target.value } })} />
-                    </div>
+                            <div className="space-y-3">
+                              {bulkPriceSlabs.map((slab, idx) => (
+                                <div key={idx} className="flex gap-4 items-center animate-in fade-in duration-300">
+                                  <Input type="number" placeholder="Min Qty" label="Min Order Volume" value={slab.minQty} onChange={e => updateBulkPriceSlab(idx, 'minQty', Number(e.target.value))} />
+                                  <Input type="number" placeholder="Max Qty" label="Max Order Volume" value={slab.maxQty} onChange={e => updateBulkPriceSlab(idx, 'maxQty', Number(e.target.value))} />
+                                  <Input type="number" placeholder="Price" label="Slab Unit Price (INR)" value={slab.price} onChange={e => updateBulkPriceSlab(idx, 'price', Number(e.target.value))} />
+                                  <button 
+                                    type="button" 
+                                    onClick={() => removeBulkPriceSlab(idx)}
+                                    className="h-11 w-11 mt-6 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl flex items-center justify-center transition-colors font-bold text-xs shrink-0"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Logistics, Packaging & Warranties */}
+                        <div className="pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <Input label="Supply Ability" placeholder="e.g. 5000 Metric Tons/Month" value={supplyAbility} onChange={e => setSupplyAbility(e.target.value)} />
+                          <Input label="Logistics Delivery Time" placeholder="e.g. 10-15 Days after confirmation" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} />
+                          <Input label="Packaging & Carton Specifications" placeholder="e.g. Industrial Palletized, Shrink-wrapped" value={packagingDetails} onChange={e => setPackagingDetails(e.target.value)} />
+                          <Input label="Standard Payment Terms" placeholder="e.g. 30% Advance, 70% Letter of Credit" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
+                          <Input label="Warranty Duration" placeholder="e.g. 1 Year Manufacturer Warranty" value={warranty} onChange={e => setWarranty(e.target.value)} />
+                          <Input label="Industrial Return Policy" placeholder="e.g. 15-day return on defective goods" value={returnPolicy} onChange={e => setReturnPolicy(e.target.value)} />
+                        </div>
+
+                        {/* Samples Provision */}
+                        <div className="pt-6 border-t border-gray-100 flex flex-col md:flex-row gap-8 items-start">
+                          <label className="flex items-center gap-4 cursor-pointer group mt-4">
+                            <input 
+                              type="checkbox" 
+                              checked={sampleAvailable} 
+                              onChange={e => setSampleAvailable(e.target.checked)} 
+                              className="rounded border-gray-300 text-jax-accent focus:ring-jax-accent h-4 w-4"
+                            />
+                            <span className="text-xs font-black text-jax-dark uppercase tracking-widest">Evaluation Sample Available</span>
+                          </label>
+                          {sampleAvailable && (
+                            <Input type="number" label="Evaluation Sample Cost (INR)" value={samplePrice} onChange={e => setSamplePrice(Number(e.target.value))} />
+                          )}
+                        </div>
+
+                        {/* Certifications Checklist */}
+                        <div className="pt-6 border-t border-gray-100 space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Regulatory Compliance & Certifications</label>
+                          <div className="flex flex-wrap gap-3">
+                            {['ISO 9001', 'CE Certified', 'RoHS Compliant', 'ISI Mark', 'BIS Standard', 'FSSAI Certified'].map(c => {
+                              const isChecked = certs.includes(c);
+                              return (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isChecked) setCerts(certs.filter(item => item !== c));
+                                    else setCerts([...certs, c]);
+                                  }}
+                                  className={clsx(
+                                    "px-4 py-2 rounded-xl text-xs font-bold transition-all border",
+                                    isChecked 
+                                      ? "bg-jax-accent text-white border-jax-accent shadow-sm" 
+                                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                  )}
+                                >
+                                  {c}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          <div className="flex gap-4 max-w-md pt-2">
+                            <input 
+                              type="text" 
+                              placeholder="Add Custom Certification..." 
+                              value={customCertInput} 
+                              onChange={e => setCustomCertInput(e.target.value)}
+                              className="flex-1 h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (customCertInput.trim()) {
+                                  setCerts([...certs, customCertInput.trim()]);
+                                  setCustomCertInput('');
+                                }
+                              }}
+                              className="h-11 px-5 bg-jax-dark text-white rounded-xl text-xs font-black uppercase tracking-widest"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Service Tiered Packages Builder */
+                      <div className="space-y-8 animate-in fade-in duration-300">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Tiered Professional Service Packages</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {packages.map((pkg, idx) => (
+                            <div key={idx} className={clsx(
+                              "p-6 rounded-3xl border-2 space-y-6 relative overflow-hidden",
+                              pkg.isPopular ? "border-jax-accent bg-jax-accent/5" : "border-gray-100 bg-white"
+                            )}>
+                              {pkg.isPopular && (
+                                <div className="absolute top-3 right-3 bg-jax-accent text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+                                  Popular
+                                </div>
+                              )}
+                              
+                              <h3 className="text-sm font-black text-jax-dark uppercase tracking-widest">{pkg.name} Package</h3>
+                              
+                              <textarea
+                                value={pkg.description}
+                                onChange={e => updateServicePackage(idx, 'description', e.target.value)}
+                                placeholder={`Scope, terms & details of the ${pkg.name.toLowerCase()} package...`}
+                                rows={4}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs font-medium outline-none focus:ring-2 ring-jax-accent/10"
+                              />
+
+                              <Input type="number" label="Rate (INR)" value={pkg.price} onChange={e => updateServicePackage(idx, 'price', Number(e.target.value))} />
+                              <Input type="number" label="Expected Delivery (Days)" value={pkg.deliveryDays} onChange={e => updateServicePackage(idx, 'deliveryDays', Number(e.target.value))} />
+                              <Input type="number" label="Revision Rounds Allowed" value={pkg.revisionsCount} onChange={e => updateServicePackage(idx, 'revisionsCount', Number(e.target.value))} />
+
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Includes / Deliverables</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. PDF Report, Source Code (Comma sep)"
+                                  value={pkg.includesItems.join(', ')}
+                                  onChange={e => updateServicePackage(idx, 'includesItems', e.target.value.split(',').map(item => item.trim()).filter(Boolean))}
+                                  className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 )}
 
+                {/* STEP 4: CORE MEDIA */}
                 {step === 3 && (
                   <Card className="p-10 border-none shadow-2xl shadow-black/[0.03] space-y-10 text-center">
                     <div className="space-y-4">
                       <p className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Step 04 / Core Media</p>
-                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight">Visual Asset Registry</h2>
+                      <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight font-heading">Visual Asset Registry</h2>
                     </div>
 
                     <div className="max-w-2xl mx-auto">
                       <ImageUpload 
-                        onUpload={(urls) => setFormData(d => ({
-                          ...d,
-                          images: urls.map((url, i) => ({ url, isPrimary: i === 0 }))
-                        } as any))} 
+                        onUpload={(urls) => setImages(
+                          urls.map((url, i) => ({ url, isPrimary: i === 0 }))
+                        )} 
                         maxFiles={5}
                       />
                     </div>
@@ -331,8 +840,8 @@ export default function NewListingPage() {
                             <FaCircleCheck className="h-5 w-5" />
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-black text-emerald-800 uppercase tracking-tight">Ready for Market Injection</p>
-                            <p className="text-[10px] text-emerald-700/70 font-bold uppercase tracking-widest">Registry data is coherent and ready for synchronization.</p>
+                            <p className="text-xs font-black text-emerald-800 uppercase tracking-tight font-heading">Ready for Market Injection</p>
+                            <p className="text-[10px] text-emerald-700/70 font-bold uppercase tracking-widest font-sans">Registry data is coherent and ready for synchronization.</p>
                           </div>
                       </div>
                     </div>

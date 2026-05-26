@@ -35,7 +35,9 @@ const allowedOrigins = [
   process.env.WEB_URL,
   'https://jaxmart.vercel.app',
   'http://localhost:3000',
-  'http://localhost:3001'
+  'http://localhost:3001',
+  `http://localhost:${process.env.PORT || 4000}`,
+  `http://127.0.0.1:${process.env.PORT || 4000}`
 ].filter(Boolean);
 
 // Socket.io
@@ -144,24 +146,38 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/events', eventRoutes);
 
-// 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+const { setupGraphQL } = require('./graphql');
 
-// Global error handler
-app.use((err, req, res, next) => {
-  logger.error(err.stack);
-  const status = err.status || 500;
-  res.status(status).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
-});
+const startServer = async () => {
+  try {
+    // Set up GraphQL endpoint before the 404 handler
+    await setupGraphQL(app);
 
-const PORT = process.env.PORT || 4000;
-httpServer.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-});
+    // 404
+    app.use((req, res) => {
+      res.status(404).json({ error: 'Route not found' });
+    });
+
+    // Global error handler
+    app.use((err, req, res, next) => {
+      logger.error(err.stack);
+      const status = err.status || 500;
+      res.status(status).json({
+        error: err.message || 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+      });
+    });
+
+    const PORT = process.env.PORT || 4000;
+    httpServer.listen(PORT, () => {
+      logger.info(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    logger.error('Failed to initialize server:', err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 module.exports = app;

@@ -18,4 +18,18 @@ const getCategories = async (req, res) => {
   }
 };
 
-module.exports = { getCategories };
+const getCategoryAttributes = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const attributes = await prisma.categoryAttribute.findMany({
+      where: { categoryId: id },
+      orderBy: { sortOrder: 'asc' },
+    });
+    res.json(attributes);
+  } catch (err) {
+    logger.error('getCategoryAttributes error:', err);
+    res.status(500).json({ error: 'Failed to fetch category attributes' });
+  }
+};
+
+module.exports = { getCategories, getCategoryAttributes };

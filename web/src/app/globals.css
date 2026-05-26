@@ -169,7 +169,7 @@
   }
   .card:hover {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    @apply border-jax-blue/10;
+    border-color: rgba(35, 47, 114, 0.1);
   }
 
   .input-field {

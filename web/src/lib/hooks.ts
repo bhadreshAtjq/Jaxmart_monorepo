@@ -44,6 +44,13 @@ export function useCategories(parentId?: string) {
   });
 }
 
+export function useCategoryAttributes(categoryId?: string) {
+  return useSWR(categoryId ? `/categories/${categoryId}/attributes` : null, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 5 * 60 * 1000,
+  });
+}
+
 // ─── Listings ─────────────────────────────────────────────────────────────────
 
 export function useFeaturedListings() {

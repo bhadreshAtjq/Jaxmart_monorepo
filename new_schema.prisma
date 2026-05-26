@@ -12,171 +12,51 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [pg_trgm, unaccent]
+  extensions = [postgis, pg_trgm, unaccent]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum UserType {
-  BUYER
-  SELLER
-  BOTH
-}enum AccountType {
-  INDIVIDUAL
-  BUSINESS
-}enum KycStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-  UNDER_REVIEW
-}enum ListingType {
-  PRODUCT
-  SERVICE
-}enum ListingStatus {
-  DRAFT
-  ACTIVE
-  PAUSED
-  REJECTED
-  ARCHIVED
-}enum ServiceMode {
-  ONSITE
-  REMOTE
-  HYBRID
-}enum RfqType {
-  PRODUCT
-  SERVICE
-  BOTH
-}enum RfqStatus {
-  OPEN
-  CLOSED
-  AWARDED
-  EXPIRED
-  CANCELLED
-}enum RfqVisibility {
-  PUBLIC
-  PRIVATE
-  TARGETED
-}
-enum QuoteStatus {
-  DRAFT
-  SUBMITTED
-  SHORTLISTED
-  WON
-  LOST
-  WITHDRAWN
-  EXPIRED
-}enum OrderType {
-  PRODUCT
-  SERVICE
-}enum OrderStatus {
-  CREATED
-  ACCEPTED
-  ACTIVE
-  SHIPPED
-  DELIVERED
-  COMPLETED
-  DISPUTED
-  CANCELLED
-  REFUNDED
-}enum EscrowStatus {
-  HELD
-  PARTIAL_RELEASED
-  FULLY_RELEASED
-  REFUNDED
-  FROZEN
-}enum MilestoneStatus {
-  PENDING
-  IN_PROGRESS
-  SUBMITTED
-  APPROVED
-  DISPUTED
-  RELEASED
-  CANCELLED
-}enum DisputeStatus {
-  OPEN
-  UNDER_REVIEW
-  RESOLVED_BUYER
-  RESOLVED_SELLER
-  RESOLVED_PARTIAL
-  WITHDRAWN
-}enum AddressType {
-  PRIMARY
-  BRANCH
-  BILLING
-  SHIPPING
-  WAREHOUSE
-}enum EmployeeRange {
-  ONE_TO_TEN
-  ELEVEN_TO_FIFTY
-  FIFTY_ONE_TO_TWO_HUNDRED
-  TWO_HUNDRED_PLUS
-}enum MediaType {
-  IMAGE
-  VIDEO
-  DOCUMENT
-  BROCHURE
-}enum AttributeType {
-  TEXT
-  NUMBER
-  BOOLEAN
-  SELECT
-  MULTI_SELECT
-}
-enum PriceType {
-  FIXED
-  NEGOTIABLE
-  ON_REQUEST
-  RANGE
-}
-enum PaymentStatus {
-  PENDING
-  PAID
-  PARTIALLY_PAID
-  FAILED
-  REFUNDED
-}enum NotificationType {
-  RFQ_MATCH
-  RFQ_INVITED
-  RFQ_EXPIRED
-  QUOTE_RECEIVED
-  QUOTE_SHORTLISTED
-  QUOTE_AWARDED
-  QUOTE_EXPIRED
-  ORDER_CREATED
-  ORDER_ACCEPTED
-  ORDER_SHIPPED
-  ORDER_DELIVERED
-  ORDER_COMPLETED
-  MILESTONE_SUBMITTED
-  MILESTONE_APPROVED
-  MILESTONE_DISPUTED
-  PAYMENT_RECEIVED
-  PAYMENT_FAILED
-  DISPUTE_OPENED
-  DISPUTE_RESOLVED
-  KYC_APPROVED
-  KYC_REJECTED
+enum UserType        { BUYER SELLER BOTH }
+enum AccountType     { INDIVIDUAL BUSINESS }
+enum KycStatus       { PENDING VERIFIED REJECTED UNDER_REVIEW }
+enum ListingType     { PRODUCT SERVICE }
+enum ListingStatus   { DRAFT ACTIVE PAUSED REJECTED ARCHIVED }
+enum ServiceMode     { ONSITE REMOTE HYBRID }
+enum RfqType         { PRODUCT SERVICE BOTH }
+enum RfqStatus       { OPEN CLOSED AWARDED EXPIRED CANCELLED }
+enum RfqVisibility   { PUBLIC PRIVATE TARGETED }        // NEW: private/targeted RFQs
+enum QuoteStatus     { DRAFT SUBMITTED SHORTLISTED WON LOST WITHDRAWN EXPIRED }
+enum OrderType       { PRODUCT SERVICE }
+enum OrderStatus     { CREATED ACCEPTED ACTIVE SHIPPED DELIVERED COMPLETED DISPUTED CANCELLED REFUNDED }
+enum EscrowStatus    { HELD PARTIAL_RELEASED FULLY_RELEASED REFUNDED FROZEN }
+enum MilestoneStatus { PENDING IN_PROGRESS SUBMITTED APPROVED DISPUTED RELEASED CANCELLED }
+enum DisputeStatus   { OPEN UNDER_REVIEW RESOLVED_BUYER RESOLVED_SELLER RESOLVED_PARTIAL WITHDRAWN }
+enum AddressType     { PRIMARY BRANCH BILLING SHIPPING WAREHOUSE }
+enum EmployeeRange   { ONE_TO_TEN ELEVEN_TO_FIFTY FIFTY_ONE_TO_TWO_HUNDRED TWO_HUNDRED_PLUS }
+enum MediaType       { IMAGE VIDEO DOCUMENT BROCHURE }
+enum AttributeType   { TEXT NUMBER BOOLEAN SELECT MULTI_SELECT }   // NEW: for product attributes
+enum PriceType       { FIXED NEGOTIABLE ON_REQUEST RANGE }         // NEW
+enum PaymentStatus   { PENDING PAID PARTIALLY_PAID FAILED REFUNDED }
+enum NotificationType {
+  RFQ_MATCH RFQ_INVITED RFQ_EXPIRED
+  QUOTE_RECEIVED QUOTE_SHORTLISTED QUOTE_AWARDED QUOTE_EXPIRED
+  ORDER_CREATED ORDER_ACCEPTED ORDER_SHIPPED ORDER_DELIVERED ORDER_COMPLETED
+  MILESTONE_SUBMITTED MILESTONE_APPROVED MILESTONE_DISPUTED
+  PAYMENT_RECEIVED PAYMENT_FAILED
+  DISPUTE_OPENED DISPUTE_RESOLVED
+  KYC_APPROVED KYC_REJECTED
   NEW_MESSAGE
   REVIEW_RECEIVED
   SYSTEM
-}enum ConversationContext {
-  RFQ
-  QUOTE
-  ORDER
-  LISTING
-  GENERAL
-}enum ReviewType {
-  BUYER_TO_SELLER
-  SELLER_TO_BUYER
-}enum InventoryTxType {
-  STOCK_IN
-  STOCK_OUT
-  ADJUSTMENT
-  RESERVED
-  RELEASED
 }
+enum ConversationContext { RFQ QUOTE ORDER LISTING GENERAL }
+enum ReviewType          { BUYER_TO_SELLER SELLER_TO_BUYER }
+enum InventoryTxType     { STOCK_IN STOCK_OUT ADJUSTMENT RESERVED RELEASED }
+
+// ─────────────────────────────────────────────────────────────────────────────
 // USERS & IDENTITY
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -419,7 +299,7 @@ model Listing {
   locationId   String?
   listingType  ListingType
   title        String
-  slug         String        @unique @default(dbgenerated("gen_random_uuid()"))
+  slug         String        @unique
   description  String        // rich text / markdown
   shortDesc    String?       // used in cards/previews
   status       ListingStatus @default(DRAFT)
@@ -795,7 +675,7 @@ model RfqQuote {
 
 model Order {
   id               String       @id @default(uuid())
-  orderNumber      String       @unique @default(dbgenerated("gen_random_uuid()"))
+  orderNumber      String       @unique @default(cuid())   // human-readable e.g. "ORD-2024-00123"
   buyerId          String
   sellerId         String
   rfqQuoteId       String?      @unique
@@ -803,14 +683,14 @@ model Order {
   status           OrderStatus  @default(CREATED)
 
   // Financials
-  subtotal         Float        @default(0)
+  subtotal         Float
   discountAmount   Float        @default(0)
   taxAmount        Float        @default(0)
   shippingAmount   Float        @default(0)
-  totalAmount      Float        @default(0)
+  totalAmount      Float
   platformFeeRate  Float        @default(0.02)   // 2%
-  platformFee      Float        @default(0)
-  sellerPayout     Float        @default(0)
+  platformFee      Float
+  sellerPayout     Float
   currency         String       @default("INR")
 
   // Escrow
@@ -1045,7 +925,7 @@ model Conversation {
   subject   String?
   isArchived Boolean            @default(false)
   createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt @default(now())
+  updatedAt DateTime            @updatedAt
 
   participants ConversationParticipant[]
   messages     Message[]

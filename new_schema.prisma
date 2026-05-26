@@ -962,6 +962,7 @@ model Message {
   isEdited       Boolean   @default(false)
   editedAt       DateTime?
   isDeleted      Boolean   @default(false)   // soft delete
+  isRead         Boolean   @default(false)
   createdAt      DateTime  @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id])

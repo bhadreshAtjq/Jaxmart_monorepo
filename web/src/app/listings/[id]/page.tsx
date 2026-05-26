@@ -109,7 +109,7 @@ export default function ListingDetailPage() {
 
       const { data: conv } = await messageApi.startConversation(listing.sellerId, payloadMessage, undefined, undefined, listing.id);
       toast.success('Inquiry initiated!');
-      router.push(`/inbox?id=${conv.id}`);
+      router.push(`/inbox?id=${conv.id}&recipientId=${listing.sellerId}`);
     } catch {
       toast.error('Failed to send inquiry.');
     } finally {

@@ -249,13 +249,24 @@ function InboxContent() {
 
   // Parse query parameter to open specific chat on load
   useEffect(() => {
-    if (conversations.length > 0) {
+    if (!isLoading) {
       const openId = searchParams.get('id');
       const recipientId = searchParams.get('recipientId');
 
       if (openId) {
         const conv = conversations.find((c: any) => c.id === openId);
-        if (conv) setSelectedConv(conv);
+        if (conv) {
+          setSelectedConv(conv);
+        } else if (recipientId) {
+          const convByRecipient = conversations.find((c: any) => c.recipient?.id === recipientId);
+          if (convByRecipient) {
+            setSelectedConv(convByRecipient);
+          } else {
+            mutate();
+          }
+        } else {
+          mutate();
+        }
       } else if (recipientId) {
         const conv = conversations.find((c: any) => c.recipient?.id === recipientId);
         if (conv) {
@@ -274,7 +285,7 @@ function InboxContent() {
         }
       }
     }
-  }, [conversations, searchParams]);
+  }, [conversations, isLoading, searchParams, mutate]);
 
   // Send message handler
   const handleSendMessage = (e?: React.FormEvent, textOverride?: string) => {
@@ -329,11 +340,14 @@ function InboxContent() {
         </Container>
       </div>
 
-      <Container size="xl" className="py-8 max-h-[calc(100vh-140px)] flex flex-col h-[750px] min-h-[500px]">
-        <div className="bg-white border border-gray-100 shadow-2xl shadow-gray-150/40 rounded-[32px] flex-1 overflow-hidden flex divide-x divide-gray-100">
+      <Container size="xl" className="p-0 md:py-8 h-[calc(100vh-120px)] md:h-[750px] flex flex-col">
+        <div className="bg-white border-0 md:border border-gray-100 shadow-none md:shadow-2xl shadow-gray-150/40 rounded-none md:rounded-[32px] flex-1 overflow-hidden flex divide-x divide-gray-100">
           
           {/* 1. Left List Panel (Conversations) */}
-          <div className="w-full md:w-80 shrink-0 flex flex-col bg-gray-55/10">
+          <div className={clsx(
+            "w-full md:w-80 shrink-0 flex flex-col bg-gray-50/50",
+            selectedConv ? "hidden md:flex" : "flex"
+          )}>
             <div className="p-6 border-b border-gray-100 bg-white shrink-0">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs font-black text-jax-dark uppercase tracking-[0.15em]">Conversations</h2>
@@ -435,7 +449,10 @@ function InboxContent() {
           </div>
  
           {/* 2. Right Panel (Chat Interface) */}
-          <div className="flex-1 flex bg-white min-w-0 relative">
+          <div className={clsx(
+            "flex-1 flex bg-white min-w-0 relative",
+            selectedConv ? "flex" : "hidden md:flex"
+          )}>
             {selectedConv ? (
               <div className="flex-1 flex divide-x divide-gray-100">
                 <div className="flex-1 flex flex-col min-w-0">
@@ -465,7 +482,7 @@ function InboxContent() {
                     <button 
                       onClick={() => setShowProfilePanel(!showProfilePanel)}
                       className={clsx(
-                        "text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-xl flex items-center gap-2 transition-all",
+                        "hidden lg:flex text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-xl items-center gap-2 transition-all",
                         showProfilePanel 
                           ? "bg-jax-dark text-white border-jax-dark shadow-md" 
                           : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
@@ -804,7 +821,7 @@ function InboxContent() {
 
                 {/* Profile Panel Drawer (Right Sidebar) */}
                 {showProfilePanel && (
-                  <div className="w-72 bg-white flex flex-col p-6 overflow-y-auto shrink-0 animate-in slide-in-from-right duration-350 z-20">
+                  <div className="hidden lg:flex w-72 bg-white flex-col p-6 overflow-y-auto shrink-0 animate-in slide-in-from-right duration-350 z-20">
                     <div className="text-center pb-6 border-b border-gray-50">
                       <Avatar name={selectedConv.recipient?.fullName} size="lg" className="rounded-[2rem] border-4 border-jax-blue/5 shadow-md mx-auto mb-4" />
                       <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider mb-1 flex items-center justify-center gap-1">

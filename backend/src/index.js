@@ -43,7 +43,15 @@ const allowedOrigins = [
 // Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isVercel = origin.endsWith('.vercel.app');
+      if (allowedOrigins.includes(origin) || isVercel) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   },
 });

@@ -34,7 +34,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     
     const newSocket = io(socketUrl, {
       auth: { token: accessToken },
-      transports: ['websocket'],
       reconnectionAttempts: 5,
     });
 

@@ -63,6 +63,7 @@ function InboxContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showProfilePanel, setShowProfilePanel] = useState(true);
   const mutatedRef = useRef(false);
+  const isFirstLoadRef = useRef(true);
 
   // Chat refs
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -195,6 +196,15 @@ function InboxContent() {
       // If message belongs to active conversation, append it in real-time
       if (selectedConv && message.conversationId === selectedConv.id) {
         setMessages((prev) => {
+          // Replace matching optimistic message if sent by me
+          const optimisticIndex = prev.findIndex(
+            (m) => m.sending && m.content === message.content && m.senderId === message.senderId
+          );
+          if (optimisticIndex !== -1) {
+            const updated = [...prev];
+            updated[optimisticIndex] = message;
+            return updated;
+          }
           if (prev.some((m) => m.id === message.id)) return prev;
           return [...prev, message];
         });
@@ -243,9 +253,19 @@ function InboxContent() {
     fetchMessageHistory();
   }, [selectedConv, socket]);
 
+  // Reset first load when conversation changes
+  useEffect(() => {
+    isFirstLoadRef.current = true;
+  }, [selectedConv]);
+
   // Scroll to bottom when messages list updates
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0) {
+      chatEndRef.current?.scrollIntoView({
+        behavior: isFirstLoadRef.current ? 'auto' : 'smooth',
+      });
+      isFirstLoadRef.current = false;
+    }
   }, [messages]);
 
   // Parse query parameter to open specific chat on load
@@ -297,6 +317,20 @@ function InboxContent() {
 
     if (!finalContent.trim() || !selectedConv || !socket) return;
 
+    const tempId = `temp-${Date.now()}`;
+    const newMsg = {
+      id: tempId,
+      conversationId: selectedConv.id,
+      senderId: user?.id,
+      content: finalContent.trim(),
+      createdAt: new Date().toISOString(),
+      isRead: false,
+      sending: true,
+      failed: false,
+    };
+
+    setMessages((prev) => [...prev, newMsg]);
+
     socket.emit('send_message', {
       conversationId: selectedConv.id,
       content: finalContent.trim(),
@@ -306,6 +340,20 @@ function InboxContent() {
     if (!textOverride) {
       setMessageText('');
     }
+
+    // Fallback timeout to mark as failed if socket doesn't echo back message within 6s
+    setTimeout(() => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId && m.sending ? { ...m, sending: false, failed: true } : m
+        )
+      );
+    }, 6000);
+  };
+
+  const handleRetryMessage = (content: string, tempId: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    handleSendMessage(undefined, content);
   };
 
   // Filtered conversation list
@@ -669,14 +717,24 @@ function InboxContent() {
                                 <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 {isMe && (
                                   <span className="flex items-center gap-0.5">
-                                    {msg.isRead ? (
-                                      <FaCheckDouble className="text-jax-teal h-2.5 w-2.5" />
+                                    {msg.sending ? (
+                                      <span className="h-2.5 w-2.5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin mr-1 shrink-0" />
+                                    ) : msg.failed ? (
+                                      <span className="flex items-center gap-1 text-red-500 font-bold uppercase tracking-wider text-[8px]">
+                                        ⚠️ Failed • <button onClick={() => handleRetryMessage(msg.content, msg.id)} className="underline hover:text-red-650 cursor-pointer font-black">Retry</button>
+                                      </span>
                                     ) : (
-                                      <FaCheckDouble className="text-gray-300 h-2.5 w-2.5" />
+                                      <>
+                                        {msg.isRead ? (
+                                          <FaCheckDouble className="text-jax-teal h-2.5 w-2.5" />
+                                        ) : (
+                                          <FaCheckDouble className="text-gray-300 h-2.5 w-2.5" />
+                                        )}
+                                        <span className={clsx("font-bold text-[8px] uppercase tracking-wider", msg.isRead ? "text-jax-teal" : "text-gray-350")}>
+                                          {msg.isRead ? 'Read' : 'Sent'}
+                                        </span>
+                                      </>
                                     )}
-                                    <span className={clsx("font-bold text-[8px] uppercase tracking-wider", msg.isRead ? "text-jax-teal" : "text-gray-350")}>
-                                      {msg.isRead ? 'Read' : 'Sent'}
-                                    </span>
                                   </span>
                                 )}
                               </div>
@@ -796,12 +854,18 @@ function InboxContent() {
                       </Link>
                     )}
                     <div className="flex-1 relative flex items-center">
-                      <input
-                        type="text"
+                      <textarea
                         placeholder="Type your message..."
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
-                        className="w-full h-12 border border-gray-100 rounded-2xl pl-4 pr-12 text-xs font-semibold outline-none focus:border-jax-blue focus:bg-gray-50/20 transition-all bg-gray-50/50 shadow-inner"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        rows={1}
+                        className="w-full py-3.5 pl-4 pr-12 bg-gray-50/50 border border-gray-150 rounded-2xl text-xs font-semibold outline-none focus:border-jax-blue focus:bg-white transition-all shadow-inner resize-none min-h-[48px] max-h-24 scrollbar-hide flex items-center"
                       />
                       <button type="button" className="absolute right-3.5 text-gray-400 hover:text-jax-blue transition-colors">
                         <FaPaperclip className="h-4 w-4" />

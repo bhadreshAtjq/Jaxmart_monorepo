@@ -10,9 +10,9 @@ import {
   FaCircleCheck, FaFileInvoiceDollar, FaTriangleExclamation
 } from 'react-icons/fa6';
 import { useAuthStore } from '@/lib/store';
-import { Avatar, Button } from '@/components/ui';
+import { Avatar, Button, PageLoader } from '@/components/ui';
 import { useState, useEffect } from 'react';
-import api, { authApi } from '@/lib/api';
+import api, { authApi, userApi } from '@/lib/api';
 import { useNotifications, useOrderCounts } from '@/lib/hooks';
 import { AppTour } from '@/components/common/AppTour';
 
@@ -35,9 +35,10 @@ const sellerNav = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoggedIn, logout } = useAuthStore();
+  const { user, isLoggedIn, logout, updateUser } = useAuthStore();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [syncing, setSyncing] = useState(isLoggedIn);
 
   useEffect(() => { 
     setMounted(true); 
@@ -45,6 +46,39 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace('/auth/login');
     }
   }, [router]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      userApi.getProfile()
+        .then((res) => {
+          if (res.data) {
+            updateUser(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to sync profile in AppLayout:', err);
+          if (err.response?.status === 401) {
+            logout();
+            router.push('/auth/login');
+          }
+        })
+        .finally(() => {
+          setSyncing(false);
+        });
+    } else {
+      setSyncing(false);
+    }
+  }, [isLoggedIn, updateUser, logout, router]);
+
+  useEffect(() => {
+    if (mounted && !syncing && isLoggedIn && user) {
+      const isSeller = ['SELLER', 'BOTH'].includes(user.userType);
+      const isSellerView = pathname.startsWith('/seller');
+      if (isSellerView && !isSeller) {
+        router.replace('/home');
+      }
+    }
+  }, [mounted, syncing, isLoggedIn, user, pathname, router]);
   
   const { data: notifications } = useNotifications();
   const { data: counts } = useOrderCounts();
@@ -95,6 +129,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   if (!mounted) return null;
+
+  if (syncing && isSellerView) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFB]">

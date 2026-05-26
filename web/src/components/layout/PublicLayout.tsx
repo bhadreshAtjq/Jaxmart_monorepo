@@ -209,48 +209,50 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="font-bold text-sm mb-4">JaxMart</h4>
-              <p className="text-xs text-gray-400 leading-relaxed">India's trusted B2B marketplace connecting verified suppliers with buyers.</p>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">For Buyers</h4>
-              <div className="space-y-2 text-xs text-gray-400">
-                <Link href="/search" className="block hover:text-white transition-colors">Find Products</Link>
-                <Link href="/rfq/create" className="block hover:text-white transition-colors">Post a Request</Link>
-                <Link href="/orders" className="block hover:text-white transition-colors">My Orders</Link>
+      {!pathname.startsWith('/inbox') && (
+        <footer className="bg-gray-900 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+              <div>
+                <h4 className="font-bold text-sm mb-4">JaxMart</h4>
+                <p className="text-xs text-gray-400 leading-relaxed">India's trusted B2B marketplace connecting verified suppliers with buyers.</p>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm mb-4">For Buyers</h4>
+                <div className="space-y-2 text-xs text-gray-400">
+                  <Link href="/search" className="block hover:text-white transition-colors">Find Products</Link>
+                  <Link href="/rfq/create" className="block hover:text-white transition-colors">Post a Request</Link>
+                  <Link href="/orders" className="block hover:text-white transition-colors">My Orders</Link>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm mb-4">For Sellers</h4>
+                <div className="space-y-2 text-xs text-gray-400">
+                  <Link href="/seller/dashboard" className="block hover:text-white transition-colors">Seller Center</Link>
+                  <Link href="/seller/listings/new" className="block hover:text-white transition-colors">List Products</Link>
+                  <Link href="/seller/rfq-inbox" className="block hover:text-white transition-colors">Buyer Requests</Link>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm mb-4">Trust & Safety</h4>
+                <div className="space-y-2 text-xs text-gray-400">
+                  <span className="block">Escrow Protection</span>
+                  <span className="block">Verified Suppliers</span>
+                  <span className="block">Quality Guarantee</span>
+                </div>
               </div>
             </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">For Sellers</h4>
-              <div className="space-y-2 text-xs text-gray-400">
-                <Link href="/seller/dashboard" className="block hover:text-white transition-colors">Seller Center</Link>
-                <Link href="/seller/listings/new" className="block hover:text-white transition-colors">List Products</Link>
-                <Link href="/seller/rfq-inbox" className="block hover:text-white transition-colors">Buyer Requests</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Trust & Safety</h4>
-              <div className="space-y-2 text-xs text-gray-400">
-                <span className="block">Escrow Protection</span>
-                <span className="block">Verified Suppliers</span>
-                <span className="block">Quality Guarantee</span>
+            <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+              <span>© 2026 JaxMart. All rights reserved.</span>
+              <div className="flex gap-4">
+                <span className="hover:text-white cursor-pointer">Terms of Use</span>
+                <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+                <span className="hover:text-white cursor-pointer">Contact Us</span>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-            <span>© 2026 JaxMart. All rights reserved.</span>
-            <div className="flex gap-4">
-              <span className="hover:text-white cursor-pointer">Terms of Use</span>
-              <span className="hover:text-white cursor-pointer">Privacy Policy</span>
-              <span className="hover:text-white cursor-pointer">Contact Us</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

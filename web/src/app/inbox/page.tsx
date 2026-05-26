@@ -62,6 +62,7 @@ function InboxContent() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showProfilePanel, setShowProfilePanel] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(true);
   const mutatedRef = useRef(false);
   const isFirstLoadRef = useRef(true);
 
@@ -367,7 +368,7 @@ function InboxContent() {
   return (
     <PublicLayout>
       {/* Dynamic Sub-header Navigation */}
-      <div className="bg-white border-b border-gray-100 py-4 shadow-sm">
+      <div className="hidden md:block bg-white border-b border-gray-100 py-4 shadow-sm">
         <Container size="xl" className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
             <span className="hover:text-jax-blue cursor-pointer transition-colors" onClick={() => router.push('/home')}>Home</span>
@@ -391,20 +392,26 @@ function InboxContent() {
         </Container>
       </div>
 
-      <Container size="xl" className="p-0 md:py-8 h-[calc(100vh-120px)] md:h-[750px] flex flex-col">
+      <Container size="xl" className="!p-0 !max-w-full md:!max-w-7xl md:!px-6 md:py-8 h-[calc(100dvh-96px)] md:h-[750px] flex flex-col">
         <div className="bg-white border-0 md:border border-gray-100 shadow-none md:shadow-2xl shadow-gray-150/40 rounded-none md:rounded-[32px] flex-1 overflow-hidden flex divide-x divide-gray-100">
           
           {/* 1. Left List Panel (Conversations) */}
           <div className={clsx(
-            "w-full md:w-80 shrink-0 flex flex-col bg-gray-50/50",
-            selectedConv ? "hidden md:flex" : "flex"
+            "w-full md:w-80 shrink-0 flex flex-col bg-gray-50/50 animate-in fade-in slide-in-from-left-4 duration-200",
+            selectedConv ? "hidden md:flex" : "flex animate-in fade-in duration-200"
           )}>
             <div className="p-6 border-b border-gray-100 bg-white shrink-0">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs font-black text-jax-dark uppercase tracking-[0.15em]">Conversations</h2>
-                <span className="text-[10px] font-black font-mono text-jax-blue bg-jax-blue/5 px-2 py-0.5 rounded-md">
-                  {filteredConversations.length} Active
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black font-mono text-jax-blue bg-jax-blue/5 px-2 py-0.5 rounded-md">
+                    {filteredConversations.length} Active
+                  </span>
+                  <span className={clsx(
+                    "h-2 w-2 rounded-full",
+                    isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                  )} title={isConnected ? "Live connection active" : "Reconnecting server..."} />
+                </div>
               </div>
               <div className="relative">
                 <input
@@ -501,8 +508,8 @@ function InboxContent() {
  
           {/* 2. Right Panel (Chat Interface) */}
           <div className={clsx(
-            "flex-1 flex bg-white min-w-0 relative",
-            selectedConv ? "flex" : "hidden md:flex"
+            "flex-1 flex bg-white min-w-0 relative animate-in fade-in slide-in-from-right-4 duration-200",
+            selectedConv ? "flex animate-in fade-in duration-200" : "hidden md:flex"
           )}>
             {selectedConv ? (
               <div className="flex-1 flex divide-x divide-gray-100">
@@ -518,9 +525,13 @@ function InboxContent() {
                         <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
                       </div>
                       <div>
-                        <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider flex items-center gap-1">
+                        <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider flex items-center gap-1.5">
                           {selectedConv.recipient?.fullName || 'Verified Trade Partner'}
                           <FaCircleCheck className="h-3.5 w-3.5 text-jax-teal shrink-0" />
+                          <span className={clsx(
+                            "h-2 w-2 rounded-full ml-0.5",
+                            isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-ping"
+                          )} title={isConnected ? "Connected" : "Reconnecting..."} />
                         </h3>
                         <p className="text-[9px] text-gray-450 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-1">
                           <FaBuilding className="text-gray-400 shrink-0" /> 
@@ -546,23 +557,23 @@ function InboxContent() {
 
                   {/* Product Context Card — Always visible when chat has a listing */}
                   {listingData && (
-                    <div className="border-b border-gray-100 p-3 bg-white shrink-0">
-                      <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <div className="border-b border-gray-100 p-2 md:p-3 bg-white shrink-0">
+                      <div className="flex items-center gap-2.5 md:gap-3 bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-100">
                         {(listingData.imageUrl || listingData.media?.[0]?.url) && (
-                          <img src={listingData.imageUrl || listingData.media?.[0]?.url} alt="" className="h-12 w-12 rounded-lg object-cover border border-gray-200 shrink-0" />
+                          <img src={listingData.imageUrl || listingData.media?.[0]?.url} alt="" className="h-9 w-9 md:h-12 md:w-12 rounded-lg object-cover border border-gray-200 shrink-0" />
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-black text-jax-dark uppercase tracking-tight truncate">{listingData.title}</p>
-                          <div className="flex items-center gap-3 mt-0.5">
+                          <p className="text-[9px] md:text-[10px] font-black text-jax-dark uppercase tracking-tight truncate">{listingData.title}</p>
+                          <div className="flex items-center gap-2 md:gap-3 mt-0.5">
                             {(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit) && (
-                              <span className="text-xs font-black text-emerald-600">₹{(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit)?.toLocaleString('en-IN')}<span className="text-[9px] text-gray-400 font-medium">/{listingData.unitOfMeasure || listingData.productDetail?.unitOfMeasure || 'Unit'}</span></span>
+                              <span className="text-[10px] md:text-xs font-black text-emerald-600">₹{(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit)?.toLocaleString('en-IN')}<span className="text-[8px] md:text-[9px] text-gray-400 font-medium">/{listingData.unitOfMeasure || listingData.productDetail?.unitOfMeasure || 'Unit'}</span></span>
                             )}
-                            <span className="text-[9px] text-gray-400 font-bold">MOQ: {listingData.minOrderQty || listingData.productDetail?.minOrderQty || 1}</span>
+                            <span className="text-[8px] md:text-[9px] text-gray-400 font-bold">MOQ: {listingData.minOrderQty || listingData.productDetail?.minOrderQty || 1}</span>
                           </div>
                         </div>
                         {listingData.id && (
                           <Link href={`/listings/${listingData.id}`}>
-                            <button className="text-[8px] font-black text-jax-blue uppercase tracking-wider px-3 py-1.5 bg-jax-blue/5 rounded-lg border border-jax-blue/10 hover:bg-jax-blue/10 transition-colors whitespace-nowrap">View Product</button>
+                            <button className="text-[8px] font-black text-jax-blue uppercase tracking-wider px-2 md:px-3 py-1.5 bg-jax-blue/5 rounded-lg border border-jax-blue/10 hover:bg-jax-blue/10 transition-colors whitespace-nowrap">View Product</button>
                           </Link>
                         )}
                       </div>
@@ -747,23 +758,38 @@ function InboxContent() {
                   </div>
 
                   {/* Quick Negotiation Templates */}
-                  <div className="p-4 bg-white border-t border-gray-100 shrink-0">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-jax-blue" />
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">B2B Quick Replies</p>
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide">
-                      {B2B_TEMPLATES.map((tmpl, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleSendMessage(undefined, tmpl)}
-                          className="bg-gray-50 hover:bg-jax-blue/[0.03] hover:text-jax-blue border border-gray-100 rounded-xl px-4 py-2 text-[10px] text-jax-dark font-black tracking-wide whitespace-nowrap transition-all shrink-0 hover:border-jax-blue/20"
-                        >
-                          {tmpl.substring(0, 36)}...
+                  {showTemplates ? (
+                    <div className="px-4 py-2 bg-white border-t border-gray-100 shrink-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-jax-blue" />
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">B2B Quick Replies</p>
+                        </div>
+                        <button type="button" onClick={() => setShowTemplates(false)} className="text-[9px] font-black text-gray-400 hover:text-jax-blue transition-colors">
+                          Dismiss
                         </button>
-                      ))}
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide">
+                        {B2B_TEMPLATES.map((tmpl, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSendMessage(undefined, tmpl)}
+                            className="bg-gray-50 hover:bg-jax-blue/[0.03] hover:text-jax-blue border border-gray-100 rounded-xl px-4 py-2 text-[10px] text-jax-dark font-black tracking-wide whitespace-nowrap transition-all shrink-0 hover:border-jax-blue/20"
+                          >
+                            {tmpl.substring(0, 36)}...
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="px-4 py-1.5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between shrink-0">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Quick Replies Hidden</p>
+                      <button type="button" onClick={() => setShowTemplates(true)} className="text-[9px] font-black text-jax-blue hover:underline">
+                        Show Replies
+                      </button>
+                    </div>
+                  )}
                   {/* Inline Deal Proposal — Smart, Auto-populated */}
                   {showProposeForm && !activeOrder && (
                     <div className="border-t border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 shrink-0 animate-in slide-in-from-bottom duration-300">

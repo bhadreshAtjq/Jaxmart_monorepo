@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
 
   # State management
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
 
   # Navigation
   go_router: ^13.0.1
@@ -33,7 +33,7 @@ dependencies:
   lottie: ^3.0.0
   photo_view: ^0.14.0
   image_picker: ^1.0.7
-  file_picker: ^6.1.1
+  file_picker: ^11.0.2
   dotted_border: ^2.1.0
   flutter_rating_bar: ^4.0.1
   pinput: ^3.0.1
@@ -66,8 +66,8 @@ dependencies:
   path_provider: ^2.1.2
   permission_handler: ^11.2.0
   connectivity_plus: ^5.0.2
-  package_info_plus: ^5.0.1
-  image_cropper: ^5.0.1
+  package_info_plus: ^9.0.1
+  image_cropper: ^12.2.1
 
   # Forms & Validation
   reactive_forms: ^17.0.0
@@ -80,7 +80,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   build_runner: ^2.4.7
-  riverpod_generator: ^2.3.9
   retrofit_generator: ^8.1.0
   json_annotation: ^4.8.1
   json_serializable: ^6.7.1
@@ -93,12 +92,23 @@ flutter:
     - assets/icons/
     - assets/animations/
   fonts:
-    - family: Inter
+    - family: SourceSans3
       fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-Medium.ttf
+        - asset: assets/fonts/SourceSans3-400.ttf
+        - asset: assets/fonts/SourceSans3-500.ttf
           weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
+        - asset: assets/fonts/SourceSans3-600.ttf
           weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
+        - asset: assets/fonts/SourceSans3-700.ttf
           weight: 700
+    - family: Raleway
+      fonts:
+        - asset: assets/fonts/Raleway-400.ttf
+        - asset: assets/fonts/Raleway-500.ttf
+          weight: 500
+        - asset: assets/fonts/Raleway-600.ttf
+          weight: 600
+        - asset: assets/fonts/Raleway-700.ttf
+          weight: 700
+        - asset: assets/fonts/Raleway-800.ttf
+          weight: 800

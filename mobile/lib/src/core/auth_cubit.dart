@@ -80,6 +80,39 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> mockLogin({
+    required String phone,
+    String? fullName,
+    String? userType,
+  }) async {
+    final normalized = phone.replaceAll(RegExp(r'\D'), '');
+    if (normalized.length < 7) {
+      emit(state.copyWith(status: AuthStatus.failure, message: 'Enter a valid phone number'));
+      return;
+    }
+    emit(state.copyWith(status: AuthStatus.loading, phone: normalized));
+    
+    await Future.delayed(const Duration(milliseconds: 800)); // Simulate network delay
+    
+    final mockUser = {
+      'id': 'mock-user-123',
+      'phone': normalized,
+      'fullName': (fullName == null || fullName.trim().isEmpty) ? 'Mock User' : fullName.trim(),
+      'userType': (userType ?? 'BUYER').toUpperCase(),
+      'kycStatus': 'VERIFIED',
+      'trustScore': 95,
+      'isAdmin': false,
+    };
+    
+    await _api.saveSession(
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      user: mockUser,
+    );
+    
+    emit(AuthState(status: AuthStatus.authenticated, user: mockUser, phone: normalized));
+  }
+
   Future<void> verifyOtp({
     required String phone,
     required String otp,

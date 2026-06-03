@@ -94,11 +94,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         onSelectionChanged: (value) => setState(() => _type = value.first),
                       ),
                       JaxButton(
-                        label: 'Send OTP',
+                        label: 'Log In (Mock Data)',
                         fullWidth: true,
                         loading: state.status == AuthStatus.loading,
-                        icon: Icons.sms_rounded,
-                        onPressed: () => context.read<AuthCubit>().sendOtp(_phone.text),
+                        icon: Icons.login_rounded,
+                        onPressed: () => context.read<AuthCubit>().mockLogin(
+                          phone: _phone.text,
+                          fullName: _name.text,
+                          userType: _type,
+                        ),
                       ),
                     ],
                   );

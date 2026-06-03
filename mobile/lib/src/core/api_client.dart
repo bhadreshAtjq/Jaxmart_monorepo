@@ -126,13 +126,123 @@ class JaxApiClient {
   }
 
   Future<JsonMap> getMap(String path, {Map<String, dynamic>? query}) async {
-    final response = await _dio.get<dynamic>(path, queryParameters: query);
-    return asMap(response.data);
+    try {
+      final response = await _dio.get<dynamic>(path, queryParameters: query);
+      return asMap(response.data);
+    } catch (_) {
+      return _getMockMap(path);
+    }
   }
 
   Future<List<JsonMap>> getList(String path, {Map<String, dynamic>? query}) async {
-    final response = await _dio.get<dynamic>(path, queryParameters: query);
-    return asList(response.data);
+    try {
+      final response = await _dio.get<dynamic>(path, queryParameters: query);
+      return asList(response.data);
+    } catch (_) {
+      return _getMockList(path);
+    }
+  }
+
+  JsonMap _getMockMap(String path) {
+    if (path.startsWith('/listings/search')) {
+      return {
+        'listings': [
+          {
+            'id': 'l1',
+            'title': 'High-Grade Industrial Steel Coils',
+            'productDetail': {'pricePerUnit': 1200, 'minOrderQty': 50, 'unitOfMeasure': 'Tons'},
+            'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
+            'seller': {'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+          },
+          {
+            'id': 'l2',
+            'title': 'Wholesale Organic Cotton T-Shirts',
+            'productDetail': {'pricePerUnit': 4.5, 'minOrderQty': 1000, 'unitOfMeasure': 'Pcs'},
+            'media': [{'url': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format&fit=crop'}],
+            'seller': {'companyName': 'EcoTextiles', 'kycStatus': 'VERIFIED', 'trustScore': 95}
+          },
+          {
+            'id': 'l3',
+            'title': 'Bulk Packaging Boxes - 10x10',
+            'productDetail': {'pricePerUnit': 0.50, 'minOrderQty': 5000, 'unitOfMeasure': 'Pcs'},
+            'media': [{'url': 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?q=80&w=300&auto=format&fit=crop'}],
+            'seller': {'companyName': 'PackRite', 'kycStatus': 'VERIFIED', 'trustScore': 89}
+          }
+        ],
+        'total': 3,
+        'page': 1,
+        'totalPages': 1,
+      };
+    } else if (path.startsWith('/events')) {
+      return {
+        'events': [
+          {
+            'id': 'e1',
+            'title': 'Global Sourcing Expo 2026',
+            'description': 'Connect with top-tier international suppliers and manufacturers.',
+            'location': 'Mumbai Exhibition Center',
+            'date': '2026-08-15T10:00:00Z',
+            'mediaUrl': 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop'
+          },
+          {
+            'id': 'e2',
+            'title': 'Tech Innovators Summit',
+            'description': 'Discover the latest in B2B technology and automation.',
+            'location': 'Virtual',
+            'date': '2026-09-10T10:00:00Z',
+            'mediaUrl': 'https://images.unsplash.com/photo-1551818255-e6e10975bc17?q=80&w=600&auto=format&fit=crop'
+          }
+        ]
+      };
+    } else if (path.startsWith('/rfq/seller/inbox') || path.startsWith('/rfq/my')) {
+      return {
+        'rfqs': [
+          {
+            'id': 'r1',
+            'title': 'Need 5000 units of wireless earbuds',
+            'description': 'Looking for high quality noise cancelling earbuds with fast delivery.',
+            'budgetMax': 15000,
+            'deadline': '2026-06-30T23:59:59Z',
+            'status': 'OPEN',
+            'buyer': {'companyName': 'TechRetail Pro', 'trustScore': 92},
+            'quotesCount': 3
+          },
+          {
+            'id': 'r2',
+            'title': 'Custom Printed Corrugated Boxes',
+            'description': 'We need 10,000 custom printed boxes for our new product line.',
+            'budgetMax': 5000,
+            'deadline': '2026-07-15T23:59:59Z',
+            'status': 'OPEN',
+            'buyer': {'companyName': 'EcoGoods', 'trustScore': 88},
+            'quotesCount': 1
+          }
+        ]
+      };
+    } else if (path.startsWith('/users/me')) {
+       return {
+         'id': 'mock-user-123',
+         'fullName': 'Mock User',
+         'phone': '1234567890',
+         'userType': 'BOTH',
+         'kycStatus': 'VERIFIED'
+       };
+    }
+    return {};
+  }
+
+  List<JsonMap> _getMockList(String path) {
+    if (path.startsWith('/categories')) {
+      return [
+        {'id': 'c1', 'name': 'Electronics & Gadgets'},
+        {'id': 'c2', 'name': 'Apparel & Fashion'},
+        {'id': 'c3', 'name': 'Industrial Machinery'},
+        {'id': 'c4', 'name': 'Beauty & Personal Care'},
+        {'id': 'c5', 'name': 'Home & Garden'},
+        {'id': 'c6', 'name': 'Automotive Parts'},
+      ];
+    }
+    return [];
   }
 
   Future<JsonMap> post(String path, Map<String, dynamic> data) async {

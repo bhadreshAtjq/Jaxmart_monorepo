@@ -126,21 +126,13 @@ class JaxApiClient {
   }
 
   Future<JsonMap> getMap(String path, {Map<String, dynamic>? query}) async {
-    try {
-      final response = await _dio.get<dynamic>(path, queryParameters: query);
-      return asMap(response.data);
-    } catch (_) {
-      return _getMockMap(path);
-    }
+    await Future.delayed(const Duration(milliseconds: 200));
+    return _getMockMap(path);
   }
 
   Future<List<JsonMap>> getList(String path, {Map<String, dynamic>? query}) async {
-    try {
-      final response = await _dio.get<dynamic>(path, queryParameters: query);
-      return asList(response.data);
-    } catch (_) {
-      return _getMockList(path);
-    }
+    await Future.delayed(const Duration(milliseconds: 200));
+    return _getMockList(path);
   }
 
   JsonMap _getMockMap(String path) {
@@ -234,12 +226,10 @@ class JaxApiClient {
   List<JsonMap> _getMockList(String path) {
     if (path.startsWith('/categories')) {
       return [
-        {'id': 'c1', 'name': 'Electronics & Gadgets'},
-        {'id': 'c2', 'name': 'Apparel & Fashion'},
-        {'id': 'c3', 'name': 'Industrial Machinery'},
-        {'id': 'c4', 'name': 'Beauty & Personal Care'},
-        {'id': 'c5', 'name': 'Home & Garden'},
-        {'id': 'c6', 'name': 'Automotive Parts'},
+        {'id': 'c1', 'name': 'Construction'},
+        {'id': 'c2', 'name': 'Electronics'},
+        {'id': 'c3', 'name': 'Industrial Supplies'},
+        {'id': 'c4', 'name': 'Services'},
       ];
     }
     return [];

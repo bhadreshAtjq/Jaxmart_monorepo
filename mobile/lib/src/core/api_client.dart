@@ -127,7 +127,7 @@ class JaxApiClient {
 
   Future<JsonMap> getMap(String path, {Map<String, dynamic>? query}) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    return _getMockMap(path);
+    return _getMockMap(path, query);
   }
 
   Future<List<JsonMap>> getList(String path, {Map<String, dynamic>? query}) async {
@@ -135,33 +135,83 @@ class JaxApiClient {
     return _getMockList(path);
   }
 
-  JsonMap _getMockMap(String path) {
+  JsonMap _getMockMap(String path, [Map<String, dynamic>? query]) {
     if (path.startsWith('/listings/search')) {
+      final allListings = [
+        {
+          'id': 'c_1',
+          'categoryId': 'c1',
+          'title': 'Heavy Duty Cement Mixer',
+          'productDetail': {'pricePerUnit': 500, 'minOrderQty': 1, 'unitOfMeasure': 'Unit'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95}
+        },
+        {
+          'id': 'c_2',
+          'categoryId': 'c1',
+          'title': 'Reinforced Steel Bars (TMT)',
+          'productDetail': {'pricePerUnit': 800, 'minOrderQty': 100, 'unitOfMeasure': 'Tons'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1541888087856-eb526a090b8f?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+        },
+        {
+          'id': 'e_1',
+          'categoryId': 'c2',
+          'title': 'Bulk Industrial Microcontrollers',
+          'productDetail': {'pricePerUnit': 5, 'minOrderQty': 1000, 'unitOfMeasure': 'Pcs'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92}
+        },
+        {
+          'id': 'e_2',
+          'categoryId': 'c2',
+          'title': 'High-Power Transformers',
+          'productDetail': {'pricePerUnit': 1500, 'minOrderQty': 5, 'unitOfMeasure': 'Unit'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94}
+        },
+        {
+          'id': 'i_1',
+          'categoryId': 'c3',
+          'title': 'High-Grade Industrial Steel Coils',
+          'productDetail': {'pricePerUnit': 1200, 'minOrderQty': 50, 'unitOfMeasure': 'Tons'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+        },
+        {
+          'id': 'i_2',
+          'categoryId': 'c3',
+          'title': 'Industrial Conveyor Belts',
+          'productDetail': {'pricePerUnit': 150, 'minOrderQty': 20, 'unitOfMeasure': 'Meters'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90}
+        },
+        {
+          'id': 's_1',
+          'categoryId': 'c4',
+          'title': 'Warehouse Logistics Service',
+          'productDetail': {'pricePerUnit': 200, 'minOrderQty': 1, 'unitOfMeasure': 'Month'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1586528116311-ad8ed7c508b0?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97}
+        },
+        {
+          'id': 's_2',
+          'categoryId': 'c4',
+          'title': 'Industrial Equipment Maintenance',
+          'productDetail': {'pricePerUnit': 1000, 'minOrderQty': 1, 'unitOfMeasure': 'Contract'},
+          'media': [{'url': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=300&auto=format&fit=crop'}],
+          'seller': {'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96}
+        }
+      ];
+
+      var filtered = allListings;
+      if (query != null && query['categoryId'] != null) {
+        filtered = allListings.where((e) => e['categoryId'] == query['categoryId']).toList();
+      }
+
       return {
-        'listings': [
-          {
-            'id': 'l1',
-            'title': 'High-Grade Industrial Steel Coils',
-            'productDetail': {'pricePerUnit': 1200, 'minOrderQty': 50, 'unitOfMeasure': 'Tons'},
-            'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
-            'seller': {'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
-          },
-          {
-            'id': 'l2',
-            'title': 'Wholesale Organic Cotton T-Shirts',
-            'productDetail': {'pricePerUnit': 4.5, 'minOrderQty': 1000, 'unitOfMeasure': 'Pcs'},
-            'media': [{'url': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format&fit=crop'}],
-            'seller': {'companyName': 'EcoTextiles', 'kycStatus': 'VERIFIED', 'trustScore': 95}
-          },
-          {
-            'id': 'l3',
-            'title': 'Bulk Packaging Boxes - 10x10',
-            'productDetail': {'pricePerUnit': 0.50, 'minOrderQty': 5000, 'unitOfMeasure': 'Pcs'},
-            'media': [{'url': 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?q=80&w=300&auto=format&fit=crop'}],
-            'seller': {'companyName': 'PackRite', 'kycStatus': 'VERIFIED', 'trustScore': 89}
-          }
-        ],
-        'total': 3,
+        'listings': filtered,
+        'total': filtered.length,
         'page': 1,
         'totalPages': 1,
       };

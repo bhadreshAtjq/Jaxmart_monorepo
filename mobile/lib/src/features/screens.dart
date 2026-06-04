@@ -578,8 +578,6 @@ class ListingDetailScreen extends StatelessWidget {
                   Row(children: [StatusPill(label: statusOf(item, 'PRODUCT')), const SizedBox(width: 8), StatusPill(label: textOf(seller['kycStatus'], 'VERIFIED'))]),
                   const SizedBox(height: 14),
                   Text(textOf(item['title']), style: JaxText.h1),
-                  const SizedBox(height: 8),
-                  Text(textOf(item['description']), style: JaxText.bodyMedium),
                   const SizedBox(height: 18),
                   JaxCard(
                     child: Column(
@@ -588,21 +586,61 @@ class ListingDetailScreen extends StatelessWidget {
                         Text(product.isNotEmpty ? money(product['pricePerUnit']) : money(service['basePrice']), style: JaxText.h2),
                         const SizedBox(height: 6),
                         Text(product.isNotEmpty ? 'MOQ ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}' : '${textOf(service['serviceMode'], 'Service')} • ${textOf(service['typicalDuration'], 'Flexible timeline')}', style: JaxText.bodySmall),
-                        const SizedBox(height: 14),
-                        Row(children: [JaxAvatar(name: sellerName(item), url: textOf(seller['avatarUrl'])), const SizedBox(width: 12), Expanded(child: Text(sellerName(item), style: JaxText.title)), TrustScore(score: numOf(seller['trustScore']) ?? 85)]),
                       ],
                     ),
                   ),
                   const SizedBox(height: 18),
                   SpecsGrid(data: product.isNotEmpty ? product : service),
                   const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(child: JaxButton(label: 'Post RFQ', icon: Icons.request_quote_rounded, onPressed: () => context.push('/rfq/create?listingId=$id&title=${Uri.encodeComponent(textOf(item['title']))}'))),
-                      const SizedBox(width: 10),
-                      Expanded(child: JaxButton(label: 'Chat Now', variant: JaxButtonVariant.outline, icon: Icons.chat_rounded, onPressed: () => _startChat(context, seller, id))),
-                    ],
+                  JaxCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('MERCHANT PROFILE', style: JaxText.h3),
+                        const SizedBox(height: 12),
+                        Row(children: [JaxAvatar(name: sellerName(item), url: textOf(seller['avatarUrl'])), const SizedBox(width: 12), Expanded(child: Text(sellerName(item), style: JaxText.title)), TrustScore(score: numOf(seller['trustScore']) ?? 85)]),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 18),
+                  JaxCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('REGULATORY STANDARDS & COMPLIANCE CERTIFICATES', style: JaxText.h3),
+                        const SizedBox(height: 12),
+                        Row(children: const [
+                          StatusPill(label: 'CE CERTIFIED', color: JaxColors.primary),
+                          SizedBox(width: 8),
+                          StatusPill(label: 'BIS REGISTRATION', color: JaxColors.secondary),
+                        ]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  JaxCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('ACCEPTED SETTLEMENT CHANNELS', style: JaxText.h3),
+                        const SizedBox(height: 12),
+                        const Text('• JAXMART ESCROW CLEARING\n• TELEGRAPHIC TRANSFER (T/T)\n• IRREVOCABLE LETTER OF CREDIT (L/C)\n• NET BANKING / NEFT SETTLEMENT', style: JaxText.bodySmall),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  JaxCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('TECHNICAL PROSPECTUS & SCOPE DESCRIPTION', style: JaxText.h3),
+                        const SizedBox(height: 12),
+                        Text(textOf(item['description']), style: JaxText.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  DispatchInquiryCard(id: id, item: item, product: product),
                 ],
               );
             },
@@ -632,13 +670,102 @@ class SpecsGrid extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Specifications', style: JaxText.h3),
+          const Text('PRODUCT SPECIFICATIONS REGISTRY', style: JaxText.h3),
           const SizedBox(height: 12),
           ...entries.map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: 9),
                 child: Row(children: [Expanded(child: Text(e.key, style: JaxText.bodySmall)), Expanded(child: Text(textOf(e.value), style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700)))]),
               )),
         ],
+      ),
+    );
+  }
+}
+
+class DispatchInquiryCard extends StatefulWidget {
+  const DispatchInquiryCard({required this.id, required this.item, required this.product, super.key});
+  final String id;
+  final JsonMap item;
+  final JsonMap product;
+
+  @override
+  State<DispatchInquiryCard> createState() => _DispatchInquiryCardState();
+}
+
+class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _volume = TextEditingController();
+  final _unit = TextEditingController();
+  final _message = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _unit.text = textOf(widget.product['unitOfMeasure'], 'Piece');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('DISPATCH SUPPLIER INQUIRY', style: JaxText.h3),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FieldLabel('TARGET VOLUME (PIECE)'),
+                      TextFormField(
+                        controller: _volume,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(hintText: 'Min: ${textOf(widget.product['minOrderQty'], '100')}'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FieldLabel('LOGISTICS UNIT TYPE'),
+                      TextFormField(
+                        controller: _unit,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        decoration: const InputDecoration(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const FieldLabel('INQUIRY SPECIFICATIONS MESSAGE'),
+            TextFormField(
+              controller: _message,
+              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+              maxLines: 4,
+              decoration: InputDecoration(hintText: 'Provide clear scope descriptions...'),
+            ),
+            const SizedBox(height: 16),
+            JaxButton(
+              label: 'DISPATCH RFQ MESSAGE',
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  context.push('/rfq/create?listingId=${widget.id}&title=${Uri.encodeComponent(textOf(widget.item['title']))}');
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

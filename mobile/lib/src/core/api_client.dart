@@ -135,78 +135,164 @@ class JaxApiClient {
     return _getMockList(path);
   }
 
+  List<JsonMap> get _allMockListings => [
+    {
+      'id': 'c_1',
+      'categoryId': 'c1',
+      'title': 'Heavy Duty Cement Mixer',
+      'description': 'Premium industrial-grade cement mixer with high capacity drum. Manufactured under strict ISO guidelines. Perfect for large scale construction projects.',
+      'productDetail': {
+        'pricePerUnit': 500,
+        'minOrderQty': 1,
+        'unitOfMeasure': 'Unit',
+        'Brand / Manufacturer': 'BuildPro',
+        'Model SKU': 'BP-CMX-900',
+        'Place of Origin': 'India',
+        'Warranty Duration': '2 Years Warranty',
+        'Industrial Return Policy': '15 Days Returnable',
+        'Regulatory Standards': 'ISO 9001, CE Certified'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's1', 'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95}
+    },
+    {
+      'id': 'c_2',
+      'categoryId': 'c1',
+      'title': 'Reinforced Steel Bars (TMT)',
+      'description': 'High strength reinforced steel bars (TMT) suitable for heavy construction. Resistant to corrosion and extreme weather.',
+      'productDetail': {
+        'pricePerUnit': 800,
+        'minOrderQty': 100,
+        'unitOfMeasure': 'Tons',
+        'Brand / Manufacturer': 'SteelWorks',
+        'Model SKU': 'SW-TMT-500D',
+        'Place of Origin': 'India',
+        'Warranty Duration': '5 Years Warranty',
+        'Industrial Return Policy': 'Non-returnable',
+        'Regulatory Standards': 'BIS Registration, ISO 14001'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1541888087856-eb526a090b8f?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's2', 'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+    },
+    {
+      'id': 'e_1',
+      'categoryId': 'c2',
+      'title': 'Bulk Industrial Microcontrollers',
+      'description': 'High-performance microcontrollers for industrial automation and IoT devices. Bulk packaging available with fast shipping.',
+      'productDetail': {
+        'pricePerUnit': 5,
+        'minOrderQty': 1000,
+        'unitOfMeasure': 'Pcs',
+        'Brand / Manufacturer': 'ElectroTech',
+        'Model SKU': 'ET-MCU-32BIT',
+        'Place of Origin': 'Taiwan',
+        'Warranty Duration': '1 Year Warranty',
+        'Industrial Return Policy': '7 Days Returnable',
+        'Regulatory Standards': 'RoHS Compliant, CE Certified'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's3', 'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92}
+    },
+    {
+      'id': 'e_2',
+      'categoryId': 'c2',
+      'title': 'High-Power Transformers',
+      'description': 'Industrial high-power transformers designed for power distribution grids and heavy machinery operation.',
+      'productDetail': {
+        'pricePerUnit': 1500,
+        'minOrderQty': 5,
+        'unitOfMeasure': 'Unit',
+        'Brand / Manufacturer': 'PowerGrid',
+        'Model SKU': 'PG-TRF-10KVA',
+        'Place of Origin': 'India',
+        'Warranty Duration': '3 Years Warranty',
+        'Industrial Return Policy': '14 Days Returnable',
+        'Regulatory Standards': 'BIS Registration, IEEE Certified'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's4', 'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94}
+    },
+    {
+      'id': 'i_1',
+      'categoryId': 'c3',
+      'title': 'High-Grade Industrial Steel Coils',
+      'description': 'Premium grade industrial steel coils suitable for automotive and manufacturing industries. Flexible negotiable terms.',
+      'productDetail': {
+        'pricePerUnit': 1200,
+        'minOrderQty': 50,
+        'unitOfMeasure': 'Tons',
+        'Brand / Manufacturer': 'MetalWorks Inc.',
+        'Model SKU': 'MW-CR-COIL',
+        'Place of Origin': 'India',
+        'Warranty Duration': 'None',
+        'Industrial Return Policy': 'Non-returnable',
+        'Regulatory Standards': 'ISO 9001'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's5', 'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+    },
+    {
+      'id': 'i_2',
+      'categoryId': 'c3',
+      'title': 'Industrial Conveyor Belts',
+      'description': 'Durable conveyor belts made from high-tensile rubber, designed for continuous operation in harsh industrial environments.',
+      'productDetail': {
+        'pricePerUnit': 150,
+        'minOrderQty': 20,
+        'unitOfMeasure': 'Meters',
+        'Brand / Manufacturer': 'BeltMasters',
+        'Model SKU': 'BM-CB-RUBBER',
+        'Place of Origin': 'Vietnam',
+        'Warranty Duration': '1 Year Warranty',
+        'Industrial Return Policy': '30 Days Returnable',
+        'Regulatory Standards': 'CE Certified'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's6', 'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90}
+    },
+    {
+      'id': 's_1',
+      'categoryId': 'c4',
+      'title': 'Warehouse Logistics Service',
+      'description': 'Comprehensive warehouse logistics and supply chain management services. Modern facility with secure storage.',
+      'serviceDetail': {
+        'basePrice': 200,
+        'serviceMode': 'Logistics',
+        'typicalDuration': 'Monthly',
+        'Service Provider': 'FastLogistics',
+        'Coverage Area': 'Pan India',
+        'Insurance Included': 'Up to ₹10 Lakhs',
+        'Tracking System': 'Real-time GPS tracking',
+        'Certifications': 'ISO 28000 (Supply Chain Security)'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1586528116311-ad8ed7c508b0?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's7', 'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97}
+    },
+    {
+      'id': 's_2',
+      'categoryId': 'c4',
+      'title': 'Industrial Equipment Maintenance',
+      'description': 'Expert maintenance and repair services for heavy industrial equipment and production lines. 24/7 support available.',
+      'serviceDetail': {
+        'basePrice': 1000,
+        'serviceMode': 'Maintenance',
+        'typicalDuration': 'Annual Contract',
+        'Service Provider': 'TechFix Services',
+        'Coverage Area': 'Tier 1 Cities',
+        'SLA Response Time': 'Under 4 Hours',
+        'Spare Parts Included': 'No (Billed separately)',
+        'Certifications': 'ISO 9001 (Quality Management)'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=300&auto=format&fit=crop'}],
+      'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96}
+    }
+  ];
+
   JsonMap _getMockMap(String path, [Map<String, dynamic>? query]) {
     if (path.startsWith('/listings/search')) {
-      final allListings = [
-        {
-          'id': 'c_1',
-          'categoryId': 'c1',
-          'title': 'Heavy Duty Cement Mixer',
-          'productDetail': {'pricePerUnit': 500, 'minOrderQty': 1, 'unitOfMeasure': 'Unit'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95}
-        },
-        {
-          'id': 'c_2',
-          'categoryId': 'c1',
-          'title': 'Reinforced Steel Bars (TMT)',
-          'productDetail': {'pricePerUnit': 800, 'minOrderQty': 100, 'unitOfMeasure': 'Tons'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1541888087856-eb526a090b8f?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98}
-        },
-        {
-          'id': 'e_1',
-          'categoryId': 'c2',
-          'title': 'Bulk Industrial Microcontrollers',
-          'productDetail': {'pricePerUnit': 5, 'minOrderQty': 1000, 'unitOfMeasure': 'Pcs'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92}
-        },
-        {
-          'id': 'e_2',
-          'categoryId': 'c2',
-          'title': 'High-Power Transformers',
-          'productDetail': {'pricePerUnit': 1500, 'minOrderQty': 5, 'unitOfMeasure': 'Unit'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94}
-        },
-        {
-          'id': 'i_1',
-          'categoryId': 'c3',
-          'title': 'High-Grade Industrial Steel Coils',
-          'productDetail': {'pricePerUnit': 1200, 'minOrderQty': 50, 'unitOfMeasure': 'Tons'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
-        },
-        {
-          'id': 'i_2',
-          'categoryId': 'c3',
-          'title': 'Industrial Conveyor Belts',
-          'productDetail': {'pricePerUnit': 150, 'minOrderQty': 20, 'unitOfMeasure': 'Meters'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90}
-        },
-        {
-          'id': 's_1',
-          'categoryId': 'c4',
-          'title': 'Warehouse Logistics Service',
-          'productDetail': {'pricePerUnit': 200, 'minOrderQty': 1, 'unitOfMeasure': 'Month'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1586528116311-ad8ed7c508b0?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97}
-        },
-        {
-          'id': 's_2',
-          'categoryId': 'c4',
-          'title': 'Industrial Equipment Maintenance',
-          'productDetail': {'pricePerUnit': 1000, 'minOrderQty': 1, 'unitOfMeasure': 'Contract'},
-          'media': [{'url': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=300&auto=format&fit=crop'}],
-          'seller': {'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96}
-        }
-      ];
-
-      var filtered = allListings;
+      var filtered = _allMockListings;
       if (query != null && query['categoryId'] != null) {
-        filtered = allListings.where((e) => e['categoryId'] == query['categoryId']).toList();
+        filtered = _allMockListings.where((e) => e['categoryId'] == query['categoryId']).toList();
       }
 
       return {
@@ -215,6 +301,13 @@ class JaxApiClient {
         'page': 1,
         'totalPages': 1,
       };
+    } else if (path.startsWith('/listings/') && path.split('/').length > 2) {
+      final id = path.split('/').last;
+      final item = _allMockListings.firstWhere(
+        (element) => element['id'] == id,
+        orElse: () => _allMockListings.first,
+      );
+      return item;
     } else if (path.startsWith('/events')) {
       return {
         'events': [

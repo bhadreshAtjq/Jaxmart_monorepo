@@ -543,21 +543,41 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class ListingDetailScreen extends StatelessWidget {
+class ListingDetailScreen extends StatefulWidget {
   const ListingDetailScreen({required this.id, super.key});
   final String id;
 
   @override
+  State<ListingDetailScreen> createState() => _ListingDetailScreenState();
+}
+
+class _ListingDetailScreenState extends State<ListingDetailScreen> {
+  final _dispatchKey = GlobalKey();
+  String get id => widget.id;
+
+  void _scrollToDispatch() {
+    final ctx = _dispatchKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+        alignment: 0.05,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).listing(id)),
+      create: (_) => ResourceCubit()..load(() => apiOf(context).listing(widget.id)),
       child: BlocBuilder<ResourceCubit, ResourceState>(
         builder: (context, state) => JaxPage(
           title: state.data.isEmpty ? 'Listing' : textOf(state.data['title']),
           subtitle: categoryName(state.data),
           child: AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).listing(id)),
+            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).listing(widget.id)),
             builder: (_) {
               final item = state.data;
               final product = asMap(item['productDetail']);
@@ -578,6 +598,11 @@ class ListingDetailScreen extends StatelessWidget {
                   Row(children: [StatusPill(label: statusOf(item, 'PRODUCT')), const SizedBox(width: 8), StatusPill(label: textOf(seller['kycStatus'], 'VERIFIED'))]),
                   const SizedBox(height: 14),
                   Text(textOf(item['title']), style: JaxText.h1),
+                  const SizedBox(height: 10),
+                  RatingReviewBar(
+                    rating: (item['rating'] as num?)?.toDouble() ?? 0.0,
+                    reviewCount: (item['reviewCount'] as num?)?.toInt() ?? 0,
+                  ),
                   const SizedBox(height: 18),
                   JaxCard(
                     child: Column(
@@ -587,6 +612,54 @@ class ListingDetailScreen extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(product.isNotEmpty ? 'MOQ ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}' : '${textOf(service['serviceMode'], 'Service')} • ${textOf(service['typicalDuration'], 'Flexible timeline')}', style: JaxText.bodySmall),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SelectedConfigurationCard(
+                    configurations: asList(item['configurations']),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: JaxColors.primaryContainer,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(JaxRadius.lg),
+                        ),
+                      ),
+                      onPressed: _scrollToDispatch,
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      label: Text(
+                        'INITIATE INQUIRY DISPATCH',
+                        style: JaxText.label.copyWith(color: Colors.white, fontSize: 13, letterSpacing: 0.8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: JaxColors.primaryContainer,
+                        side: const BorderSide(color: JaxColors.primaryContainer, width: 1.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(JaxRadius.lg),
+                        ),
+                      ),
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (_) => SupplierProfileDialog(seller: seller),
+                      ),
+                      icon: const Icon(Icons.business_rounded, size: 17),
+                      label: Text(
+                        'VIEW SUPPLIER PROFILE',
+                        style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 12, letterSpacing: 0.7),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -640,7 +713,7 @@ class ListingDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  DispatchInquiryCard(id: id, item: item, product: product),
+                  DispatchInquiryCard(key: _dispatchKey, id: widget.id, item: item, product: product),
                 ],
               );
             },
@@ -655,6 +728,315 @@ class ListingDetailScreen extends StatelessWidget {
     if (recipientId.isEmpty) return;
     final conv = await apiOf(context).startConversation({'recipientId': recipientId, 'listingId': listingId});
     if (context.mounted) context.push('/messages/${conv['id']}');
+  }
+}
+
+
+class SupplierProfileDialog extends StatelessWidget {
+  const SupplierProfileDialog({required this.seller, super.key});
+  final JsonMap seller;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = textOf(seller['companyName'], 'Supplier');
+    final kycStatus = textOf(seller['kycStatus'], 'VERIFIED');
+    final trust = (numOf(seller['trustScore']) ?? 85).toInt();
+    final trustValue = (trust.clamp(0, 100) / 100.0);
+    final registryProfile = textOf(seller['registryProfile'], 'MANUFACTURER / SUPPLIER');
+    final establishmentYear = seller['establishmentYear']?.toString() ?? 'N/A';
+    final workforce = textOf(seller['operationalWorkforce'], 'N/A');
+    final gstId = textOf(seller['gstId'], 'N/A');
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Dark header ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(color: JaxColors.primaryContainer),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      JaxAvatar(name: name, url: textOf(seller['avatarUrl']), size: 46),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name.toUpperCase(),
+                              style: JaxText.title.copyWith(color: Colors.white, fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.verified_rounded, color: JaxColors.secondary, size: 14),
+                                const SizedBox(width: 4),
+                                Text(
+                                  kycStatus.replaceAll('_', ' ') + ' SUPPLIER',
+                                  style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(99),
+                          child: LinearProgressIndicator(
+                            value: trustValue,
+                            minHeight: 7,
+                            backgroundColor: Colors.white24,
+                            color: JaxColors.secondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        '$trust% TRUST',
+                        style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ── Detail rows ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Column(
+                children: [
+                  _ProfileRow(label: 'Registry Profile', value: registryProfile),
+                  _ProfileRow(label: 'Establishment Year', value: establishmentYear),
+                  _ProfileRow(label: 'Operational Workforce', value: workforce),
+                  _ProfileRow(label: 'GST Registry ID', value: gstId),
+                ],
+              ),
+            ),
+            // ── Trade Assurance ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: JaxColors.secondary.withValues(alpha: .07),
+                  border: Border.all(color: JaxColors.secondary.withValues(alpha: .18)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 34,
+                      width: 34,
+                      decoration: BoxDecoration(
+                        color: JaxColors.secondary.withValues(alpha: .12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('TRADE ASSURANCE INDEX', style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 11)),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Contracts registered under Trade Assurance include escrow protection and transit compliance guarantees.',
+                            style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  const _ProfileRow({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 120,
+                child: Text(label, style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+              ),
+              Expanded(
+                child: Text(
+                  value,
+                  style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, thickness: 0.6),
+      ],
+    );
+  }
+}
+
+class SelectedConfigurationCard extends StatefulWidget {
+  const SelectedConfigurationCard({required this.configurations, super.key});
+  final List<JsonMap> configurations;
+
+  @override
+  State<SelectedConfigurationCard> createState() => _SelectedConfigurationCardState();
+}
+
+class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.configurations.isEmpty) return const SizedBox.shrink();
+    final selected = widget.configurations[_selectedIndex];
+    final stock = (selected['stock'] as num?)?.toInt() ?? 0;
+    final stockText = stock >= 999 ? 'Available on demand' : '$stock units available for immediate dispatch';
+
+    return JaxCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('SELECTED CONFIGURATION', style: JaxText.h3),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: List.generate(widget.configurations.length, (i) {
+              final cfg = widget.configurations[i];
+              final isSelected = i == _selectedIndex;
+              final cfgPrice = (cfg['price'] as num?)?.toDouble() ?? 0;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedIndex = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? JaxColors.primary.withValues(alpha: .12) : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                      width: isSelected ? 1.8 : 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        textOf(cfg['name']),
+                        style: JaxText.bodySmall.copyWith(
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? JaxColors.primary : null,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        money(cfgPrice),
+                        style: JaxText.label.copyWith(
+                          color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                stock >= 999 ? Icons.inventory_2_rounded : Icons.local_shipping_rounded,
+                size: 15,
+                color: JaxColors.secondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                stockText,
+                style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RatingReviewBar extends StatelessWidget {
+  const RatingReviewBar({required this.rating, required this.reviewCount, super.key});
+  final double rating;
+  final int reviewCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final fullStars = rating.floor();
+    final hasHalf = (rating - fullStars) >= 0.5;
+    return Row(
+      children: [
+        ...List.generate(5, (i) {
+          if (i < fullStars) {
+            return const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 20);
+          } else if (i == fullStars && hasHalf) {
+            return const Icon(Icons.star_half_rounded, color: Color(0xFFFFB300), size: 20);
+          } else {
+            return const Icon(Icons.star_outline_rounded, color: Color(0xFFFFB300), size: 20);
+          }
+        }),
+        const SizedBox(width: 8),
+        Text(
+          rating.toStringAsFixed(1),
+          style: JaxText.title.copyWith(color: const Color(0xFFFFB300), fontSize: 14),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          '• $reviewCount ${reviewCount == 1 ? 'review' : 'reviews'}',
+          style: JaxText.bodySmall.copyWith(color: JaxColors.outlineVariant),
+        ),
+      ],
+    );
   }
 }
 

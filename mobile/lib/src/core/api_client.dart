@@ -153,7 +153,14 @@ class JaxApiClient {
         'Regulatory Standards': 'ISO 9001, CE Certified'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's1', 'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95}
+      'rating': 4.6,
+      'reviewCount': 38,
+      'configurations': [
+        {'name': 'Standard 120L', 'price': 500, 'stock': 120},
+        {'name': 'Heavy Duty 200L', 'price': 720, 'stock': 45},
+        {'name': 'Industrial 350L', 'price': 1100, 'stock': 18},
+      ],
+      'seller': {'id': 's1', 'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95, 'registryProfile': 'MANUFACTURER / CONTRACTOR', 'establishmentYear': 2010, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '27AABCB1234C1ZX'}
     },
     {
       'id': 'c_2',
@@ -172,7 +179,14 @@ class JaxApiClient {
         'Regulatory Standards': 'BIS Registration, ISO 14001'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1541888087856-eb526a090b8f?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's2', 'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+      'rating': 4.8,
+      'reviewCount': 112,
+      'configurations': [
+        {'name': 'Fe415 Grade', 'price': 800, 'stock': 500},
+        {'name': 'Fe500 Grade', 'price': 950, 'stock': 320},
+        {'name': 'Fe550D Grade', 'price': 1100, 'stock': 150},
+      ],
+      'seller': {'id': 's2', 'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / EXPORTER', 'establishmentYear': 2005, 'operationalWorkforce': 'HUNDRED_PLUS Employees', 'gstId': '07AAECS5678D1ZA'}
     },
     {
       'id': 'e_1',
@@ -191,7 +205,14 @@ class JaxApiClient {
         'Regulatory Standards': 'RoHS Compliant, CE Certified'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's3', 'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92}
+      'rating': 4.3,
+      'reviewCount': 74,
+      'configurations': [
+        {'name': 'STM32 Series', 'price': 5, 'stock': 8000},
+        {'name': 'ESP32 Series', 'price': 7, 'stock': 5000},
+        {'name': 'ARM Cortex-M4', 'price': 12, 'stock': 2200},
+      ],
+      'seller': {'id': 's3', 'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92, 'registryProfile': 'DISTRIBUTOR / IMPORTER', 'establishmentYear': 2015, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '33AABCE9012F1ZP'}
     },
     {
       'id': 'e_2',
@@ -210,7 +231,14 @@ class JaxApiClient {
         'Regulatory Standards': 'BIS Registration, IEEE Certified'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's4', 'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94}
+      'rating': 4.5,
+      'reviewCount': 29,
+      'configurations': [
+        {'name': '10 KVA Single Phase', 'price': 1500, 'stock': 30},
+        {'name': '25 KVA Three Phase', 'price': 3200, 'stock': 15},
+        {'name': '100 KVA Industrial', 'price': 9800, 'stock': 6},
+      ],
+      'seller': {'id': 's4', 'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2008, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '29AABCP3456G1ZQ'}
     },
     {
       'id': 'i_1',
@@ -229,7 +257,14 @@ class JaxApiClient {
         'Regulatory Standards': 'ISO 9001'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's5', 'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98}
+      'rating': 4.9,
+      'reviewCount': 57,
+      'configurations': [
+        {'name': 'CR Grade Coils', 'price': 1200, 'stock': 500},
+        {'name': 'HR Grade Coils', 'price': 980, 'stock': 750},
+        {'name': 'Galvanised Coils', 'price': 1450, 'stock': 200},
+      ],
+      'seller': {'id': 's5', 'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2018, 'operationalWorkforce': 'ONE_TO_TEN Employees', 'gstId': '29IFRHZGUL5E1Z5'}
     },
     {
       'id': 'i_2',
@@ -248,7 +283,14 @@ class JaxApiClient {
         'Regulatory Standards': 'CE Certified'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's6', 'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90}
+      'rating': 4.1,
+      'reviewCount': 19,
+      'configurations': [
+        {'name': 'Light Duty 650mm', 'price': 150, 'stock': 800},
+        {'name': 'Medium Duty 900mm', 'price': 220, 'stock': 400},
+        {'name': 'Heavy Duty 1200mm', 'price': 380, 'stock': 120},
+      ],
+      'seller': {'id': 's6', 'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90, 'registryProfile': 'MANUFACTURER / TRADER', 'establishmentYear': 2012, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '24AABCB7890H1ZR'}
     },
     {
       'id': 's_1',
@@ -266,7 +308,14 @@ class JaxApiClient {
         'Certifications': 'ISO 28000 (Supply Chain Security)'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1586528116311-ad8ed7c508b0?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's7', 'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97}
+      'rating': 4.7,
+      'reviewCount': 93,
+      'configurations': [
+        {'name': 'Local City Plan', 'price': 200, 'stock': 999},
+        {'name': 'Regional Plan', 'price': 450, 'stock': 999},
+        {'name': 'Pan India Plan', 'price': 900, 'stock': 999},
+      ],
+      'seller': {'id': 's7', 'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97, 'registryProfile': 'SERVICE PROVIDER / LOGISTICS', 'establishmentYear': 2014, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '06AABCF1122I1ZS'}
     },
     {
       'id': 's_2',
@@ -284,7 +333,14 @@ class JaxApiClient {
         'Certifications': 'ISO 9001 (Quality Management)'
       },
       'media': [{'url': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=300&auto=format&fit=crop'}],
-      'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96}
+      'rating': 4.4,
+      'reviewCount': 46,
+      'configurations': [
+        {'name': 'Basic Plan (Annual)', 'price': 1000, 'stock': 999},
+        {'name': 'Pro Plan (Annual)', 'price': 2500, 'stock': 999},
+        {'name': 'Enterprise Plan', 'price': 5000, 'stock': 999},
+      ],
+      'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96, 'registryProfile': 'SERVICE PROVIDER / MAINTENANCE', 'establishmentYear': 2016, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '19AABCT3344J1ZT'}
     }
   ];
 

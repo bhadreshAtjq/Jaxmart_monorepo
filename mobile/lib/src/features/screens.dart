@@ -438,9 +438,14 @@ class _InstantRfqCardState extends State<InstantRfqCard> {
 
   void _postRfq() {
     final product = _rfqProduct.text.trim();
+    if (product.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please specify what product you need')),
+      );
+      return;
+    }
     final qty = _rfqQty.text.trim();
-    final title = product.isNotEmpty ? product : 'New RFQ';
-    context.push('/rfq/create?title=${Uri.encodeComponent(title)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
+    context.push('/rfq/create?title=${Uri.encodeComponent(product)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
   }
 }
 

@@ -341,6 +341,58 @@ class JaxApiClient {
         {'name': 'Enterprise Plan', 'price': 5000, 'stock': 999},
       ],
       'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96, 'registryProfile': 'SERVICE PROVIDER / MAINTENANCE', 'establishmentYear': 2016, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '19AABCT3344J1ZT', 'location': 'Delhi', 'primaryCategory': 'SERVICES'}
+    },
+    {
+      'id': 't_1',
+      'categoryId': 'c5',
+      'title': 'Premium 30s Cotton Yarn',
+      'description': 'High-quality 100% combed cotton yarn, suitable for knitting and weaving. Consistent strength and low hairiness for smooth fabric production.',
+      'productDetail': {
+        'pricePerUnit': 280,
+        'minOrderQty': 500,
+        'unitOfMeasure': 'Kilograms',
+        'Brand / Manufacturer': 'Vardhman Textiles Ltd',
+        'Model SKU': 'VT-CY-30S',
+        'Place of Origin': 'India',
+        'Warranty Duration': 'None',
+        'Industrial Return Policy': '7 Days Replacement',
+        'Regulatory Standards': 'GOTS Certified, OEKO-TEX Standard 100'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1605289982774-9a6fef564df8?q=80&w=300&auto=format&fit=crop'}],
+      'rating': 4.8,
+      'reviewCount': 124,
+      'configurations': [
+        {'name': '30s Combed', 'price': 280, 'stock': 5000},
+        {'name': '40s Combed', 'price': 310, 'stock': 3500},
+        {'name': '60s Combed', 'price': 450, 'stock': 1200},
+      ],
+      'seller': {'id': 's9', 'companyName': 'Vardhman Textiles Ltd', 'kycStatus': 'VERIFIED', 'trustScore': 99, 'registryProfile': 'MANUFACTURER / EXPORTER', 'establishmentYear': 1998, 'operationalWorkforce': 'HUNDRED_PLUS Employees', 'gstId': '03AABCV1234T1Z9', 'location': 'Ludhiana', 'primaryCategory': 'TEXTILES'}
+    },
+    {
+      'id': 't_2',
+      'categoryId': 'c5',
+      'title': 'Heavyweight Raw Denim Fabric',
+      'description': '14oz indigo-dyed raw denim fabric rolls. Excellent for manufacturing premium jeans and heavy duty apparel. Woven on traditional shuttle looms.',
+      'productDetail': {
+        'pricePerUnit': 450,
+        'minOrderQty': 1000,
+        'unitOfMeasure': 'Meters',
+        'Brand / Manufacturer': 'Arvind Mills',
+        'Model SKU': 'AM-RD-14OZ',
+        'Place of Origin': 'India',
+        'Warranty Duration': 'None',
+        'Industrial Return Policy': 'Non-returnable',
+        'Regulatory Standards': 'ISO 9001, BCI Cotton'
+      },
+      'media': [{'url': 'https://images.unsplash.com/photo-1565084888279-aca607ecce0c?q=80&w=300&auto=format&fit=crop'}],
+      'rating': 4.6,
+      'reviewCount': 89,
+      'configurations': [
+        {'name': '12oz Indigo', 'price': 380, 'stock': 2000},
+        {'name': '14oz Raw Indigo', 'price': 450, 'stock': 1500},
+        {'name': '16oz Selvedge', 'price': 650, 'stock': 500},
+      ],
+      'seller': {'id': 's10', 'companyName': 'Arvind Mills', 'kycStatus': 'VERIFIED', 'trustScore': 97, 'registryProfile': 'MANUFACTURER', 'establishmentYear': 1931, 'operationalWorkforce': 'HUNDRED_PLUS Employees', 'gstId': '24AABCA1234M1Z2', 'location': 'Ahmedabad', 'primaryCategory': 'TEXTILES'}
     }
   ];
 
@@ -429,6 +481,7 @@ class JaxApiClient {
         {'id': 'c2', 'name': 'Electronics'},
         {'id': 'c3', 'name': 'Industrial Supplies'},
         {'id': 'c4', 'name': 'Services'},
+        {'id': 'c5', 'name': 'Textiles'},
       ];
     }
     return [];

@@ -211,11 +211,17 @@ class HomeScreen extends StatelessWidget {
                 const HeroSearchCard(),
                 const SizedBox(height: 18),
                 EventCarousel(events: asList(state.data['events'])),
+                const SizedBox(height: 18),
+                const InstantRfqCard(),
                 const SizedBox(height: 22),
                 SectionTitle(title: 'Premium Bulk Listings', action: () => context.push('/search')),
                 const SizedBox(height: 12),
                 ...asList(state.data['featured']).take(6).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))),
                 const SizedBox(height: 10),
+                const EscrowInfoCard(),
+                const SizedBox(height: 18),
+                FeaturedFactoriesCard(listings: asList(state.data['featured'])),
+                const SizedBox(height: 18),
                 const SectionTitle(title: 'Browse Markets & Industries'),
                 const SizedBox(height: 12),
                 CategoryGrid(categories: asList(state.data['categories'])),
@@ -246,6 +252,12 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
   String _tab = 'products';
 
   @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return JaxCard(
       child: Column(
@@ -269,8 +281,6 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
             ),
             onSubmitted: (_) => _go(),
           ),
-          const SizedBox(height: 12),
-          JaxButton(label: 'Post Request Free', fullWidth: true, icon: Icons.request_quote_rounded, onPressed: () => context.push('/rfq/create?title=${Uri.encodeComponent(_query.text)}')),
         ],
       ),
     );
@@ -280,6 +290,294 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
     final q = _query.text.trim();
     if (q.isEmpty) return;
     context.push('/search?q=${Uri.encodeComponent(q)}${_tab == 'suppliers' ? '&type=supplier' : ''}');
+  }
+}
+
+class InstantRfqCard extends StatefulWidget {
+  const InstantRfqCard({super.key});
+
+  @override
+  State<InstantRfqCard> createState() => _InstantRfqCardState();
+}
+
+class _InstantRfqCardState extends State<InstantRfqCard> {
+  final _rfqProduct = TextEditingController();
+  final _rfqQty = TextEditingController(text: '100');
+  String _unit = 'Pieces';
+
+  static const _units = ['Pieces', 'Tons', 'Kilograms', 'Meters', 'Liters', 'Units', 'Boxes', 'Sets'];
+
+  @override
+  void dispose() {
+    _rfqProduct.dispose();
+    _rfqQty.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: JaxColors.secondary.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.request_quote_rounded, color: JaxColors.secondary, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('INSTANT RFQ', style: JaxText.title.copyWith(fontSize: 15, color: JaxColors.primaryContainer)),
+                  Text('Get multiple quotes in 24 hours', style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Product label + field
+          Text('WHAT PRODUCT DO YOU NEED?', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _rfqProduct,
+            decoration: const InputDecoration(hintText: 'e.g. Cotton Yarn 30s, CNC inserts'),
+          ),
+          const SizedBox(height: 14),
+          // Quantity + Unit row
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('QUANTITY', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _rfqQty,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('UNIT', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _unit,
+                      decoration: const InputDecoration(),
+                      items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                      onChanged: (v) => setState(() => _unit = v ?? 'Pieces'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          // POST REQUEST FREE button
+          JaxButton(
+            label: 'POST REQUEST FREE',
+            fullWidth: true,
+            icon: Icons.arrow_forward_rounded,
+            onPressed: _postRfq,
+          ),
+          const SizedBox(height: 14),
+          // Secure Trade footer
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: JaxColors.secondary.withValues(alpha: .06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: JaxColors.secondary.withValues(alpha: .15)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: 36,
+                  width: 36,
+                  decoration: BoxDecoration(
+                    color: JaxColors.secondary.withValues(alpha: .12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('SECURE TRADE', style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 11)),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Escrow payments protected, 100% money back guarantee.',
+                        style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _postRfq() {
+    final product = _rfqProduct.text.trim();
+    final qty = _rfqQty.text.trim();
+    final title = product.isNotEmpty ? product : 'New RFQ';
+    context.push('/rfq/create?title=${Uri.encodeComponent(title)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
+  }
+}
+
+class EscrowInfoCard extends StatelessWidget {
+  const EscrowInfoCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 20),
+              const SizedBox(width: 10),
+              Text('JAXMART ESCROW', style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _buildItem('1. Secure Payments', 'JaxMart holds your funds in escrow, protecting you from fraud.'),
+          const SizedBox(height: 16),
+          _buildItem('2. Verified Shipping', 'We verify GSTIN, HSN, and carrier logistics before releasing funds.'),
+          const SizedBox(height: 16),
+          _buildItem('3. Inspection Guarantee', 'Release payments to suppliers only after verifying cargo quality.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItem(String title, String subtitle) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.check_circle_rounded, color: JaxColors.secondary, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.primaryContainer)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: JaxText.bodyMedium.copyWith(color: JaxColors.onSurfaceVariant, fontSize: 13, height: 1.4)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class FeaturedFactoriesCard extends StatelessWidget {
+  const FeaturedFactoriesCard({required this.listings, super.key});
+  final List<JsonMap> listings;
+
+  @override
+  Widget build(BuildContext context) {
+    // Extract unique sellers from listings
+    final uniqueSellers = <String, JsonMap>{};
+    for (var item in listings) {
+      final seller = asMap(item['seller']);
+      final id = textOf(seller['id']);
+      if (id.isNotEmpty && !uniqueSellers.containsKey(id)) {
+        uniqueSellers[id] = seller;
+      }
+    }
+    final sellers = uniqueSellers.values.toList();
+    if (sellers.isEmpty) return const SizedBox.shrink();
+
+    return JaxCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.handshake_rounded, color: JaxColors.secondary, size: 20),
+              const SizedBox(width: 10),
+              Text('FEATURED FACTORIES', style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          ...sellers.take(3).map((seller) {
+            final name = textOf(seller['companyName'], 'Factory');
+            final location = textOf(seller['location'], 'India');
+            final est = seller['establishmentYear']?.toString() ?? 'N/A';
+            final category = textOf(seller['primaryCategory'], 'INDUSTRIAL');
+            final initials = name.length >= 2 ? name.substring(0, 1).toUpperCase() + name.substring(1, 2).toLowerCase() : name.toUpperCase();
+            final isLast = seller == sellers.take(3).last;
+
+            return Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: JaxColors.surface,
+                        border: Border.all(color: JaxColors.outlineVariant, width: 1.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initials,
+                        style: JaxText.title.copyWith(color: JaxColors.secondary, fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name, style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+                          const SizedBox(height: 4),
+                          Text('$location • Est. $est', style: JaxText.bodySmall.copyWith(fontSize: 11, color: JaxColors.onSurfaceVariant)),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: JaxColors.secondary.withValues(alpha: .12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(category.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9, letterSpacing: 0.5)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (!isLast) const Divider(height: 32, thickness: 0.5),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
   }
 }
 

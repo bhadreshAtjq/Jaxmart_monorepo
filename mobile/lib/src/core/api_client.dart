@@ -160,7 +160,7 @@ class JaxApiClient {
         {'name': 'Heavy Duty 200L', 'price': 720, 'stock': 45},
         {'name': 'Industrial 350L', 'price': 1100, 'stock': 18},
       ],
-      'seller': {'id': 's1', 'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95, 'registryProfile': 'MANUFACTURER / CONTRACTOR', 'establishmentYear': 2010, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '27AABCB1234C1ZX'}
+      'seller': {'id': 's1', 'companyName': 'BuildPro', 'kycStatus': 'VERIFIED', 'trustScore': 95, 'registryProfile': 'MANUFACTURER / CONTRACTOR', 'establishmentYear': 2010, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '27AABCB1234C1ZX', 'location': 'Pune', 'primaryCategory': 'MACHINERY'}
     },
     {
       'id': 'c_2',
@@ -186,7 +186,7 @@ class JaxApiClient {
         {'name': 'Fe500 Grade', 'price': 950, 'stock': 320},
         {'name': 'Fe550D Grade', 'price': 1100, 'stock': 150},
       ],
-      'seller': {'id': 's2', 'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / EXPORTER', 'establishmentYear': 2005, 'operationalWorkforce': 'HUNDRED_PLUS Employees', 'gstId': '07AAECS5678D1ZA'}
+      'seller': {'id': 's2', 'companyName': 'SteelWorks', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / EXPORTER', 'establishmentYear': 2005, 'operationalWorkforce': 'HUNDRED_PLUS Employees', 'gstId': '07AAECS5678D1ZA', 'location': 'Jamshedpur', 'primaryCategory': 'METALLURGY'}
     },
     {
       'id': 'e_1',
@@ -212,7 +212,7 @@ class JaxApiClient {
         {'name': 'ESP32 Series', 'price': 7, 'stock': 5000},
         {'name': 'ARM Cortex-M4', 'price': 12, 'stock': 2200},
       ],
-      'seller': {'id': 's3', 'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92, 'registryProfile': 'DISTRIBUTOR / IMPORTER', 'establishmentYear': 2015, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '33AABCE9012F1ZP'}
+      'seller': {'id': 's3', 'companyName': 'ElectroTech', 'kycStatus': 'VERIFIED', 'trustScore': 92, 'registryProfile': 'DISTRIBUTOR / IMPORTER', 'establishmentYear': 2015, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '33AABCE9012F1ZP', 'location': 'Bengaluru', 'primaryCategory': 'ELECTRONICS'}
     },
     {
       'id': 'e_2',
@@ -238,7 +238,7 @@ class JaxApiClient {
         {'name': '25 KVA Three Phase', 'price': 3200, 'stock': 15},
         {'name': '100 KVA Industrial', 'price': 9800, 'stock': 6},
       ],
-      'seller': {'id': 's4', 'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2008, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '29AABCP3456G1ZQ'}
+      'seller': {'id': 's4', 'companyName': 'PowerGrid', 'kycStatus': 'VERIFIED', 'trustScore': 94, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2008, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '29AABCP3456G1ZQ', 'location': 'Hyderabad', 'primaryCategory': 'ELECTRICAL'}
     },
     {
       'id': 'i_1',
@@ -264,7 +264,7 @@ class JaxApiClient {
         {'name': 'HR Grade Coils', 'price': 980, 'stock': 750},
         {'name': 'Galvanised Coils', 'price': 1450, 'stock': 200},
       ],
-      'seller': {'id': 's5', 'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2018, 'operationalWorkforce': 'ONE_TO_TEN Employees', 'gstId': '29IFRHZGUL5E1Z5'}
+      'seller': {'id': 's5', 'companyName': 'MetalWorks Inc.', 'kycStatus': 'VERIFIED', 'trustScore': 98, 'registryProfile': 'MANUFACTURER / SUPPLIER', 'establishmentYear': 2018, 'operationalWorkforce': 'ONE_TO_TEN Employees', 'gstId': '29IFRHZGUL5E1Z5', 'location': 'Ludhiana', 'primaryCategory': 'INDUSTRIAL'}
     },
     {
       'id': 'i_2',
@@ -290,7 +290,7 @@ class JaxApiClient {
         {'name': 'Medium Duty 900mm', 'price': 220, 'stock': 400},
         {'name': 'Heavy Duty 1200mm', 'price': 380, 'stock': 120},
       ],
-      'seller': {'id': 's6', 'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90, 'registryProfile': 'MANUFACTURER / TRADER', 'establishmentYear': 2012, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '24AABCB7890H1ZR'}
+      'seller': {'id': 's6', 'companyName': 'BeltMasters', 'kycStatus': 'VERIFIED', 'trustScore': 90, 'registryProfile': 'MANUFACTURER / TRADER', 'establishmentYear': 2012, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '24AABCB7890H1ZR', 'location': 'Ahmedabad', 'primaryCategory': 'AUTOMOTIVE'}
     },
     {
       'id': 's_1',
@@ -315,7 +315,7 @@ class JaxApiClient {
         {'name': 'Regional Plan', 'price': 450, 'stock': 999},
         {'name': 'Pan India Plan', 'price': 900, 'stock': 999},
       ],
-      'seller': {'id': 's7', 'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97, 'registryProfile': 'SERVICE PROVIDER / LOGISTICS', 'establishmentYear': 2014, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '06AABCF1122I1ZS'}
+      'seller': {'id': 's7', 'companyName': 'FastLogistics', 'kycStatus': 'VERIFIED', 'trustScore': 97, 'registryProfile': 'SERVICE PROVIDER / LOGISTICS', 'establishmentYear': 2014, 'operationalWorkforce': 'FIFTY_TO_HUNDRED Employees', 'gstId': '06AABCF1122I1ZS', 'location': 'Mumbai', 'primaryCategory': 'SERVICES'}
     },
     {
       'id': 's_2',
@@ -340,7 +340,7 @@ class JaxApiClient {
         {'name': 'Pro Plan (Annual)', 'price': 2500, 'stock': 999},
         {'name': 'Enterprise Plan', 'price': 5000, 'stock': 999},
       ],
-      'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96, 'registryProfile': 'SERVICE PROVIDER / MAINTENANCE', 'establishmentYear': 2016, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '19AABCT3344J1ZT'}
+      'seller': {'id': 's8', 'companyName': 'TechFix Services', 'kycStatus': 'VERIFIED', 'trustScore': 96, 'registryProfile': 'SERVICE PROVIDER / MAINTENANCE', 'establishmentYear': 2016, 'operationalWorkforce': 'TEN_TO_FIFTY Employees', 'gstId': '19AABCT3344J1ZT', 'location': 'Delhi', 'primaryCategory': 'SERVICES'}
     }
   ];
 

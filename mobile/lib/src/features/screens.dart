@@ -2351,29 +2351,229 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   }
 }
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({this.role = 'buyer', super.key});
   final String role;
 
   @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  late String _role;
+
+  @override
+  void initState() {
+    super.initState();
+    _role = widget.role;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).orders({'role': role, 'limit': 30}), listKeys: const ['orders']),
+      key: ValueKey(_role),
+      create: (_) => ResourceCubit()..load(() => apiOf(context).orders({'role': _role, 'limit': 30}), listKeys: const ['orders']),
       child: JaxPage(
-        title: role == 'seller' ? 'Seller Orders' : 'My Orders',
-        subtitle: 'Contracts, escrow, milestones, and disputes',
+        title: 'My Orders',
+        topWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text('MY ORDERS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
+          ],
+        ),
+        subtitle: 'Manage your orders, progress, and secure payments.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) => AsyncContent(
-            state: state,
-            emptyTitle: 'No orders found',
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).orders({'role': role}), listKeys: const ['orders']),
-            builder: (_) => Column(children: state.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: OrderTile(item: item))).toList()),
+          builder: (context, state) {
+            final allItems = state.items;
+            
+            // Calculate mock stats
+            final activeCount = allItems.where((i) {
+              final s = textOf(i['status']).toUpperCase();
+              return s == 'OPEN' || s == 'IN_PROGRESS' || s == 'SHIPPED';
+            }).length;
+            
+            final totalValue = allItems.fold<double>(0, (sum, i) {
+              final amt = i['totalAmount'];
+              return sum + (amt is num ? amt.toDouble() : 0.0);
+            });
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Tabs + Stats ─────────────────────────────────────────
+                if (MediaQuery.of(context).size.width > 600)
+                  // Desktop/Tablet layout
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildRoleTabs(),
+                      _buildStats(totalValue, activeCount),
+                    ],
+                  )
+                else
+                  // Mobile layout
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildRoleTabs(),
+                      const SizedBox(height: 16),
+                      _buildStats(totalValue, activeCount),
+                    ],
+                  ),
+                
+                const SizedBox(height: 24),
+
+                // ── Results / Empty state ─────────────────────────────────
+                if (state.status == ResourceStatus.loading && !state.hasData)
+                  const PageLoader()
+                else if (allItems.isEmpty)
+                  _EmptyOrders(onBrowse: () => context.go('/search'))
+                else
+                  Column(
+                    children: allItems
+                        .map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: OrderTile(item: item),
+                            ))
+                        .toList(),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleTabs() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: JaxColors.surfaceLow,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: JaxColors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildRoleTab('buyer', 'PURCHASES', Icons.shopping_cart_rounded),
+          _buildRoleTab('seller', 'SALES', Icons.handshake_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleTab(String roleValue, String label, IconData icon) {
+    final selected = _role == roleValue;
+    return GestureDetector(
+      onTap: () => setState(() => _role = roleValue),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: selected ? [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 4, offset: const Offset(0, 2))] : [],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: selected ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: JaxText.label.copyWith(
+                fontSize: 12,
+                color: selected ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStats(double totalValue, int activeCount) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: JaxColors.surfaceLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('TOTAL VALUE', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+              const SizedBox(height: 2),
+              Text('₹${totalValue.toStringAsFixed(0)}', style: JaxText.h2.copyWith(fontSize: 18)),
+            ],
           ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            width: 1,
+            height: 30,
+            color: JaxColors.outlineVariant,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('ACTIVE ORDERS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+              const SizedBox(height: 2),
+              Text('$activeCount', style: JaxText.h2.copyWith(fontSize: 18, color: JaxColors.success)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Empty state for My Orders ────────────────────────────────────────────
+class _EmptyOrders extends StatelessWidget {
+  const _EmptyOrders({required this.onBrowse});
+  final VoidCallback onBrowse;
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inventory_2_rounded, size: 64, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text('No orders yet', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 18)),
+            const SizedBox(height: 8),
+            Text(
+              'Start by browsing products or posting a request.',
+              textAlign: TextAlign.center,
+              style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: onBrowse,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: JaxColors.primaryContainer,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                elevation: 0,
+              ),
+              child: Text('Browse Products', style: JaxText.label.copyWith(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({required this.id, super.key});

@@ -715,6 +715,8 @@ class _SearchScreenState extends State<SearchScreen> {
   String _category = '';
   String _sort = 'relevance';
   bool _verified = false;
+  bool _trust = false;
+  bool _topRated = false;
   bool _grid = false;
   int _page = 1;
 
@@ -732,6 +734,8 @@ class _SearchScreenState extends State<SearchScreen> {
         if (_category.isNotEmpty) 'categoryId': _category,
         if (_sort != 'relevance') 'sortBy': _sort,
         if (_verified) 'isVerified': 'true',
+        if (_trust) 'minTrust': '90',
+        if (_topRated) 'minRating': '4.5',
       };
 
   @override
@@ -748,36 +752,102 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             Builder(
               builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Search bar ──────────────────────────────────────────
                   TextField(
                     controller: _q,
-                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded), hintText: 'Enter keywords to search...', suffixIcon: IconButton(icon: const Icon(Icons.tune_rounded), onPressed: () => setState(() => _verified = !_verified))),
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      hintText: 'Enter keywords to search...',
+                      suffixIcon: IconButton(
+                        icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded),
+                        onPressed: () => setState(() => _grid = !_grid),
+                      ),
+                    ),
                     onSubmitted: (_) => _reload(context),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
+
+                  // ── Quick Filters ────────────────────────────────────────
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      Text('Quick Filters:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _sort,
-                          decoration: const InputDecoration(labelText: 'SORT BY'),
-                          items: const [
-                            DropdownMenuItem(value: 'relevance', child: Text('Relevance')),
-                            DropdownMenuItem(value: 'newest', child: Text('Newest')),
-                            DropdownMenuItem(value: 'rating', child: Text('Rating')),
-                            DropdownMenuItem(value: 'featured', child: Text('Featured')),
-                          ],
-                          onChanged: (v) {
-                            setState(() => _sort = v ?? 'relevance');
-                            _reload(context);
-                          },
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _FilterChip(
+                                label: 'Verified Supplier',
+                                icon: Icons.verified_user_rounded,
+                                selected: _verified,
+                                onTap: () {
+                                  setState(() => _verified = !_verified);
+                                  _reload(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: '90%+ Trust',
+                                icon: Icons.star_rounded,
+                                selected: _trust,
+                                onTap: () {
+                                  setState(() => _trust = !_trust);
+                                  _reload(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'Top Rated (4.5★+)',
+                                icon: null,
+                                selected: _topRated,
+                                onTap: () {
+                                  setState(() => _topRated = !_topRated);
+                                  _reload(context);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      IconButton.filledTonal(onPressed: () => setState(() => _grid = !_grid), icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded)),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
+
+                  // ── Sort By ──────────────────────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: JaxColors.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: JaxColors.outlineVariant, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('Sort By:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _SortTab(label: 'RELEVANCE', value: 'relevance', selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                _SortTab(label: 'NEWEST',    value: 'newest',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                _SortTab(label: 'RATING',    value: 'rating',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                _SortTab(label: 'FEATURED',  value: 'featured',  selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Categories ────────────────────────────────────────────
                   BlocBuilder<CategoriesCubit, ResourceState>(
                     builder: (context, cats) => SizedBox(
                       height: 42,
@@ -843,6 +913,91 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _reload(BuildContext context) {
     context.read<ResourceCubit>().load(() => apiOf(context).searchListings(_params), listKeys: const ['listings'], refresh: true);
+  }
+}
+
+// ─── Quick-filter pill chip ────────────────────────────────────────────────
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+  });
+  final String label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? JaxColors.secondary : JaxColors.onSurfaceVariant;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? JaxColors.secondary.withValues(alpha: .12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? JaxColors.secondary : JaxColors.outlineVariant,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: JaxText.label.copyWith(
+                fontSize: 12,
+                color: color,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Sort-by inline tab ────────────────────────────────────────────────────
+class _SortTab extends StatelessWidget {
+  const _SortTab({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final String value;
+  final String selected;
+  final ValueChanged<String> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == selected;
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 20),
+        child: Text(
+          label,
+          style: JaxText.label.copyWith(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? JaxColors.secondary : JaxColors.onSurfaceVariant,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ),
+    );
   }
 }
 

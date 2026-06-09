@@ -498,9 +498,10 @@ class EmptyState extends StatelessWidget {
 }
 
 class ListingTile extends StatelessWidget {
-  const ListingTile({required this.item, this.grid = false, super.key});
+  const ListingTile({required this.item, this.grid = false, this.showChat = false, super.key});
   final JsonMap item;
   final bool grid;
+  final bool showChat;
 
   @override
   Widget build(BuildContext context) {
@@ -566,27 +567,29 @@ class ListingTile extends StatelessWidget {
           ],
         ),
       ),
-      const SizedBox(height: 10),
-      SizedBox(
-        width: double.infinity,
-        height: 38,
-        child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: JaxColors.secondary,
-            side: const BorderSide(color: JaxColors.secondary, width: 1.2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+      if (showChat) ...[
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 38,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: JaxColors.secondary,
+              side: const BorderSide(color: JaxColors.secondary, width: 1.2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            icon: const Icon(Icons.chat_rounded, size: 16),
+            label: Text('Chat Now', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 12)),
+            onPressed: () {
+              final sellerId = textOf(seller['id']);
+              if (sellerId.isNotEmpty) {
+                context.push('/messages/$sellerId');
+              }
+            },
           ),
-          icon: const Icon(Icons.chat_rounded, size: 16),
-          label: Text('Chat Now', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 12)),
-          onPressed: () {
-            final sellerId = textOf(seller['id']);
-            if (sellerId.isNotEmpty) {
-              context.push('/messages/$sellerId');
-            }
-          },
         ),
-      ),
+      ],
     ];
   }
 }

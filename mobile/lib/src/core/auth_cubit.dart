@@ -113,6 +113,13 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthState(status: AuthStatus.authenticated, user: mockUser, phone: normalized));
   }
 
+  void promoteToSellerMock() {
+    if (state.status != AuthStatus.authenticated) return;
+    final updatedUser = Map<String, dynamic>.from(state.user);
+    updatedUser['userType'] = 'SELLER';
+    emit(state.copyWith(user: updatedUser));
+  }
+
   Future<void> verifyOtp({
     required String phone,
     required String otp,

@@ -222,6 +222,8 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 18),
                 FeaturedFactoriesCard(listings: asList(state.data['featured'])),
                 const SizedBox(height: 18),
+                const SupplierJoinCard(),
+                const SizedBox(height: 18),
                 const SectionTitle(title: 'Browse Markets & Industries'),
                 const SizedBox(height: 12),
                 CategoryGrid(categories: asList(state.data['categories'])),
@@ -235,6 +237,60 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SupplierJoinCard extends StatelessWidget {
+  const SupplierJoinCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: JaxColors.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: JaxColors.primaryContainer.withValues(alpha: .2), blurRadius: 12, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Join as a Wholesale Supplier',
+            style: JaxText.h2.copyWith(color: Colors.white, fontSize: 20),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'List your products, register your GSTIN, and quote on thousands of active RFQ requests.',
+            style: JaxText.bodyMedium.copyWith(color: Colors.white.withValues(alpha: .9), height: 1.5),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<AuthCubit>().promoteToSellerMock();
+                context.push('/seller/dashboard');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: JaxColors.primaryContainer,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+              child: Text(
+                'REGISTER FACTORY CENTER',
+                style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -877,7 +933,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   children: [
                     ...state.items.map((item) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: ListingTile(item: item, grid: _grid),
+                          child: ListingTile(item: item, grid: _grid, showChat: true),
                         )),
                     if (state.totalPages > 1)
                       Row(

@@ -1611,34 +1611,362 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
   }
 }
 
-class RfqListScreen extends StatelessWidget {
+class RfqListScreen extends StatefulWidget {
   const RfqListScreen({this.sellerMode = false, super.key});
   final bool sellerMode;
+
+  @override
+  State<RfqListScreen> createState() => _RfqListScreenState();
+}
+
+class _RfqListScreenState extends State<RfqListScreen> {
+  String _tab = 'OPEN';
+  String _search = '';
+  final _searchCtrl = TextEditingController();
+
+  bool get sellerMode => widget.sellerMode;
+
+  static const _tabs = ['OPEN', 'AWARDED', 'CLOSED'];
+
+  List<JsonMap> _filtered(List<JsonMap> items) {
+    return items.where((item) {
+      final status = textOf(item['status']).toUpperCase();
+      final matchTab = _tab == 'OPEN'
+          ? (status == 'OPEN' || status.isEmpty)
+          : _tab == 'AWARDED'
+              ? status == 'AWARDED'
+              : (status == 'CLOSED' || status == 'CANCELLED' || status == 'COMPLETED');
+      final matchSearch = _search.isEmpty ||
+          textOf(item['title']).toLowerCase().contains(_search.toLowerCase()) ||
+          textOf(item['description']).toLowerCase().contains(_search.toLowerCase());
+      return matchTab && matchSearch;
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ResourceCubit()
         ..load(
-          () => sellerMode ? apiOf(context).sellerRfqInbox({'matchOnly': 'false', 'limit': 20}) : apiOf(context).myRfqs({'limit': 20}),
+          () => sellerMode
+              ? apiOf(context).sellerRfqInbox({'matchOnly': 'false', 'limit': 20})
+              : apiOf(context).myRfqs({'limit': 20}),
           listKeys: const ['rfqs'],
         ),
       child: JaxPage(
         title: sellerMode ? 'Buyer Requests' : 'My Requests',
-        subtitle: sellerMode ? 'Quote on matching RFQs' : 'Track RFQs and supplier quotes',
-        floatingActionButton: sellerMode ? null : FloatingActionButton.extended(onPressed: () => context.push('/rfq/create'), icon: const Icon(Icons.add_rounded), label: const Text('RFQ')),
+        topWidget: sellerMode ? null : Row(
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                Text('MY REQUESTS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
+              ],
+            ),
+            const SizedBox(width: 24),
+            GestureDetector(
+              onTap: () => context.go('/orders'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  Text('MY ORDERS', style: JaxText.label.copyWith(color: JaxColors.outlineVariant, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        subtitle: sellerMode
+            ? 'Quote on matching buyer requests'
+            : 'Manage your sourcing requests and get quotes from sellers.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) => AsyncContent(
-            state: state,
-            emptyTitle: sellerMode ? 'No buyer requests available' : 'No RFQs posted yet',
-            onRetry: () => context.read<ResourceCubit>().load(() => sellerMode ? apiOf(context).sellerRfqInbox({'matchOnly': 'false'}) : apiOf(context).myRfqs({}), listKeys: const ['rfqs']),
-            builder: (_) => Column(children: state.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: RfqTile(item: item, sellerMode: sellerMode))).toList()),
-          ),
+          builder: (context, state) {
+            final allItems = state.items;
+            final filtered = _filtered(allItems);
+            final quotesCount = allItems.fold<int>(0, (sum, item) {
+              final q = item['quotesCount'];
+              return sum + (q is int ? q : 0);
+            });
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Stats + New Request button ────────────────────────────
+                if (!sellerMode)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: JaxColors.outlineVariant),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('YOUR REQUESTS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                    const SizedBox(height: 4),
+                                    Text('${allItems.length}', style: JaxText.h2.copyWith(fontSize: 22)),
+                                  ],
+                                ),
+                              ),
+                              Container(width: 1, height: 36, color: JaxColors.outlineVariant),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('QUOTES RECEIVED', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                      const SizedBox(height: 4),
+                                      Text('$quotesCount', style: JaxText.h2.copyWith(fontSize: 22)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: JaxColors.primaryContainer,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('New Request', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        onPressed: () => context.push('/rfq/create'),
+                      ),
+                    ],
+                  ),
+                if (!sellerMode) const SizedBox(height: 16),
+
+                // ── Tabs + Search ─────────────────────────────────────────
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Tabs
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: JaxColors.surfaceLow,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: JaxColors.outlineVariant),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _tabs.map((tab) {
+                            final selected = _tab == tab;
+                            return GestureDetector(
+                              onTap: () => setState(() => _tab = tab),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: selected ? JaxColors.primaryContainer : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  tab,
+                                  style: JaxText.label.copyWith(
+                                    fontSize: 12,
+                                    color: selected ? Colors.white : JaxColors.onSurfaceVariant,
+                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Search
+                    SizedBox(
+                      height: 42,
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: (v) => setState(() => _search = v),
+                        decoration: InputDecoration(
+                          hintText: 'Search requests...',
+                          hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                          prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // ── Results / Empty state ─────────────────────────────────
+                if (state.status == ResourceStatus.loading && !state.hasData)
+                  const PageLoader()
+                else if (filtered.isEmpty)
+                  _EmptyRequests(onPost: () => context.push('/rfq/create'))
+                else
+                  Column(
+                    children: filtered
+                        .map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: RfqTile(item: item, sellerMode: sellerMode),
+                            ))
+                        .toList(),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // ── Tips card ─────────────────────────────────────────────
+                JaxCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: JaxColors.secondary.withValues(alpha: .15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text('TIPS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.secondaryDark)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Detailed requests with quantities and budgets get up to 40% more quotes.',
+                        style: JaxText.bodyMedium.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: JaxColors.primaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('SELLERS ONLINE', style: JaxText.label.copyWith(fontSize: 10, color: Colors.white70)),
+                                const SizedBox(height: 3),
+                                Text('8,204 Suppliers', style: JaxText.title.copyWith(color: Colors.white, fontSize: 15)),
+                              ],
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(color: JaxColors.success.withValues(alpha: .2), borderRadius: BorderRadius.circular(20)),
+                              child: Row(
+                                children: [
+                                  Container(width: 7, height: 7, decoration: const BoxDecoration(color: JaxColors.success, shape: BoxShape.circle)),
+                                  const SizedBox(width: 5),
+                                  Text('Online', style: JaxText.label.copyWith(color: JaxColors.success, fontSize: 11)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          const Icon(Icons.verified_user_rounded, color: JaxColors.secondary, size: 18),
+                          const SizedBox(width: 8),
+                          Text('TRUST & SAFETY', style: JaxText.label.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Quotes come from verified suppliers with full profiles.',
+                        style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: JaxColors.primaryContainer,
+                          side: const BorderSide(color: JaxColors.outlineVariant),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          minimumSize: const Size(double.infinity, 38),
+                        ),
+                        child: Text('HOW ESCROW WORKS', style: JaxText.label.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
+
+// ── Empty state for Buyer Requests ────────────────────────────────────────────
+class _EmptyRequests extends StatelessWidget {
+  const _EmptyRequests({required this.onPost});
+  final VoidCallback onPost;
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_rounded, size: 56, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text('NO REQUESTS YET', style: JaxText.h3.copyWith(letterSpacing: 0.5)),
+            const SizedBox(height: 8),
+            Text(
+              'Post a new request to start getting quotes from verified sellers.',
+              textAlign: TextAlign.center,
+              style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton(
+              onPressed: onPost,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: JaxColors.primaryContainer,
+                side: const BorderSide(color: JaxColors.primaryContainer, width: 1.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+              ),
+              child: Text('Post a Request', style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 13)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class RfqCreateScreen extends StatefulWidget {
   const RfqCreateScreen({this.title, this.listingId, super.key});

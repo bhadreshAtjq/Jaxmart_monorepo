@@ -16,6 +16,7 @@ class JaxPage extends StatelessWidget {
     this.actions,
     this.floatingActionButton,
     this.scroll = true,
+    this.topWidget,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class JaxPage extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? floatingActionButton;
   final bool scroll;
+  final Widget? topWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,10 @@ class JaxPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (topWidget != null) ...[
+            topWidget!,
+            const SizedBox(height: 12),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -94,7 +100,7 @@ class AppShell extends StatelessWidget {
         : const [
             _NavItem('/home', Icons.home_rounded, 'Home'),
             _NavItem('/search', Icons.search_rounded, 'Products'),
-            _NavItem('/rfq', Icons.description_rounded, 'RFQs'),
+            _NavItem('/rfq', Icons.description_rounded, 'Buyer Requests'),
             _NavItem('/orders', Icons.inventory_2_rounded, 'Orders'),
             _NavItem('/profile', Icons.person_rounded, 'Profile'),
           ];

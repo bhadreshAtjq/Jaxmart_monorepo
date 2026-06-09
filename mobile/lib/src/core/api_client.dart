@@ -484,6 +484,38 @@ class JaxApiClient {
         {'id': 'c5', 'name': 'Textiles'},
       ];
     }
+    if (path.contains('/messages') && path.split('/').length > 4) {
+      // /messages/conversations/:id/messages
+      return [
+        {'id': 'm1', 'content': 'Hi, I am interested in your product listing.', 'senderId': 'u1', 'sentAt': '2026-06-09T10:28:00Z'},
+        {'id': 'm2', 'content': 'Sure! Which product are you looking at specifically?', 'senderId': 'mock-user-123', 'sentAt': '2026-06-09T10:29:00Z'},
+        {'id': 'm3', 'content': 'The Heavy Duty Cement Mixer. What is the MOQ?', 'senderId': 'u1', 'sentAt': '2026-06-09T10:30:00Z'},
+        {'id': 'm4', 'content': 'MOQ is 1 unit. We can also offer bulk discounts above 5 units.', 'senderId': 'mock-user-123', 'sentAt': '2026-06-09T10:31:00Z'},
+        {'id': 'm5', 'content': 'Negotiation started...', 'senderId': 'u1', 'sentAt': '2026-06-09T10:32:00Z'},
+      ];
+    }
+    if (path.startsWith('/messages/conversations')) {
+      return [
+        {
+          'id': 'conv1',
+          'recipient': {'id': 'u1', 'fullName': 'Bhadresh', 'businessName': 'Jax Industries', 'avatarUrl': '', 'isOnline': true, 'isVerified': true},
+          'latestMessage': {'content': 'Negotiation started...', 'sentAt': '2026-06-09T10:32:00Z'},
+          'unreadCount': 0,
+        },
+        {
+          'id': 'conv2',
+          'recipient': {'id': 'u2', 'fullName': 'Narmada Electronics Ltd Manager', 'businessName': 'Narmada Electronics Ltd', 'avatarUrl': '', 'isOnline': true, 'isVerified': false},
+          'latestMessage': {'content': 'I am here. Target Volume: 1 Piece', 'sentAt': '2026-06-09T16:02:00Z'},
+          'unreadCount': 2,
+        },
+        {
+          'id': 'conv3',
+          'recipient': {'id': 'u3', 'fullName': 'Suresh Kumar', 'businessName': 'SteelWorks Pvt Ltd', 'avatarUrl': '', 'isOnline': false, 'isVerified': true},
+          'latestMessage': {'content': 'Please send us the final quote.', 'sentAt': '2026-06-08T09:15:00Z'},
+          'unreadCount': 1,
+        },
+      ];
+    }
     return [];
   }
 

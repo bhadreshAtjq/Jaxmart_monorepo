@@ -94,14 +94,14 @@ class AppShell extends StatelessWidget {
             _NavItem('/seller/dashboard', Icons.dashboard_rounded, 'Seller'),
             _NavItem('/seller/rfq-inbox', Icons.inbox_rounded, 'RFQs'),
             _NavItem('/seller/listings', Icons.storefront_rounded, 'Products'),
-            _NavItem('/orders?role=seller', Icons.inventory_2_rounded, 'Orders'),
+            _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
             _NavItem('/profile', Icons.person_rounded, 'Profile'),
           ]
         : const [
             _NavItem('/home', Icons.home_rounded, 'Home'),
             _NavItem('/search', Icons.search_rounded, 'Products'),
             _NavItem('/rfq', Icons.description_rounded, 'Buyer Requests'),
-            _NavItem('/orders', Icons.inventory_2_rounded, 'Orders'),
+            _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
             _NavItem('/profile', Icons.person_rounded, 'Profile'),
           ];
 

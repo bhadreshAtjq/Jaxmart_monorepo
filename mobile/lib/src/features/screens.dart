@@ -2685,42 +2685,230 @@ class OrderDetailScreen extends StatelessWidget {
   }
 }
 
-class MessagesScreen extends StatelessWidget {
+class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
+  @override
+  State<MessagesScreen> createState() => _MessagesScreenState();
+}
+
+class _MessagesScreenState extends State<MessagesScreen> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() { _searchCtrl.dispose(); super.dispose(); }
+
+  String _timeLabel(String? sentAt) {
+    if (sentAt == null || sentAt.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(sentAt).toLocal();
+      final now = DateTime.now();
+      if (dt.day == now.day && dt.month == now.month) {
+        return '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+      }
+      return '${dt.day}/${dt.month}';
+    } catch (_) { return ''; }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ResourceCubit()..load(() => apiOf(context).conversations(), listKeys: const ['conversations']),
-      child: JaxPage(
-        title: 'Inbox',
-        subtitle: 'Buyer and supplier conversations',
-        child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) => AsyncContent(
-            state: state,
-            emptyTitle: 'No conversations yet',
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).conversations(), listKeys: const ['conversations']),
-            builder: (_) => Column(
-              children: state.items.map((conv) {
-                final recipient = asMap(conv['recipient']);
-                final latest = asMap(conv['latestMessage']);
-                final name = textOf(recipient['businessName'], textOf(recipient['fullName'], 'Conversation'));
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: JaxCard(
-                    onTap: () => context.push('/messages/${conv['id']}'),
-                    child: Row(
+      child: Scaffold(
+        backgroundColor: JaxColors.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Gradient Header ────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                decoration: const BoxDecoration(gradient: JaxGradients.primary),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        JaxAvatar(name: name, url: textOf(recipient['avatarUrl'])),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: JaxText.title), Text(textOf(latest['content'], 'No messages yet'), style: JaxText.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis)])),
-                        const Icon(Icons.chevron_right_rounded),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('NEGOTIATION CENTER', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                              SizedBox(height: 2),
+                              Text('Messages', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                            ],
+                          ),
+                        ),
+                        BlocBuilder<ResourceCubit, ResourceState>(
+                          builder: (ctx, state) {
+                            final active = state.items.length;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: .18),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white30),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFFFB800), shape: BoxShape.circle)),
+                                  const SizedBox(width: 5),
+                                  Text('$active Active', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: (v) => setState(() => _query = v),
+                        style: const TextStyle(fontSize: 13),
+                        decoration: const InputDecoration(
+                          hintText: 'Search partner or company...',
+                          hintStyle: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                          prefixIcon: Icon(Icons.search_rounded, size: 18, color: Color(0xFF9CA3AF)),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // ── Conversation List ──────────────────────────────────────
+              Expanded(
+                child: BlocBuilder<ResourceCubit, ResourceState>(
+                  builder: (context, state) {
+                    if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
+                    final items = _query.isEmpty
+                        ? state.items
+                        : state.items.where((c) {
+                            final r = asMap(c['recipient']);
+                            final n = '${textOf(r['fullName'])} ${textOf(r['businessName'])}'.toLowerCase();
+                            return n.contains(_query.toLowerCase());
+                          }).toList();
+                    if (items.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: EmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'No conversations yet'),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final conv = items[index];
+                        final r = asMap(conv['recipient']);
+                        final latest = asMap(conv['latestMessage']);
+                        final name = textOf(r['fullName'], 'Contact');
+                        final company = textOf(r['businessName']);
+                        final lastMsg = textOf(latest['content'], 'No messages yet');
+                        final isOnline = r['isOnline'] == true;
+                        final isVerified = r['isVerified'] == true;
+                        final unread = (conv['unreadCount'] is num) ? (conv['unreadCount'] as num).toInt() : 0;
+                        final timeStr = _timeLabel(textOf(latest['sentAt']));
+                        return InkWell(
+                          onTap: () => context.push('/messages/${textOf(conv['id'])}'),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border(
+                                left: BorderSide(color: unread > 0 ? JaxColors.primary : Colors.transparent, width: 3),
+                              ),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .04), blurRadius: 6, offset: const Offset(0, 2))],
+                            ),
+                            child: Row(
+                              children: [
+                                Stack(
+                                  children: [
+                                    JaxAvatar(name: name, url: textOf(r['avatarUrl']), size: 44),
+                                    if (isOnline)
+                                      Positioned(
+                                        right: 0, bottom: 0,
+                                        child: Container(
+                                          width: 12, height: 12,
+                                          decoration: BoxDecoration(color: JaxColors.success, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Flexible(child: Text(name.toUpperCase(), style: JaxText.title.copyWith(fontSize: 12, letterSpacing: 0.3), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                                if (isVerified) ...[
+                                                  const SizedBox(width: 4),
+                                                  const Icon(Icons.verified_rounded, size: 13, color: JaxColors.success),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                          if (timeStr.isNotEmpty)
+                                            Text(timeStr, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                        ],
+                                      ),
+                                      if (company.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.business_rounded, size: 11, color: JaxColors.onSurfaceVariant),
+                                            const SizedBox(width: 3),
+                                            Expanded(child: Text(company, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                          ],
+                                        ),
+                                      ],
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              lastMsg,
+                                              style: JaxText.bodySmall.copyWith(
+                                                color: unread > 0 ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant,
+                                                fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                                              ),
+                                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (unread > 0)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(color: JaxColors.primary, borderRadius: BorderRadius.circular(10)),
+                                              child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -2728,54 +2916,236 @@ class MessagesScreen extends StatelessWidget {
   }
 }
 
-class ConversationScreen extends StatelessWidget {
+class ConversationScreen extends StatefulWidget {
   const ConversationScreen({required this.id, super.key});
   final String id;
+  @override
+  State<ConversationScreen> createState() => _ConversationScreenState();
+}
+
+class _ConversationScreenState extends State<ConversationScreen> {
+  final _msgCtrl = TextEditingController();
+  bool _showQuickReplies = true;
+
+  static const _quickReplies = [
+    'Interested in your listing. Can you share more details?',
+    'What is the minimum order quantity for bulk purchase?',
+    'Could you please share details on shipping and delivery?',
+    'Are product samples available for verification?',
+    'What is the lead time for this order?',
+    'Can you provide a formal quotation?',
+  ];
+
+  @override
+  void dispose() { _msgCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).messages(id), listKeys: const ['messages']),
+      create: (_) => ResourceCubit()..load(() => apiOf(context).messages(widget.id), listKeys: const ['messages']),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Conversation')),
-        body: SafeArea(
-          child: BlocBuilder<ResourceCubit, ResourceState>(
-            builder: (context, state) => AsyncContent(
-              state: state,
-              emptyTitle: 'No messages yet',
-              onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).messages(id), listKeys: const ['messages']),
-              builder: (_) => ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 86),
-                itemCount: state.items.length,
-                itemBuilder: (context, index) {
-                  final msg = state.items[index];
-                  final mine = textOf(msg['senderId']) == textOf(context.read<AuthCubit>().state.user['id']);
-                  return Align(
-                    alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: mine ? JaxColors.primary : Colors.white, borderRadius: BorderRadius.circular(14)),
-                      child: Text(textOf(msg['content']), style: JaxText.bodyMedium.copyWith(color: mine ? Colors.white : JaxColors.onSurface)),
-                    ),
+        backgroundColor: JaxColors.surface,
+        appBar: AppBar(
+          titleSpacing: 0,
+          title: Row(
+            children: [
+              Stack(
+                children: [
+                  const JaxAvatar(name: 'Contact', size: 36),
+                  Positioned(
+                    right: 0, bottom: 0,
+                    child: Container(width: 10, height: 10, decoration: BoxDecoration(color: JaxColors.success, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5))),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('CONTACT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                    Text('Company Name', style: TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: JaxColors.primary,
+                  side: BorderSide(color: JaxColors.primary.withValues(alpha: .4)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {},
+                icon: const Icon(Icons.person_outline_rounded, size: 13),
+                label: const Text('HIDE PROFILE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: BlocBuilder<ResourceCubit, ResourceState>(
+                builder: (context, state) {
+                  if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
+                  if (!state.hasData || state.items.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          Text('NO MESSAGES YET', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 16)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Initiate conversation below using quick\ntemplates or custom text.',
+                            textAlign: TextAlign.center,
+                            style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    itemCount: state.items.length,
+                    itemBuilder: (context, index) {
+                      final msg = state.items[index];
+                      final mine = textOf(msg['senderId']) == textOf(context.read<AuthCubit>().state.user['id']);
+                      return Align(
+                        alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 280),
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: mine ? JaxColors.primary : Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 6, offset: const Offset(0, 2))],
+                          ),
+                          child: Text(textOf(msg['content']), style: JaxText.bodyMedium.copyWith(color: mine ? Colors.white : JaxColors.onSurface)),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
             ),
-          ),
-        ),
-        bottomNavigationBar: const SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(12),
-            child: TextField(
-              enabled: false,
-              decoration: InputDecoration(
-                hintText: 'Live message sending uses Socket.IO in the web app',
-                suffixIcon: IconButton(onPressed: null, icon: Icon(Icons.send_rounded)),
+            // ── B2B Quick Replies ────────────────────────────────────────
+            if (_showQuickReplies)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                        const SizedBox(width: 5),
+                        Text('B2B QUICK REPLIES', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant, letterSpacing: 1)),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => setState(() => _showQuickReplies = false),
+                          child: Text('Dismiss', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    SizedBox(
+                      height: 30,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _quickReplies.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, i) {
+                          final label = _quickReplies[i];
+                          final short = label.length > 32 ? '${label.substring(0, 32)}...' : label;
+                          return GestureDetector(
+                            onTap: () => setState(() => _msgCtrl.text = label),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: JaxColors.surfaceLow,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: JaxColors.outlineVariant),
+                              ),
+                              child: Text(short, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // ── Input Bar ───────────────────────────────────────────────
+            SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+                ),
+                child: Row(
+                  children: [
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: JaxColors.secondary,
+                        side: const BorderSide(color: JaxColors.secondary),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {},
+                      icon: const Icon(Icons.handshake_rounded, size: 14),
+                      label: const Text('MAKE A DEAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _msgCtrl,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.primary.withValues(alpha: .5))),
+                          filled: true,
+                          fillColor: JaxColors.surfaceLow,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.attach_file_rounded, color: Color(0xFF9CA3AF)),
+                      iconSize: 20,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.send_rounded, color: JaxColors.primary),
+                      iconSize: 20,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

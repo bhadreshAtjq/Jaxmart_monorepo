@@ -2369,21 +2369,21 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                     child: Text(
                       '${i + 1}',
                       style: TextStyle(
-                        color: isActive ? Colors.white : JaxColors.outline,
+                        color: isActive ? Colors.white : JaxColors.onSurfaceVariant,
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Flexible(
                     child: Text(
                       steps[i].toUpperCase(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                       style: JaxText.label.copyWith(
-                        color: isActive ? Colors.white : JaxColors.outline,
-                        fontSize: 9,
+                        color: isActive ? Colors.white : JaxColors.onSurfaceVariant,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

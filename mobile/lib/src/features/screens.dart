@@ -2036,16 +2036,87 @@ class RfqCreateScreen extends StatefulWidget {
 class _RfqCreateScreenState extends State<RfqCreateScreen> {
   final _title = TextEditingController();
   final _desc = TextEditingController();
+  final _locationPreference = TextEditingController();
   final _budgetMin = TextEditingController();
   final _budgetMax = TextEditingController();
   String _type = 'PRODUCT';
   String _category = '';
   DateTime? _deadline;
+  String _preferredProviderType = '';
+  bool _hasBudget = false;
+
+  int _step = 0;
+  bool _showChecklist = false;
+
+  static const _categoryKeywords = {
+    'c1': ['concrete', 'steel', 'brick', 'rebar', 'cement', 'tile', 'roofing', 'construction'],
+    'c2': ['solar', 'panel', 'battery', 'wiring', 'chip', 'sensor', 'led', 'camera', 'monitor', 'electronics'],
+    'c3': ['drill', 'machinery', 'pump', 'valve', 'bearing', 'seal', 'motor', 'compressor', 'industrial', 'tool'],
+    'c4': ['consulting', 'logistics', 'shipping', 'maintenance', 'installation', 'cleaning', 'services'],
+    'c5': ['cotton', 'fabric', 'yarn', 'silk', 'polyester', 'denim', 'wool', 'textiles'],
+  };
 
   @override
   void initState() {
     super.initState();
     _title.text = widget.title ?? '';
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _desc.dispose();
+    _locationPreference.dispose();
+    _budgetMin.dispose();
+    _budgetMax.dispose();
+    super.dispose();
+  }
+
+  Map<String, dynamic> _calculateScore() {
+    final checks = [
+      {'label': 'Product Name', 'score': 5, 'met': _title.text.trim().length >= 3},
+      {'label': 'Category', 'score': 5, 'met': _category.isNotEmpty},
+      {'label': 'Product Details', 'score': 43, 'met': _desc.text.trim().length > 50},
+      {'label': 'Sourcing Type', 'score': 3, 'met': _type.isNotEmpty},
+      {'label': 'Delivery Location', 'score': 3, 'met': _locationPreference.text.trim().isNotEmpty},
+      {'label': 'Target Price', 'score': 3, 'met': _hasBudget && _budgetMax.text.trim().isNotEmpty},
+      {'label': 'Valid Until', 'score': 1, 'met': _deadline != null},
+    ];
+
+    final currentScore = checks
+        .where((c) => c['met'] == true)
+        .fold<int>(0, (sum, c) => sum + (c['score'] as int));
+    final totalPotential = checks.fold<int>(0, (sum, c) => sum + (c['score'] as int));
+    final percentage = ((currentScore / totalPotential) * 100).round();
+
+    return {
+      'checks': checks,
+      'percentage': percentage,
+    };
+  }
+
+  List<JsonMap> _getSuggestedCategories(List<JsonMap> categories) {
+    final titleLower = _title.text.toLowerCase().trim();
+    if (titleLower.length < 3) return [];
+    final keywords = titleLower.split(' ').where((k) => k.length > 2).toList();
+    if (keywords.isEmpty) return [];
+
+    return categories.where((c) {
+      final name = textOf(c['name']).toLowerCase();
+      final id = textOf(c['id']).toLowerCase();
+      
+      final matchKeyword = keywords.any((k) => name.contains(k));
+      final extraKeywords = _categoryKeywords[id] ?? [];
+      final matchExtra = extraKeywords.any((kw) => titleLower.contains(kw));
+      
+      return matchKeyword || matchExtra;
+    }).take(5).toList();
+  }
+
+  bool _canNext() {
+    if (_step == 0) return _title.text.trim().length >= 3 && _category.isNotEmpty;
+    if (_step == 1) return _desc.text.trim().length >= 20;
+    return true;
   }
 
   @override
@@ -2056,69 +2127,683 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
         BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
       ],
       child: JaxPage(
-        title: 'Post RFQ',
-        subtitle: 'Get competitive supplier quotes',
+        title: '',
         child: Builder(
           builder: (context) => BlocConsumer<FormSubmitCubit, ResourceState>(
             listener: (context, state) {
               showResultSnack(context, state);
               if (state.message == 'Saved successfully') context.go('/rfq');
             },
-            builder: (context, submitState) => FormCard(
+            builder: (context, submitState) {
+              return BlocBuilder<CategoriesCubit, ResourceState>(
+                builder: (context, catsState) {
+                  final categories = catsState.items;
+                  final scoreData = _calculateScore();
+                  final suggested = _getSuggestedCategories(categories);
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      _buildHeader(),
+                      const SizedBox(height: 20),
+
+                      // Stepper
+                      _buildStepper(),
+                      const SizedBox(height: 20),
+
+                      // Quality Score Indicator
+                      _buildQualityScore(scoreData),
+                      const SizedBox(height: 24),
+
+                      // Main Step Form Content
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _buildStepContent(context, categories, suggested),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Safety Guarantee Banner
+                      _buildSafetyGuarantee(),
+                      const SizedBox(height: 28),
+
+                      // Navigation Buttons
+                      _buildNavigation(context, submitState),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'POST A REQUEST',
+          style: JaxText.h1.copyWith(
+            fontSize: 26,
+            fontWeight: FontWeight.w900,
+            color: JaxColors.primaryContainer,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Post your request and get quotes from verified sellers.',
+          style: JaxText.bodySmall.copyWith(
+            color: JaxColors.onSurfaceVariant,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepper() {
+    final steps = ['Category & Type', 'Details', 'Shipping & Budget'];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: JaxColors.outlineVariant),
+      ),
+      child: Row(
+        children: List.generate(steps.length, (i) {
+          final isActive = i == _step;
+          return Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+              decoration: BoxDecoration(
+                color: isActive ? JaxColors.primaryContainer : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                       shape: BoxShape.circle,
+                       border: Border.all(
+                         color: isActive ? Colors.white24 : JaxColors.outlineVariant,
+                         width: 2,
+                       ),
+                       color: isActive ? Colors.white10 : Colors.transparent,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${i + 1}',
+                      style: TextStyle(
+                        color: isActive ? Colors.white : JaxColors.outline,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      steps[i].toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: JaxText.label.copyWith(
+                        color: isActive ? Colors.white : JaxColors.outline,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildQualityScore(Map<String, dynamic> scoreData) {
+    final percentage = scoreData['percentage'] as int;
+    final checks = scoreData['checks'] as List<dynamic>;
+
+    Color progressColor = JaxColors.primary;
+    if (percentage > 70) {
+      progressColor = JaxColors.success;
+    } else if (percentage > 40) {
+      progressColor = JaxColors.warning;
+    }
+
+    return JaxCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _showChecklist = !_showChecklist),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
               children: [
-                const FieldLabel('Request type'),
-                SegmentedButton<String>(
-                  segments: const [ButtonSegment(value: 'PRODUCT', label: Text('Product')), ButtonSegment(value: 'SERVICE', label: Text('Service'))],
-                  selected: {_type},
-                  onSelectionChanged: (v) => setState(() => _type = v.first),
-                ),
-                const FieldLabel('Title'),
-                TextField(controller: _title, decoration: const InputDecoration(hintText: 'What do you need?')),
-                const FieldLabel('Description'),
-                TextField(controller: _desc, minLines: 4, maxLines: 8, decoration: const InputDecoration(hintText: 'Specs, delivery, quality, and payment requirements')),
-                BlocBuilder<CategoriesCubit, ResourceState>(
-                  builder: (context, cats) => DropdownButtonFormField<String>(
-                    initialValue: _category.isEmpty ? null : _category,
-                    decoration: const InputDecoration(labelText: 'CATEGORY'),
-                    items: cats.items.map((cat) => DropdownMenuItem(value: textOf(cat['id']), child: Text(textOf(cat['name'])))).toList(),
-                    onChanged: (v) => setState(() => _category = v ?? ''),
+                // Progress circle
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        value: percentage / 100,
+                        strokeWidth: 6,
+                        backgroundColor: JaxColors.surfaceLow,
+                        color: progressColor,
+                      ),
+                      Text(
+                        '$percentage%',
+                        style: JaxText.title.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
-                Row(children: [
-                  Expanded(child: TextField(controller: _budgetMin, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MIN BUDGET'))),
-                  const SizedBox(width: 10),
-                  Expanded(child: TextField(controller: _budgetMax, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MAX BUDGET'))),
-                ]),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final picked = await showDatePicker(context: context, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: DateTime.now().add(const Duration(days: 7)));
-                    if (picked != null) setState(() => _deadline = picked);
-                  },
-                  icon: const Icon(Icons.calendar_month_rounded),
-                  label: Text(_deadline == null ? 'Set deadline' : shortDate(_deadline!.toIso8601String())),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'REQUEST QUALITY SCORE',
+                        style: JaxText.label.copyWith(fontSize: 9),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Completeness score based on requirements',
+                        style: JaxText.bodySmall.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
-                JaxButton(
-                  label: 'Submit RFQ',
-                  fullWidth: true,
-                  loading: submitState.status == ResourceStatus.submitting,
-                  icon: Icons.send_rounded,
-                  onPressed: () => context.read<FormSubmitCubit>().submit(() => apiOf(context).createRfq({
-                        'rfqType': _type,
-                        'title': _title.text,
-                        'description': _desc.text,
-                        if (_category.isNotEmpty) 'categoryId': _category,
-                        if (_budgetMin.text.isNotEmpty) 'budgetMin': _budgetMin.text,
-                        if (_budgetMax.text.isNotEmpty) 'budgetMax': _budgetMax.text,
-                        if (_deadline != null) 'deadline': _deadline!.toIso8601String(),
-                        'isPublic': true,
-                        if (widget.listingId != null) 'listingId': widget.listingId,
-                      })),
+                Icon(
+                  _showChecklist ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  color: JaxColors.outline,
                 ),
               ],
             ),
           ),
-        ),
+          if (_showChecklist) ...[
+            const Divider(height: 20, thickness: 0.5),
+            ...checks.map((c) {
+              final isMet = c['met'] as bool;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      isMet ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                      color: isMet ? JaxColors.success : JaxColors.outlineVariant,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        c['label'] as String,
+                        style: JaxText.bodyMedium.copyWith(
+                          color: isMet ? JaxColors.onSurface : JaxColors.outline,
+                          fontSize: 13,
+                          fontWeight: isMet ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${c['score']}',
+                      style: JaxText.title.copyWith(
+                        color: isMet ? JaxColors.primary : JaxColors.outlineVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
       ),
+    );
+  }
+
+  Widget _buildStepContent(BuildContext context, List<JsonMap> categories, List<JsonMap> suggested) {
+    if (_step == 0) {
+      return FormCard(
+        key: const ValueKey(0),
+        children: [
+          const FieldLabel('1. WHAT ARE YOU LOOKING FOR?'),
+          TextField(
+            controller: _title,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              hintText: 'e.g. Stainless steel bolts, cotton yarns...',
+            ),
+            style: JaxText.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          const FieldLabel('2. SELECT CATEGORY'),
+          DropdownButtonFormField<String>(
+            value: _category.isEmpty ? null : _category,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              hintText: 'Choose the closest matching category',
+            ),
+            items: categories.map((cat) {
+              return DropdownMenuItem(
+                value: textOf(cat['id']),
+                child: Text(
+                  textOf(cat['name']),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList(),
+            onChanged: (v) => setState(() => _category = v ?? ''),
+          ),
+          _buildSuggestedCategories(suggested),
+          const SizedBox(height: 12),
+          const FieldLabel('3. WHAT DO YOU NEED?'),
+          _buildTypeSelection(),
+        ],
+      );
+    } else if (_step == 1) {
+      return FormCard(
+        key: const ValueKey(1),
+        children: [
+          const FieldLabel('PRODUCT DETAILS'),
+          TextField(
+            controller: _desc,
+            onChanged: (_) => setState(() {}),
+            minLines: 6,
+            maxLines: 12,
+            decoration: InputDecoration(
+              hintText: 'Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms...',
+              hintStyle: JaxText.bodyMedium.copyWith(color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '${_desc.text.length} chars -- Aim for at least 100 for high quality responses',
+              style: JaxText.bodySmall.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return FormCard(
+        key: const ValueKey(2),
+        children: [
+          const FieldLabel('DELIVERY LOCATION'),
+          TextField(
+            controller: _locationPreference,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              hintText: 'e.g. Mumbai Hub, India',
+            ),
+          ),
+          const SizedBox(height: 12),
+          const FieldLabel('DESIRED DELIVERY DATE'),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _deadline ?? DateTime.now().add(const Duration(days: 7)),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+              if (picked != null) setState(() => _deadline = picked);
+            },
+            icon: const Icon(Icons.calendar_month_rounded, color: JaxColors.primary, size: 20),
+            label: Text(
+              _deadline == null ? 'Set Desired Delivery Date' : shortDate(_deadline!.toIso8601String()),
+              style: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(JaxRadius.lg)),
+              side: const BorderSide(color: JaxColors.outlineVariant),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const FieldLabel('PARTNER VERIFICATION TIER'),
+          DropdownButtonFormField<String>(
+            value: _preferredProviderType,
+            isExpanded: true,
+            decoration: const InputDecoration(),
+            items: const [
+              DropdownMenuItem(value: '', child: Text('Global Standard (Open)', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(value: 'INDIVIDUAL', child: Text('Verified Individual Expert', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(value: 'BUSINESS', child: Text('Certified Corporate Entity', overflow: TextOverflow.ellipsis)),
+            ],
+            onChanged: (v) => setState(() => _preferredProviderType = v ?? ''),
+          ),
+          const SizedBox(height: 12),
+          _buildBudgetSection(),
+        ],
+      );
+    }
+  }
+
+  Widget _buildSuggestedCategories(List<JsonMap> suggested) {
+    if (suggested.isEmpty || _category.isNotEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: JaxColors.surfaceLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'SUGGESTED CATEGORIES BASED ON TITLE:',
+                style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primaryContainer),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: suggested.map((cat) {
+              final catId = textOf(cat['id']);
+              final name = textOf(cat['name']);
+              return InkWell(
+                onTap: () => setState(() => _category = catId),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: JaxColors.outlineVariant),
+                  ),
+                  child: Text(
+                    name,
+                    style: JaxText.bodySmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: JaxColors.primaryContainer,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeSelection() {
+    final options = [
+      {
+        'value': 'PRODUCT',
+        'title': 'Products',
+        'subtitle': 'Materials, machinery, parts',
+        'icon': Icons.inventory_2_rounded,
+      },
+      {
+        'value': 'SERVICE',
+        'title': 'Services',
+        'subtitle': 'Installation, logistics, support',
+        'icon': Icons.construction_rounded,
+      },
+    ];
+
+    return Row(
+      children: options.map((opt) {
+        final isSelected = _type == opt['value'];
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _type = opt['value'] as String),
+            child: Container(
+              margin: EdgeInsets.only(
+                right: opt['value'] == 'PRODUCT' ? 6.0 : 0.0,
+                left: opt['value'] == 'SERVICE' ? 6.0 : 0.0,
+              ),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? JaxColors.surfaceLow.withValues(alpha: 0.3) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                  width: isSelected ? 2 : 1,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: isSelected ? JaxColors.primary : JaxColors.surfaceLow,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          opt['icon'] as IconData,
+                          color: isSelected ? Colors.white : JaxColors.outline,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        opt['title'] as String,
+                        style: JaxText.title.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        opt['subtitle'] as String,
+                        style: JaxText.bodySmall.copyWith(fontSize: 10, height: 1.2),
+                      ),
+                    ],
+                  ),
+                  if (isSelected)
+                    const Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: JaxColors.primary,
+                        size: 18,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildBudgetSection() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: JaxColors.surfaceLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: JaxColors.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _hasBudget = !_hasBudget),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Checkbox(
+                  value: _hasBudget,
+                  onChanged: (v) => setState(() => _hasBudget = v ?? false),
+                  activeColor: JaxColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ENABLE BUDGET CONTROLS',
+                    style: JaxText.label.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_hasBudget) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _budgetMin,
+                    onChanged: (_) => setState(() {}),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'TARGET MIN (INR)',
+                      hintText: '0',
+                      fillColor: Colors.white,
+                      filled: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _budgetMax,
+                    onChanged: (_) => setState(() {}),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'CEILING MAX (INR)',
+                      hintText: '1,00,000',
+                      fillColor: Colors.white,
+                      filled: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSafetyGuarantee() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: JaxColors.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SAFETY GUARANTEE',
+                  style: JaxText.label.copyWith(color: Colors.white, fontSize: 10, letterSpacing: 1),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your contact details are protected. Only selected sellers can access your profile during negotiation.',
+                  style: JaxText.bodySmall.copyWith(color: Colors.white70, fontSize: 11, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigation(BuildContext context, ResourceState submitState) {
+    return Row(
+      children: [
+        if (_step > 0) ...[
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => setState(() => _step--),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: const BorderSide(color: JaxColors.outlineVariant),
+              ),
+              child: Text(
+                'Back',
+                style: JaxText.title.copyWith(color: JaxColors.onSurface),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        Expanded(
+          child: ElevatedButton(
+            onPressed: !_canNext() || submitState.status == ResourceStatus.submitting
+                ? null
+                : () {
+                    if (_step < 2) {
+                      setState(() => _step++);
+                    } else {
+                      context.read<FormSubmitCubit>().submit(() => apiOf(context).createRfq({
+                            'rfqType': _type,
+                            'title': _title.text.trim(),
+                            'description': _desc.text.trim(),
+                            if (_category.isNotEmpty) 'categoryId': _category,
+                            if (_locationPreference.text.isNotEmpty) 'locationPreference': _locationPreference.text.trim(),
+                            if (_deadline != null) 'deadline': _deadline!.toIso8601String(),
+                            if (_preferredProviderType.isNotEmpty) 'preferredProviderType': _preferredProviderType,
+                            if (_hasBudget) ...{
+                              'budgetMin': double.tryParse(_budgetMin.text) ?? 0.0,
+                              'budgetMax': double.tryParse(_budgetMax.text) ?? 0.0,
+                            },
+                            'isPublic': true,
+                            if (widget.listingId != null) 'listingId': widget.listingId,
+                          }));
+                    }
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _step == 2 ? JaxColors.primary : JaxColors.primaryContainer,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: JaxColors.outlineVariant,
+              disabledForegroundColor: Colors.white70,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: submitState.status == ResourceStatus.submitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : Text(
+                    _step == 2 ? 'Post Request' : 'Next',
+                    style: JaxText.title.copyWith(color: Colors.white),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }

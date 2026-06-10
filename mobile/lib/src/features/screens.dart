@@ -1098,6 +1098,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final service = asMap(item['serviceDetail']);
               final seller = asMap(item['seller']);
               final media = asList(item['media']);
+              final basePriceNum = numOf(product['pricePerUnit']);
+              final slab1Price = basePriceNum != null ? (basePriceNum * 0.95).round() : 11500;
+              final slab2Price = basePriceNum != null ? (basePriceNum * 0.90).round() : 10800;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1189,6 +1192,106 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       ],
                     ),
                   ),
+                  if (product.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    JaxCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'TIERED BULK SLABS PRICING MATRIX',
+                            style: JaxText.h3,
+                          ),
+                          const SizedBox(height: 16),
+                          Table(
+                            columnWidths: const {
+                              0: FlexColumnWidth(1),
+                              1: FlexColumnWidth(1),
+                              2: FlexColumnWidth(1),
+                            },
+                            children: [
+                              // Header row
+                              TableRow(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade50,
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                    child: Text('MIN QTY VOLUME', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                    child: Text('MAX QTY VOLUME', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                    child: Text('UNIT RATE PRICE', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                  ),
+                                ],
+                              ),
+                              // Divider/spacing
+                              const TableRow(
+                                children: [
+                                  Divider(height: 12, thickness: 0.5),
+                                  Divider(height: 12, thickness: 0.5),
+                                  Divider(height: 12, thickness: 0.5),
+                                ],
+                              ),
+                              // Row 1
+                              TableRow(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text('25', style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text('99', style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text(
+                                      money(slab1Price).replaceAll('Rs ', '₹'),
+                                      style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Divider
+                              const TableRow(
+                                children: [
+                                  Divider(height: 1, thickness: 0.5),
+                                  Divider(height: 1, thickness: 0.5),
+                                  Divider(height: 1, thickness: 0.5),
+                                ],
+                              ),
+                              // Row 2
+                              TableRow(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text('100', style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text('∞', style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                    child: Text(
+                                      money(slab2Price).replaceAll('Rs ', '₹'),
+                                      style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 18),
                   JaxCard(
                     child: Column(
@@ -1346,6 +1449,30 @@ class SupplierProfileDialog extends StatelessWidget {
                   _ProfileRow(label: 'Establishment Year', value: establishmentYear),
                   _ProfileRow(label: 'Operational Workforce', value: workforce),
                   _ProfileRow(label: 'GST Registry ID', value: gstId),
+                  _ProfileRow(label: 'Location', value: textOf(seller['location'], 'India')),
+                ],
+              ),
+            ),
+            // ── About the Merchant ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(height: 10, thickness: 0.5),
+                  const SizedBox(height: 8),
+                  Text(
+                    'ABOUT THE MERCHANT',
+                    style: JaxText.label.copyWith(color: JaxColors.primary, fontSize: 10, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    textOf(
+                      seller['businessDescription'],
+                      '$name is an established $registryProfile based in ${textOf(seller['location'], 'India')}, specializing in high-quality ${textOf(seller['primaryCategory'], 'Industrial Goods').toLowerCase()} and premium B2B solutions.',
+                    ),
+                    style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, fontSize: 11.5, height: 1.35),
+                  ),
                 ],
               ),
             ),

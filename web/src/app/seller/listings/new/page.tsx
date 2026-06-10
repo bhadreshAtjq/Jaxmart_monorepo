@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { 
+import {
   FaPlus, FaCheck, FaIndustry, FaArrowRight, FaArrowLeft,
   FaFileLines, FaIndianRupeeSign, FaCloudArrowUp,
   FaCircleCheck, FaBox, FaBolt, FaTrashCan
@@ -103,7 +103,7 @@ export default function NewListingPage() {
   const [avgResponseHrs, setAvgResponseHrs] = useState(24);
   const [languages, setLanguages] = useState('English');
   const [skillsTagsInput, setSkillsTagsInput] = useState('');
-  
+
   // Tiered Service Packages
   const [packages, setPackages] = useState<ServicePackageInput[]>([
     { name: 'Basic', description: '', price: 0, deliveryDays: 3, revisionsCount: 1, includesItems: [], isPopular: false },
@@ -149,7 +149,7 @@ export default function NewListingPage() {
       attributeId: attr.id,
       value: '',
     })) : [];
-    
+
     setVariants(v => [
       ...v,
       { title: '', sku: '', priceOverride: undefined, stockQty: 0, attributeValues: defaultAttrs }
@@ -280,31 +280,31 @@ export default function NewListingPage() {
       <RequirementGate>
         <div className="bg-white border-b border-gray-100 mb-12">
           <Container size="xl" className="py-12">
-             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div>
-                  <button onClick={() => router.push('/seller/listings')} className="flex items-center gap-2 text-[10px] font-black text-jax-blue uppercase tracking-widest hover:gap-3 transition-all mb-4">
-                    <FaArrowLeft className="h-3 w-3" /> Back to Ledger
-                  </button>
-                  <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Initialize Storefront SKU</h1>
-                  <p className="text-sm text-gray-500 font-medium font-sans">Provision a new industrial product or technical service into the global search index.</p>
-                </div>
-                
-                <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
-                  {STEPS.map((s, i) => (
-                    <div 
-                      key={s.id} 
-                      className={clsx(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-500",
-                        step === i ? "bg-jax-dark text-white shadow-lg" : "text-gray-400"
-                      )}
-                    >
-                      <s.icon className={clsx("h-3.5 w-3.5", step === i ? "text-jax-accent" : "text-gray-300")} />
-                      <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{s.label}</span>
-                      {step > i && <FaCircleCheck className="h-3 w-3 text-emerald-500" />}
-                    </div>
-                  ))}
-                </div>
-             </div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div>
+                <button onClick={() => router.push('/seller/listings')} className="flex items-center gap-2 text-[10px] font-black text-jax-blue uppercase tracking-widest hover:gap-3 transition-all mb-4">
+                  <FaArrowLeft className="h-3 w-3" /> Back to Ledger
+                </button>
+                <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Initialize Storefront SKU</h1>
+                <p className="text-sm text-gray-500 font-medium font-sans">Provision a new industrial product or technical service into the global search index.</p>
+              </div>
+
+              <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
+                {STEPS.map((s, i) => (
+                  <div
+                    key={s.id}
+                    className={clsx(
+                      "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-500",
+                      step === i ? "bg-jax-dark text-white shadow-lg" : "text-gray-400"
+                    )}
+                  >
+                    <s.icon className={clsx("h-3.5 w-3.5", step === i ? "text-jax-accent" : "text-gray-300")} />
+                    <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{s.label}</span>
+                    {step > i && <FaCircleCheck className="h-3 w-3 text-emerald-500" />}
+                  </div>
+                ))}
+              </div>
+            </div>
           </Container>
         </div>
 
@@ -325,7 +325,7 @@ export default function NewListingPage() {
                       <p className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em]">Step 01 / Registry Type</p>
                       <h2 className="text-2xl font-black text-jax-dark uppercase tracking-tight font-heading">How is this asset classified?</h2>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {(['PRODUCT', 'SERVICE'] as const).map(type => (
                         <button
@@ -354,8 +354,8 @@ export default function NewListingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Technical Industry Vertical</label>
-                        <select 
-                          value={categoryId} 
+                        <select
+                          value={categoryId}
                           onChange={e => setCategoryId(e.target.value)}
                           className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
                         >
@@ -366,11 +366,11 @@ export default function NewListingPage() {
                         </select>
                       </div>
 
-                      <Input 
-                        label="Search Tags (Comma separated)" 
-                        placeholder="e.g. steel, high-tensile, construction" 
-                        value={tagsInput} 
-                        onChange={e => setTagsInput(e.target.value)} 
+                      <Input
+                        label="Search Tags (Comma separated)"
+                        placeholder="e.g. steel, high-tensile, construction"
+                        value={tagsInput}
+                        onChange={e => setTagsInput(e.target.value)}
                       />
                     </div>
                   </Card>
@@ -386,7 +386,7 @@ export default function NewListingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="md:col-span-2">
-                          <Input label="Registry Title" placeholder="e.g. Industrial Grade High-Torque AC Motor 5HP" value={title} onChange={e => setTitle(e.target.value)} required />
+                        <Input label="Registry Title" placeholder="e.g. Industrial Grade High-Torque AC Motor 5HP" value={title} onChange={e => setTitle(e.target.value)} required />
                       </div>
 
                       {listingType === 'PRODUCT' ? (
@@ -404,8 +404,8 @@ export default function NewListingPage() {
                         <>
                           <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Service Delivery Mode</label>
-                            <select 
-                              value={serviceMode} 
+                            <select
+                              value={serviceMode}
                               onChange={e => setServiceMode(e.target.value as any)}
                               className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
                             >
@@ -465,9 +465,9 @@ export default function NewListingPage() {
                         <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
                           <div className="flex justify-between items-center">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Key Product Specifications (Custom Attributes)</label>
-                            <button 
-                              type="button" 
-                              onClick={addCustomSpecRow} 
+                            <button
+                              type="button"
+                              onClick={addCustomSpecRow}
                               className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
                             >
                               <FaPlus className="h-3 w-3" /> Add Custom Spec
@@ -478,25 +478,25 @@ export default function NewListingPage() {
                             {customSpecRows.map((row, idx) => (
                               <div key={idx} className="flex gap-4 items-center animate-in fade-in duration-300">
                                 <div className="flex-1">
-                                  <input 
-                                    type="text" 
-                                    placeholder="Specification Name (e.g. Material)" 
-                                    value={row.key} 
+                                  <input
+                                    type="text"
+                                    placeholder="Specification Name (e.g. Material)"
+                                    value={row.key}
                                     onChange={e => updateCustomSpecRow(idx, e.target.value, row.val)}
                                     className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
                                   />
                                 </div>
                                 <div className="flex-1">
-                                  <input 
-                                    type="text" 
-                                    placeholder="Value (e.g. Stainless Steel)" 
-                                    value={row.val} 
+                                  <input
+                                    type="text"
+                                    placeholder="Value (e.g. Stainless Steel)"
+                                    value={row.val}
                                     onChange={e => updateCustomSpecRow(idx, row.key, e.target.value)}
                                     className="w-full h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
                                   />
                                 </div>
-                                <button 
-                                  type="button" 
+                                <button
+                                  type="button"
                                   onClick={() => removeCustomSpecRow(idx)}
                                   className="h-9 w-9 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
                                 >
@@ -512,9 +512,9 @@ export default function NewListingPage() {
                       {listingType === 'PRODUCT' && (
                         <div className="md:col-span-2 pt-6 border-t border-gray-100 space-y-4">
                           <label className="flex items-center gap-3 cursor-pointer group">
-                            <input 
-                              type="checkbox" 
-                              checked={hasVariants} 
+                            <input
+                              type="checkbox"
+                              checked={hasVariants}
                               onChange={e => {
                                 setHasVariants(e.target.checked);
                                 if (e.target.checked && variants.length === 0) addVariantRow();
@@ -540,8 +540,8 @@ export default function NewListingPage() {
                               <div className="space-y-6">
                                 {variants.map((v, varIdx) => (
                                   <div key={varIdx} className="bg-white p-4 rounded-xl border border-gray-150 space-y-4 relative shadow-sm">
-                                    <button 
-                                      type="button" 
+                                    <button
+                                      type="button"
                                       onClick={() => removeVariantRow(varIdx)}
                                       className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
                                     >
@@ -558,7 +558,7 @@ export default function NewListingPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                       <Input type="number" label="Price Override (Optional)" placeholder="Leave empty for base price" value={v.priceOverride || ''} onChange={e => updateVariant(varIdx, 'priceOverride', e.target.value ? Number(e.target.value) : undefined)} />
-                                      
+
                                       {/* Match variant attributes dynamically */}
                                       {categoryAttributes && categoryAttributes.map((attr: any) => {
                                         const valObj = v.attributeValues.find(av => av.attributeId === attr.id);
@@ -598,13 +598,13 @@ export default function NewListingPage() {
                       )}
 
                       <div className="md:col-span-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 pl-2">Market Prospectus (Description)</label>
-                          <Textarea 
-                            rows={6} 
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            placeholder="Provide detailed technical specifications, certifications, and capabilities..."
-                          />
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 pl-2">Market Prospectus (Description)</label>
+                        <Textarea
+                          rows={6}
+                          value={description}
+                          onChange={e => setDescription(e.target.value)}
+                          placeholder="Provide detailed technical specifications, certifications, and capabilities..."
+                        />
                       </div>
                     </div>
                   </Card>
@@ -624,8 +624,8 @@ export default function NewListingPage() {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                           <div className="space-y-2 md:col-span-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-2">Pricing Operational Model</label>
-                            <select 
-                              value={priceType} 
+                            <select
+                              value={priceType}
                               onChange={e => setPriceType(e.target.value as any)}
                               className="w-full h-14 bg-gray-50 border border-gray-100 rounded-2xl px-6 text-sm font-black uppercase tracking-tight outline-none focus:ring-2 ring-jax-accent/10"
                             >
@@ -662,9 +662,9 @@ export default function NewListingPage() {
                                 <h3 className="text-xs font-black text-jax-dark uppercase tracking-widest">Tiered Wholesale/Bulk Pricing Slabs</h3>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Specify custom unit price based on larger volume sizes.</p>
                               </div>
-                              <button 
-                                type="button" 
-                                onClick={addBulkPriceSlab} 
+                              <button
+                                type="button"
+                                onClick={addBulkPriceSlab}
                                 className="text-[10px] font-black text-jax-blue uppercase tracking-widest hover:text-jax-accent transition-colors flex items-center gap-1.5"
                               >
                                 <FaPlus className="h-3 w-3" /> Add Pricing Slab
@@ -677,8 +677,8 @@ export default function NewListingPage() {
                                   <Input type="number" placeholder="Min Qty" label="Min Order Volume" value={slab.minQty} onChange={e => updateBulkPriceSlab(idx, 'minQty', Number(e.target.value))} />
                                   <Input type="number" placeholder="Max Qty" label="Max Order Volume" value={slab.maxQty} onChange={e => updateBulkPriceSlab(idx, 'maxQty', Number(e.target.value))} />
                                   <Input type="number" placeholder="Price" label="Slab Unit Price (INR)" value={slab.price} onChange={e => updateBulkPriceSlab(idx, 'price', Number(e.target.value))} />
-                                  <button 
-                                    type="button" 
+                                  <button
+                                    type="button"
                                     onClick={() => removeBulkPriceSlab(idx)}
                                     className="h-11 w-11 mt-6 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl flex items-center justify-center transition-colors font-bold text-xs shrink-0"
                                   >
@@ -703,10 +703,10 @@ export default function NewListingPage() {
                         {/* Samples Provision */}
                         <div className="pt-6 border-t border-gray-100 flex flex-col md:flex-row gap-8 items-start">
                           <label className="flex items-center gap-4 cursor-pointer group mt-4">
-                            <input 
-                              type="checkbox" 
-                              checked={sampleAvailable} 
-                              onChange={e => setSampleAvailable(e.target.checked)} 
+                            <input
+                              type="checkbox"
+                              checked={sampleAvailable}
+                              onChange={e => setSampleAvailable(e.target.checked)}
                               className="rounded border-gray-300 text-jax-accent focus:ring-jax-accent h-4 w-4"
                             />
                             <span className="text-xs font-black text-jax-dark uppercase tracking-widest">Evaluation Sample Available</span>
@@ -732,8 +732,8 @@ export default function NewListingPage() {
                                   }}
                                   className={clsx(
                                     "px-4 py-2 rounded-xl text-xs font-bold transition-all border",
-                                    isChecked 
-                                      ? "bg-jax-accent text-white border-jax-accent shadow-sm" 
+                                    isChecked
+                                      ? "bg-jax-accent text-white border-jax-accent shadow-sm"
                                       : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                                   )}
                                 >
@@ -742,12 +742,12 @@ export default function NewListingPage() {
                               );
                             })}
                           </div>
-                          
+
                           <div className="flex gap-4 max-w-md pt-2">
-                            <input 
-                              type="text" 
-                              placeholder="Add Custom Certification..." 
-                              value={customCertInput} 
+                            <input
+                              type="text"
+                              placeholder="Add Custom Certification..."
+                              value={customCertInput}
                               onChange={e => setCustomCertInput(e.target.value)}
                               className="flex-1 h-11 bg-gray-50 border border-gray-100 rounded-xl px-4 text-xs font-bold text-jax-dark outline-none focus:ring-2 ring-jax-accent/10"
                             />
@@ -784,9 +784,9 @@ export default function NewListingPage() {
                                   Popular
                                 </div>
                               )}
-                              
+
                               <h3 className="text-sm font-black text-jax-dark uppercase tracking-widest">{pkg.name} Package</h3>
-                              
+
                               <textarea
                                 value={pkg.description}
                                 onChange={e => updateServicePackage(idx, 'description', e.target.value)}
@@ -826,23 +826,23 @@ export default function NewListingPage() {
                     </div>
 
                     <div className="max-w-2xl mx-auto">
-                      <ImageUpload 
+                      <ImageUpload
                         onUpload={(urls) => setImages(
                           urls.map((url, i) => ({ url, isPrimary: i === 0 }))
-                        )} 
+                        )}
                         maxFiles={5}
                       />
                     </div>
 
                     <div className="pt-10 border-t border-gray-100">
                       <div className="flex items-center gap-3 p-6 bg-emerald-50 border border-emerald-100/50 rounded-2xl max-w-xl mx-auto">
-                          <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
-                            <FaCircleCheck className="h-5 w-5" />
-                          </div>
-                          <div className="text-left">
-                            <p className="text-xs font-black text-emerald-800 uppercase tracking-tight font-heading">Ready for Market Injection</p>
-                            <p className="text-[10px] text-emerald-700/70 font-bold uppercase tracking-widest font-sans">Registry data is coherent and ready for synchronization.</p>
-                          </div>
+                        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+                          <FaCircleCheck className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-black text-emerald-800 uppercase tracking-tight font-heading">Ready for Market Injection</p>
+                          <p className="text-[10px] text-emerald-700/70 font-bold uppercase tracking-widest font-sans">Registry data is coherent and ready for synchronization.</p>
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -851,27 +851,27 @@ export default function NewListingPage() {
             </AnimatePresence>
 
             <div className="mt-12 flex items-center justify-between gap-6">
-              <Button 
-                variant="ghost" 
-                onClick={back} 
-                disabled={step === 0} 
+              <Button
+                variant="ghost"
+                onClick={back}
+                disabled={step === 0}
                 className="h-14 px-10 text-[10px] font-black uppercase tracking-widest text-gray-400 disabled:opacity-0 transition-all"
                 icon={<FaArrowLeft />}
               >
                 Previous Protocol
               </Button>
-              
+
               {step < STEPS.length - 1 ? (
-                <Button 
-                  onClick={next} 
+                <Button
+                  onClick={next}
                   className="h-14 px-12 bg-jax-dark text-white shadow-xl shadow-black/10 border-none text-[10px] font-black uppercase tracking-[0.2em]"
                   icon={<FaArrowRight />}
                 >
                   Proceed to {STEPS[step + 1].label}
                 </Button>
               ) : (
-                <Button 
-                  onClick={handleCreate} 
+                <Button
+                  onClick={handleCreate}
                   loading={loading}
                   className="h-14 px-16 bg-jax-accent text-white shadow-xl shadow-jax-accent/30 border-none text-[10px] font-black uppercase tracking-[0.2em]"
                   icon={<FaCheck />}

@@ -361,7 +361,7 @@ class _InstantRfqCardState extends State<InstantRfqCard> {
   final _rfqQty = TextEditingController(text: '100');
   String _unit = 'Pieces';
 
-  static const _units = ['Pieces', 'Tons', 'Kilograms', 'Meters', 'Liters', 'Units', 'Boxes', 'Sets'];
+  static const _units = ['Pieces', 'Metric Tons', 'Kilograms', 'Boxes', 'Rolls'];
 
   @override
   void dispose() {

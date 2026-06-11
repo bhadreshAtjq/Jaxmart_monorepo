@@ -3344,11 +3344,13 @@ class ListingFormScreen extends StatefulWidget {
 }
 
 class _ListingFormScreenState extends State<ListingFormScreen> {
+  int _step = 1;
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _price = TextEditingController();
   final _moq = TextEditingController(text: '1');
   final _unit = TextEditingController(text: 'Pieces');
+  final _tags = TextEditingController();
   String _type = 'PRODUCT';
   String _category = '';
 
@@ -3360,60 +3362,274 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
       ],
       child: JaxPage(
-        title: 'New Listing',
-        subtitle: 'Create product or service catalog item',
+        topWidget: GestureDetector(
+          onTap: () => context.pop(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.arrow_back_rounded, size: 12, color: JaxColors.primary),
+              const SizedBox(width: 8),
+              Text('BACK TO LEDGER', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary, letterSpacing: 1.5)),
+            ],
+          ),
+        ),
+        title: 'INITIALIZE STOREFRONT SKU',
+        subtitle: 'Provision a new industrial product or technical service into the global search index.',
         child: Builder(
           builder: (context) => BlocConsumer<FormSubmitCubit, ResourceState>(
             listener: (context, state) {
               showResultSnack(context, state);
               if (state.message == 'Saved successfully') context.go('/seller/listings');
             },
-            builder: (context, state) => FormCard(
-              children: [
-                SegmentedButton<String>(
-                  segments: const [ButtonSegment(value: 'PRODUCT', label: Text('Product')), ButtonSegment(value: 'SERVICE', label: Text('Service'))],
-                  selected: {_type},
-                  onSelectionChanged: (v) => setState(() => _type = v.first),
-                ),
-                TextField(controller: _title, decoration: const InputDecoration(labelText: 'TITLE')),
-                TextField(controller: _description, minLines: 4, maxLines: 8, decoration: const InputDecoration(labelText: 'DESCRIPTION')),
-                BlocBuilder<CategoriesCubit, ResourceState>(
-                  builder: (context, cats) => DropdownButtonFormField<String>(
-                    initialValue: _category.isEmpty ? null : _category,
-                    decoration: const InputDecoration(labelText: 'CATEGORY'),
-                    items: cats.items.map((cat) => DropdownMenuItem(value: textOf(cat['id']), child: Text(textOf(cat['name'])))).toList(),
-                    onChanged: (v) => setState(() => _category = v ?? ''),
-                  ),
-                ),
-                TextField(controller: _price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'PRICE / BASE PRICE')),
-                Row(children: [
-                  Expanded(child: TextField(controller: _moq, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MOQ'))),
-                  const SizedBox(width: 10),
-                  Expanded(child: TextField(controller: _unit, decoration: const InputDecoration(labelText: 'UNIT'))),
-                ]),
-                JaxButton(
-                  label: 'Create listing',
-                  fullWidth: true,
-                  loading: state.status == ResourceStatus.submitting,
-                  icon: Icons.save_rounded,
-                  onPressed: () => context.read<FormSubmitCubit>().submit(() => apiOf(context).createListing({
-                        'listingType': _type,
-                        'title': _title.text,
-                        'description': _description.text,
-                        if (_category.isNotEmpty) 'categoryId': _category,
-                        if (_type == 'PRODUCT') ...{
-                          'pricePerUnit': num.tryParse(_price.text),
-                          'minOrderQty': num.tryParse(_moq.text) ?? 1,
-                          'unitOfMeasure': _unit.text,
-                        } else ...{
-                          'basePrice': num.tryParse(_price.text),
-                          'priceUnit': _unit.text,
-                        },
-                      })),
-                ),
-              ],
-            ),
+            builder: (context, state) {
+              return Column(
+                children: [
+                   SingleChildScrollView(
+                     scrollDirection: Axis.horizontal,
+                     child: Row(
+                       children: [
+                         _StepNavPill(title: 'CLASSIFICATION', icon: Icons.category_rounded, active: _step == 1),
+                         const SizedBox(width: 8),
+                         _StepNavPill(title: 'TECHNICAL SPECS', icon: Icons.description_rounded, active: _step == 2),
+                         const SizedBox(width: 8),
+                         _StepNavPill(title: 'COMMERCIAL TERMS', icon: Icons.currency_rupee_rounded, active: _step == 3),
+                         const SizedBox(width: 8),
+                         _StepNavPill(title: 'MEDIA INDEX', icon: Icons.cloud_upload_rounded, active: _step == 4),
+                       ],
+                     ),
+                   ),
+                   const SizedBox(height: 32),
+                   
+                   JaxCard(
+                     padding: const EdgeInsets.all(24),
+                     child: Column(
+                       children: [
+                         if (_step == 1) ...[
+                           Text('STEP 01 / REGISTRY TYPE', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
+                           const SizedBox(height: 16),
+                           Text('HOW IS THIS ASSET CLASSIFIED?', style: JaxText.h2, textAlign: TextAlign.center),
+                           const SizedBox(height: 32),
+                           
+                           Row(
+                             children: [
+                               Expanded(
+                                 child: _AssetTypeCard(
+                                   title: 'INDUSTRIAL GOOD',
+                                   subtitle: 'MOVABLE ASSETS, MACHINERY, SPARE PARTS OR RAW MATERIALS',
+                                   icon: Icons.inventory_2_rounded,
+                                   selected: _type == 'PRODUCT',
+                                   onTap: () => setState(() => _type = 'PRODUCT'),
+                                 ),
+                               ),
+                               const SizedBox(width: 16),
+                               Expanded(
+                                 child: _AssetTypeCard(
+                                   title: 'TECHNICAL SERVICE',
+                                   subtitle: 'CONSULTING, INSTALLATION, MAINTENANCE OR SPECIALIZED LABOR',
+                                   icon: Icons.bolt_rounded,
+                                   selected: _type == 'SERVICE',
+                                   onTap: () => setState(() => _type = 'SERVICE'),
+                                 ),
+                               ),
+                             ],
+                           ),
+                           const SizedBox(height: 32),
+                           
+                           LayoutBuilder(
+                             builder: (context, constraints) {
+                               final isMobile = constraints.maxWidth < 600;
+                               final children = [
+                                 Expanded(
+                                   flex: isMobile ? 0 : 1,
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('TECHNICAL INDUSTRY VERTICAL', style: JaxText.label.copyWith(color: JaxColors.outline)),
+                                       const SizedBox(height: 8),
+                                       BlocBuilder<CategoriesCubit, ResourceState>(
+                                         builder: (context, cats) => DropdownButtonFormField<String>(
+                                           value: _category.isEmpty ? null : _category,
+                                           hint: const Text('SELECT VERTICAL REGISTRY...'),
+                                           decoration: const InputDecoration(
+                                             border: OutlineInputBorder(), 
+                                             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)
+                                           ),
+                                           items: cats.items.map((cat) => DropdownMenuItem(value: textOf(cat['id']), child: Text(textOf(cat['name'])))).toList(),
+                                           onChanged: (v) => setState(() => _category = v ?? ''),
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
+                                 if (isMobile) const SizedBox(height: 24) else const SizedBox(width: 24),
+                                 Expanded(
+                                   flex: isMobile ? 0 : 1,
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('SEARCH TAGS (COMMA SEPARATED)', style: JaxText.label.copyWith(color: JaxColors.outline)),
+                                       const SizedBox(height: 8),
+                                       TextField(
+                                         controller: _tags,
+                                         decoration: const InputDecoration(
+                                           hintText: 'e.g. steel, high-tensile, construction',
+                                           border: OutlineInputBorder(),
+                                           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
+                               ];
+                               return isMobile ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children) : Row(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+                             },
+                           ),
+                         ] else if (_step == 2) ...[
+                           Text('STEP 02 / TECHNICAL SPECS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
+                           const SizedBox(height: 16),
+                           Text('ENTER PRODUCT DETAILS', style: JaxText.h2),
+                           const SizedBox(height: 32),
+                           TextField(controller: _title, decoration: const InputDecoration(labelText: 'TITLE')),
+                           const SizedBox(height: 16),
+                           TextField(controller: _description, minLines: 4, maxLines: 8, decoration: const InputDecoration(labelText: 'DESCRIPTION')),
+                         ] else if (_step == 3) ...[
+                           Text('STEP 03 / COMMERCIAL TERMS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
+                           const SizedBox(height: 16),
+                           Text('DEFINE PRICING', style: JaxText.h2),
+                           const SizedBox(height: 32),
+                           TextField(controller: _price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'PRICE / BASE PRICE')),
+                           const SizedBox(height: 16),
+                           Row(children: [
+                             Expanded(child: TextField(controller: _moq, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MOQ'))),
+                             const SizedBox(width: 10),
+                             Expanded(child: TextField(controller: _unit, decoration: const InputDecoration(labelText: 'UNIT'))),
+                           ]),
+                         ] else ...[
+                           Text('STEP 04 / MEDIA INDEX', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
+                           const SizedBox(height: 16),
+                           Text('REVIEW AND PUBLISH', style: JaxText.h2),
+                           const SizedBox(height: 32),
+                           const Text('All steps completed. Ready to publish to registry.'),
+                         ],
+                         
+                         const SizedBox(height: 48),
+                         FittedBox(
+                           fit: BoxFit.scaleDown,
+                           alignment: Alignment.center,
+                           child: Row(
+                             children: [
+                               TextButton.icon(
+                                 onPressed: _step > 1 ? () => setState(() => _step--) : null,
+                                 icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                                 label: const Text('PREVIOUS PROTOCOL'),
+                                 style: TextButton.styleFrom(
+                                   foregroundColor: JaxColors.outline,
+                                   textStyle: JaxText.label.copyWith(letterSpacing: 1.0, fontSize: 11),
+                                 ),
+                               ),
+                               const SizedBox(width: 48),
+                               if (_step < 4)
+                                 JaxButton(
+                                   label: _step == 1 ? 'PROCEED TO TECHNICAL SPECS' : 'PROCEED TO NEXT STEP',
+                                   icon: Icons.arrow_forward_rounded,
+                                   onPressed: () => setState(() => _step++),
+                                 )
+                               else
+                                 JaxButton(
+                                   label: 'PUBLISH TO REGISTRY',
+                                   icon: Icons.save_rounded,
+                                   loading: state.status == ResourceStatus.submitting,
+                                   onPressed: () => context.read<FormSubmitCubit>().submit(() => apiOf(context).createListing({
+                                         'listingType': _type,
+                                         'title': _title.text,
+                                         'description': _description.text,
+                                         if (_category.isNotEmpty) 'categoryId': _category,
+                                         if (_type == 'PRODUCT') ...{
+                                           'pricePerUnit': num.tryParse(_price.text),
+                                           'minOrderQty': num.tryParse(_moq.text) ?? 1,
+                                           'unitOfMeasure': _unit.text,
+                                         } else ...{
+                                           'basePrice': num.tryParse(_price.text),
+                                           'priceUnit': _unit.text,
+                                         },
+                                       })),
+                                 ),
+                             ],
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
+                ],
+              );
+            },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StepNavPill extends StatelessWidget {
+  const _StepNavPill({required this.title, required this.icon, required this.active});
+  final String title;
+  final IconData icon;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: active ? JaxColors.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: active ? Colors.white : JaxColors.outline),
+          const SizedBox(width: 8),
+          Text(title, style: JaxText.label.copyWith(fontSize: 10, color: active ? Colors.white : JaxColors.outline, letterSpacing: 1.0)),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssetTypeCard extends StatelessWidget {
+  const _AssetTypeCard({required this.title, required this.subtitle, required this.icon, required this.selected, required this.onTap});
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: selected ? JaxColors.secondaryDark : JaxColors.outlineVariant, width: selected ? 2 : 1),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: selected ? JaxColors.secondaryDark : JaxColors.surfaceLow,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: selected ? Colors.white : JaxColors.outline, size: 32),
+            ),
+            const SizedBox(height: 24),
+            Text(title, style: JaxText.h3.copyWith(color: selected ? JaxColors.primary : JaxColors.onSurface)),
+            const SizedBox(height: 12),
+            Text(subtitle, textAlign: TextAlign.center, style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0, height: 1.5)),
+          ],
         ),
       ),
     );

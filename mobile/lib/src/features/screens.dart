@@ -4014,45 +4014,408 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late final _name = TextEditingController(text: context.read<AuthCubit>().state.name);
-  late final _email = TextEditingController(text: textOf(context.read<AuthCubit>().state.user['email']));
-  late String _type = context.read<AuthCubit>().state.userType;
-  String _accountType = 'INDIVIDUAL';
-
   @override
-  void initState() {
-    super.initState();
-    _accountType = textOf(context.read<AuthCubit>().state.user['accountType'], 'INDIVIDUAL');
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  const Icon(Icons.shield_rounded, color: JaxColors.secondaryDark, size: 14),
+                  const SizedBox(width: 8),
+                  Text('COMPLIANCE COMMAND CONSOLE', style: JaxText.label.copyWith(color: JaxColors.secondaryDark)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 600;
+                  return Flex(
+                    direction: isWide ? Axis.horizontal : Axis.vertical,
+                    crossAxisAlignment: isWide ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: isWide ? 1 : 0,
+                        child: Text('IDENTITY & TRUST', style: JaxText.h1.copyWith(color: JaxColors.primaryContainer)),
+                      ),
+                      if (!isWide) const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.edit_note_rounded, size: 16),
+                        label: Text('Modify Registry', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: JaxColors.primaryContainer,
+                          side: const BorderSide(color: JaxColors.outlineVariant),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 700;
+                  if (isWide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: Column(
+                            children: [
+                              _ProfileCard(state: state),
+                              const SizedBox(height: 24),
+                              _SecurityBadgeCard(state: state),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            children: [
+                              _CoreIdentitySchemaCard(state: state),
+                              const SizedBox(height: 24),
+                              _ComplianceVaultCard(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ProfileCard(state: state),
+                        const SizedBox(height: 24),
+                        _CoreIdentitySchemaCard(state: state),
+                        const SizedBox(height: 24),
+                        _ComplianceVaultCard(),
+                        const SizedBox(height: 24),
+                        _SecurityBadgeCard(state: state),
+                      ],
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 48),
+              Center(
+                child: JaxButton(
+                  label: 'Secure Log Out',
+                  variant: JaxButtonVariant.danger,
+                  icon: Icons.logout_rounded,
+                  onPressed: () => context.read<AuthCubit>().logout(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
+}
+
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({required this.state});
+  final AuthState state;
 
   @override
   Widget build(BuildContext context) {
-    return JaxPage(
-      title: 'My Profile',
-      subtitle: 'Account, KYC, and role preferences',
-      child: BlocConsumer<AuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state.message != null) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
-        },
-        builder: (context, state) => FormCard(
-          children: [
-            Row(children: [JaxAvatar(name: state.name, url: textOf(state.user['avatarUrl']), size: 58), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(state.name, style: JaxText.h3), StatusPill(label: textOf(state.user['kycStatus'], 'PENDING'))]))]),
-            TextField(controller: _name, decoration: const InputDecoration(labelText: 'FULL NAME')),
-            TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'EMAIL')),
-            SegmentedButton<String>(
-              segments: const [ButtonSegment(value: 'BUYER', label: Text('Buyer')), ButtonSegment(value: 'SELLER', label: Text('Seller')), ButtonSegment(value: 'BOTH', label: Text('Both'))],
-              selected: {_type},
-              onSelectionChanged: (v) => setState(() => _type = v.first),
+    final initials = state.name.isNotEmpty ? (state.name.length > 1 ? state.name.substring(0, 2).toUpperCase() : state.name.substring(0, 1).toUpperCase()) : 'US';
+    final trustScore = textOf(state.user['trustScore'], '0');
+    final orderRate = textOf(state.user['orderRate'], '100%');
+    final accountType = textOf(state.user['accountType'], 'INDIVIDUAL').toUpperCase();
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(
+            height: 100,
+            width: double.infinity,
+            color: JaxColors.primaryContainer,
+          ),
+          Transform.translate(
+            offset: const Offset(0, -40),
+            child: Column(
+              children: [
+                Container(
+                  height: 80,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: JaxColors.secondaryDark,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(initials, style: JaxText.h2.copyWith(color: Colors.white)),
+                ),
+                const SizedBox(height: 12),
+                Text(state.name.toUpperCase(), style: JaxText.h3.copyWith(color: JaxColors.primaryContainer)),
+                Text(textOf(state.user['email'], 'email@domain.com').toLowerCase(), style: JaxText.bodySmall),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: JaxColors.surfaceContainer,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: .3)),
+                      ),
+                      child: Text(state.userType.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 9)),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: JaxColors.secondary.withValues(alpha: .1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: JaxColors.secondary.withValues(alpha: .2)),
+                      ),
+                      child: Text(accountType, style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9)),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            SegmentedButton<String>(
-              segments: const [ButtonSegment(value: 'INDIVIDUAL', label: Text('Individual')), ButtonSegment(value: 'BUSINESS', label: Text('Business'))],
-              selected: {_accountType},
-              onSelectionChanged: (v) => setState(() => _accountType = v.first),
+          ),
+          Container(
+            color: JaxColors.surfaceLow,
+            height: 1,
+            width: double.infinity,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    Text('TRUST SCORE', style: JaxText.label),
+                    const SizedBox(height: 4),
+                    Text(trustScore, style: JaxText.h2.copyWith(color: JaxColors.primaryContainer)),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('ORDER RATE', style: JaxText.label),
+                    const SizedBox(height: 4),
+                    Text(orderRate, style: JaxText.h2.copyWith(color: JaxColors.primaryContainer)),
+                  ],
+                ),
+              ],
             ),
-            JaxButton(label: 'Save profile', fullWidth: true, icon: Icons.save_rounded, loading: state.status == AuthStatus.loading, onPressed: () => context.read<AuthCubit>().updateProfile({'fullName': _name.text, 'email': _email.text, 'userType': _type, 'accountType': _accountType})),
-            JaxButton(label: 'Log out', fullWidth: true, variant: JaxButtonVariant.danger, icon: Icons.logout_rounded, onPressed: () => context.read<AuthCubit>().logout()),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SecurityBadgeCard extends StatelessWidget {
+  const _SecurityBadgeCard({required this.state});
+  final AuthState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final isVerified = textOf(state.user['kycStatus']) == 'VERIFIED';
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.shield_rounded, color: JaxColors.secondaryDark, size: 16),
+              const SizedBox(width: 8),
+              Text('SECURITY BADGE', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: .5)),
+              borderRadius: BorderRadius.circular(JaxRadius.lg),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(isVerified ? Icons.check_circle_rounded : Icons.pending_rounded, color: isVerified ? JaxColors.secondary : JaxColors.warning, size: 20),
+                    const SizedBox(width: 8),
+                    Text(isVerified ? 'VERIFIED' : 'PENDING', style: JaxText.title.copyWith(color: JaxColors.primaryContainer)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isVerified 
+                    ? 'Authenticated Global Partner. Your credentials are fully validated for high-limit B2B trade.'
+                    : 'Your account is under review. Complete KYC to unlock high-limit B2B trade.',
+                  style: JaxText.bodySmall.copyWith(height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoreIdentitySchemaCard extends StatelessWidget {
+  const _CoreIdentitySchemaCard({required this.state});
+  final AuthState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Core Identity Schema', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _SchemaField(
+                  label: 'FULL FULLNAME', 
+                  value: state.name.toUpperCase(),
+                ),
+              ),
+              Expanded(
+                child: _SchemaField(
+                  label: 'VERIFIED EMAIL', 
+                  value: textOf(state.user['email'], 'no-email@provided.com').toUpperCase(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _SchemaField(
+                  label: 'ACCOUNT ARCHITECTURE', 
+                  value: textOf(state.user['accountType'], 'INDIVIDUAL').toUpperCase(),
+                ),
+              ),
+              Expanded(
+                child: _SchemaField(
+                  label: 'MARKET PERMISSIONS', 
+                  value: state.userType.toUpperCase(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SchemaField extends StatelessWidget {
+  const _SchemaField({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: JaxText.label),
+        const SizedBox(height: 8),
+        Text(value, style: JaxText.title.copyWith(color: JaxColors.primaryContainer, fontSize: 13)),
+      ],
+    );
+  }
+}
+
+class _ComplianceVaultCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text('Compliance Document Vault', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20))),
+              TextButton(
+                onPressed: () {},
+                child: Text('+ APPEND REGISTRY', style: JaxText.label.copyWith(color: JaxColors.primaryContainer, letterSpacing: 1, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            decoration: BoxDecoration(
+              color: JaxColors.surfaceLow,
+              borderRadius: BorderRadius.circular(JaxRadius.xl),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: const Icon(Icons.upload_rounded, color: JaxColors.outlineVariant, size: 24),
+                ),
+                const SizedBox(height: 16),
+                Text('VAULT REGISTRY EMPTY', style: JaxText.title.copyWith(color: JaxColors.primaryContainer, fontSize: 12)),
+                const SizedBox(height: 4),
+                Text('ATTACH CORPORATE PAN OR TRADE LICENSE', style: JaxText.label.copyWith(color: JaxColors.outline)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

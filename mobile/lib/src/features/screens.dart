@@ -3972,13 +3972,36 @@ class NotificationsScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => ResourceCubit()..load(() => apiOf(context).notifications(), listKeys: const ['notifications']),
       child: JaxPage(
+        topWidget: Row(
+          children: [
+            const Icon(Icons.notifications_rounded, color: JaxColors.secondary, size: 14),
+            const SizedBox(width: 8),
+            Text('NOTIFICATIONS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
+          ],
+        ),
         title: 'Notifications',
-        subtitle: 'Business activity and action items',
-        actions: [IconButton(onPressed: () => apiOf(context).markAllNotificationsRead(), icon: const Icon(Icons.done_all_rounded))],
+        subtitle: 'Real-time notifications for RFQs, orders, and updates.',
+        actions: [
+          Builder(
+            builder: (ctx) => JaxButton(
+              label: 'CLEAR ALL NEW',
+              icon: Icons.done_all_rounded,
+              variant: JaxButtonVariant.outline,
+              onPressed: () async {
+                await apiOf(ctx).markAllNotificationsRead();
+                if (ctx.mounted) {
+                  ctx.read<ResourceCubit>().load(() => apiOf(ctx).notifications(), listKeys: const ['notifications']);
+                }
+              },
+            ),
+          ),
+        ],
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) => AsyncContent(
             state: state,
-            emptyTitle: 'No notifications',
+            emptyTitle: 'No notifications yet',
+            emptyDescription: 'You have no active alerts. New notifications from partners will appear here.',
+            emptyIcon: Icons.notifications_none_rounded,
             onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).notifications(), listKeys: const ['notifications']),
             builder: (_) => Column(
               children: state.items.map((item) {
@@ -3986,13 +4009,86 @@ class NotificationsScreen extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: JaxCard(
-                    onTap: () => apiOf(context).markNotificationRead(textOf(item['id'])),
+                    padding: const EdgeInsets.all(20),
+                    onTap: () async {
+                      if (!read) {
+                        await apiOf(context).markNotificationRead(textOf(item['id']));
+                        if (context.mounted) {
+                          context.read<ResourceCubit>().load(() => apiOf(context).notifications(), listKeys: const ['notifications']);
+                        }
+                      }
+                      if (context.mounted) {
+                        final data = asMap(item['data']);
+                        if (data['conversationId'] != null) {
+                          context.push('/messages/${data['conversationId']}');
+                        } else if (data['orderId'] != null) {
+                          context.push('/orders/${data['orderId']}');
+                        } else if (data['rfqId'] != null) {
+                          context.push('/rfq/${data['rfqId']}');
+                        }
+                      }
+                    },
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(read ? Icons.notifications_none_rounded : Icons.notifications_active_rounded, color: read ? JaxColors.outline : JaxColors.primary),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(textOf(item['title']), style: JaxText.title), const SizedBox(height: 4), Text(textOf(item['body']), style: JaxText.bodySmall)])),
+                        Container(
+                          height: 48,
+                          width: 48,
+                          decoration: BoxDecoration(
+                            color: read ? JaxColors.surfaceLow : JaxColors.primary.withValues(alpha: .1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(Icons.notifications_active_rounded, color: read ? JaxColors.outline : JaxColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      textOf(item['title']).toUpperCase(),
+                                      style: JaxText.title.copyWith(
+                                        fontSize: 13,
+                                        color: read ? JaxColors.onSurfaceVariant : JaxColors.primaryContainer,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    shortDate(item['createdAt']),
+                                    style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                textOf(item['body']),
+                                style: JaxText.bodySmall.copyWith(
+                                  color: read ? JaxColors.onSurfaceVariant : JaxColors.onSurface,
+                                  fontWeight: read ? FontWeight.w400 : FontWeight.w500,
+                                  height: 1.5,
+                                ),
+                              ),
+                              if (!read) ...[
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Container(height: 6, width: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                                    const SizedBox(width: 6),
+                                    Text('NEW', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 9, letterSpacing: 1.5, fontWeight: FontWeight.w900)),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),

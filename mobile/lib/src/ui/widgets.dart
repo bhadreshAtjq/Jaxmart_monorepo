@@ -410,6 +410,8 @@ class AsyncContent extends StatelessWidget {
     required this.onRetry,
     required this.builder,
     this.emptyTitle = 'Nothing here yet',
+    this.emptyDescription,
+    this.emptyIcon,
     super.key,
   });
 
@@ -417,6 +419,8 @@ class AsyncContent extends StatelessWidget {
   final VoidCallback onRetry;
   final Widget Function(ResourceState state) builder;
   final String emptyTitle;
+  final String? emptyDescription;
+  final IconData? emptyIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +432,7 @@ class AsyncContent extends StatelessWidget {
         action: JaxButton(label: 'Retry', icon: Icons.refresh_rounded, onPressed: onRetry),
       );
     }
-    if (!state.hasData) return EmptyState(icon: Icons.inbox_rounded, title: emptyTitle);
+    if (!state.hasData) return EmptyState(icon: emptyIcon ?? Icons.inbox_rounded, title: emptyTitle, description: emptyDescription);
     return builder(state);
   }
 }

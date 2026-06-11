@@ -3047,20 +3047,26 @@ class SellerDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthCubit>().state.user;
+    final name = textOf(user?['fullName']).split(' ').first;
+    final greeting = name.isNotEmpty ? 'Welcome back, $name' : 'Manage your store and performance';
+
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).sellerDashboard()),
+      create: (_) => ResourceCubit()..load(() => apiOf(context).myListings({}), listKeys: const ['listings']),
       child: JaxPage(
         title: 'Seller Home',
-        subtitle: 'Revenue, orders, quotes, and operations',
-        actions: [IconButton(onPressed: () => context.push('/seller/listings/new'), icon: const Icon(Icons.add_box_rounded))],
+        subtitle: greeting,
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) => AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).sellerDashboard()),
+            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({}), listKeys: const ['listings']),
             builder: (_) {
-              final stats = asMap(state.data['stats']);
-              final orders = asList(state.data['recentOrders']);
+              final listings = state.items;
+              final activeCount = listings.where((l) => l['status'] == 'ACTIVE').length;
+              final totalCount = numOf(state.data['total']) ?? listings.length;
+
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GridView.count(
                     crossAxisCount: 2,
@@ -3070,16 +3076,66 @@ class SellerDashboardScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      StatCard(label: 'Active Orders', value: textOf(stats['activeOrders'], '0')),
-                      StatCard(label: 'Pending Quotes', value: textOf(stats['pendingQuotes'], '0')),
-                      StatCard(label: 'Monthly Revenue', value: money(stats['monthlyRevenue'])),
-                      StatCard(label: 'Total Revenue', value: money(stats['totalRevenue'])),
+                      _SellerStatCard(label: 'ACTIVE PRODUCTS', value: activeCount.toString(), icon: Icons.storefront_rounded),
+                      _SellerStatCard(label: 'TOTAL PRODUCTS', value: totalCount.toString(), icon: Icons.inventory_2_rounded),
+                      const _SellerStatCard(label: 'BUYER REQUESTS', value: '0', sub: 'Coming soon', icon: Icons.inbox_rounded),
+                      const _SellerStatCard(label: 'AVG RATING', value: '4.8', sub: 'Based on 0 reviews', icon: Icons.star_rounded),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  SectionTitle(title: 'Recent Orders', action: () => context.push('/orders?role=seller')),
-                  const SizedBox(height: 10),
-                  if (orders.isEmpty) const EmptyState(title: 'No orders yet') else ...orders.map((o) => Padding(padding: const EdgeInsets.only(bottom: 12), child: OrderTile(item: o))),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _QuickActionCard(
+                          title: 'Add Product',
+                          subtitle: 'List your products or services on JaxMart',
+                          buttonText: 'Manage Products',
+                          icon: Icons.storefront_rounded,
+                          onTap: () => context.push('/seller/listings'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _QuickActionCard(
+                          title: 'Buyer Requests',
+                          subtitle: 'View and respond to buyer requirements',
+                          buttonText: 'View Requests',
+                          icon: Icons.inbox_rounded,
+                          onTap: () => context.push('/seller/rfq-inbox'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: _QuickActionCard(
+                          title: 'Analytics',
+                          subtitle: 'View page visits, enquiries, and conversions',
+                          buttonText: 'Coming Soon',
+                          icon: Icons.trending_up_rounded,
+                          disabled: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  SectionTitle(title: 'Recent Products', action: () => context.push('/seller/listings')),
+                  const SizedBox(height: 12),
+                  if (listings.isEmpty)
+                    EmptyState(
+                      title: 'No products listed yet',
+                      description: 'Create your first product or service listing to start getting enquiries.',
+                      icon: Icons.storefront_rounded,
+                      action: JaxButton(label: 'Create Listing', onPressed: () => context.push('/seller/listings/new')),
+                    )
+                  else
+                    ...listings.take(6).map((l) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: l))),
                 ],
               );
             },
@@ -3090,21 +3146,105 @@ class SellerDashboardScreen extends StatelessWidget {
   }
 }
 
-class StatCard extends StatelessWidget {
-  const StatCard({required this.label, required this.value, super.key});
+class _SellerStatCard extends StatelessWidget {
+  const _SellerStatCard({required this.label, required this.value, this.sub, required this.icon});
   final String label;
   final String value;
+  final String? sub;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return JaxCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label.toUpperCase(), style: JaxText.label),
+          Row(
+            children: [
+              Expanded(child: Text(label, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant, letterSpacing: 1))),
+              Icon(icon, size: 14, color: JaxColors.outline),
+            ],
+          ),
           const SizedBox(height: 10),
           Text(value, style: JaxText.h2),
+          if (sub != null) ...[
+            const SizedBox(height: 4),
+            Text(sub!, style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primary)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({
+    required this.title,
+    required this.subtitle,
+    required this.buttonText,
+    required this.icon,
+    this.onTap,
+    this.disabled = false,
+  });
+
+  final String title;
+  final String subtitle;
+  final String buttonText;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool disabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: JaxColors.secondary.withValues(alpha: .1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: JaxColors.secondaryDark, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: JaxText.title.copyWith(fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 32,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: JaxColors.primary,
+                      side: BorderSide(color: disabled ? JaxColors.outlineVariant : JaxColors.primary),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    onPressed: disabled ? null : onTap,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(buttonText, style: JaxText.label.copyWith(fontSize: 11, color: disabled ? JaxColors.outline : JaxColors.primary)),
+                        if (!disabled) ...[
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_rounded, size: 12, color: JaxColors.primary),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -4511,6 +4651,27 @@ class _ComplianceVaultCard extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class StatCard extends StatelessWidget {
+  const StatCard({required this.label, required this.value, super.key});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return JaxCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label.toUpperCase(), style: JaxText.label),
+          const SizedBox(height: 10),
+          Text(value, style: JaxText.h2),
         ],
       ),
     );

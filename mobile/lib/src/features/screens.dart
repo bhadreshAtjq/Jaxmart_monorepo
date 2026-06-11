@@ -3259,16 +3259,77 @@ class SellerListingsScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => ResourceCubit()..load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
       child: JaxPage(
-        title: 'My Products',
-        subtitle: 'Manage listings and publication status',
-        floatingActionButton: FloatingActionButton.extended(onPressed: () => context.push('/seller/listings/new'), icon: const Icon(Icons.add_rounded), label: const Text('Listing')),
+        topWidget: Row(
+          children: [
+            const Icon(Icons.factory_rounded, color: JaxColors.secondary, size: 14),
+            const SizedBox(width: 8),
+            Text('SUPPLIER INVENTORY MANAGEMENT', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
+          ],
+        ),
+        title: 'MY SOURCING CATALOG',
+        subtitle: 'Control your active factory output and global distribution listings.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) => AsyncContent(
-            state: state,
-            emptyTitle: 'No listings created yet',
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
-            builder: (_) => Column(children: state.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))).toList()),
-          ),
+          builder: (context, state) {
+            final activeSkus = state.items.length;
+
+            return AsyncContent(
+              state: state,
+              emptyTitle: 'Registry Empty',
+              emptyDescription: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+              emptyIcon: Icons.inventory_2_rounded,
+              onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
+              builder: (_) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: JaxColors.surfaceLow,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: JaxColors.outlineVariant),
+                          ),
+                          child: Column(
+                            children: [
+                              Text('ACTIVE SKUS', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0)),
+                              const SizedBox(height: 2),
+                              Text(activeSkus.toString(), style: JaxText.title.copyWith(fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        JaxButton(
+                          label: 'BULK IMPORT',
+                          icon: Icons.upload_file_rounded,
+                          variant: JaxButtonVariant.outline,
+                          onPressed: () {},
+                        ),
+                        const SizedBox(width: 12),
+                        JaxButton(
+                          label: 'ADD NEW PRODUCT',
+                          icon: Icons.add_rounded,
+                          onPressed: () => context.push('/seller/listings/new'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  if (state.items.isEmpty)
+                    EmptyState(
+                      title: 'Registry Empty',
+                      description: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+                      icon: Icons.inventory_2_rounded,
+                      action: JaxButton(label: 'Initial SKU Upload', onPressed: () => context.push('/seller/listings/new')),
+                    )
+                  else
+                    ...state.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

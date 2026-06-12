@@ -3354,6 +3354,40 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   String _type = 'PRODUCT';
   String _category = '';
 
+  // Step 2 Form Controllers
+  final _brand = TextEditingController();
+  final _sku = TextEditingController();
+  final _leadTime = TextEditingController(text: '7');
+  final _country = TextEditingController(text: 'India');
+  final _hsn = TextEditingController();
+  final _gst = TextEditingController(text: '18');
+  final _fobPort = TextEditingController();
+
+  final List<Map<String, TextEditingController>> _customSpecs = [];
+  bool _hasVariants = false;
+  final List<Map<String, TextEditingController>> _variants = [];
+
+  Widget _buildLabeledField(String label, TextEditingController controller, {String? hint, int maxLines = 1, TextInputType? keyboardType, Widget? suffixIcon}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            suffixIcon: suffixIcon,
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -3485,13 +3519,185 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                              },
                            ),
                          ] else if (_step == 2) ...[
-                           Text('STEP 02 / TECHNICAL SPECS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
+                           Text('STEP 02 / SPEC SHEET', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
                            const SizedBox(height: 16),
-                           Text('ENTER PRODUCT DETAILS', style: JaxText.h2),
+                           Text('CORE MARKETPLACE IDENTIFICATION', style: JaxText.h2, textAlign: TextAlign.center),
                            const SizedBox(height: 32),
-                           TextField(controller: _title, decoration: const InputDecoration(labelText: 'TITLE')),
-                           const SizedBox(height: 16),
-                           TextField(controller: _description, minLines: 4, maxLines: 8, decoration: const InputDecoration(labelText: 'DESCRIPTION')),
+                           _buildLabeledField('REGISTRY TITLE', _title, hint: 'e.g. Industrial Grade High-Torque AC Motor 5HP'),
+                           const SizedBox(height: 24),
+                           Row(children: [
+                             Expanded(child: _buildLabeledField('BRAND / MANUFACTURER', _brand, hint: 'Organization name')),
+                             const SizedBox(width: 16),
+                             Expanded(child: _buildLabeledField('PART NUMBER / SKU', _sku, hint: 'Internal registry ID')),
+                           ]),
+                           const SizedBox(height: 24),
+                           Row(children: [
+                             Expanded(child: _buildLabeledField('SOURCING UNIT', _unit, hint: 'Pieces')),
+                             const SizedBox(width: 16),
+                             Expanded(child: _buildLabeledField('GLOBAL LEAD TIME (DAYS)', _leadTime, hint: '7', keyboardType: TextInputType.number)),
+                           ]),
+                           const SizedBox(height: 24),
+                           Row(children: [
+                             Expanded(child: _buildLabeledField('COUNTRY OF ORIGIN', _country, hint: 'India')),
+                             const SizedBox(width: 16),
+                             Expanded(child: _buildLabeledField('HSN CODE', _hsn, hint: 'Harmonized System Nomenclature')),
+                           ]),
+                           const SizedBox(height: 24),
+                           Row(children: [
+                             Expanded(child: _buildLabeledField('GST RATE (%)', _gst, hint: '18', keyboardType: TextInputType.number, suffixIcon: Column(
+                               mainAxisSize: MainAxisSize.min,
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 InkWell(
+                                   onTap: () {
+                                     int val = int.tryParse(_gst.text) ?? 0;
+                                     _gst.text = (val + 1).toString();
+                                   },
+                                   child: const Icon(Icons.arrow_drop_up_rounded, size: 20, color: JaxColors.outline),
+                                 ),
+                                 InkWell(
+                                   onTap: () {
+                                     int val = int.tryParse(_gst.text) ?? 0;
+                                     if (val > 0) _gst.text = (val - 1).toString();
+                                   },
+                                   child: const Icon(Icons.arrow_drop_down_rounded, size: 20, color: JaxColors.outline),
+                                 ),
+                               ],
+                             ))),
+                             const SizedBox(width: 16),
+                             Expanded(child: _buildLabeledField('FOB PORT', _fobPort, hint: 'e.g. Port of Mumbai')),
+                           ]),
+                           const SizedBox(height: 32),
+                           Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                               Expanded(child: Text('KEY PRODUCT SPECIFICATIONS (CUSTOM ATTRIBUTES)', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant))),
+                               TextButton.icon(
+                                 onPressed: () {
+                                   setState(() {
+                                     _customSpecs.add({'key': TextEditingController(), 'value': TextEditingController()});
+                                   });
+                                 },
+                                 icon: const Icon(Icons.add_rounded, size: 14),
+                                 label: const Text('ADD CUSTOM SPEC'),
+                                 style: TextButton.styleFrom(textStyle: JaxText.label.copyWith(fontSize: 10, letterSpacing: 1), foregroundColor: JaxColors.primary),
+                               )
+                             ],
+                           ),
+                           const SizedBox(height: 8),
+                           if (_customSpecs.isNotEmpty) ...[
+                             ..._customSpecs.asMap().entries.map((e) {
+                               final i = e.key;
+                               final item = e.value;
+                               return Padding(
+                                 padding: const EdgeInsets.only(bottom: 12),
+                                 child: Row(
+                                   children: [
+                                     Expanded(child: TextField(controller: item['key'], decoration: const InputDecoration(hintText: 'Specification Name (e.g. Material)', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)))),
+                                     const SizedBox(width: 12),
+                                     Expanded(flex: 2, child: TextField(controller: item['value'], decoration: const InputDecoration(hintText: 'Value (e.g. Stainless Steel 304)', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)))),
+                                     const SizedBox(width: 8),
+                                     IconButton(
+                                       icon: const Icon(Icons.close_rounded, color: JaxColors.error),
+                                       onPressed: () => setState(() => _customSpecs.removeAt(i)),
+                                     )
+                                   ],
+                                 ),
+                               );
+                             }),
+                             const SizedBox(height: 16),
+                           ],
+                           const Divider(height: 32),
+                           Row(
+                             children: [
+                               SizedBox(
+                                 width: 24,
+                                 height: 24,
+                                 child: Checkbox(
+                                   value: _hasVariants,
+                                   onChanged: (v) {
+                                     setState(() {
+                                       _hasVariants = v ?? false;
+                                       if (_hasVariants && _variants.isEmpty) {
+                                         _variants.add({
+                                           'name': TextEditingController(),
+                                           'sku': TextEditingController(),
+                                           'price': TextEditingController(),
+                                           'stock': TextEditingController(text: '100'),
+                                         });
+                                       }
+                                     });
+                                   },
+                                 ),
+                               ),
+                               const SizedBox(width: 12),
+                               Expanded(child: Text('THIS PRODUCT HAS VARIANTS (E.G. SIZE, COLOR, CONFIGURATION OVERRIDES)', style: JaxText.label.copyWith(fontSize: 11, color: JaxColors.primaryContainer))),
+                             ],
+                           ),
+                           if (_hasVariants) ...[
+                             const SizedBox(height: 24),
+                             ..._variants.asMap().entries.map((e) {
+                               final i = e.key;
+                               final variant = e.value;
+                               return Container(
+                                 margin: const EdgeInsets.only(bottom: 16),
+                                 padding: const EdgeInsets.all(16),
+                                 decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(12), border: Border.all(color: JaxColors.outlineVariant)),
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Row(
+                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                       children: [
+                                         Text('VARIANT ${i + 1}', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.secondary)),
+                                         if (_variants.length > 1)
+                                           IconButton(
+                                             icon: const Icon(Icons.delete_outline_rounded, size: 16, color: JaxColors.error),
+                                             padding: EdgeInsets.zero,
+                                             constraints: const BoxConstraints(),
+                                             onPressed: () => setState(() => _variants.removeAt(i)),
+                                           )
+                                       ],
+                                     ),
+                                     const SizedBox(height: 12),
+                                     Row(
+                                       children: [
+                                         Expanded(child: _buildLabeledField('VARIANT NAME', variant['name']!, hint: 'e.g. Red, XL')),
+                                         const SizedBox(width: 12),
+                                         Expanded(child: _buildLabeledField('SKU OVERRIDE', variant['sku']!, hint: 'Unique ID')),
+                                       ],
+                                     ),
+                                     const SizedBox(height: 12),
+                                     Row(
+                                       children: [
+                                         Expanded(child: _buildLabeledField('PRICE OVERRIDE', variant['price']!, hint: 'Leave blank to use base', keyboardType: TextInputType.number)),
+                                         const SizedBox(width: 12),
+                                         Expanded(child: _buildLabeledField('STOCK', variant['stock']!, hint: 'Quantity', keyboardType: TextInputType.number)),
+                                       ],
+                                     ),
+                                   ],
+                                 ),
+                               );
+                             }),
+                             JaxButton(
+                               label: 'ADD ANOTHER VARIANT',
+                               icon: Icons.add_rounded,
+                               variant: JaxButtonVariant.outline,
+                               fullWidth: true,
+                               onPressed: () {
+                                 setState(() {
+                                   _variants.add({
+                                     'name': TextEditingController(),
+                                     'sku': TextEditingController(),
+                                     'price': TextEditingController(),
+                                     'stock': TextEditingController(text: '100'),
+                                   });
+                                 });
+                               },
+                             ),
+                           ],
+                           const SizedBox(height: 32),
+                           _buildLabeledField('MARKET PROSPECTUS (DESCRIPTION)', _description, hint: 'Provide detailed technical specifications, certifications, and capabilities...', maxLines: 6),
                          ] else if (_step == 3) ...[
                            Text('STEP 03 / COMMERCIAL TERMS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
                            const SizedBox(height: 16),
@@ -3530,7 +3736,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                const SizedBox(width: 48),
                                if (_step < 4)
                                  JaxButton(
-                                   label: _step == 1 ? 'PROCEED TO TECHNICAL SPECS' : 'PROCEED TO NEXT STEP',
+                                   label: _step == 1 ? 'PROCEED TO TECHNICAL SPECS' : _step == 2 ? 'PROCEED TO COMMERCIAL TERMS' : 'PROCEED TO MEDIA INDEX',
                                    icon: Icons.arrow_forward_rounded,
                                    onPressed: () => setState(() => _step++),
                                  )

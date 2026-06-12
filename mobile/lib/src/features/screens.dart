@@ -3260,79 +3260,101 @@ class SellerListingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ResourceCubit()..load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
-      child: JaxPage(
-        topWidget: Row(
-          children: [
-            const Icon(Icons.factory_rounded, color: JaxColors.secondary, size: 14),
-            const SizedBox(width: 8),
-            Text('SUPPLIER INVENTORY MANAGEMENT', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
-          ],
-        ),
-        title: 'MY SOURCING CATALOG',
-        subtitle: 'Control your active factory output and global distribution listings.',
-        child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) {
-            final activeSkus = state.items.length;
+      child: BlocBuilder<ResourceCubit, ResourceState>(
+        builder: (context, state) {
+          final activeSkus = state.items.length;
 
-            return AsyncContent(
-              state: state,
-              emptyTitle: 'Registry Empty',
-              emptyDescription: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
-              emptyIcon: Icons.inventory_2_rounded,
-              onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
-              builder: (_) => Column(
+          return JaxPage(
+            scroll: false,
+            topWidget: Row(
+              children: [
+                const Icon(Icons.factory_rounded, color: JaxColors.secondary, size: 14),
+                const SizedBox(width: 8),
+                Text('SUPPLIER INVENTORY MANAGEMENT', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
+              ],
+            ),
+            title: 'MY SOURCING CATALOG',
+            subtitle: 'Control your active factory output and global distribution listings.',
+            child: Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: JaxColors.surfaceLow,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: JaxColors.outlineVariant),
-                          ),
-                          child: Column(
-                            children: [
-                              Text('ACTIVE SKUS', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0)),
-                              const SizedBox(height: 2),
-                              Text(activeSkus.toString(), style: JaxText.title.copyWith(fontSize: 16)),
-                            ],
-                          ),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: JaxColors.surfaceLow,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: JaxColors.outlineVariant),
                         ),
-                        const SizedBox(width: 12),
-                        JaxButton(
-                          label: 'BULK IMPORT',
-                          icon: Icons.upload_file_rounded,
-                          variant: JaxButtonVariant.outline,
-                          onPressed: () {},
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('ACTIVE SKUS', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0)),
+                            const SizedBox(height: 2),
+                            Text(activeSkus.toString(), style: JaxText.title.copyWith(fontSize: 16)),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        JaxButton(
-                          label: 'ADD NEW PRODUCT',
-                          icon: Icons.add_rounded,
-                          onPressed: () => context.push('/seller/listings/new'),
+                      ),
+                      JaxButton(
+                        label: 'BULK IMPORT',
+                        icon: Icons.upload_file_rounded,
+                        variant: JaxButtonVariant.outline,
+                        onPressed: () => showDialog(
+                          context: context,
+                          builder: (context) => const _BulkImportDialog(),
                         ),
-                      ],
-                    ),
+                      ),
+                      JaxButton(
+                        label: 'ADD NEW PRODUCT',
+                        icon: Icons.add_rounded,
+                        onPressed: () => context.push('/seller/listings/new'),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
-                  if (state.items.isEmpty)
-                    EmptyState(
-                      title: 'Registry Empty',
-                      description: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
-                      icon: Icons.inventory_2_rounded,
-                      action: JaxButton(label: 'Initial SKU Upload', onPressed: () => context.push('/seller/listings/new')),
-                    )
-                  else
-                    ...state.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))),
+                  Expanded(
+                    child: AsyncContent(
+                      state: state,
+                      emptyTitle: 'Registry Empty',
+                      emptyDescription: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+                      emptyIcon: Icons.inventory_2_rounded,
+                      onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
+                      builder: (_) {
+                        if (state.items.isEmpty) {
+                          return ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              EmptyState(
+                                title: 'Registry Empty',
+                                description: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+                                icon: Icons.inventory_2_rounded,
+                                action: JaxButton(label: 'Initial SKU Upload', onPressed: () => context.push('/seller/listings/new')),
+                              ),
+                            ],
+                          );
+                        }
+                        return ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: state.items.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ListingTile(item: state.items[index]),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -5547,4 +5569,122 @@ class DashedRectPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _BulkImportDialog extends StatefulWidget {
+  const _BulkImportDialog({Key? key}) : super(key: key);
+  @override
+  State<_BulkImportDialog> createState() => _BulkImportDialogState();
+}
+
+class _BulkImportDialogState extends State<_BulkImportDialog> {
+  PlatformFile? _selectedCsv;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: JaxColors.surface,
+      child: Container(
+        width: 600,
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.description_rounded, color: JaxColors.success, size: 28),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('BULK INVENTORY SYNCHRONIZATION', style: JaxText.h3.copyWith(fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        children: [
+                          Text('FORMAT: TITLE, DESCRIPTION, CATEGORYID, PRICE, SKU', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.outline)),
+                          Text('DOWNLOAD SAMPLE TEMPLATE', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.primaryContainer, decoration: TextDecoration.underline)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 20, color: JaxColors.outline),
+                  onPressed: () => Navigator.of(context).pop(),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Divider(color: JaxColors.outlineVariant, height: 1),
+            const SizedBox(height: 24),
+            CustomPaint(
+              painter: DashedRectPainter(color: JaxColors.outlineVariant, strokeWidth: 1.5, gap: 6.0, borderRadius: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: JaxColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: JaxColors.outlineVariant.withValues(alpha: .2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.cloud_upload_rounded, color: JaxColors.outline, size: 32),
+                    ),
+                    const SizedBox(height: 24),
+                    Text('INITIALIZE DATA STREAM', style: JaxText.h3.copyWith(fontSize: 14)),
+                    const SizedBox(height: 8),
+                    Text('Drag your product CSV here or click to browse. Ensure Category\nIDs match the global registry.', textAlign: TextAlign.center, style: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12)),
+                    const SizedBox(height: 24),
+                    if (_selectedCsv == null)
+                      OutlinedButton(
+                        onPressed: () async {
+                          FilePickerResult? result = await FilePicker.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['csv'],
+                          );
+                          if (result != null && result.files.isNotEmpty) {
+                            setState(() => _selectedCsv = result.files.first);
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: JaxColors.primaryContainer,
+                          side: const BorderSide(color: JaxColors.outlineVariant),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          textStyle: JaxText.label.copyWith(fontSize: 12, letterSpacing: 0),
+                        ),
+                        child: const Text('Select CSV File'),
+                      )
+                    else
+                      Chip(
+                        label: Text(_selectedCsv!.name, style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                        onDeleted: () => setState(() => _selectedCsv = null),
+                        deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                        backgroundColor: JaxColors.surfaceContainer,
+                        side: BorderSide.none,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -4163,7 +4163,7 @@ class _AssetTypeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: selected ? JaxColors.secondaryDark : JaxColors.outlineVariant, width: selected ? 2 : 1),
@@ -4180,7 +4180,10 @@ class _AssetTypeCard extends StatelessWidget {
               child: Icon(icon, color: selected ? Colors.white : JaxColors.outline, size: 32),
             ),
             const SizedBox(height: 24),
-            Text(title, style: JaxText.h3.copyWith(color: selected ? JaxColors.primary : JaxColors.onSurface)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(title, style: JaxText.h3.copyWith(color: selected ? JaxColors.primary : JaxColors.onSurface)),
+            ),
             const SizedBox(height: 12),
             Text(subtitle, textAlign: TextAlign.center, style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0, height: 1.5)),
           ],

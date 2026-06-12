@@ -3367,6 +3367,21 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   bool _hasVariants = false;
   final List<Map<String, TextEditingController>> _variants = [];
 
+  // Step 3 Form Controllers
+  String _pricingModel = 'FIXED UNIT PRICE';
+  final List<Map<String, TextEditingController>> _pricingSlabs = [];
+  final _supplyAbility = TextEditingController();
+  final _deliveryTime = TextEditingController();
+  final _packaging = TextEditingController();
+  final _paymentTerms = TextEditingController();
+  final _warranty = TextEditingController();
+  final _returnPolicy = TextEditingController();
+  bool _sampleAvailable = false;
+  final _sampleCost = TextEditingController();
+  final List<String> _certifications = [];
+  final _customCert = TextEditingController();
+  final List<String> _presetCerts = ['ISO 9001', 'CE Certified', 'RoHS Compliant', 'ISI Mark', 'BIS Standard', 'FSSAI Certified'];
+
   Widget _buildLabeledField(String label, TextEditingController controller, {String? hint, int maxLines = 1, TextInputType? keyboardType, Widget? suffixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3377,11 +3392,14 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          style: JaxText.bodyMedium.copyWith(fontSize: 13),
           decoration: InputDecoration(
             hintText: hint,
+            hintMaxLines: 3,
+            hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
             suffixIcon: suffixIcon,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
         ),
       ],
@@ -3699,17 +3717,237 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                            const SizedBox(height: 32),
                            _buildLabeledField('MARKET PROSPECTUS (DESCRIPTION)', _description, hint: 'Provide detailed technical specifications, certifications, and capabilities...', maxLines: 6),
                          ] else if (_step == 3) ...[
-                           Text('STEP 03 / COMMERCIAL TERMS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
-                           const SizedBox(height: 16),
-                           Text('DEFINE PRICING', style: JaxText.h2),
+                           Center(child: Text('STEP 03 / COMMERCIAL OPS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5, fontSize: 9))),
+                           const SizedBox(height: 8),
+                           Center(child: Text('SUPPLY CHAIN TERMS & PRICING', style: JaxText.h2)),
                            const SizedBox(height: 32),
-                           TextField(controller: _price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'PRICE / BASE PRICE')),
+                           
+                           Row(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               Expanded(
+                                 flex: 2,
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text('PRICING OPERATIONAL MODEL', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                     const SizedBox(height: 8),
+                                     DropdownButtonFormField<String>(
+                                       value: _pricingModel,
+                                       isExpanded: true,
+                                       decoration: const InputDecoration(
+                                         border: OutlineInputBorder(),
+                                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                       ),
+                                       items: ['FIXED UNIT PRICE', 'NEGOTIABLE', 'TIERED PRICING'].map((m) => DropdownMenuItem(value: m, child: Text(m, style: JaxText.bodyMedium.copyWith(fontSize: 13, fontWeight: FontWeight.w600)))).toList(),
+                                       onChanged: (v) => setState(() => _pricingModel = v ?? 'FIXED UNIT PRICE'),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                               const SizedBox(width: 12),
+                               Expanded(
+                                 child: _buildLabeledField('UNIT PRICE (INR)', _price, hint: '0', keyboardType: TextInputType.number),
+                               ),
+                               const SizedBox(width: 12),
+                               Expanded(
+                                 child: _buildLabeledField('MINIMUM ORDER QTY', _moq, hint: '1', keyboardType: TextInputType.number),
+                               ),
+                             ],
+                           ),
+                           const SizedBox(height: 32),
+                           
+                           Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                               Expanded(
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text('TIERED WHOLESALE/BULK PRICING SLABS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
+                                     const SizedBox(height: 4),
+                                     Text('SPECIFY CUSTOM UNIT PRICE BASED ON LARGER VOLUME SIZES.', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.onSurfaceVariant)),
+                                   ],
+                                 ),
+                               ),
+                               const SizedBox(width: 8),
+                               TextButton.icon(
+                                 onPressed: () {
+                                   setState(() {
+                                     _pricingSlabs.add({
+                                       'minQty': TextEditingController(),
+                                       'maxQty': TextEditingController(),
+                                       'unitPrice': TextEditingController()
+                                     });
+                                   });
+                                 },
+                                 icon: const Icon(Icons.add_rounded, size: 14),
+                                 label: const Text('ADD PRICING SLAB'),
+                                 style: TextButton.styleFrom(
+                                   foregroundColor: JaxColors.primaryContainer,
+                                   textStyle: JaxText.label.copyWith(letterSpacing: 1.0, fontSize: 10),
+                                 ),
+                               ),
+                             ],
+                           ),
+                           if (_pricingSlabs.isNotEmpty) const SizedBox(height: 16),
+                           ...List.generate(_pricingSlabs.length, (i) {
+                             final slab = _pricingSlabs[i];
+                             return Padding(
+                               padding: const EdgeInsets.only(bottom: 12),
+                               child: Row(
+                                 crossAxisAlignment: CrossAxisAlignment.end,
+                                 children: [
+                                   Expanded(child: _buildLabeledField('MIN ORDER VOLUME', slab['minQty']!, hint: '1', keyboardType: TextInputType.number)),
+                                   const SizedBox(width: 12),
+                                   Expanded(child: _buildLabeledField('MAX ORDER VOLUME', slab['maxQty']!, hint: '10', keyboardType: TextInputType.number)),
+                                   const SizedBox(width: 12),
+                                   Expanded(child: _buildLabeledField('SLAB UNIT PRICE (INR)', slab['unitPrice']!, hint: '0', keyboardType: TextInputType.number)),
+                                   const SizedBox(width: 12),
+                                   Container(
+                                     decoration: BoxDecoration(
+                                       color: JaxColors.error.withValues(alpha: .08),
+                                       borderRadius: BorderRadius.circular(10),
+                                     ),
+                                     height: 48,
+                                     width: 48,
+                                     child: IconButton(
+                                       icon: const Icon(Icons.close_rounded, size: 20, color: JaxColors.error),
+                                       onPressed: () => setState(() => _pricingSlabs.removeAt(i)),
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             );
+                           }),
+                           const SizedBox(height: 24),
+                           
+                           Row(
+                             children: [
+                               Expanded(child: _buildLabeledField('SUPPLY ABILITY', _supplyAbility, hint: 'e.g. 5000 Metric Tons/Month')),
+                               const SizedBox(width: 16),
+                               Expanded(child: _buildLabeledField('LOGISTICS DELIVERY TIME', _deliveryTime, hint: 'e.g. 10-15 Days after confirmation')),
+                             ],
+                           ),
                            const SizedBox(height: 16),
-                           Row(children: [
-                             Expanded(child: TextField(controller: _moq, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MOQ'))),
-                             const SizedBox(width: 10),
-                             Expanded(child: TextField(controller: _unit, decoration: const InputDecoration(labelText: 'UNIT'))),
-                           ]),
+                           Row(
+                             children: [
+                               Expanded(child: _buildLabeledField('PACKAGING & CARTON SPECIFICATIONS', _packaging, hint: 'e.g. Industrial Palletized, Shrink-wrapped')),
+                               const SizedBox(width: 16),
+                               Expanded(child: _buildLabeledField('STANDARD PAYMENT TERMS', _paymentTerms, hint: 'e.g. 30% Advance, 70% Letter of Credit')),
+                             ],
+                           ),
+                           const SizedBox(height: 16),
+                           Row(
+                             children: [
+                               Expanded(child: _buildLabeledField('WARRANTY DURATION', _warranty, hint: 'e.g. 1 Year Manufacturer Warranty')),
+                               const SizedBox(width: 16),
+                               Expanded(child: _buildLabeledField('INDUSTRIAL RETURN POLICY', _returnPolicy, hint: 'e.g. 15-day return on defective goods')),
+                             ],
+                           ),
+                           const SizedBox(height: 32),
+                           
+                           Row(
+                             children: [
+                               Expanded(
+                                 child: Row(
+                                   children: [
+                                     SizedBox(
+                                       width: 24,
+                                       height: 24,
+                                       child: Checkbox(
+                                         value: _sampleAvailable,
+                                         onChanged: (v) => setState(() => _sampleAvailable = v ?? false),
+                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                       ),
+                                     ),
+                                     const SizedBox(width: 12),
+                                     Expanded(child: Text('EVALUATION SAMPLE AVAILABLE', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer))),
+                                   ],
+                                 ),
+                               ),
+                               if (_sampleAvailable) ...[
+                                 const SizedBox(width: 16),
+                                 Expanded(child: _buildLabeledField('EVALUATION SAMPLE COST (INR)', _sampleCost, hint: 'e.g. 500', keyboardType: TextInputType.number)),
+                               ] else
+                                 const Expanded(child: SizedBox()),
+                             ],
+                           ),
+                           const SizedBox(height: 32),
+                           
+                           Text('REGULATORY COMPLIANCE & CERTIFICATIONS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                           const SizedBox(height: 16),
+                           Wrap(
+                             spacing: 8,
+                             runSpacing: 12,
+                             children: [
+                               ..._presetCerts.map((cert) {
+                                 final isSelected = _certifications.contains(cert);
+                                 return ChoiceChip(
+                                   label: Text(cert, style: JaxText.label.copyWith(fontSize: 10, color: isSelected ? Colors.white : JaxColors.primaryContainer)),
+                                   selected: isSelected,
+                                   selectedColor: JaxColors.primaryContainer,
+                                   backgroundColor: Colors.transparent,
+                                   shape: RoundedRectangleBorder(
+                                     borderRadius: BorderRadius.circular(20),
+                                     side: BorderSide(color: isSelected ? JaxColors.primaryContainer : JaxColors.outlineVariant),
+                                   ),
+                                   onSelected: (v) {
+                                     setState(() {
+                                       if (v) _certifications.add(cert);
+                                       else _certifications.remove(cert);
+                                     });
+                                   },
+                                 );
+                               }),
+                               ..._certifications.where((c) => !_presetCerts.contains(c)).map((cert) {
+                                 return Chip(
+                                   label: Text(cert, style: JaxText.label.copyWith(fontSize: 10, color: Colors.white)),
+                                   backgroundColor: JaxColors.primaryContainer,
+                                   deleteIconColor: Colors.white,
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: JaxColors.primaryContainer)),
+                                   onDeleted: () => setState(() => _certifications.remove(cert)),
+                                 );
+                               }),
+                             ],
+                           ),
+                           const SizedBox(height: 16),
+                           Row(
+                             children: [
+                               Expanded(
+                                 child: TextField(
+                                   controller: _customCert,
+                                   style: JaxText.bodyMedium.copyWith(fontSize: 13),
+                                   decoration: InputDecoration(
+                                     hintText: 'Add Custom Certification...',
+                                     hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
+                                     filled: true,
+                                     fillColor: JaxColors.surfaceContainer,
+                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                   ),
+                                 ),
+                               ),
+                               const SizedBox(width: 12),
+                               ElevatedButton(
+                                 onPressed: () {
+                                   if (_customCert.text.trim().isNotEmpty) {
+                                     setState(() {
+                                       _certifications.add(_customCert.text.trim());
+                                       _customCert.clear();
+                                     });
+                                   }
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: JaxColors.primaryContainer,
+                                   foregroundColor: Colors.white,
+                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                 ),
+                                 child: Text('ADD', style: JaxText.label.copyWith(fontSize: 11, color: Colors.white)),
+                               ),
+                             ],
+                           ),
                          ] else ...[
                            Text('STEP 04 / MEDIA INDEX', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
                            const SizedBox(height: 16),

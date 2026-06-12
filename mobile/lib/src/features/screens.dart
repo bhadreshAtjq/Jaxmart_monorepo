@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../core/api_client.dart';
 import '../core/auth_cubit.dart';
@@ -3367,6 +3369,9 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   bool _hasVariants = false;
   final List<Map<String, TextEditingController>> _variants = [];
 
+  // Step 4 Form Controllers
+  final List<PlatformFile> _selectedFiles = [];
+
   // Step 3 Form Controllers
   String _pricingModel = 'FIXED UNIT PRICE';
   final List<Map<String, TextEditingController>> _pricingSlabs = [];
@@ -3949,11 +3954,94 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                              ],
                            ),
                          ] else ...[
-                           Text('STEP 04 / MEDIA INDEX', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
-                           const SizedBox(height: 16),
-                           Text('REVIEW AND PUBLISH', style: JaxText.h2),
-                           const SizedBox(height: 32),
-                           const Text('All steps completed. Ready to publish to registry.'),
+                           Center(child: Text('STEP 04 / CORE MEDIA', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5, fontSize: 9))),
+                           const SizedBox(height: 8),
+                           Center(child: Text('VISUAL ASSET REGISTRY', style: JaxText.h2)),
+                           const SizedBox(height: 48),
+                           Center(
+                             child: GestureDetector(
+                               onTap: () async {
+                                 FilePickerResult? result = await FilePicker.pickFiles(
+                                   allowMultiple: true,
+                                   type: FileType.custom,
+                                   allowedExtensions: ['jpg', 'png', 'jpeg', 'mp4', 'pdf'],
+                                 );
+                                 if (result != null) {
+                                   setState(() {
+                                     _selectedFiles.addAll(result.files);
+                                   });
+                                 }
+                               },
+                               child: CustomPaint(
+                                 painter: DashedRectPainter(color: JaxColors.outlineVariant, strokeWidth: 1.5, gap: 6.0, borderRadius: 24),
+                                 child: Container(
+                                   width: 160,
+                                   height: 160,
+                                   decoration: BoxDecoration(
+                                     color: JaxColors.surface,
+                                     borderRadius: BorderRadius.circular(24),
+                                   ),
+                                   child: Column(
+                                     mainAxisAlignment: MainAxisAlignment.center,
+                                     children: [
+                                       Container(
+                                         padding: const EdgeInsets.all(12),
+                                         decoration: BoxDecoration(
+                                           color: JaxColors.outlineVariant.withValues(alpha: .2),
+                                           shape: BoxShape.circle,
+                                         ),
+                                         child: const Icon(Icons.cloud_upload_rounded, color: JaxColors.outline, size: 24),
+                                       ),
+                                       const SizedBox(height: 16),
+                                       Text('ADD VISUAL ASSET', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primaryContainer)),
+                                       const SizedBox(height: 6),
+                                       Text('MAX 5MB PER FILE', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.onSurfaceVariant)),
+                                     ],
+                                   ),
+                                 ),
+                               ),
+                             ),
+                           ),
+                           if (_selectedFiles.isNotEmpty) ...[
+                             const SizedBox(height: 24),
+                             Wrap(
+                               spacing: 8,
+                               runSpacing: 8,
+                               children: _selectedFiles.map((f) => Chip(
+                                 label: Text(f.name, style: JaxText.bodySmall.copyWith(fontSize: 10)),
+                                 onDeleted: () => setState(() => _selectedFiles.remove(f)),
+                                 deleteIcon: const Icon(Icons.close_rounded, size: 14),
+                               )).toList(),
+                             ),
+                           ],
+                           const SizedBox(height: 48),
+                           Container(
+                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                             decoration: BoxDecoration(
+                               color: JaxColors.success.withValues(alpha: .12),
+                               borderRadius: BorderRadius.circular(12),
+                             ),
+                             child: Row(
+                               children: [
+                                 Container(
+                                   padding: const EdgeInsets.all(4),
+                                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                                   child: const Icon(Icons.check_rounded, color: JaxColors.success, size: 16),
+                                 ),
+                                 const SizedBox(width: 16),
+                                 Expanded(
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('READY FOR MARKET INJECTION', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.success)),
+                                       const SizedBox(height: 4),
+                                       Text('REGISTRY DATA IS COHERENT AND READY FOR SYNCHRONIZATION.', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.success.withValues(alpha: .8))),
+                                     ],
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ),
                          ],
                          
                          const SizedBox(height: 48),
@@ -3980,8 +4068,8 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                  )
                                else
                                  JaxButton(
-                                   label: 'PUBLISH TO REGISTRY',
-                                   icon: Icons.save_rounded,
+                                   label: 'INJECT INTO MARKETPLACE',
+                                   icon: Icons.check_rounded,
                                    loading: state.status == ResourceStatus.submitting,
                                    onPressed: () => context.read<FormSubmitCubit>().submit(() => apiOf(context).createListing({
                                          'listingType': _type,
@@ -5426,4 +5514,37 @@ class AdminScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class DashedRectPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+  final double borderRadius;
+
+  DashedRectPainter({required this.color, required this.strokeWidth, required this.gap, required this.borderRadius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(borderRadius)));
+
+    final dashPath = Path();
+    double distance = 0.0;
+    for (PathMetric pathMetric in path.computeMetrics()) {
+      while (distance < pathMetric.length) {
+        dashPath.addPath(pathMetric.extractPath(distance, distance + gap), Offset.zero);
+        distance += gap * 2;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

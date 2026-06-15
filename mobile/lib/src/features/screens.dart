@@ -231,7 +231,7 @@ class HomeScreen extends StatelessWidget {
                 CategoryGrid(categories: asList(state.data['categories'])),
                 if (asList(state.data['rfqs']).isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  SectionTitle(title: 'Active RFQ Requests', action: () => context.push('/seller/rfq-inbox')),
+                  SectionTitle(title: 'Active RFQ Requests', action: () => context.push('/rfq')),
                   const SizedBox(height: 12),
                   ...asList(state.data['rfqs']).take(4).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: RfqTile(item: item, sellerMode: true))),
                 ],
@@ -3741,12 +3741,36 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                  padding: const EdgeInsets.only(bottom: 12),
                                  child: Row(
                                    children: [
-                                     Expanded(child: TextField(controller: item['key'], decoration: const InputDecoration(hintText: 'Specification Name (e.g. Material)', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)))),
-                                     const SizedBox(width: 12),
-                                     Expanded(flex: 2, child: TextField(controller: item['value'], decoration: const InputDecoration(hintText: 'Value (e.g. Stainless Steel 304)', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)))),
+                                     Expanded(
+                                       child: TextField(
+                                         controller: item['key'],
+                                         style: JaxText.bodyMedium.copyWith(fontSize: 13),
+                                         decoration: InputDecoration(
+                                           hintText: 'Spec (e.g. Material)',
+                                           hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
+                                           border: const OutlineInputBorder(),
+                                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                         ),
+                                       ),
+                                     ),
                                      const SizedBox(width: 8),
+                                     Expanded(
+                                       child: TextField(
+                                         controller: item['value'],
+                                         style: JaxText.bodyMedium.copyWith(fontSize: 13),
+                                         decoration: InputDecoration(
+                                           hintText: 'Value (e.g. Steel)',
+                                           hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
+                                           border: const OutlineInputBorder(),
+                                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                         ),
+                                       ),
+                                     ),
+                                     const SizedBox(width: 4),
                                      IconButton(
-                                       icon: const Icon(Icons.close_rounded, color: JaxColors.error),
+                                       icon: const Icon(Icons.close_rounded, color: JaxColors.error, size: 20),
+                                       padding: EdgeInsets.zero,
+                                       constraints: const BoxConstraints(),
                                        onPressed: () => setState(() => _customSpecs.removeAt(i)),
                                      )
                                    ],

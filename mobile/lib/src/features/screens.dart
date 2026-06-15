@@ -1805,16 +1805,29 @@ class RfqListScreen extends StatefulWidget {
 }
 
 class _RfqListScreenState extends State<RfqListScreen> {
-  String _tab = 'OPEN';
+  late String _tab;
   String _search = '';
   final _searchCtrl = TextEditingController();
 
   bool get sellerMode => widget.sellerMode;
 
-  static const _tabs = ['OPEN', 'AWARDED', 'CLOSED'];
+  List<String> get _currentTabs => sellerMode ? const ['ALL REQUESTS', 'MATCHED REQUESTS'] : const ['OPEN', 'AWARDED', 'CLOSED'];
+
+  @override
+  void initState() {
+    super.initState();
+    _tab = widget.sellerMode ? 'ALL REQUESTS' : 'OPEN';
+  }
 
   List<JsonMap> _filtered(List<JsonMap> items) {
     return items.where((item) {
+      if (sellerMode) {
+        final matchTab = true; // In mock data, all requests match since categories aren't strictly filtered here
+        final matchSearch = _search.isEmpty ||
+            textOf(item['title']).toLowerCase().contains(_search.toLowerCase()) ||
+            textOf(item['description']).toLowerCase().contains(_search.toLowerCase());
+        return matchTab && matchSearch;
+      }
       final status = textOf(item['status']).toUpperCase();
       final matchTab = _tab == 'OPEN'
           ? (status == 'OPEN' || status.isEmpty)
@@ -1845,7 +1858,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
           listKeys: const ['rfqs'],
         ),
       child: JaxPage(
-        title: sellerMode ? 'Buyer Requests' : 'My Requests',
+        title: sellerMode ? 'BUYER REQUESTS' : 'My Requests',
         topWidget: sellerMode ? null : Row(
           children: [
             Row(
@@ -1945,22 +1958,47 @@ class _RfqListScreenState extends State<RfqListScreen> {
                 if (!sellerMode) const SizedBox(height: 16),
 
                 // ── Tabs + Search ─────────────────────────────────────────
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Tabs
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Container(
+                if (sellerMode)
+                  // For seller mode, try to fit search and tabs in a wrap to match the requested layout
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      // Search
+                      Container(
+                        width: 250,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .02), blurRadius: 4, offset: const Offset(0, 2))],
+                        ),
+                        child: TextField(
+                          controller: _searchCtrl,
+                          onChanged: (v) => setState(() => _search = v),
+                          decoration: InputDecoration(
+                            hintText: 'Search keywords...',
+                            hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                            prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant, width: 0.5)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant, width: 0.5)),
+                          ),
+                        ),
+                      ),
+                      // Tabs
+                      Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
-                          color: JaxColors.surfaceLow,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: JaxColors.outlineVariant),
+                          border: Border.all(color: JaxColors.outlineVariant, width: 0.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: _tabs.map((tab) {
+                          children: _currentTabs.map((tab) {
                             final selected = _tab == tab;
                             return GestureDetector(
                               onTap: () => setState(() => _tab = tab),
@@ -1968,15 +2006,16 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 duration: const Duration(milliseconds: 180),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: selected ? JaxColors.primaryContainer : Colors.transparent,
+                                  color: selected ? const Color(0xFF16104A) : Colors.transparent, // Dark blue from image
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   tab,
                                   style: JaxText.label.copyWith(
-                                    fontSize: 12,
-                                    color: selected ? Colors.white : JaxColors.onSurfaceVariant,
-                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                    fontSize: 10,
+                                    letterSpacing: 0.5,
+                                    color: selected ? Colors.white : JaxColors.onSurfaceVariant.withValues(alpha: .6),
+                                    fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                                   ),
                                 ),
                               ),
@@ -1984,32 +2023,94 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           }).toList(),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Search
-                    SizedBox(
-                      height: 42,
-                      child: TextField(
-                        controller: _searchCtrl,
-                        onChanged: (v) => setState(() => _search = v),
-                        decoration: InputDecoration(
-                          hintText: 'Search requests...',
-                          hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant)),
+                    ],
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Tabs
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: JaxColors.surfaceLow,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: JaxColors.outlineVariant),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _currentTabs.map((tab) {
+                              final selected = _tab == tab;
+                              return GestureDetector(
+                                onTap: () => setState(() => _tab = tab),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                  decoration: BoxDecoration(
+                                    color: selected ? JaxColors.primaryContainer : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    tab,
+                                    style: JaxText.label.copyWith(
+                                      fontSize: 12,
+                                      color: selected ? Colors.white : JaxColors.onSurfaceVariant,
+                                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                      const SizedBox(height: 12),
+                      // Search
+                      SizedBox(
+                        height: 42,
+                        child: TextField(
+                          controller: _searchCtrl,
+                          onChanged: (v) => setState(() => _search = v),
+                          decoration: InputDecoration(
+                            hintText: 'Search requests...',
+                            hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                            prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 24),
 
                 // ── Results / Empty state ─────────────────────────────────
                 if (state.status == ResourceStatus.loading && !state.hasData)
                   const PageLoader()
                 else if (filtered.isEmpty)
-                  _EmptyRequests(onPost: () => context.push('/rfq/create'))
+                  sellerMode 
+                    ? JaxCard(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.inbox_rounded, size: 48, color: Colors.grey.shade400),
+                              const SizedBox(height: 16),
+                              Text('Inbox is empty', style: JaxText.h3.copyWith(color: const Color(0xFF16104A))),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Requests matching your categories will appear here.',
+                                textAlign: TextAlign.center,
+                                style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _EmptyRequests(onPost: () => context.push('/rfq/create'))
                 else
                   Column(
                     children: filtered
@@ -2023,11 +2124,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
                 const SizedBox(height: 20),
 
                 // ── Tips card ─────────────────────────────────────────────
-                JaxCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                if (!sellerMode)
+                  JaxCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

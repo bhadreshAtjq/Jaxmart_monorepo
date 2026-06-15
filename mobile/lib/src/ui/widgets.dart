@@ -92,7 +92,7 @@ class AppShell extends StatelessWidget {
     final items = isSellerView
         ? const [
             _NavItem('/seller/dashboard', Icons.dashboard_rounded, 'Seller'),
-            _NavItem('/seller/rfq-inbox', Icons.inbox_rounded, 'RFQs'),
+            _NavItem('/seller/rfq-inbox', Icons.inbox_rounded, 'Buyer Requests'),
             _NavItem('/seller/listings', Icons.storefront_rounded, 'Products'),
             _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
             _NavItem('/profile', Icons.person_rounded, 'Profile'),

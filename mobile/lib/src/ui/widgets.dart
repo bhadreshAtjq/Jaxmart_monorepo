@@ -102,6 +102,7 @@ class AppShell extends StatelessWidget {
             _NavItem('/search', Icons.search_rounded, 'Products'),
             _NavItem('/rfq', Icons.description_rounded, 'Buyer Requests'),
             _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
+            _NavItem('/seller/dashboard', Icons.dashboard_rounded, 'Dashboard'),
             _NavItem('/profile', Icons.person_rounded, 'Profile'),
           ];
 
@@ -139,6 +140,9 @@ class AppShell extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            selectedFontSize: 10,
+            unselectedFontSize: 10,
             currentIndex: _activeIndex(location, items),
             onTap: (index) => context.go(items[index].path),
             items: items

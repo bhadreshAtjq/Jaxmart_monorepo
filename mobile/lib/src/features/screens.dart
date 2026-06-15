@@ -3893,7 +3893,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                          border: OutlineInputBorder(),
                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                        ),
-                                       items: ['FIXED UNIT PRICE', 'NEGOTIABLE', 'TIERED PRICING'].map((m) => DropdownMenuItem(value: m, child: Text(m, style: JaxText.bodyMedium.copyWith(fontSize: 13, fontWeight: FontWeight.w600)))).toList(),
+                                       items: ['FIXED UNIT PRICE', 'VARIABLE PRICE RANGE', 'NEGOTIABLE', 'RFQ MODE'].map((m) => DropdownMenuItem(value: m, child: Text(m, style: JaxText.bodyMedium.copyWith(fontSize: 13, fontWeight: FontWeight.w600)))).toList(),
                                        onChanged: (v) => setState(() => _pricingModel = v ?? 'FIXED UNIT PRICE'),
                                      ),
                                    ],

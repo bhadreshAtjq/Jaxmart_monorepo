@@ -216,7 +216,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 18),
                 const InstantRfqCard(),
                 const SizedBox(height: 22),
-                SectionTitle(title: 'Premium Bulk Listings', action: () => context.push('/search')),
+                SectionTitle(title: 'Premium Bulk Listings', actionText: 'Browse All Products', action: () => context.push('/search')),
                 const SizedBox(height: 12),
                 ...asList(state.data['featured']).take(6).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))),
                 const SizedBox(height: 10),
@@ -743,16 +743,17 @@ class CategoryGrid extends StatelessWidget {
 }
 
 class SectionTitle extends StatelessWidget {
-  const SectionTitle({required this.title, this.action, super.key});
+  const SectionTitle({required this.title, this.action, this.actionText = 'View all', super.key});
   final String title;
   final VoidCallback? action;
+  final String actionText;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(child: Text(title, style: JaxText.h3)),
-        if (action != null) TextButton(onPressed: action, child: const Text('View all')),
+        if (action != null) TextButton(onPressed: action, child: Text(actionText)),
       ],
     );
   }

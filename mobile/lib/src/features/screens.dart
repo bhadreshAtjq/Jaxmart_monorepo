@@ -3678,7 +3678,26 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                            Row(children: [
                              Expanded(child: _buildLabeledField('SOURCING UNIT', _unit, hint: 'Pieces')),
                              const SizedBox(width: 16),
-                             Expanded(child: _buildLabeledField('GLOBAL LEAD TIME (DAYS)', _leadTime, hint: '7', keyboardType: TextInputType.number)),
+                             Expanded(child: _buildLabeledField('GLOBAL LEAD TIME (DAYS)', _leadTime, hint: '7', keyboardType: TextInputType.number, suffixIcon: Column(
+                               mainAxisSize: MainAxisSize.min,
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 InkWell(
+                                   onTap: () {
+                                     int val = int.tryParse(_leadTime.text) ?? 0;
+                                     _leadTime.text = (val + 1).toString();
+                                   },
+                                   child: const Icon(Icons.arrow_drop_up_rounded, size: 20, color: JaxColors.outline),
+                                 ),
+                                 InkWell(
+                                   onTap: () {
+                                     int val = int.tryParse(_leadTime.text) ?? 0;
+                                     if (val > 0) _leadTime.text = (val - 1).toString();
+                                   },
+                                   child: const Icon(Icons.arrow_drop_down_rounded, size: 20, color: JaxColors.outline),
+                                 ),
+                               ],
+                             ))),
                            ]),
                            const SizedBox(height: 24),
                            Row(children: [

@@ -18,7 +18,7 @@ class AppRouter {
             final location = state.uri.path;
             final isSplash = location == '/splash';
             final authRoute = location.startsWith('/auth');
-            if (auth.status == AuthStatus.unknown || auth.status == AuthStatus.loading) {
+            if (auth.status == AuthStatus.unknown || (auth.status == AuthStatus.loading && isSplash)) {
               return isSplash ? null : '/splash';
             }
             if (isSplash) return auth.isLoggedIn ? '/home' : '/auth/login';

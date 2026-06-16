@@ -96,15 +96,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         onSelectionChanged: (value) => setState(() => _type = value.first),
                       ),
                       JaxButton(
-                        label: 'Log In (Mock Data)',
+                        label: 'Send OTP',
                         fullWidth: true,
                         loading: state.status == AuthStatus.loading,
-                        icon: Icons.login_rounded,
-                        onPressed: () => context.read<AuthCubit>().mockLogin(
-                          phone: _phone.text,
-                          fullName: _name.text,
-                          userType: _type,
-                        ),
+                        icon: Icons.send_rounded,
+                        onPressed: () => context.read<AuthCubit>().sendOtp(_phone.text),
                       ),
                     ],
                   );
@@ -275,9 +271,9 @@ class SupplierJoinCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                context.read<AuthCubit>().promoteToSellerMock();
-                context.push('/seller/dashboard');
+              onPressed: () async {
+                await context.read<AuthCubit>().updateProfile({'userType': 'SELLER'});
+                if (context.mounted) context.push('/seller/dashboard');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
@@ -1823,7 +1819,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
   List<JsonMap> _filtered(List<JsonMap> items) {
     return items.where((item) {
       if (sellerMode) {
-        final matchTab = true; // In mock data, all requests match since categories aren't strictly filtered here
+        final matchTab = true;
         final matchSearch = _search.isEmpty ||
             textOf(item['title']).toLowerCase().contains(_search.toLowerCase()) ||
             textOf(item['description']).toLowerCase().contains(_search.toLowerCase());
@@ -4357,7 +4353,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           builder: (context, state) {
             final allItems = state.items;
             
-            // Calculate mock stats
+            // Calculate stats
             final activeCount = allItems.where((i) {
               final s = textOf(i['status']).toUpperCase();
               return s == 'OPEN' || s == 'IN_PROGRESS' || s == 'SHIPPED';

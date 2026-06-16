@@ -44,3 +44,4 @@ Thumbs.db
 # Project Specific
 backend/prisma/migrations/
 web/public/uploads/
+mobile/

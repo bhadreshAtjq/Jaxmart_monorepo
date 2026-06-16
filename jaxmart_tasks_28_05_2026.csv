@@ -1,0 +1,7 @@
+Task Number,Description,Category,Status
+1,Designed and implemented a real-time notification alert modal that pops up on login/page load when unread notifications are present,Development,Completed
+2,Made all notifications clickable with direct dynamic navigation links to the relevant order contract or RFQ context,Development,Completed
+3,Created an interactive contract rejection API route that unlinks cancelled orders from parent conversations, enabling seamless renegotiation,Development,Completed
+4,Resolved a header bar status bug by checking proposer authorship, hiding the self-signing option from the proposing party,Bug Fix / Optimization,Completed
+5,Corrected CREATED order status badge label mapping from 'Processing' to 'Proposed' to avoid confusing UI states during pending signature,Bug Fix / Optimization,Completed
+6,Optimized database seeding with a batch script that concurrent-inserted 300 B2B listings and 15 mock companies,Development,Completed

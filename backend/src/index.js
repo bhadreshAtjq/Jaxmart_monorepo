@@ -46,7 +46,8 @@ const io = new Server(httpServer, {
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       const isVercel = origin.endsWith('.vercel.app');
-      if (allowedOrigins.includes(origin) || isVercel) {
+      const isRender = origin.endsWith('.onrender.com');
+      if (allowedOrigins.includes(origin) || isVercel || isRender) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -64,7 +65,8 @@ app.use(cors({
     if (!origin) return callback(null, true);
 
     const isVercel = origin.endsWith('.vercel.app');
-    const isAllowed = allowedOrigins.includes(origin) || isVercel;
+    const isRender = origin.endsWith('.onrender.com');
+    const isAllowed = allowedOrigins.includes(origin) || isVercel || isRender;
 
     if (isAllowed) {
       callback(null, true);

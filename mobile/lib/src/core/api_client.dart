@@ -9,7 +9,7 @@ class JaxApiClient {
   JaxApiClient({String? baseUrl})
       : _baseUrl = baseUrl ?? const String.fromEnvironment(
           'JAXMART_API_URL',
-          defaultValue: 'http://192.168.1.12:4000/api',
+          defaultValue: 'https://jaxmart-monorepo.onrender.com/api',
         ) {
     _dio = Dio(
       BaseOptions(

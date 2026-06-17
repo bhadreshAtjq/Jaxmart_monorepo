@@ -506,10 +506,11 @@ class EmptyState extends StatelessWidget {
 }
 
 class ListingTile extends StatelessWidget {
-  const ListingTile({required this.item, this.grid = false, this.showChat = false, super.key});
+  const ListingTile({required this.item, this.grid = false, this.showChat = false, this.isSellerMode = false, super.key});
   final JsonMap item;
   final bool grid;
   final bool showChat;
+  final bool isSellerMode;
 
   @override
   Widget build(BuildContext context) {
@@ -598,7 +599,68 @@ class ListingTile extends StatelessWidget {
           ),
         ),
       ],
+      if (isSellerMode) ...[
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildManagementButton(
+              context: context,
+              icon: Icons.open_in_new_rounded,
+              color: JaxColors.primary,
+              onTap: () => context.push('/listings/${item['id']}'),
+            ),
+            const SizedBox(width: 8),
+            _buildManagementButton(
+              context: context,
+              icon: Icons.edit_rounded,
+              color: JaxColors.secondary,
+              onTap: () => context.push('/seller/listings/${item['id']}/edit'),
+            ),
+            const SizedBox(width: 8),
+            _buildManagementButton(
+              context: context,
+              icon: Icons.delete_outline_rounded,
+              color: JaxColors.error,
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Shielded: Cannot delete active inventory'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
     ];
+  }
+
+  Widget _buildManagementButton({
+    required BuildContext context,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.06),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: color, size: 18),
+        ),
+      ),
+    );
   }
 }
 

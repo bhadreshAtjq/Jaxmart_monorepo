@@ -3442,7 +3442,7 @@ class SellerListingsScreen extends StatelessWidget {
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: ListingTile(item: state.items[index]),
+                              child: ListingTile(item: state.items[index], isSellerMode: true),
                             );
                           },
                         );
@@ -3460,13 +3460,16 @@ class SellerListingsScreen extends StatelessWidget {
 }
 
 class ListingFormScreen extends StatefulWidget {
-  const ListingFormScreen({super.key});
+  const ListingFormScreen({this.listingId, super.key});
+  final String? listingId;
 
   @override
   State<ListingFormScreen> createState() => _ListingFormScreenState();
 }
 
 class _ListingFormScreenState extends State<ListingFormScreen> {
+  bool _isLoadingListing = false;
+  JsonMap? _editingListing;
   int _step = 1;
   final _title = TextEditingController();
   final _description = TextEditingController();
@@ -3507,6 +3510,112 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   final List<String> _certifications = [];
   final _customCert = TextEditingController();
   final List<String> _presetCerts = ['ISO 9001', 'CE Certified', 'RoHS Compliant', 'ISI Mark', 'BIS Standard', 'FSSAI Certified'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.listingId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadListingForEditing();
+      });
+    }
+  }
+
+  Future<void> _loadListingForEditing() async {
+    setState(() => _isLoadingListing = true);
+    try {
+      final api = apiOf(context);
+      final data = await api.listing(widget.listingId!);
+      setState(() {
+        _editingListing = data;
+        _isLoadingListing = false;
+        _populateFields(data);
+      });
+    } catch (e) {
+      setState(() => _isLoadingListing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load listing for editing: $e')),
+        );
+      }
+    }
+  }
+
+  void _populateFields(JsonMap data) {
+    final product = asMap(data['productDetail']);
+    _type = textOf(data['listingType'], 'PRODUCT');
+    _category = textOf(data['categoryId']);
+    _tags.text = asList(data['tags']).join(', ');
+    _title.text = textOf(data['title']);
+    _description.text = textOf(data['description']);
+    _price.text = (_type == 'PRODUCT' ? product['pricePerUnit'] : data['basePrice'])?.toString() ?? '';
+    _moq.text = product['minOrderQty']?.toString() ?? '1';
+    _unit.text = (_type == 'PRODUCT' ? product['unitOfMeasure'] : data['priceUnit'])?.toString() ?? 'Pieces';
+    
+    // Step 2 details
+    _brand.text = textOf(product['brand']);
+    _sku.text = textOf(product['sku']);
+    _leadTime.text = product['leadTimeDays']?.toString() ?? '7';
+    _country.text = textOf(product['countryOfOrigin'], 'India');
+    _hsn.text = textOf(product['hsnCode']);
+    _gst.text = product['gstRate']?.toString() ?? '18';
+    _fobPort.text = textOf(product['fobPort']);
+
+    // custom specs
+    final specs = asList(product['customSpecs']);
+    _customSpecs.clear();
+    for (var spec in specs) {
+      final specMap = asMap(spec);
+      _customSpecs.add({
+        'key': TextEditingController(text: textOf(specMap['key'])),
+        'value': TextEditingController(text: textOf(specMap['value'])),
+      });
+    }
+
+    // variants
+    final variants = asList(product['variants']);
+    _hasVariants = variants.isNotEmpty;
+    _variants.clear();
+    for (var v in variants) {
+      final vMap = asMap(v);
+      _variants.add({
+        'name': TextEditingController(text: textOf(vMap['name'])),
+        'sku': TextEditingController(text: textOf(vMap['sku'])),
+        'price': TextEditingController(text: vMap['price']?.toString() ?? ''),
+        'stock': TextEditingController(text: vMap['stock']?.toString() ?? '100'),
+      });
+    }
+
+    // step 3 commercial terms
+    _pricingModel = textOf(product['pricingModel'], 'FIXED UNIT PRICE');
+    
+    final slabs = asList(product['pricingSlabs']);
+    _pricingSlabs.clear();
+    for (var slab in slabs) {
+      final slabMap = asMap(slab);
+      _pricingSlabs.add({
+        'minQty': TextEditingController(text: slabMap['minQty']?.toString() ?? ''),
+        'maxQty': TextEditingController(text: slabMap['maxQty']?.toString() ?? ''),
+        'unitPrice': TextEditingController(text: slabMap['unitPrice']?.toString() ?? ''),
+      });
+    }
+
+    _supplyAbility.text = textOf(product['supplyAbility']);
+    _deliveryTime.text = textOf(product['deliveryTime']);
+    _packaging.text = textOf(product['packaging']);
+    _paymentTerms.text = textOf(product['paymentTerms']);
+    _warranty.text = textOf(product['warranty']);
+    _returnPolicy.text = textOf(product['returnPolicy']);
+    _sampleAvailable = product['sampleAvailable'] == true;
+    _sampleCost.text = product['sampleCost']?.toString() ?? '';
+
+    // certifications
+    final certs = asList(product['certifications']);
+    _certifications.clear();
+    for (var cert in certs) {
+      _certifications.add(cert.toString());
+    }
+  }
 
   Widget _buildLabeledField(String label, TextEditingController controller, {String? hint, int maxLines = 1, TextInputType? keyboardType, Widget? suffixIcon}) {
     return Column(
@@ -3551,8 +3660,10 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
             ],
           ),
         ),
-        title: 'INITIALIZE STOREFRONT SKU',
-        subtitle: 'Provision a new industrial product or technical service into the global search index.',
+        title: widget.listingId != null ? 'EDIT STOREFRONT SKU' : 'INITIALIZE STOREFRONT SKU',
+        subtitle: widget.listingId != null
+            ? 'Modify existing technical specifications, commercial terms, and inventory data.'
+            : 'Provision a new industrial product or technical service into the global search index.',
         child: Builder(
           builder: (context) => BlocConsumer<FormSubmitCubit, ResourceState>(
             listener: (context, state) {
@@ -3560,6 +3671,14 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
               if (state.message == 'Saved successfully') context.go('/seller/listings');
             },
             builder: (context, state) {
+              if (_isLoadingListing) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 64),
+                    child: PageLoader(),
+                  ),
+                );
+              }
               return Column(
                 children: [
                    SingleChildScrollView(
@@ -4232,23 +4351,92 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                  )
                                else
                                  JaxButton(
-                                   label: 'INJECT INTO MARKETPLACE',
+                                   label: widget.listingId != null ? 'SAVE CHANGES' : 'INJECT INTO MARKETPLACE',
                                    icon: Icons.check_rounded,
                                    loading: state.status == ResourceStatus.submitting,
-                                   onPressed: () => context.read<FormSubmitCubit>().submit(() => apiOf(context).createListing({
+                                   onPressed: () => context.read<FormSubmitCubit>().submit(() {
+                                     final tagsList = _tags.text
+                                         .split(',')
+                                         .map((t) => t.trim())
+                                         .where((t) => t.isNotEmpty)
+                                         .toList();
+                                     if (widget.listingId != null) {
+                                       final updatePayload = {
+                                         'title': _title.text,
+                                         'description': _description.text,
+                                         'tags': tagsList,
+                                         if (_type == 'PRODUCT') ...{
+                                           'productDetail': {
+                                             'brand': _brand.text,
+                                             'sku': _sku.text,
+                                             'unitOfMeasure': _unit.text,
+                                             'minOrderQty': num.tryParse(_moq.text) ?? 1,
+                                             'pricePerUnit': num.tryParse(_price.text),
+                                             'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
+                                             'hsnCode': _hsn.text,
+                                             'gstRate': int.tryParse(_gst.text) ?? 18,
+                                             'countryOfOrigin': _country.text,
+                                             'fobPort': _fobPort.text,
+                                             'supplyAbility': _supplyAbility.text,
+                                             'deliveryTime': _deliveryTime.text,
+                                             'packagingDetails': _packaging.text,
+                                             'paymentTerms': _paymentTerms.text,
+                                             'sampleAvailable': _sampleAvailable,
+                                             'samplePrice': num.tryParse(_sampleCost.text),
+                                             'warranty': _warranty.text,
+                                             'returnPolicy': _returnPolicy.text,
+                                             'certifications': _certifications,
+                                             'specifications': _customSpecs.fold<Map<String, String>>({}, (map, spec) {
+                                               if (spec['key']!.text.isNotEmpty) {
+                                                 map[spec['key']!.text] = spec['value']!.text;
+                                               }
+                                               return map;
+                                              }),
+                                           }
+                                         }
+                                       };
+                                       return apiOf(context).updateListing(widget.listingId!, updatePayload);
+                                     } else {
+                                       final createPayload = {
                                          'listingType': _type,
                                          'title': _title.text,
                                          'description': _description.text,
+                                         'tags': tagsList,
                                          if (_category.isNotEmpty) 'categoryId': _category,
                                          if (_type == 'PRODUCT') ...{
-                                           'pricePerUnit': num.tryParse(_price.text),
-                                           'minOrderQty': num.tryParse(_moq.text) ?? 1,
+                                           'brand': _brand.text,
+                                           'sku': _sku.text,
                                            'unitOfMeasure': _unit.text,
+                                           'minOrderQty': num.tryParse(_moq.text) ?? 1,
+                                           'pricePerUnit': num.tryParse(_price.text),
+                                           'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
+                                           'hsnCode': _hsn.text,
+                                           'gstRate': int.tryParse(_gst.text) ?? 18,
+                                           'countryOfOrigin': _country.text,
+                                           'fobPort': _fobPort.text,
+                                           'supplyAbility': _supplyAbility.text,
+                                           'deliveryTime': _deliveryTime.text,
+                                           'packagingDetails': _packaging.text,
+                                           'paymentTerms': _paymentTerms.text,
+                                           'sampleAvailable': _sampleAvailable,
+                                           'samplePrice': num.tryParse(_sampleCost.text),
+                                           'warranty': _warranty.text,
+                                           'returnPolicy': _returnPolicy.text,
+                                           'certifications': _certifications,
+                                           'specifications': _customSpecs.fold<Map<String, String>>({}, (map, spec) {
+                                             if (spec['key']!.text.isNotEmpty) {
+                                               map[spec['key']!.text] = spec['value']!.text;
+                                             }
+                                             return map;
+                                           }),
                                          } else ...{
                                            'basePrice': num.tryParse(_price.text),
                                            'priceUnit': _unit.text,
-                                         },
-                                       })),
+                                         }
+                                       };
+                                       return apiOf(context).createListing(createPayload);
+                                     }
+                                   }),
                                  ),
                              ],
                            ),

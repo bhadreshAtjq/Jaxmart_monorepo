@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/api_client.dart';
 import '../core/auth_cubit.dart';
@@ -1686,7 +1688,7 @@ class SpecsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = data.entries.where((e) => e.value != null && e.value is! Map && e.value is! List).take(10).toList();
+    final entries = data.entries.where((e) => e.value != null && e.value is! Map && e.value is! List && e.key != 'listingId').take(10).toList();
     if (entries.isEmpty) return const SizedBox.shrink();
     return JaxCard(
       child: Column(
@@ -3459,6 +3461,15 @@ class SellerListingsScreen extends StatelessWidget {
   }
 }
 
+class ListingMediaItem {
+  final String? url;
+  final PlatformFile? file;
+  ListingMediaItem({this.url, this.file});
+
+  bool get isLocal => file != null;
+  String get name => file != null ? file!.name : (url?.split('/').last ?? 'image');
+}
+
 class ListingFormScreen extends StatefulWidget {
   const ListingFormScreen({this.listingId, super.key});
   final String? listingId;
@@ -3494,7 +3505,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   final List<Map<String, TextEditingController>> _variants = [];
 
   // Step 4 Form Controllers
-  final List<PlatformFile> _selectedFiles = [];
+  final List<ListingMediaItem> _mediaItems = [];
 
   // Step 3 Form Controllers
   String _pricingModel = 'FIXED UNIT PRICE';
@@ -3614,6 +3625,17 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     _certifications.clear();
     for (var cert in certs) {
       _certifications.add(cert.toString());
+    }
+
+    // media
+    final media = asList(data['media']);
+    _mediaItems.clear();
+    for (var m in media) {
+      final mMap = asMap(m);
+      final url = textOf(mMap['url']);
+      if (url.isNotEmpty) {
+        _mediaItems.add(ListingMediaItem(url: url));
+      }
     }
   }
 
@@ -4245,15 +4267,17 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                              child: GestureDetector(
                                onTap: () async {
                                  FilePickerResult? result = await FilePicker.pickFiles(
-                                   allowMultiple: true,
-                                   type: FileType.custom,
-                                   allowedExtensions: ['jpg', 'png', 'jpeg', 'mp4', 'pdf'],
-                                 );
-                                 if (result != null) {
-                                   setState(() {
-                                     _selectedFiles.addAll(result.files);
-                                   });
-                                 }
+                                    allowMultiple: true,
+                                    type: FileType.custom,
+                                    allowedExtensions: ['jpg', 'png', 'jpeg', 'mp4', 'pdf'],
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      for (var f in result.files) {
+                                        _mediaItems.add(ListingMediaItem(file: f));
+                                      }
+                                    });
+                                  }
                                },
                                child: CustomPaint(
                                  painter: DashedRectPainter(color: JaxColors.outlineVariant, strokeWidth: 1.5, gap: 6.0, borderRadius: 24),
@@ -4285,18 +4309,118 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                ),
                              ),
                            ),
-                           if (_selectedFiles.isNotEmpty) ...[
-                             const SizedBox(height: 24),
-                             Wrap(
-                               spacing: 8,
-                               runSpacing: 8,
-                               children: _selectedFiles.map((f) => Chip(
-                                 label: Text(f.name, style: JaxText.bodySmall.copyWith(fontSize: 10)),
-                                 onDeleted: () => setState(() => _selectedFiles.remove(f)),
-                                 deleteIcon: const Icon(Icons.close_rounded, size: 14),
-                               )).toList(),
-                             ),
-                           ],
+                           if (_mediaItems.isNotEmpty) ...[
+                              const SizedBox(height: 24),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 1,
+                                ),
+                                itemCount: _mediaItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = _mediaItems[index];
+                                  Widget imageWidget;
+                                  if (item.isLocal) {
+                                    final path = item.file!.path;
+                                    if (path != null && (path.toLowerCase().endsWith('.jpg') || path.toLowerCase().endsWith('.jpeg') || path.toLowerCase().endsWith('.png'))) {
+                                      imageWidget = Image.file(
+                                        File(path),
+                                        fit: BoxFit.cover,
+                                      );
+                                    } else {
+                                      imageWidget = Container(
+                                        color: JaxColors.surfaceContainer,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.insert_drive_file_rounded, size: 32, color: JaxColors.outline),
+                                            const SizedBox(height: 4),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                                              child: Text(
+                                                item.name,
+                                                style: JaxText.bodySmall.copyWith(fontSize: 8),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    imageWidget = CachedNetworkImage(
+                                      imageUrl: item.url!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => const Center(
+                                        child: Icon(Icons.error_outline_rounded, color: JaxColors.error),
+                                      ),
+                                    );
+                                  }
+
+                                  return Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: imageWidget,
+                                        ),
+                                      ),
+                                      if (index == 0)
+                                        Positioned(
+                                          top: 6,
+                                          left: 6,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: JaxColors.secondary,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              'PRIMARY',
+                                              style: JaxText.label.copyWith(fontSize: 8, color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _mediaItems.removeAt(index);
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.black54,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close_rounded,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
                            const SizedBox(height: 48),
                            Container(
                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -4354,18 +4478,50 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                    label: widget.listingId != null ? 'SAVE CHANGES' : 'INJECT INTO MARKETPLACE',
                                    icon: Icons.check_rounded,
                                    loading: state.status == ResourceStatus.submitting,
-                                   onPressed: () => context.read<FormSubmitCubit>().submit(() {
-                                     final tagsList = _tags.text
-                                         .split(',')
-                                         .map((t) => t.trim())
-                                         .where((t) => t.isNotEmpty)
-                                         .toList();
-                                     if (widget.listingId != null) {
-                                       final updatePayload = {
-                                         'title': _title.text,
-                                         'description': _description.text,
-                                         'tags': tagsList,
-                                         if (_type == 'PRODUCT') ...{
+                                   onPressed: () => context.read<FormSubmitCubit>().submit(() async {
+                                      final tagsList = _tags.text
+                                          .split(',')
+                                          .map((t) => t.trim())
+                                          .where((t) => t.isNotEmpty)
+                                          .toList();
+                                      final api = apiOf(context);
+
+                                      // 1. Upload any local files first
+                                      final localItems = _mediaItems.where((i) => i.isLocal).toList();
+                                      final List<String> uploadedUrls = [];
+                                      if (localItems.isNotEmpty) {
+                                        final paths = localItems.map((i) => i.file!.path).whereType<String>().toList();
+                                        final urls = await api.uploadImages(paths);
+                                        uploadedUrls.addAll(urls);
+                                      }
+
+                                      // 2. Build final images array
+                                      final List<Map<String, dynamic>> imagesPayload = [];
+                                      int uploadedIdx = 0;
+                                      for (final item in _mediaItems) {
+                                        if (item.isLocal) {
+                                          if (uploadedIdx < uploadedUrls.length) {
+                                            imagesPayload.add({
+                                              'url': uploadedUrls[uploadedIdx],
+                                              'isPrimary': imagesPayload.isEmpty,
+                                            });
+                                            uploadedIdx++;
+                                          }
+                                        } else {
+                                          imagesPayload.add({
+                                            'url': item.url!,
+                                            'isPrimary': imagesPayload.isEmpty,
+                                          });
+                                        }
+                                      }
+
+                                      if (widget.listingId != null) {
+                                        final updatePayload = {
+                                          'title': _title.text,
+                                          'description': _description.text,
+                                          'tags': tagsList,
+                                          'images': imagesPayload,
+                                          if (_type == 'PRODUCT') ...{
                                            'productDetail': {
                                              'brand': _brand.text,
                                              'sku': _sku.text,
@@ -4395,15 +4551,16 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                            }
                                          }
                                        };
-                                       return apiOf(context).updateListing(widget.listingId!, updatePayload);
+                                       return api.updateListing(widget.listingId!, updatePayload);
                                      } else {
-                                       final createPayload = {
-                                         'listingType': _type,
-                                         'title': _title.text,
-                                         'description': _description.text,
-                                         'tags': tagsList,
-                                         if (_category.isNotEmpty) 'categoryId': _category,
-                                         if (_type == 'PRODUCT') ...{
+                                        final createPayload = {
+                                          'listingType': _type,
+                                          'title': _title.text,
+                                          'description': _description.text,
+                                          'tags': tagsList,
+                                          'images': imagesPayload,
+                                          if (_category.isNotEmpty) 'categoryId': _category,
+                                          if (_type == 'PRODUCT') ...{
                                            'brand': _brand.text,
                                            'sku': _sku.text,
                                            'unitOfMeasure': _unit.text,
@@ -4434,7 +4591,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                            'priceUnit': _unit.text,
                                          }
                                        };
-                                       return apiOf(context).createListing(createPayload);
+                                       return api.createListing(createPayload);
                                      }
                                    }),
                                  ),

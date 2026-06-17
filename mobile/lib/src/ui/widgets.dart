@@ -556,26 +556,32 @@ class ListingTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(price, style: JaxText.h3.copyWith(fontSize: 17)),
-                Text('MOQ: ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}', style: JaxText.bodySmall),
+                if (isSellerMode)
+                  Text('ID: ${item['id']}', style: JaxText.bodySmall)
+                else
+                  Text('MOQ: ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}', style: JaxText.bodySmall),
               ],
             ),
           ),
-          TrustScore(score: numOf(seller['trustScore']) ?? 85),
+          if (!isSellerMode)
+            TrustScore(score: numOf(seller['trustScore']) ?? 85),
         ],
       ),
-      const SizedBox(height: 12),
-      Container(
-        padding: const EdgeInsets.all(9),
-        decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(10)),
-        child: Row(
-          children: [
-            JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 26),
-            const SizedBox(width: 8),
-            Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis)),
-            const Icon(Icons.verified_user_rounded, size: 15, color: JaxColors.success),
-          ],
+      if (!isSellerMode) ...[
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(9),
+          decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 26),
+              const SizedBox(width: 8),
+              Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              const Icon(Icons.verified_user_rounded, size: 15, color: JaxColors.success),
+            ],
+          ),
         ),
-      ),
+      ],
       if (showChat) ...[
         const SizedBox(height: 10),
         SizedBox(

@@ -196,6 +196,27 @@ class JaxApiClient {
   Future<JsonMap> myListings(Map<String, dynamic> params) => getMap('/listings/seller/me', query: params);
   Future<JsonMap> createListing(JsonMap data) => post('/listings', data);
   Future<JsonMap> updateListing(String id, JsonMap data) => put('/listings/$id', data);
+  Future<List<String>> uploadImages(List<String> filePaths) async {
+    final formData = FormData();
+    for (final path in filePaths) {
+      formData.files.add(MapEntry(
+        'images',
+        await MultipartFile.fromFile(path),
+      ));
+    }
+    final response = await _dio.post<dynamic>(
+      '/upload/multiple',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    if (response.data is List) {
+      return (response.data as List)
+          .map((f) => asMap(f)['url']?.toString() ?? '')
+          .where((url) => url.isNotEmpty)
+          .toList();
+    }
+    return [];
+  }
   Future<JsonMap> publishListing(String id) => patch('/listings/$id/publish');
 
   Future<JsonMap> createRfq(JsonMap data) => post('/rfq', data);

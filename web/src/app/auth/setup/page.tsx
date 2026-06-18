@@ -23,6 +23,8 @@ export default function SetupPage() {
     userType: 'BUYER' as 'BUYER' | 'SELLER' | 'BOTH',
     businessName: '',
     gstNumber: '',
+    establishedYear: '',
+    employeeRange: 'ELEVEN_TO_FIFTY',
   });
 
   useEffect(() => {
@@ -72,6 +74,8 @@ export default function SetupPage() {
         // If business setup wasn't required/entered, clear fields
         businessName: isBusinessSetupRequired ? formData.businessName : undefined,
         gstNumber: isBusinessSetupRequired ? formData.gstNumber : undefined,
+        establishedYear: isBusinessSetupRequired && formData.establishedYear ? formData.establishedYear : undefined,
+        employeeRange: isBusinessSetupRequired ? formData.employeeRange : undefined,
       };
 
       const { data } = await userApi.update(payload);
@@ -272,6 +276,29 @@ export default function SetupPage() {
                         GST Registry ID format valid. It will be verified post-onboarding.
                       </div>
                     )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Input
+                        label="Establishment Year (Optional)"
+                        type="number"
+                        placeholder="e.g. 2021"
+                        value={formData.establishedYear}
+                        onChange={e => setFormData({ ...formData, establishedYear: e.target.value })}
+                      />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 block">Operational Workforce *</label>
+                        <select
+                          value={formData.employeeRange}
+                          onChange={e => setFormData({ ...formData, employeeRange: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-700 focus:outline-none focus:border-jax-dark transition-all"
+                        >
+                          <option value="ONE_TO_TEN">1-10 Employees</option>
+                          <option value="ELEVEN_TO_FIFTY">11-50 Employees</option>
+                          <option value="FIFTY_ONE_TO_TWO_HUNDRED">51-200 Employees</option>
+                          <option value="TWO_HUNDRED_PLUS">200+ Employees</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -288,7 +315,7 @@ export default function SetupPage() {
                   <p className="text-xs text-gray-450 mt-1">Review your credentials before completing merchant/buyer registration.</p>
                 </div>
 
-                <div className="bg-gray-50 rounded-2xl border border-gray-150 p-6 space-y-4 text-xs font-semibold text-gray-650">
+                <div className="bg-gray-55 rounded-2xl border border-gray-150 p-6 space-y-4 text-xs font-semibold text-gray-650">
                   <div className="flex justify-between border-b border-gray-200/60 pb-2.5">
                     <span className="text-gray-400 uppercase tracking-wider text-[10px]">Full Name</span>
                     <span className="text-jax-dark font-black">{formData.fullName}</span>
@@ -306,10 +333,27 @@ export default function SetupPage() {
                     <span className="text-jax-dark font-black uppercase">{formData.userType}</span>
                   </div>
                   {isBusinessSetupRequired && formData.businessName && (
-                    <div className="flex justify-between pb-1">
-                      <span className="text-gray-400 uppercase tracking-wider text-[10px]">Business Registry</span>
-                      <span className="text-jax-dark font-black">{formData.businessName} {formData.gstNumber ? `(GSTIN: ${formData.gstNumber})` : ''}</span>
-                    </div>
+                    <>
+                      <div className="flex justify-between border-b border-gray-200/60 pb-2.5">
+                        <span className="text-gray-400 uppercase tracking-wider text-[10px]">Business Registry</span>
+                        <span className="text-jax-dark font-black">{formData.businessName} {formData.gstNumber ? `(GSTIN: ${formData.gstNumber})` : ''}</span>
+                      </div>
+                      {formData.establishedYear && (
+                        <div className="flex justify-between border-b border-gray-200/60 pb-2.5">
+                          <span className="text-gray-400 uppercase tracking-wider text-[10px]">Establishment Year</span>
+                          <span className="text-jax-dark font-black">{formData.establishedYear}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between pb-1">
+                        <span className="text-gray-400 uppercase tracking-wider text-[10px]">Workforce</span>
+                        <span className="text-jax-dark font-black uppercase">
+                          {formData.employeeRange === 'ONE_TO_TEN' && '1-10 Employees'}
+                          {formData.employeeRange === 'ELEVEN_TO_FIFTY' && '11-50 Employees'}
+                          {formData.employeeRange === 'FIFTY_ONE_TO_TWO_HUNDRED' && '51-200 Employees'}
+                          {formData.employeeRange === 'TWO_HUNDRED_PLUS' && '200+ Employees'}
+                        </span>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

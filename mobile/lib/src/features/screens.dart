@@ -570,8 +570,10 @@ class _SetupScreenState extends State<SetupScreen> {
   final _emailController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _gstController = TextEditingController();
+  final _establishedYearController = TextEditingController();
   String _accountType = 'INDIVIDUAL'; // INDIVIDUAL | BUSINESS
   String _userType = 'BUYER'; // BUYER | SELLER | BOTH
+  String _employeeRange = 'ELEVEN_TO_FIFTY'; // ONE_TO_TEN | ELEVEN_TO_FIFTY | FIFTY_ONE_TO_TWO_HUNDRED | TWO_HUNDRED_PLUS
 
   @override
   void dispose() {
@@ -579,6 +581,7 @@ class _SetupScreenState extends State<SetupScreen> {
     _emailController.dispose();
     _businessNameController.dispose();
     _gstController.dispose();
+    _establishedYearController.dispose();
     super.dispose();
   }
 
@@ -621,6 +624,21 @@ class _SetupScreenState extends State<SetupScreen> {
 
   bool get _isBusinessSetupRequired => _accountType == 'BUSINESS' || _userType == 'SELLER' || _userType == 'BOTH';
 
+  String _formatWorkforceSummary(String range) {
+    switch (range) {
+      case 'ONE_TO_TEN':
+        return '1-10 Employees';
+      case 'ELEVEN_TO_FIFTY':
+        return '11-50 Employees';
+      case 'FIFTY_ONE_TO_TWO_HUNDRED':
+        return '51-200 Employees';
+      case 'TWO_HUNDRED_PLUS':
+        return '200+ Employees';
+      default:
+        return range.replaceAll('_', ' ');
+    }
+  }
+
   void _submit() async {
     final payload = {
       'fullName': _fullNameController.text.trim(),
@@ -630,6 +648,8 @@ class _SetupScreenState extends State<SetupScreen> {
       if (_isBusinessSetupRequired) ...{
         'businessName': _businessNameController.text.trim(),
         if (_gstController.text.trim().isNotEmpty) 'gstNumber': _gstController.text.trim().toUpperCase(),
+        if (_establishedYearController.text.trim().isNotEmpty) 'establishedYear': _establishedYearController.text.trim(),
+        'employeeRange': _employeeRange,
       }
     };
 
@@ -1076,6 +1096,38 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 16),
+
+          const FieldLabel('Establishment Year (Optional)'),
+          TextField(
+            controller: _establishedYearController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: 'e.g. 2021',
+              prefixIcon: Icon(Icons.calendar_today_rounded, size: 20),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          const FieldLabel('Operational Workforce *'),
+          DropdownButtonFormField<String>(
+            value: _employeeRange,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.people_rounded, size: 20),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'ONE_TO_TEN', child: Text('1-10 Employees')),
+              DropdownMenuItem(value: 'ELEVEN_TO_FIFTY', child: Text('11-50 Employees')),
+              DropdownMenuItem(value: 'FIFTY_ONE_TO_TWO_HUNDRED', child: Text('51-200 Employees')),
+              DropdownMenuItem(value: 'TWO_HUNDRED_PLUS', child: Text('200+ Employees')),
+            ],
+            onChanged: (val) {
+              if (val != null) {
+                setState(() => _employeeRange = val);
+              }
+            },
+          ),
         ],
       ],
     );
@@ -1137,6 +1189,12 @@ class _SetupScreenState extends State<SetupScreen> {
                   _businessNameController.text.trim() +
                       (_gstController.text.trim().isNotEmpty ? ' (GSTIN: ${_gstController.text.trim().toUpperCase()})' : ''),
                 ),
+                if (_establishedYearController.text.trim().isNotEmpty) ...[
+                  const Divider(height: 20, thickness: 0.5),
+                  _buildSummaryRow('Establishment Year', _establishedYearController.text.trim()),
+                ],
+                const Divider(height: 20, thickness: 0.5),
+                _buildSummaryRow('Workforce', _formatWorkforceSummary(_employeeRange)),
               ],
             ],
           ),

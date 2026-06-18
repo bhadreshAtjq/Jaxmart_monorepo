@@ -22,7 +22,7 @@ const getMe = async (req, res) => {
 // PUT /api/users/profile
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, accountType, userType, businessName, gstNumber, hasSeenTour } = req.body;
+    const { fullName, email, accountType, userType, businessName, gstNumber, hasSeenTour, establishedYear, employeeRange } = req.body;
 
     const data = {
       fullName,
@@ -34,17 +34,22 @@ const updateProfile = async (req, res) => {
     };
 
     // If business details provided, or account is business, or user is seller/both, create or update business profile
-    if ((accountType === 'BUSINESS' || userType === 'SELLER' || userType === 'BOTH') && (businessName || gstNumber || fullName)) {
+    if ((accountType === 'BUSINESS' || userType === 'SELLER' || userType === 'BOTH') && (businessName || gstNumber || fullName || establishedYear || employeeRange)) {
       const bName = businessName || (fullName ? `${fullName}'s Business` : 'My Business');
+      const estYear = establishedYear ? parseInt(establishedYear, 10) : undefined;
       data.businessProfile = {
         upsert: {
           create: {
             businessName: bName,
             gstin: gstNumber || null,
+            establishedYear: estYear || null,
+            employeeRange: employeeRange || null,
           },
           update: {
             businessName: bName,
             gstin: gstNumber || null,
+            establishedYear: estYear !== undefined ? estYear : undefined,
+            employeeRange: employeeRange !== undefined ? employeeRange : undefined,
           },
         },
       };

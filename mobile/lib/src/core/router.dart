@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/json_tools.dart';
 import '../features/screens.dart';
 import '../ui/widgets.dart';
 import 'api_client.dart';
@@ -18,12 +19,33 @@ class AppRouter {
             final location = state.uri.path;
             final isSplash = location == '/splash';
             final authRoute = location.startsWith('/auth');
+            final isSetup = location == '/auth/setup';
+
             if (auth.status == AuthStatus.unknown || (auth.status == AuthStatus.loading && isSplash)) {
               return isSplash ? null : '/splash';
             }
-            if (isSplash) return auth.isLoggedIn ? '/home' : '/auth/login';
+
+            final hasIncompleteProfile = auth.isLoggedIn &&
+                (textOf(auth.user['fullName']) == 'New User' ||
+                    textOf(auth.user['fullName']).trim().isEmpty);
+
+            if (isSplash) {
+              if (auth.isLoggedIn) {
+                return hasIncompleteProfile ? '/auth/setup' : '/home';
+              }
+              return '/auth/login';
+            }
+
             if (!auth.isLoggedIn && !authRoute) return '/auth/login';
-            if (auth.isLoggedIn && authRoute) return '/home';
+
+            if (auth.isLoggedIn) {
+              if (hasIncompleteProfile) {
+                return isSetup ? null : '/auth/setup';
+              } else {
+                if (authRoute) return '/home';
+              }
+            }
+
             if (location.startsWith('/seller') && !auth.isSeller) return '/home';
             if (location.startsWith('/admin') && !auth.isAdmin) return '/home';
             return null;
@@ -39,6 +61,7 @@ class AppRouter {
                 userType: state.uri.queryParameters['type'],
               ),
             ),
+            GoRoute(path: '/auth/setup', builder: (_, __) => const SetupScreen()),
             ShellRoute(
               builder: (_, __, child) => AppShell(child: child),
               routes: [

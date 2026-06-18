@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:pinput/pinput.dart';
 
 import '../core/api_client.dart';
 import '../core/auth_cubit.dart';
@@ -51,66 +53,313 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phone = TextEditingController();
-  final _name = TextEditingController();
-  String _type = 'BUYER';
+  final _phoneController = TextEditingController();
+  String _countryCode = '91';
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _sendOtp() {
+    final phoneVal = _phoneController.text.trim();
+    if (phoneVal.isEmpty || phoneVal.length < 7) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid mobile number')),
+      );
+      return;
+    }
+    final fullNumber = '+$_countryCode$phoneVal';
+    context.read<AuthCubit>().sendOtp(fullNumber);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 28),
-              Image.asset('assets/images/JaxMart_bg.png', height: 42),
-              const SizedBox(height: 32),
-              const Text('Trade securely with verified B2B partners', style: JaxText.h1),
-              const SizedBox(height: 8),
-              Text('Log in with OTP to access RFQs, orders, listings, chat, notifications, and seller tools.', style: JaxText.bodyMedium.copyWith(color: JaxColors.onSurfaceVariant)),
-              const SizedBox(height: 28),
-              BlocConsumer<AuthCubit, AuthState>(
-                listener: (context, state) {
-                  if (state.message == 'OTP sent' && state.phone != null) {
-                    context.push('/auth/otp?phone=${state.phone}&name=${Uri.encodeComponent(_name.text)}&type=$_type');
-                  }
-                  if (state.status == AuthStatus.failure && state.message != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
-                  }
-                },
-                builder: (context, state) {
-                  return FormCard(
-                    children: [
-                      const FieldLabel('Mobile number'),
-                      TextField(controller: _phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(hintText: '10 digit phone number')),
-                      const FieldLabel('Full name'),
-                      TextField(controller: _name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(hintText: 'Required for new accounts')),
-                      const FieldLabel('Account mode'),
-                      SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'BUYER', label: Text('Buyer'), icon: Icon(Icons.shopping_bag_rounded)),
-                          ButtonSegment(value: 'SELLER', label: Text('Seller'), icon: Icon(Icons.storefront_rounded)),
-                          ButtonSegment(value: 'BOTH', label: Text('Both'), icon: Icon(Icons.swap_horiz_rounded)),
-                        ],
-                        selected: {_type},
-                        onSelectionChanged: (value) => setState(() => _type = value.first),
-                      ),
-                      JaxButton(
-                        label: 'Send OTP',
-                        fullWidth: true,
-                        loading: state.status == AuthStatus.loading,
-                        icon: Icons.send_rounded,
-                        onPressed: () => context.read<AuthCubit>().sendOtp(_phone.text),
-                      ),
-                    ],
-                  );
-                },
+      backgroundColor: const Color(0xFF090B11),
+      body: Stack(
+        children: [
+          // Background Gradient Mesh for premium look
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: JaxColors.primary.withValues(alpha: 0.15),
               ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: JaxColors.secondary.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  // Centered Header Brand Logo
+                  Center(
+                    child: Image.asset(
+                      'assets/images/JaxMart_bg.png',
+                      height: 38,
+                      color: Colors.white,
+                      colorBlendMode: BlendMode.srcIn,
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+                  
+                  // B2B Market Showcase
+                  const Text(
+                    "India's trusted\nB2B marketplace",
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Source products, hire verified suppliers, and transact safely with escrow protection.",
+                    style: TextStyle(
+                      fontFamily: JaxText.body,
+                      fontSize: 14,
+                      color: Colors.white70,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Showcase Features List
+                  ...[
+                    {'title': 'GST Verified Sellers', 'desc': 'Every supplier on JaxMart is identity-verified.'},
+                    {'title': 'Escrow Protection', 'desc': 'Payments released only after delivery confirmation.'},
+                    {'title': 'AI-Powered Matching', 'desc': 'Get the best quotes from relevant suppliers instantly.'},
+                  ].map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(top: 5),
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: JaxColors.secondary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item['title']!,
+                                    style: const TextStyle(
+                                      fontFamily: JaxText.heading,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFFEEEEEE),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    item['desc']!,
+                                    style: const TextStyle(
+                                      fontFamily: JaxText.body,
+                                      fontSize: 11,
+                                      color: Colors.white54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+
+                  const SizedBox(height: 32),
+
+                  // Login White Card
+                  BlocConsumer<AuthCubit, AuthState>(
+                    listener: (context, state) {
+                      if (state.message == 'OTP sent' && state.phone != null) {
+                        context.push('/auth/otp?phone=${state.phone}');
+                      }
+                      if (state.status == AuthStatus.failure && state.message != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.message!)),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      return Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 20,
+                              offset: Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Sign in or create account",
+                              style: TextStyle(
+                                fontFamily: JaxText.heading,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: JaxColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Enter your mobile number to continue",
+                              style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Phone Number Field
+                            const FieldLabel('Mobile number'),
+                            IntlPhoneField(
+                              controller: _phoneController,
+                              decoration: InputDecoration(
+                                hintText: 'Phone number',
+                                fillColor: const Color(0xFFF6F8FB),
+                                filled: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: JaxColors.primary, width: 1.5),
+                                ),
+                              ),
+                              initialCountryCode: 'IN',
+                              style: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: JaxColors.onSurface),
+                              dropdownTextStyle: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: JaxColors.onSurface),
+                              onCountryChanged: (country) {
+                                _countryCode = country.dialCode;
+                              },
+                              onSubmitted: (_) => _sendOtp(),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Submit Button
+                            InkWell(
+                              onTap: state.status == AuthStatus.loading ? null : _sendOtp,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  gradient: JaxGradients.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: JaxColors.primary.withValues(alpha: .3),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: state.status == AuthStatus.loading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'GET OTP',
+                                            style: TextStyle(
+                                              fontFamily: JaxText.heading,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Icon(
+                                            Icons.arrow_forward_rounded,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Center(
+                              child: Text(
+                                "By continuing, you agree to our Terms of Service and Privacy Policy",
+                                textAlign: TextAlign.center,
+                                style: JaxText.bodySmall.copyWith(color: Colors.grey.shade400, fontSize: 10),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  const SizedBox(height: 28),
+                  
+                  // Footer badges
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.lock_outline_rounded, color: Colors.white38, size: 12),
+                      const SizedBox(width: 4),
+                      Text("Secure login", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.verified_outlined, color: Colors.white38, size: 12),
+                      const SizedBox(width: 4),
+                      Text("GST verified", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.shield_outlined, color: Colors.white38, size: 12),
+                      const SizedBox(width: 4),
+                      Text("Escrow protected", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -127,43 +376,176 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final _otp = TextEditingController();
+  final _pinController = TextEditingController();
+  int _countdown = 30;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _countdown = 30;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _verify(String pin) {
+    context.read<AuthCubit>().verifyOtp(
+          phone: widget.phone,
+          otp: pin,
+          fullName: widget.fullName,
+          userType: widget.userType,
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final defaultPinTheme = PinTheme(
+      width: 46,
+      height: 52,
+      textStyle: JaxText.h2.copyWith(color: JaxColors.onSurface, fontSize: 20, fontWeight: FontWeight.bold),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(color: JaxColors.primary, width: 1.5),
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify OTP')),
+      backgroundColor: JaxColors.surface,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: BlocConsumer<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state.isLoggedIn) context.go('/home');
               if (state.status == AuthStatus.failure && state.message != null) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
+                _pinController.clear();
               }
             },
             builder: (context, state) {
-              return FormCard(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Enter the code sent to ${widget.phone}', style: JaxText.bodyMedium),
-                  TextField(
-                    controller: _otp,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    decoration: const InputDecoration(labelText: 'OTP', counterText: ''),
+                  const SizedBox(height: 16),
+                  
+                  // Link back to change number
+                  TextButton.icon(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 16, color: JaxColors.primary),
+                    label: const Text(
+                      'Change number',
+                      style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        color: JaxColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                   ),
+                  const SizedBox(height: 36),
+
+                  const Text(
+                    "Enter verification code",
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: JaxColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Sent to +${widget.phone}",
+                    style: JaxText.bodyMedium.copyWith(color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Styled Pinput OTP view
+                  Center(
+                    child: Pinput(
+                      length: 6,
+                      controller: _pinController,
+                      defaultPinTheme: defaultPinTheme,
+                      focusedPinTheme: focusedPinTheme,
+                      onCompleted: _verify,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  if (state.status == AuthStatus.loading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 24),
+                        child: CircularProgressIndicator(color: JaxColors.primary),
+                      ),
+                    ),
+
+                  // Resend countdown
+                  Center(
+                    child: _countdown > 0
+                        ? Text(
+                            'Resend in ${_countdown}s',
+                            style: JaxText.bodyMedium.copyWith(color: Colors.grey.shade400, fontWeight: FontWeight.bold),
+                          )
+                        : TextButton(
+                            onPressed: () {
+                              context.read<AuthCubit>().sendOtp(widget.phone);
+                              _startTimer();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('OTP resent successfully')),
+                              );
+                            },
+                            child: const Text(
+                              'Resend OTP',
+                              style: TextStyle(
+                                fontFamily: JaxText.heading,
+                                color: JaxColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Verification button fallback
                   JaxButton(
                     label: 'Verify and continue',
                     fullWidth: true,
                     loading: state.status == AuthStatus.loading,
                     icon: Icons.verified_rounded,
-                    onPressed: () => context.read<AuthCubit>().verifyOtp(
-                          phone: widget.phone,
-                          otp: _otp.text,
-                          fullName: widget.fullName,
-                          userType: widget.userType,
-                        ),
+                    onPressed: () => _verify(_pinController.text),
                   ),
                 ],
               );
@@ -171,6 +553,611 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SetupScreen extends StatefulWidget {
+  const SetupScreen({super.key});
+
+  @override
+  State<SetupScreen> createState() => _SetupScreenState();
+}
+
+class _SetupScreenState extends State<SetupScreen> {
+  int _step = 1;
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _businessNameController = TextEditingController();
+  final _gstController = TextEditingController();
+  String _accountType = 'INDIVIDUAL'; // INDIVIDUAL | BUSINESS
+  String _userType = 'BUYER'; // BUYER | SELLER | BOTH
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _businessNameController.dispose();
+    _gstController.dispose();
+    super.dispose();
+  }
+
+  void _nextStep() {
+    if (_step == 1) {
+      final name = _fullNameController.text.trim();
+      final email = _emailController.text.trim();
+      if (name.isEmpty || name == 'New User') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your valid Full Name')),
+        );
+        return;
+      }
+      if (email.isEmpty || !email.contains('@')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid email address')),
+        );
+        return;
+      }
+      setState(() => _step = 2);
+    } else if (_step == 2) {
+      setState(() => _step = 3);
+    } else if (_step == 3) {
+      final isBusinessSetupRequired = _accountType == 'BUSINESS' || _userType == 'SELLER' || _userType == 'BOTH';
+      if (isBusinessSetupRequired && _businessNameController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Business Legal Name is required')),
+        );
+        return;
+      }
+      setState(() => _step = 4);
+    }
+  }
+
+  void _prevStep() {
+    if (_step > 1) {
+      setState(() => _step--);
+    }
+  }
+
+  bool get _isBusinessSetupRequired => _accountType == 'BUSINESS' || _userType == 'SELLER' || _userType == 'BOTH';
+
+  void _submit() async {
+    final payload = {
+      'fullName': _fullNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'accountType': _accountType,
+      'userType': _userType,
+      if (_isBusinessSetupRequired) ...{
+        'businessName': _businessNameController.text.trim(),
+        if (_gstController.text.trim().isNotEmpty) 'gstNumber': _gstController.text.trim().toUpperCase(),
+      }
+    };
+
+    try {
+      await context.read<AuthCubit>().updateProfile(payload);
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to complete profile registration')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(
+        child: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state.status == AuthStatus.failure && state.message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message!)),
+              );
+            }
+          },
+          builder: (context, state) {
+            final loading = state.status == AuthStatus.loading;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  // Header branding
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 56,
+                          width: 56,
+                          decoration: BoxDecoration(
+                            color: JaxColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 28),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'ONBOARDING REGISTRY',
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: JaxColors.onSurface,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'COMPLETE YOUR CORPORATE PROFILE CREDENTIALS',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Step indicator progress bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'PROGRESS STATUS',
+                        style: TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.5),
+                      ),
+                      Text(
+                        'STEP $_step OF 4',
+                        style: TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey.shade700, letterSpacing: 1.5),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 6,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: _step / 4.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: JaxColors.secondary,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Form Container Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: .015), blurRadius: 15, offset: const Offset(0, 5)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_step == 1) _buildStep1(),
+                        if (_step == 2) _buildStep2(),
+                        if (_step == 3) _buildStep3(),
+                        if (_step == 4) _buildStep4(),
+
+                        const SizedBox(height: 24),
+                        const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                        const SizedBox(height: 20),
+
+                        // Form Actions navigation
+                        Row(
+                          children: [
+                            if (_step > 1)
+                              OutlinedButton.icon(
+                                onPressed: loading ? null : _prevStep,
+                                icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                                label: const Text('BACK', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.grey.shade700,
+                                  side: BorderSide(color: Colors.grey.shade300),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                ),
+                              ),
+                            const Spacer(),
+                            if (_step < 4)
+                              ElevatedButton.icon(
+                                onPressed: _nextStep,
+                                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                                label: const Text('NEXT STEP', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: JaxColors.primaryContainer,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                ),
+                              )
+                            else
+                              ElevatedButton.icon(
+                                onPressed: loading ? null : _submit,
+                                icon: loading
+                                    ? const SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.check_circle_rounded, size: 16),
+                                label: const Text('CONFIRM REGISTRY', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: JaxColors.secondary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                  elevation: 0,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep1() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '1. Profile Credentials',
+          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Specify your name and corporate communication email.',
+          style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 20),
+
+        const FieldLabel('Full Name'),
+        TextField(
+          controller: _fullNameController,
+          decoration: const InputDecoration(
+            hintText: 'Enter full name',
+            prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 16),
+
+        const FieldLabel('Email Address'),
+        TextField(
+          controller: _emailController,
+          decoration: const InputDecoration(
+            hintText: 'name@company.com',
+            prefixIcon: Icon(Icons.email_outlined, size: 20),
+          ),
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 24),
+
+        const FieldLabel('Company Legal Type'),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(child: _buildAccountTypeCard('INDIVIDUAL', 'Individual / Proprietorship', Icons.person_rounded, 'For sole proprietors, freelancers, or personal buyers')),
+            const SizedBox(width: 12),
+            Expanded(child: _buildAccountTypeCard('BUSINESS', 'Registered Firm', Icons.business_rounded, 'For Pvt Ltd, LLC, or GST registered firms')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountTypeCard(String type, String title, IconData icon, String desc) {
+    final isSelected = _accountType == type;
+    return InkWell(
+      onTap: () => setState(() => _accountType = type),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? JaxColors.secondary.withValues(alpha: .03) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? JaxColors.secondary : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: isSelected ? JaxColors.secondary : Colors.grey.shade300, size: 22),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: isSelected ? JaxColors.onSurface : Colors.grey.shade700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              desc,
+              style: TextStyle(fontFamily: JaxText.body, fontSize: 9, color: Colors.grey.shade500, height: 1.35),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep2() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '2. Marketplace Role Designation',
+          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Designate how you will participate in the wholesale catalog.',
+          style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 20),
+
+        _buildRoleCard('BUYER', 'Source & Purchase (Buyer)', Icons.shopping_bag_rounded, 'Post custom sourcing RFQs, search products, compare supplier bids, and execute secure Escrow orders.'),
+        const SizedBox(height: 12),
+        _buildRoleCard('SELLER', 'Supply & Merchant (Seller)', Icons.storefront_rounded, 'Create product/service listings, setup tiered delivery packages, receive and bid on buyer RFQ requests.'),
+        const SizedBox(height: 12),
+        _buildRoleCard('BOTH', 'Dual Trading (Buyer & Seller)', Icons.swap_horiz_rounded, 'Full capability to both request corporate custom quotes and list wholesale supply inventories.'),
+      ],
+    );
+  }
+
+  Widget _buildRoleCard(String type, String title, IconData icon, String desc) {
+    final isSelected = _userType == type;
+    return InkWell(
+      onTap: () => setState(() => _userType = type),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? JaxColors.secondary.withValues(alpha: .03) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? JaxColors.secondary : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: isSelected ? JaxColors.secondary.withValues(alpha: .12) : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: isSelected ? JaxColors.secondary.withValues(alpha: .2) : Colors.grey.shade200),
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, color: isSelected ? JaxColors.secondaryDark : Colors.grey.shade500, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(fontFamily: JaxText.heading, fontSize: 13, fontWeight: FontWeight.w900, color: isSelected ? JaxColors.onSurface : Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    desc,
+                    style: TextStyle(fontFamily: JaxText.body, fontSize: 10, color: Colors.grey.shade500, height: 1.35),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep3() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '3. Merchant & Corporate Profile',
+          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Provide trade information for commercial listing operations.',
+          style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 20),
+
+        if (!_isBusinessSetupRequired)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.green, size: 36),
+                const SizedBox(height: 10),
+                const Text(
+                  'REGISTRY DETAILS WAIVED',
+                  style: TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'As an Individual Buyer, corporate merchant registration is not required. You can skip this step.',
+                  textAlign: TextAlign.center,
+                  style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500, height: 1.4),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          const FieldLabel('Business Legal / Shop Name *'),
+          TextField(
+            controller: _businessNameController,
+            decoration: const InputDecoration(
+              hintText: 'e.g. Swastik Industries',
+              prefixIcon: Icon(Icons.storefront_rounded, size: 20),
+            ),
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 16),
+
+          const FieldLabel('GSTIN Number (Optional)'),
+          TextField(
+            controller: _gstController,
+            decoration: const InputDecoration(
+              hintText: 'e.g. 29AAAAA0000A1Z5',
+              prefixIcon: Icon(Icons.badge_outlined, size: 20),
+            ),
+            textCapitalization: TextCapitalization.characters,
+          ),
+          if (_gstController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.green.shade100),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'GST REGISTRY ID FORMAT VALID. VERIFIED POST-ONBOARDING.',
+                      style: TextStyle(fontFamily: JaxText.heading, fontSize: 8, fontWeight: FontWeight.w900, color: Colors.green.shade800, letterSpacing: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStep4() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Column(
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.green.shade100),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 24),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '4. Verify Onboarding Prospectus',
+                style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Review your credentials before completing registration.',
+                style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            children: [
+              _buildSummaryRow('Full Name', _fullNameController.text.trim()),
+              const Divider(height: 20, thickness: 0.5),
+              _buildSummaryRow('Email Address', _emailController.text.trim()),
+              const Divider(height: 20, thickness: 0.5),
+              _buildSummaryRow('Account Entity', _accountType),
+              const Divider(height: 20, thickness: 0.5),
+              _buildSummaryRow('Platform Role', _userType),
+              if (_isBusinessSetupRequired && _businessNameController.text.trim().isNotEmpty) ...[
+                const Divider(height: 20, thickness: 0.5),
+                _buildSummaryRow(
+                  'Business Registry',
+                  _businessNameController.text.trim() +
+                      (_gstController.text.trim().isNotEmpty ? ' (GSTIN: ${_gstController.text.trim().toUpperCase()})' : ''),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+        ),
+      ],
     );
   }
 }

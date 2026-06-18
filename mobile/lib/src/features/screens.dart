@@ -2225,8 +2225,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  SpecsGrid(data: product.isNotEmpty ? product : service),
+                  if (product.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    SpecsGrid(data: product),
+                  ],
                   const SizedBox(height: 18),
                   JaxCard(
                     child: Column(
@@ -2756,17 +2758,69 @@ class SpecsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = data.entries.where((e) => e.value != null && e.value is! Map && e.value is! List && e.key != 'listingId').take(10).toList();
-    if (entries.isEmpty) return const SizedBox.shrink();
+    if (data.isEmpty) return const SizedBox.shrink();
+
+    final brand = textOf(data['brand'], 'OEM/ODM');
+    final sku = textOf(data['sku']);
+    final country = textOf(data['countryOfOrigin'], 'India');
+    final minOrderQty = numOf(data['minOrderQty']) ?? 1;
+    final unitOfMeasure = textOf(data['unitOfMeasure'], 'Pieces');
+    final leadTimeDays = numOf(data['leadTimeDays']);
+    final supplyAbility = textOf(data['supplyAbility']);
+    final deliveryTime = textOf(data['deliveryTime']);
+    final packagingDetails = textOf(data['packagingDetails']);
+    final paymentTerms = textOf(data['paymentTerms']);
+    final fobPort = textOf(data['fobPort']);
+    final warranty = textOf(data['warranty']);
+    final returnPolicy = textOf(data['returnPolicy']);
+    final hsnCode = textOf(data['hsnCode']);
+    final gstRate = numOf(data['gstRate']);
+
+    final rows = <MapEntry<String, String>>[
+      MapEntry('Brand / Manufacturer', brand),
+      if (sku.isNotEmpty) MapEntry('Model SKU', sku),
+      MapEntry('Place of Origin', country),
+      MapEntry('Min. Order Quantity', '$minOrderQty $unitOfMeasure'),
+      if (leadTimeDays != null) MapEntry('Global Lead Time', '$leadTimeDays Days'),
+      if (supplyAbility.isNotEmpty) MapEntry('Supply Capacity', supplyAbility),
+      if (deliveryTime.isNotEmpty) MapEntry('Transit Terms', deliveryTime),
+      if (packagingDetails.isNotEmpty) MapEntry('Packaging Format', packagingDetails),
+      if (paymentTerms.isNotEmpty) MapEntry('Payment Terms', paymentTerms),
+      if (fobPort.isNotEmpty) MapEntry('FOB Port', fobPort),
+      if (warranty.isNotEmpty) MapEntry('Warranty Duration', warranty),
+      if (returnPolicy.isNotEmpty) MapEntry('Industrial Return Policy', returnPolicy),
+      if (hsnCode.isNotEmpty) MapEntry('HSN Code', hsnCode),
+      if (gstRate != null) MapEntry('GST Rate', '$gstRate%'),
+    ];
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
     return JaxCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('PRODUCT SPECIFICATIONS REGISTRY', style: JaxText.h3),
           const SizedBox(height: 12),
-          ...entries.map((e) => Padding(
+          ...rows.map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: 9),
-                child: Row(children: [Expanded(child: Text(e.key, style: JaxText.bodySmall)), Expanded(child: Text(textOf(e.value), style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700)))]),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Text(
+                        e.key.toUpperCase(),
+                        style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 6,
+                      child: Text(
+                        e.value,
+                        style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
               )),
         ],
       ),

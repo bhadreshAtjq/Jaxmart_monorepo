@@ -2341,16 +2341,39 @@ class SupplierProfileDialog extends StatelessWidget {
   const SupplierProfileDialog({required this.seller, super.key});
   final JsonMap seller;
 
+  String _formatWorkforce(String? range) {
+    if (range == null || range.isEmpty) return 'N/A';
+    switch (range.toUpperCase()) {
+      case 'ONE_TO_TEN':
+        return '1-10 Employees';
+      case 'ELEVEN_TO_FIFTY':
+        return '11-50 Employees';
+      case 'FIFTY_ONE_TO_TWO_HUNDRED':
+        return '51-200 Employees';
+      case 'TWO_HUNDRED_PLUS':
+        return '200+ Employees';
+      default:
+        return range.replaceAll('_', ' ');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final name = textOf(seller['companyName'], 'Supplier');
+    final business = asMap(seller['businessProfile']);
+    final name = textOf(business['businessName'], textOf(seller['fullName'], 'Supplier'));
     final kycStatus = textOf(seller['kycStatus'], 'VERIFIED');
     final trust = (numOf(seller['trustScore']) ?? 85).toInt();
     final trustValue = (trust.clamp(0, 100) / 100.0);
-    final registryProfile = textOf(seller['registryProfile'], 'MANUFACTURER / SUPPLIER');
-    final establishmentYear = seller['establishmentYear']?.toString() ?? 'N/A';
-    final workforce = textOf(seller['operationalWorkforce'], 'N/A');
-    final gstId = textOf(seller['gstId'], 'N/A');
+    final registryProfile = textOf(business['businessType'], 'MANUFACTURER / SUPPLIER');
+    final establishmentYear = business['establishedYear']?.toString() ?? 'N/A';
+    final workforce = _formatWorkforce(textOf(business['employeeRange']));
+    final gstId = textOf(business['gstin'], 'N/A');
+
+    final addresses = asList(seller['addresses']);
+    final primaryAddress = addresses.isNotEmpty ? addresses.first : null;
+    final location = primaryAddress != null
+        ? '${textOf(primaryAddress['city'])}, ${textOf(primaryAddress['state'])}'
+        : 'India';
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -2437,7 +2460,7 @@ class SupplierProfileDialog extends StatelessWidget {
                   _ProfileRow(label: 'Establishment Year', value: establishmentYear),
                   _ProfileRow(label: 'Operational Workforce', value: workforce),
                   _ProfileRow(label: 'GST Registry ID', value: gstId),
-                  _ProfileRow(label: 'Location', value: textOf(seller['location'], 'India')),
+                  _ProfileRow(label: 'Location', value: location),
                 ],
               ),
             ),
@@ -2456,8 +2479,8 @@ class SupplierProfileDialog extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     textOf(
-                      seller['businessDescription'],
-                      '$name is an established $registryProfile based in ${textOf(seller['location'], 'India')}, specializing in high-quality ${textOf(seller['primaryCategory'], 'Industrial Goods').toLowerCase()} and premium B2B solutions.',
+                      business['description'],
+                      '$name is an established $registryProfile based in $location, specializing in high-quality ${textOf(seller['primaryCategory'], 'Industrial Goods').toLowerCase()} and premium B2B solutions.',
                     ),
                     style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, fontSize: 11.5, height: 1.35),
                   ),

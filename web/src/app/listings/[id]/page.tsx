@@ -23,6 +23,17 @@ function getSpecifications(listing: any) {
   return [];
 }
 
+function formatWorkforce(range: string | undefined | null) {
+  if (!range) return '11-50';
+  const mapping: Record<string, string> = {
+    'ONE_TO_TEN': '1-10',
+    'ELEVEN_TO_FIFTY': '11-50',
+    'FIFTY_ONE_TO_TWO_HUNDRED': '51-200',
+    'TWO_HUNDRED_PLUS': '200+',
+  };
+  return mapping[range.toUpperCase()] || range.replace(/_/g, ' ');
+}
+
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -350,7 +361,7 @@ export default function ListingDetailPage() {
                   <div className="p-6 space-y-4 text-xs font-medium text-gray-600">
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-400">Registry Profile</span><span className="font-bold text-jax-dark uppercase">Manufacturer / Supplier</span></div>
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-400">Establishment Year</span><span className="font-bold text-jax-dark">{bp?.establishedYear || '2015'}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-400">Operational Workforce</span><span className="font-bold text-jax-dark">{bp?.employeeRange || '11-50'} Employees</span></div>
+                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-400">Operational Workforce</span><span className="font-bold text-jax-dark">{formatWorkforce(bp?.employeeRange)} Employees</span></div>
                     {bp?.gstin && <div className="flex justify-between"><span className="text-gray-400 font-sans">GST Registry ID</span><span className="font-bold text-jax-dark text-[11px] font-mono">{bp.gstin}</span></div>}
                   </div>
 

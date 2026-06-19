@@ -12,6 +12,7 @@ class JaxPage extends StatelessWidget {
   const JaxPage({
     required this.title,
     required this.child,
+    this.titleWidget,
     this.subtitle,
     this.actions,
     this.floatingActionButton,
@@ -21,6 +22,7 @@ class JaxPage extends StatelessWidget {
   });
 
   final String title;
+  final Widget? titleWidget;
   final String? subtitle;
   final Widget child;
   final List<Widget>? actions;
@@ -46,7 +48,7 @@ class JaxPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: JaxText.h2),
+                    titleWidget ?? Text(title, style: JaxText.h2),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
                       Text(subtitle!, style: JaxText.bodySmall),

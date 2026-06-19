@@ -145,7 +145,7 @@ function SearchPageContent() {
                 <span className="text-gray-800 font-semibold">Search Results</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-baseline gap-2">
-                {q ? `Search results for "${q}"` : 'Wholesale Market Directory'}
+                {q ? `Search results for "${q}"` : 'Wholesale Directory'}
                 <span className="text-xs text-gray-500 font-normal">({total} items found)</span>
               </h1>
             </div>

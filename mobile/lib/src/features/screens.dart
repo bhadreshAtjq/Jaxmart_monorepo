@@ -1847,155 +1847,187 @@ class _SearchScreenState extends State<SearchScreen> {
         BlocProvider(create: (_) => ResourceCubit()..load(() => apiOf(context).searchListings(_params), listKeys: const ['listings'])),
         BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
       ],
-      child: JaxPage(
-        title: _q.text.isEmpty ? 'Wholesale Directory' : 'Search Results',
-        subtitle: _q.text.isEmpty ? 'Find verified products and suppliers' : _q.text,
-        child: Column(
-          children: [
-            Builder(
-              builder: (context) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Search bar ──────────────────────────────────────────
-                  TextField(
-                    controller: _q,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      hintText: 'Enter keywords to search...',
-                      suffixIcon: IconButton(
-                        icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded),
-                        onPressed: () => setState(() => _grid = !_grid),
-                      ),
-                    ),
-                    onSubmitted: (_) => _reload(context),
-                  ),
-                  const SizedBox(height: 14),
+      child: Builder(
+        builder: (context) {
+          return BlocBuilder<ResourceCubit, ResourceState>(
+            builder: (context, state) {
+              final pagination = asMap(state.data['pagination']);
+              final total = (numOf(pagination['total']) ?? 0).toInt();
+              final titleText = _q.text.isEmpty ? 'Wholesale Directory' : 'Search Results';
 
-                  // ── Quick Filters ────────────────────────────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text('Quick Filters:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _FilterChip(
-                                label: 'Verified Supplier',
-                                icon: Icons.verified_user_rounded,
-                                selected: _verified,
-                                onTap: () {
-                                  setState(() => _verified = !_verified);
-                                  _reload(context);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: '90%+ Trust',
-                                icon: Icons.star_rounded,
-                                selected: _trust,
-                                onTap: () {
-                                  setState(() => _trust = !_trust);
-                                  _reload(context);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Top Rated (4.5★+)',
-                                icon: null,
-                                selected: _topRated,
-                                onTap: () {
-                                  setState(() => _topRated = !_topRated);
-                                  _reload(context);
-                                },
-                              ),
-                            ],
-                          ),
+              final titleWidget = Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: titleText, style: JaxText.h2),
+                    if (state.status == ResourceStatus.success) ...[
+                      const TextSpan(text: '  '),
+                      TextSpan(
+                        text: '($total items found)',
+                        style: JaxText.bodySmall.copyWith(
+                          color: JaxColors.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 14),
+                  ],
+                ),
+              );
 
-                  // ── Sort By ──────────────────────────────────────────────
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: JaxColors.surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: JaxColors.outlineVariant, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Text('Sort By:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
+              return JaxPage(
+                title: titleText,
+                titleWidget: titleWidget,
+                subtitle: _q.text.isEmpty ? 'Find verified products and suppliers' : _q.text,
+                child: Column(
+                  children: [
+                    Builder(
+                      builder: (context) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── Search bar ──────────────────────────────────────────
+                          TextField(
+                            controller: _q,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              hintText: 'Enter keywords to search...',
+                              suffixIcon: IconButton(
+                                icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded),
+                                onPressed: () => setState(() => _grid = !_grid),
+                              ),
+                            ),
+                            onSubmitted: (_) => _reload(context),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // ── Quick Filters ────────────────────────────────────────
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Quick Filters:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      _FilterChip(
+                                        label: 'Verified Supplier',
+                                        icon: Icons.verified_user_rounded,
+                                        selected: _verified,
+                                        onTap: () {
+                                          setState(() => _verified = !_verified);
+                                          _reload(context);
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: '90%+ Trust',
+                                        icon: Icons.star_rounded,
+                                        selected: _trust,
+                                        onTap: () {
+                                          setState(() => _trust = !_trust);
+                                          _reload(context);
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _FilterChip(
+                                        label: 'Top Rated (4.5★+)',
+                                        icon: null,
+                                        selected: _topRated,
+                                        onTap: () {
+                                          setState(() => _topRated = !_topRated);
+                                          _reload(context);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // ── Sort By ──────────────────────────────────────────────
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: JaxColors.surface,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: JaxColors.outlineVariant, width: 1),
+                            ),
                             child: Row(
                               children: [
-                                _SortTab(label: 'RELEVANCE', value: 'relevance', selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                _SortTab(label: 'NEWEST',    value: 'newest',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                _SortTab(label: 'RATING',    value: 'rating',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                _SortTab(label: 'FEATURED',  value: 'featured',  selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                Text('Sort By:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        _SortTab(label: 'RELEVANCE', value: 'relevance', selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                        _SortTab(label: 'NEWEST',    value: 'newest',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                        _SortTab(label: 'RATING',    value: 'rating',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                        _SortTab(label: 'FEATURED',  value: 'featured',  selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
+                          const SizedBox(height: 14),
 
-                  // ── Categories ────────────────────────────────────────────
-                  BlocBuilder<CategoriesCubit, ResourceState>(
-                    builder: (context, cats) => SizedBox(
-                      height: 42,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          ChoiceChip(label: const Text('All'), selected: _category.isEmpty, onSelected: (_) => _setCategory(context, '')),
-                          const SizedBox(width: 8),
-                          ...cats.items.map((cat) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(label: Text(textOf(cat['name'])), selected: _category == cat['id'], onSelected: (_) => _setCategory(context, textOf(cat['id']))),
-                              )),
+                          // ── Categories ────────────────────────────────────────────
+                          BlocBuilder<CategoriesCubit, ResourceState>(
+                            builder: (context, cats) => SizedBox(
+                              height: 42,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  ChoiceChip(label: const Text('All'), selected: _category.isEmpty, onSelected: (_) => _setCategory(context, '')),
+                                  const SizedBox(width: 8),
+                                  ...cats.items.map((cat) => Padding(
+                                        padding: const EdgeInsets.only(right: 8),
+                                        child: ChoiceChip(label: Text(textOf(cat['name'])), selected: _category == cat['id'], onSelected: (_) => _setCategory(context, textOf(cat['id']))),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<ResourceCubit, ResourceState>(
-              builder: (context, state) => AsyncContent(
-                state: state,
-                emptyTitle: 'No products match these filters',
-                onRetry: () => _reload(context),
-                builder: (_) => Column(
-                  children: [
-                    ...state.items.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: ListingTile(item: item, grid: _grid, showChat: true),
-                        )),
-                    if (state.totalPages > 1)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(onPressed: _page > 1 ? () => _pageTo(context, _page - 1) : null, child: const Text('PREV')),
-                          Text('PAGE ${state.page} / ${state.totalPages}', style: JaxText.label),
-                          TextButton(onPressed: _page < state.totalPages ? () => _pageTo(context, _page + 1) : null, child: const Text('NEXT')),
-                        ],
+                    const SizedBox(height: 16),
+                    BlocBuilder<ResourceCubit, ResourceState>(
+                      builder: (context, state) => AsyncContent(
+                        state: state,
+                        emptyTitle: 'No products match these filters',
+                        onRetry: () => _reload(context),
+                        builder: (_) => Column(
+                          children: [
+                            ...state.items.map((item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ListingTile(item: item, grid: _grid, showChat: true),
+                                )),
+                            if (state.totalPages > 1)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  TextButton(onPressed: _page > 1 ? () => _pageTo(context, _page - 1) : null, child: const Text('PREV')),
+                                  Text('PAGE ${state.page} / ${state.totalPages}', style: JaxText.label),
+                                  TextButton(onPressed: _page < state.totalPages ? () => _pageTo(context, _page + 1) : null, child: const Text('NEXT')),
+                                ],
+                              ),
+                          ],
+                        ),
                       ),
+                    ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }

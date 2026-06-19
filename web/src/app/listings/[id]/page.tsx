@@ -507,7 +507,9 @@ export default function ListingDetailPage() {
               {isProduct && hasBulkSlabs && (
                 <div className="bg-white rounded-3xl border border-gray-250/60 overflow-hidden shadow-sm">
                   <div className="px-6 py-4 border-b border-gray-150 bg-gray-50/50">
-                    <h2 className="text-sm font-black text-jax-dark uppercase tracking-widest font-heading">Tiered Bulk Slabs Pricing matrix</h2>
+                    <h2 className="text-sm font-black text-jax-dark uppercase tracking-widest font-heading">
+                      Tiered Bulk Slabs Pricing Matrix (In {pd?.unitOfMeasure || 'Units'})
+                    </h2>
                   </div>
                   <table className="w-full text-xs font-semibold text-gray-600">
                     <thead className="bg-gray-50 text-gray-400 text-left">

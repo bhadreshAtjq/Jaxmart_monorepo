@@ -2145,8 +2145,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final seller = asMap(item['seller']);
               final media = asList(item['media']);
               final basePriceNum = numOf(product['pricePerUnit']);
-              final slab1Price = basePriceNum != null ? (basePriceNum * 0.95).round() : 11500;
-              final slab2Price = basePriceNum != null ? (basePriceNum * 0.90).round() : 10800;
+              final bulkSlabs = asList(product['bulkPriceSlabs']);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2171,7 +2170,18 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(product.isNotEmpty ? money(product['pricePerUnit']) : money(service['basePrice']), style: JaxText.h2),
+                        Text(
+                          product.isNotEmpty
+                              ? (product['priceType'] == 'ON_REQUEST'
+                                  ? 'Ask Price'
+                                  : product['priceType'] == 'RANGE' && product['priceRangeMin'] != null
+                                      ? 'Rs ${numOf(product['priceRangeMin'])?.toStringAsFixed(0)} - Rs ${numOf(product['priceRangeMax'])?.toStringAsFixed(0)}'
+                                      : product['priceType'] == 'NEGOTIABLE'
+                                          ? '${money(product['pricePerUnit'])} (Negotiable)'
+                                          : money(product['pricePerUnit']))
+                              : money(service['basePrice']),
+                          style: JaxText.h2,
+                        ),
                         const SizedBox(height: 6),
                         Text(product.isNotEmpty ? 'MOQ ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}' : '${textOf(service['serviceMode'], 'Service')} • ${textOf(service['typicalDuration'], 'Flexible timeline')}', style: JaxText.bodySmall),
                       ],
@@ -2240,14 +2250,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       ],
                     ),
                   ),
-                  if (product.isNotEmpty) ...[
+                  if (product.isNotEmpty && bulkSlabs.isNotEmpty) ...[
                     const SizedBox(height: 18),
                     JaxCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'TIERED BULK SLABS PRICING MATRIX',
+                          Text(
+                            'TIERED BULK SLABS PRICING MATRIX (IN ${textOf(product['unitOfMeasure'], 'Units').toUpperCase()})',
                             style: JaxText.h3,
                           ),
                           const SizedBox(height: 16),
@@ -2286,54 +2296,44 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                                   Divider(height: 12, thickness: 0.5),
                                 ],
                               ),
-                              // Row 1
-                              TableRow(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text('25', style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                              ...bulkSlabs.asMap().entries.expand((entry) {
+                                final index = entry.key;
+                                final slab = asMap(entry.value);
+                                final minQty = slab['minQty']?.toString() ?? '1';
+                                final maxQty = slab['maxQty'] != null ? slab['maxQty'].toString() : '∞';
+                                final priceVal = numOf(slab['price']) ?? 0;
+                                final priceText = money(priceVal).replaceAll('Rs ', '₹');
+
+                                return [
+                                  TableRow(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                        child: Text(minQty, style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                        child: Text(maxQty, style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                        child: Text(
+                                          priceText,
+                                          style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text('99', style: JaxText.bodySmall.copyWith(fontSize: 12)),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text(
-                                      money(slab1Price).replaceAll('Rs ', '₹'),
-                                      style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
+                                  if (index < bulkSlabs.length - 1)
+                                    const TableRow(
+                                      children: [
+                                        Divider(height: 1, thickness: 0.5),
+                                        Divider(height: 1, thickness: 0.5),
+                                        Divider(height: 1, thickness: 0.5),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              // Divider
-                              const TableRow(
-                                children: [
-                                  Divider(height: 1, thickness: 0.5),
-                                  Divider(height: 1, thickness: 0.5),
-                                  Divider(height: 1, thickness: 0.5),
-                                ],
-                              ),
-                              // Row 2
-                              TableRow(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text('100', style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text('∞', style: JaxText.bodySmall.copyWith(fontSize: 12)),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                    child: Text(
-                                      money(slab2Price).replaceAll('Rs ', '₹'),
-                                      style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ];
+                              }),
                             ],
                           ),
                         ],
@@ -2476,6 +2476,21 @@ class SupplierProfileDialog extends StatelessWidget {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_rounded, color: Colors.white54, size: 13),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: JaxText.bodySmall.copyWith(color: Colors.white70, fontSize: 10),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -2520,7 +2535,6 @@ class SupplierProfileDialog extends StatelessWidget {
                   _ProfileRow(label: 'Establishment Year', value: establishmentYear),
                   _ProfileRow(label: 'Operational Workforce', value: workforce),
                   _ProfileRow(label: 'GST Registry ID', value: gstId),
-                  _ProfileRow(label: 'Location', value: location),
                 ],
               ),
             ),
@@ -4681,7 +4695,8 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     _tags.text = asList(data['tags']).join(', ');
     _title.text = textOf(data['title']);
     _description.text = textOf(data['description']);
-    _price.text = (_type == 'PRODUCT' ? product['pricePerUnit'] : data['basePrice'])?.toString() ?? '';
+    final pdPrice = product['pricePerUnit'] ?? product['priceRangeMin'];
+    _price.text = (_type == 'PRODUCT' ? pdPrice : data['basePrice'])?.toString() ?? '';
     _moq.text = product['minOrderQty']?.toString() ?? '1';
     _unit.text = (_type == 'PRODUCT' ? product['unitOfMeasure'] : data['priceUnit'])?.toString() ?? 'Pieces';
     
@@ -4705,6 +4720,29 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
       });
     }
 
+    // step 3 commercial terms
+    final priceType = textOf(product['priceType'], 'FIXED');
+    if (priceType == 'RANGE') {
+      _pricingModel = 'VARIABLE PRICE RANGE';
+    } else if (priceType == 'NEGOTIABLE') {
+      _pricingModel = 'NEGOTIABLE';
+    } else if (priceType == 'ON_REQUEST') {
+      _pricingModel = 'RFQ MODE';
+    } else {
+      _pricingModel = 'FIXED UNIT PRICE';
+    }
+
+    final slabs = asList(product['bulkPriceSlabs']);
+    _pricingSlabs.clear();
+    for (var slab in slabs) {
+      final slabMap = asMap(slab);
+      _pricingSlabs.add({
+        'minQty': TextEditingController(text: slabMap['minQty']?.toString() ?? ''),
+        'maxQty': slabMap['maxQty'] == null ? TextEditingController(text: '') : TextEditingController(text: slabMap['maxQty'].toString()),
+        'unitPrice': TextEditingController(text: slabMap['price']?.toString() ?? ''),
+      });
+    }
+
     // variants
     final variants = asList(product['variants']);
     _hasVariants = variants.isNotEmpty;
@@ -4716,20 +4754,6 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         'sku': TextEditingController(text: textOf(vMap['sku'])),
         'price': TextEditingController(text: vMap['price']?.toString() ?? ''),
         'stock': TextEditingController(text: vMap['stock']?.toString() ?? '100'),
-      });
-    }
-
-    // step 3 commercial terms
-    _pricingModel = textOf(product['pricingModel'], 'FIXED UNIT PRICE');
-    
-    final slabs = asList(product['pricingSlabs']);
-    _pricingSlabs.clear();
-    for (var slab in slabs) {
-      final slabMap = asMap(slab);
-      _pricingSlabs.add({
-        'minQty': TextEditingController(text: slabMap['minQty']?.toString() ?? ''),
-        'maxQty': TextEditingController(text: slabMap['maxQty']?.toString() ?? ''),
-        'unitPrice': TextEditingController(text: slabMap['unitPrice']?.toString() ?? ''),
       });
     }
 
@@ -5650,6 +5674,22 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                              'unitOfMeasure': _unit.text,
                                              'minOrderQty': num.tryParse(_moq.text) ?? 1,
                                              'pricePerUnit': num.tryParse(_price.text),
+                                             'priceType': _pricingModel == 'VARIABLE PRICE RANGE'
+                                                 ? 'RANGE'
+                                                 : _pricingModel == 'NEGOTIABLE'
+                                                     ? 'NEGOTIABLE'
+                                                     : _pricingModel == 'RFQ MODE'
+                                                         ? 'ON_REQUEST'
+                                                         : 'FIXED',
+                                             'priceRangeMin': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
+                                             'priceRangeMax': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
+                                             'bulkPriceSlabs': _pricingSlabs
+                                                 .map((slab) => {
+                                                       'minQty': num.tryParse(slab['minQty']!.text) ?? 1,
+                                                       'maxQty': slab['maxQty']!.text.isEmpty ? null : num.tryParse(slab['maxQty']!.text),
+                                                       'price': num.tryParse(slab['unitPrice']!.text) ?? 0,
+                                                     })
+                                                 .toList(),
                                              'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
                                              'hsnCode': _hsn.text,
                                              'gstRate': int.tryParse(_gst.text) ?? 18,
@@ -5688,6 +5728,22 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                            'unitOfMeasure': _unit.text,
                                            'minOrderQty': num.tryParse(_moq.text) ?? 1,
                                            'pricePerUnit': num.tryParse(_price.text),
+                                             'priceType': _pricingModel == 'VARIABLE PRICE RANGE'
+                                                 ? 'RANGE'
+                                                 : _pricingModel == 'NEGOTIABLE'
+                                                     ? 'NEGOTIABLE'
+                                                     : _pricingModel == 'RFQ MODE'
+                                                         ? 'ON_REQUEST'
+                                                         : 'FIXED',
+                                             'priceRangeMin': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
+                                             'priceRangeMax': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
+                                             'bulkPriceSlabs': _pricingSlabs
+                                                 .map((slab) => {
+                                                       'minQty': num.tryParse(slab['minQty']!.text) ?? 1,
+                                                       'maxQty': slab['maxQty']!.text.isEmpty ? null : num.tryParse(slab['maxQty']!.text),
+                                                       'price': num.tryParse(slab['unitPrice']!.text) ?? 0,
+                                                     })
+                                                 .toList(),
                                            'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
                                            'hsnCode': _hsn.text,
                                            'gstRate': int.tryParse(_gst.text) ?? 18,

@@ -2146,6 +2146,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final media = asList(item['media']);
               final basePriceNum = numOf(product['pricePerUnit']);
               final bulkSlabs = asList(product['bulkPriceSlabs']);
+              final productCerts = asStringList(product['certifications']);
+              final businessProfile = asMap(seller['businessProfile']);
+              final businessCerts = asList(businessProfile['certifications']);
+              final hasCerts = productCerts.isNotEmpty || businessCerts.isNotEmpty;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2340,21 +2344,51 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 18),
-                  JaxCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('REGULATORY STANDARDS & COMPLIANCE CERTIFICATES', style: JaxText.h3),
-                        const SizedBox(height: 12),
-                        Row(children: const [
-                          StatusPill(label: 'CE CERTIFIED', color: JaxColors.primary),
-                          SizedBox(width: 8),
-                          StatusPill(label: 'BIS REGISTRATION', color: JaxColors.secondary),
-                        ]),
-                      ],
+                  if (hasCerts) ...[
+                    const SizedBox(height: 18),
+                    JaxCard(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            child: const Text(
+                              'REGULATORY STANDARDS & COMPLIANCE CERTIFICATES',
+                              style: JaxText.h3,
+                            ),
+                          ),
+                          const Divider(height: 1, color: JaxColors.outlineVariant),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (var cert in productCerts)
+                                  CertificationChip(
+                                    label: cert.toString(),
+                                    isVerified: false,
+                                    color: JaxColors.primary,
+                                  ),
+                                for (var certObj in businessCerts)
+                                  (() {
+                                    final certMap = asMap(certObj);
+                                    final name = textOf(certMap['certName']);
+                                    final isVerified = certMap['isVerified'] == true;
+                                    return CertificationChip(
+                                      label: name,
+                                      isVerified: isVerified,
+                                      color: isVerified ? JaxColors.success : JaxColors.outline,
+                                    );
+                                  })(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 18),
                   JaxCard(
                     child: Column(
@@ -4766,11 +4800,10 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     _sampleAvailable = product['sampleAvailable'] == true;
     _sampleCost.text = product['sampleCost']?.toString() ?? '';
 
-    // certifications
-    final certs = asList(product['certifications']);
+    final certs = asStringList(product['certifications']);
     _certifications.clear();
     for (var cert in certs) {
-      _certifications.add(cert.toString());
+      _certifications.add(cert);
     }
 
     // media
@@ -7352,6 +7385,58 @@ class _BulkImportDialogState extends State<_BulkImportDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class CertificationChip extends StatelessWidget {
+  final String label;
+  final bool isVerified;
+  final Color color;
+
+  const CertificationChip({
+    required this.label,
+    required this.isVerified,
+    required this.color,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .06),
+        border: Border.all(color: color.withValues(alpha: .2)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.verified_outlined,
+            size: 14,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label.toUpperCase(),
+            style: JaxText.label.copyWith(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          if (isVerified) ...[
+            const SizedBox(width: 6),
+            Icon(
+              Icons.check_circle_rounded,
+              size: 12,
+              color: color,
+            ),
+          ],
+        ],
       ),
     );
   }

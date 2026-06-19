@@ -534,18 +534,18 @@ export default function ListingDetailPage() {
 
               {/* Compliance & certifications checklist */}
               {hasCerts && (
-                <div className="bg-white rounded-3xl border border-gray-250/60 overflow-hidden shadow-sm">
-                  <div className="px-6 py-4 border-b border-gray-150 bg-gray-50/50">
-                    <h2 className="text-sm font-black text-jax-dark uppercase tracking-widest font-heading">Regulatory Standards & Compliance Certificates</h2>
+                <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="px-6 py-4 border-b border-gray-100 bg-white">
+                    <h2 className="text-xs font-black text-[#1a2d54] uppercase tracking-widest font-heading">Regulatory Standards & Compliance Certificates</h2>
                   </div>
                   <div className="p-6 flex flex-wrap gap-3">
                     {pd?.certifications?.map((cert: string, i: number) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200/50 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm">
+                      <span key={i} className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50/40 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm">
                         <FaCertificate className="h-4 w-4" /> {cert}
                       </span>
                     ))}
                     {bp?.certifications?.map((cert: any, i: number) => (
-                      <span key={`bp-${i}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200/50 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm">
+                      <span key={`bp-${i}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50/40 text-emerald-700 border border-emerald-100 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm">
                         <FaCertificate className="h-4 w-4" /> {cert.certName} {cert.isVerified && <FaCircleCheck className="h-3.5 w-3.5 text-emerald-500" />}
                       </span>
                     ))}

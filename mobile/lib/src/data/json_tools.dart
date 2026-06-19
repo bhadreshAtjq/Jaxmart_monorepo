@@ -13,6 +13,11 @@ List<JsonMap> asList(dynamic value) {
   return const <JsonMap>[];
 }
 
+List<String> asStringList(dynamic value) {
+  if (value is List) return value.map((e) => '$e').where((e) => e.isNotEmpty).toList();
+  return const <String>[];
+}
+
 List<JsonMap> pickList(dynamic payload, List<String> keys) {
   final map = asMap(payload);
   if (payload is List) return asList(payload);

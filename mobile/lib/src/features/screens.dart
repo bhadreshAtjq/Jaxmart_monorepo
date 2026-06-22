@@ -1602,24 +1602,74 @@ class FeaturedFactoriesCard extends StatelessWidget {
   const FeaturedFactoriesCard({required this.listings, super.key});
   final List<JsonMap> listings;
 
+  static const List<JsonMap> _featuredFactories = [
+    {
+      'id': 'mock-vardhman',
+      'fullName': 'Vardhman Representative',
+      'kycStatus': 'VERIFIED',
+      'trustScore': 95,
+      'avatarUrl': null,
+      'businessProfile': {
+        'businessName': 'Vardhman Textiles Ltd',
+        'businessType': 'TEXTILES',
+        'establishedYear': 1998,
+        'employeeRange': 'TWO_HUNDRED_PLUS',
+        'gstin': '03AAAAV1998T1Z1',
+      },
+      'addresses': [
+        {
+          'city': 'Ludhiana',
+          'state': 'Punjab',
+          'isPrimary': true,
+        }
+      ],
+    },
+    {
+      'id': 'mock-apex',
+      'fullName': 'Apex Representative',
+      'kycStatus': 'VERIFIED',
+      'trustScore': 90,
+      'avatarUrl': null,
+      'businessProfile': {
+        'businessName': 'Apex Industries',
+        'businessType': 'INDUSTRIAL',
+        'establishedYear': 2004,
+        'employeeRange': 'FIFTY_ONE_TO_TWO_HUNDRED',
+        'gstin': '27AAAAA2004I1Z2',
+      },
+      'addresses': [
+        {
+          'city': 'Mumbai',
+          'state': 'Maharashtra',
+          'isPrimary': true,
+        }
+      ],
+    },
+    {
+      'id': 'mock-swastik',
+      'fullName': 'Swastik Representative',
+      'kycStatus': 'VERIFIED',
+      'trustScore': 88,
+      'avatarUrl': null,
+      'businessProfile': {
+        'businessName': 'Swastik Chemicals',
+        'businessType': 'CHEMICALS',
+        'establishedYear': 2011,
+        'employeeRange': 'ELEVEN_TO_FIFTY',
+        'gstin': '24AAAAA2011C1Z3',
+      },
+      'addresses': [
+        {
+          'city': 'Ahmedabad',
+          'state': 'Gujarat',
+          'isPrimary': true,
+        }
+      ],
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // Extract unique sellers from listings
-    final uniqueSellers = <String, Map<String, dynamic>>{};
-    for (var item in listings) {
-      final seller = asMap(item['seller']);
-      final id = textOf(seller['id']);
-      if (id.isNotEmpty && !uniqueSellers.containsKey(id)) {
-        final categoryName = textOf(asMap(item['category'])['name'], 'Industrial');
-        uniqueSellers[id] = {
-          'seller': seller,
-          'category': categoryName,
-        };
-      }
-    }
-    final sellersInfo = uniqueSellers.values.toList();
-    if (sellersInfo.isEmpty) return const SizedBox.shrink();
-
     return JaxCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1632,8 +1682,7 @@ class FeaturedFactoriesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          ...sellersInfo.take(3).map((info) {
-            final seller = asMap(info['seller']);
+          ..._featuredFactories.map((seller) {
             final business = asMap(seller['businessProfile']);
             final name = textOf(business['businessName'], textOf(seller['fullName'], 'Supplier'));
             
@@ -1646,9 +1695,9 @@ class FeaturedFactoriesCard extends StatelessWidget {
             final rawEstYear = business['establishedYear'];
             final est = rawEstYear != null ? rawEstYear.toString() : '2015';
             
-            final category = textOf(info['category'], 'Industrial');
+            final category = textOf(business['businessType'], 'Industrial');
             final initials = name.length >= 2 ? name.substring(0, 1).toUpperCase() + name.substring(1, 2).toLowerCase() : name.toUpperCase();
-            final isLast = info == sellersInfo.take(3).last;
+            final isLast = seller == _featuredFactories.last;
 
             return Column(
               children: [
@@ -7482,6 +7531,20 @@ class CertificationChip extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w800,
             ),
+          ),
+          if (isVerified) ...[
+            const SizedBox(width: 6),
+            Icon(
+              Icons.check_circle_rounded,
+              size: 12,
+              color: color,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
           ),
           if (isVerified) ...[
             const SizedBox(width: 6),

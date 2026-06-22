@@ -36,13 +36,18 @@ class AppRouter {
               return '/auth/login';
             }
 
-            if (!auth.isLoggedIn && !authRoute) return '/auth/login';
+            if (!auth.isLoggedIn && !authRoute) {
+              return '/auth/login?redirect=${Uri.encodeComponent(state.uri.toString())}';
+            }
 
             if (auth.isLoggedIn) {
               if (hasIncompleteProfile) {
                 return isSetup ? null : '/auth/setup';
               } else {
-                if (authRoute) return '/home';
+                if (authRoute) {
+                  final target = state.uri.queryParameters['redirect'];
+                  return (target != null && target.isNotEmpty) ? target : '/home';
+                }
               }
             }
 

@@ -201,7 +201,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   BlocConsumer<AuthCubit, AuthState>(
                     listener: (context, state) {
                       if (state.message == 'OTP sent' && state.phone != null) {
-                        context.push('/auth/otp?phone=${state.phone}');
+                        final currentUri = GoRouterState.of(context).uri;
+                        final redirect = currentUri.queryParameters['redirect'];
+                        final type = currentUri.queryParameters['type'];
+                        
+                        final queryParams = <String, String>{
+                          'phone': state.phone!,
+                          if (redirect != null) 'redirect': redirect,
+                          if (type != null) 'type': type,
+                        };
+                        final uri = Uri(path: '/auth/otp', queryParameters: queryParams);
+                        context.push(uri.toString());
                       }
                       if (state.status == AuthStatus.failure && state.message != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -442,7 +452,11 @@ class _OtpScreenState extends State<OtpScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: BlocConsumer<AuthCubit, AuthState>(
             listener: (context, state) {
-              if (state.isLoggedIn) context.go('/home');
+              if (state.isLoggedIn) {
+                final currentUri = GoRouterState.of(context).uri;
+                final redirect = currentUri.queryParameters['redirect'];
+                context.go(redirect != null && redirect.isNotEmpty ? redirect : '/home');
+              }
               if (state.status == AuthStatus.failure && state.message != null) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
                 _pinController.clear();
@@ -1319,8 +1333,17 @@ class SupplierJoinCard extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                await context.read<AuthCubit>().updateProfile({'userType': 'SELLER'});
-                if (context.mounted) context.push('/seller/dashboard');
+                final auth = context.read<AuthCubit>().state;
+                if (!auth.isLoggedIn) {
+                  context.push('/auth/login?redirect=${Uri.encodeComponent('/seller/dashboard')}&type=SELLER');
+                  return;
+                }
+                if (auth.isSeller) {
+                  context.go('/seller/dashboard');
+                } else {
+                  await context.read<AuthCubit>().updateProfile({'userType': 'SELLER'});
+                  if (context.mounted) context.go('/seller/dashboard');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,

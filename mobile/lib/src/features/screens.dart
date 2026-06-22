@@ -1605,16 +1605,20 @@ class FeaturedFactoriesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Extract unique sellers from listings
-    final uniqueSellers = <String, JsonMap>{};
+    final uniqueSellers = <String, Map<String, dynamic>>{};
     for (var item in listings) {
       final seller = asMap(item['seller']);
       final id = textOf(seller['id']);
       if (id.isNotEmpty && !uniqueSellers.containsKey(id)) {
-        uniqueSellers[id] = seller;
+        final categoryName = textOf(asMap(item['category'])['name'], 'Industrial');
+        uniqueSellers[id] = {
+          'seller': seller,
+          'category': categoryName,
+        };
       }
     }
-    final sellers = uniqueSellers.values.toList();
-    if (sellers.isEmpty) return const SizedBox.shrink();
+    final sellersInfo = uniqueSellers.values.toList();
+    if (sellersInfo.isEmpty) return const SizedBox.shrink();
 
     return JaxCard(
       child: Column(
@@ -1628,54 +1632,71 @@ class FeaturedFactoriesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          ...sellers.take(3).map((seller) {
-            final name = textOf(seller['companyName'], 'Factory');
-            final location = textOf(seller['location'], 'India');
-            final est = seller['establishmentYear']?.toString() ?? 'N/A';
-            final category = textOf(seller['primaryCategory'], 'INDUSTRIAL');
+          ...sellersInfo.take(3).map((info) {
+            final seller = asMap(info['seller']);
+            final business = asMap(seller['businessProfile']);
+            final name = textOf(business['businessName'], textOf(seller['fullName'], 'Supplier'));
+            
+            final addresses = asList(seller['addresses']);
+            final primaryAddress = addresses.isNotEmpty ? addresses.first : null;
+            final location = primaryAddress != null
+                ? textOf(primaryAddress['city'], 'India')
+                : 'India';
+            
+            final rawEstYear = business['establishedYear'];
+            final est = rawEstYear != null ? rawEstYear.toString() : '2015';
+            
+            final category = textOf(info['category'], 'Industrial');
             final initials = name.length >= 2 ? name.substring(0, 1).toUpperCase() + name.substring(1, 2).toLowerCase() : name.toUpperCase();
-            final isLast = seller == sellers.take(3).last;
+            final isLast = info == sellersInfo.take(3).last;
 
             return Column(
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: JaxColors.surface,
-                        border: Border.all(color: JaxColors.outlineVariant, width: 1.2),
-                        borderRadius: BorderRadius.circular(12),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (_) => SupplierProfileDialog(seller: seller),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: JaxColors.surface,
+                          border: Border.all(color: JaxColors.outlineVariant, width: 1.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initials,
+                          style: JaxText.title.copyWith(color: JaxColors.secondary, fontSize: 16),
+                        ),
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        initials,
-                        style: JaxText.title.copyWith(color: JaxColors.secondary, fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(name, style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
-                          const SizedBox(height: 4),
-                          Text('$location • Est. $est', style: JaxText.bodySmall.copyWith(fontSize: 11, color: JaxColors.onSurfaceVariant)),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: JaxColors.secondary.withValues(alpha: .12),
-                              borderRadius: BorderRadius.circular(6),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name, style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+                            const SizedBox(height: 4),
+                            Text('$location • Est. $est', style: JaxText.bodySmall.copyWith(fontSize: 11, color: JaxColors.onSurfaceVariant)),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: JaxColors.secondary.withValues(alpha: .12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(category.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9, letterSpacing: 0.5)),
                             ),
-                            child: Text(category.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9, letterSpacing: 0.5)),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (!isLast) const Divider(height: 32, thickness: 0.5),
               ],
@@ -2468,7 +2489,7 @@ class SupplierProfileDialog extends StatelessWidget {
   final JsonMap seller;
 
   String _formatWorkforce(String? range) {
-    if (range == null || range.isEmpty) return 'N/A';
+    if (range == null || range.isEmpty) return '11-50 Employees';
     switch (range.toUpperCase()) {
       case 'ONE_TO_TEN':
         return '1-10 Employees';
@@ -2491,9 +2512,11 @@ class SupplierProfileDialog extends StatelessWidget {
     final trust = (numOf(seller['trustScore']) ?? 85).toInt();
     final trustValue = (trust.clamp(0, 100) / 100.0);
     final registryProfile = textOf(business['businessType'], 'MANUFACTURER / SUPPLIER');
-    final establishmentYear = business['establishedYear']?.toString() ?? 'N/A';
+    final rawEstYear = business['establishedYear'];
+    final establishmentYear = rawEstYear != null ? rawEstYear.toString() : '2015';
     final workforce = _formatWorkforce(textOf(business['employeeRange']));
-    final gstId = textOf(business['gstin'], 'N/A');
+    final gstin = textOf(business['gstin']);
+    final hasGst = gstin.isNotEmpty && gstin != 'N/A';
 
     final addresses = asList(seller['addresses']);
     final primaryAddress = addresses.isNotEmpty ? addresses.first : null;
@@ -2600,7 +2623,7 @@ class SupplierProfileDialog extends StatelessWidget {
                   _ProfileRow(label: 'Registry Profile', value: registryProfile),
                   _ProfileRow(label: 'Establishment Year', value: establishmentYear),
                   _ProfileRow(label: 'Operational Workforce', value: workforce),
-                  _ProfileRow(label: 'GST Registry ID', value: gstId),
+                  if (hasGst) _ProfileRow(label: 'GST Registry ID', value: gstin),
                 ],
               ),
             ),

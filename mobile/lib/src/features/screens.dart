@@ -7545,17 +7545,4 @@ class CertificationChip extends StatelessWidget {
     );
   }
 }
-          ),
-          if (isVerified) ...[
-            const SizedBox(width: 6),
-            Icon(
-              Icons.check_circle_rounded,
-              size: 12,
-              color: color,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
+

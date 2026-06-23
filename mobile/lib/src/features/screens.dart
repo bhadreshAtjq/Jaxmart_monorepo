@@ -4535,7 +4535,7 @@ class SellerDashboardScreen extends StatelessWidget {
                       action: JaxButton(label: 'Create Listing', onPressed: () => context.push('/seller/listings/new')),
                     )
                   else
-                    ...listings.take(6).map((l) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: l))),
+                    ...listings.take(6).map((l) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: l, isSellerMode: true, showActions: false))),
                 ],
               );
             },

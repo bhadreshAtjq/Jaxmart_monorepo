@@ -508,11 +508,12 @@ class EmptyState extends StatelessWidget {
 }
 
 class ListingTile extends StatelessWidget {
-  const ListingTile({required this.item, this.grid = false, this.showChat = false, this.isSellerMode = false, super.key});
+  const ListingTile({required this.item, this.grid = false, this.showChat = false, this.isSellerMode = false, this.showActions = true, super.key});
   final JsonMap item;
   final bool grid;
   final bool showChat;
   final bool isSellerMode;
+  final bool showActions;
 
   @override
   Widget build(BuildContext context) {
@@ -562,22 +563,25 @@ class ListingTile extends StatelessWidget {
               ],
             ),
           ),
-          TrustScore(score: numOf(seller['trustScore']) ?? 85),
+          if (!isSellerMode) TrustScore(score: numOf(seller['trustScore']) ?? 85),
         ],
       ),
-      const SizedBox(height: 12),
-      Container(
-        padding: const EdgeInsets.all(9),
-        decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(10)),
-        child: Row(
-          children: [
-            JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 26),
-            const SizedBox(width: 8),
-            Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis)),
-            const Icon(Icons.verified_user_rounded, size: 15, color: JaxColors.success),
-          ],
+      if (!isSellerMode) ...[
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(9),
+          decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 26),
+              const SizedBox(width: 8),
+              Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              if (textOf(seller['kycStatus']) == 'VERIFIED')
+                const Icon(Icons.verified_user_rounded, size: 15, color: JaxColors.success),
+            ],
+          ),
         ),
-      ),
+      ],
       if (showChat) ...[
         const SizedBox(height: 10),
         SizedBox(
@@ -601,7 +605,7 @@ class ListingTile extends StatelessWidget {
           ),
         ),
       ],
-      if (isSellerMode) ...[
+      if (isSellerMode && showActions) ...[
         const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,

@@ -429,10 +429,12 @@ export default function HomePage() {
                             </div>
                           )}
                           <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                            <span className="bg-jungle-green-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
-                              <FaCircleCheck className="h-2.5 w-2.5 shrink-0" />
-                              Verified
-                            </span>
+                            {item.seller?.kycStatus === 'VERIFIED' && (
+                              <span className="bg-jungle-green-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
+                                <FaCircleCheck className="h-2.5 w-2.5 shrink-0" />
+                                Verified
+                              </span>
+                            )}
                             {item.isFeatured && (
                               <span className="bg-gray-900 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
                                 <FaFire className="h-2.5 w-2.5 text-amber-400 shrink-0" />

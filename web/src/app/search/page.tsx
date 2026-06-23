@@ -610,10 +610,12 @@ function SearchListingRow({ listing }: { listing: any }) {
 
           <div className="space-y-1.5">
             <TrustScore score={seller?.trustScore || 85} />
-            <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold">
-              <FaShieldHalved className="h-3.5 w-3.5" />
-              <span>Verified B2B Manufacturer</span>
-            </div>
+            {seller?.kycStatus === 'VERIFIED' && (
+              <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold">
+                <FaShieldHalved className="h-3.5 w-3.5" />
+                <span>Verified B2B Manufacturer</span>
+              </div>
+            )}
           </div>
         </div>
 

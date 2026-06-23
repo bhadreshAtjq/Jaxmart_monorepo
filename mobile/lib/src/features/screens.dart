@@ -2269,6 +2269,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final service = asMap(item['serviceDetail']);
               final seller = asMap(item['seller']);
               final media = asList(item['media']);
+              final currentUser = context.watch<AuthCubit>().state.user;
+              final isOwner = currentUser != null && textOf(currentUser['id']) == textOf(seller['id']);
               final basePriceNum = numOf(product['pricePerUnit']);
               final bulkSlabs = asList(product['bulkPriceSlabs']);
               final productCerts = asStringList(product['certifications']);
@@ -2375,7 +2377,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       children: [
                         const Text('MERCHANT PROFILE', style: JaxText.h3),
                         const SizedBox(height: 12),
-                        Row(children: [JaxAvatar(name: sellerName(item), url: textOf(seller['avatarUrl'])), const SizedBox(width: 12), Expanded(child: Text(sellerName(item), style: JaxText.title)), TrustScore(score: numOf(seller['trustScore']) ?? 85)]),
+                        Row(children: [JaxAvatar(name: sellerName(item), url: textOf(seller['avatarUrl'])), const SizedBox(width: 12), Expanded(child: Text(sellerName(item), style: JaxText.title)), if (!isOwner) TrustScore(score: numOf(seller['trustScore']) ?? 85)]),
                       ],
                     ),
                   ),

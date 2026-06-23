@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const xlsx = require('xlsx');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Helper to calculate a stable hash code for string mapping
+// Helper to calculate stable hash code for string mapping
 function hashCode(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -24,8 +25,8 @@ function getUniquePhoneForCompany(companyName, contact) {
   }
 
   let basePhone = '';
-  if (contact && contact !== 'NA' && contact !== '-' && contact.trim().length > 0) {
-    const digits = contact.replace(/\D/g, '');
+  if (contact && contact !== 'NA' && contact !== '-' && String(contact).trim().length > 0) {
+    const digits = String(contact).replace(/\D/g, '');
     if (digits.length >= 10) {
       basePhone = '91' + digits.slice(-10);
     }
@@ -57,8 +58,8 @@ function getUniqueEmailForCompany(companyName, emailField, phone) {
   }
 
   let baseEmail = '';
-  if (emailField && emailField !== 'NA' && emailField !== '-' && emailField.includes('@')) {
-    baseEmail = emailField.trim().toLowerCase();
+  if (emailField && emailField !== 'NA' && emailField !== '-' && emailField !== 'CLOSE' && String(emailField).includes('@')) {
+    baseEmail = String(emailField).trim().toLowerCase();
   } else {
     const cleanComp = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
     baseEmail = `contact@${cleanComp || 'unknown'}.com`;
@@ -73,37 +74,16 @@ function getUniqueEmailForCompany(companyName, emailField, phone) {
   return finalEmail;
 }
 
-// Robust CSV Line parser to handle fields containing commas in quotes
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
-
 // Parse Price string to decimal value
 function parsePrice(priceStr) {
-  if (!priceStr || priceStr.toLowerCase().includes('ask') || priceStr.includes('-') || priceStr.toLowerCase().includes('n/a')) {
+  if (!priceStr) {
     return { priceType: 'ON_REQUEST', pricePerUnit: null };
   }
-  const digits = priceStr.replace(/[^0-9.]/g, '');
+  const cleanPrice = String(priceStr).toLowerCase();
+  if (cleanPrice.includes('ask') || cleanPrice.includes('-') || cleanPrice.includes('n/a')) {
+    return { priceType: 'ON_REQUEST', pricePerUnit: null };
+  }
+  const digits = String(priceStr).replace(/[^0-9.]/g, '');
   const parsed = parseFloat(digits);
   if (!isNaN(parsed) && parsed > 0) {
     return { priceType: 'FIXED', pricePerUnit: parsed };
@@ -113,10 +93,10 @@ function parsePrice(priceStr) {
 
 // Parse MOQ / Unit of measure
 function parseUnitOfMeasure(moqStr) {
-  if (!moqStr || moqStr === 'N/A' || moqStr === '-') {
+  if (!moqStr) {
     return 'Piece';
   }
-  const cleanStr = moqStr.toLowerCase();
+  const cleanStr = String(moqStr).toLowerCase();
   if (cleanStr.includes('piece')) return 'Piece';
   if (cleanStr.includes('meter')) return 'Meter';
   if (cleanStr.includes('box')) return 'Box';
@@ -125,34 +105,30 @@ function parseUnitOfMeasure(moqStr) {
 }
 
 async function main() {
-  console.log('🌱 Starting import of Textile CSV products...');
+  console.log('🌱 Starting import of Electronics Excel products...');
 
-  // 1. Locate CSV file
-  const csvPath = path.join(__dirname, '..', 'textiles_products (2) - textiles_products (2).csv.csv');
-  if (!fs.existsSync(csvPath)) {
-    console.error(`❌ CSV File not found at path: ${csvPath}`);
+  // 1. Locate and load Excel file
+  const excelPath = path.join(__dirname, '..', '..', 'electronics_READY (2) (1) (Recovered).xlsx');
+  if (!fs.existsSync(excelPath)) {
+    console.error(`❌ Excel File not found at path: ${excelPath}`);
     process.exit(1);
   }
 
-  console.log(`📖 Loading CSV from: ${csvPath}`);
-  const content = fs.readFileSync(csvPath, 'utf-8');
-  const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
-  
-  if (lines.length <= 1) {
-    console.error('❌ Empty CSV file or header only.');
-    process.exit(1);
-  }
+  console.log(`📖 Loading Excel from: ${excelPath}`);
+  const workbook = xlsx.readFile(excelPath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const rows = xlsx.utils.sheet_to_json(sheet);
 
-  const headers = parseCSVLine(lines[0]);
-  console.log(`📊 Found ${lines.length - 1} rows with headers:`, headers.join(', '));
+  console.log(`📊 Found ${rows.length} rows in sheet: ${sheetName}`);
 
-  // 2. Setup Category root ("Textiles")
-  let rootTextiles = await prisma.category.findUnique({ where: { slug: 'textiles' } });
-  if (!rootTextiles) {
-    rootTextiles = await prisma.category.create({
+  // 2. Setup Category root ("Electronics")
+  let rootElectronics = await prisma.category.findUnique({ where: { slug: 'electronics' } });
+  if (!rootElectronics) {
+    rootElectronics = await prisma.category.create({
       data: {
-        name: 'Textiles',
-        slug: 'textiles',
+        name: 'Electronics',
+        slug: 'electronics',
         applicableType: 'PRODUCT',
         depthLevel: 1,
         isActive: true
@@ -160,7 +136,7 @@ async function main() {
     });
   }
 
-  // Pre-load existing sellers to avoid trying to create duplicate entries
+  // Pre-load existing sellers to avoid DB unique phone conflicts
   console.log('🔍 Pre-loading existing sellers for cache alignment...');
   const allUsers = await prisma.user.findMany({
     where: { userType: 'SELLER' },
@@ -173,46 +149,46 @@ async function main() {
   const categoryIdMap = new Map();
   const sellerIdMap = new Map(); // companyName -> Seller ID
   const listingsToCreate = [];
-  const uniqueListingKeys = new Set(); // To prevent exact duplicates from CSV
+  const uniqueListingKeys = new Set(); // Prevent duplicates
 
-  console.log('🔄 Parsing CSV rows & resolving relations...');
-  for (let idx = 1; idx < lines.length; idx++) {
-    const row = parseCSVLine(lines[idx]);
-    if (row.length < 10) continue; // Skip malformed lines
+  console.log('🔄 Parsing Excel rows & resolving relations...');
+  for (let idx = 0; idx < rows.length; idx++) {
+    const row = rows[idx];
 
-    const categoryName = row[0];
-    const subcategoryName = row[1];
-    const productName = row[3];
-    const companyName = row[4];
-    const priceStr = row[5];
-    const moqStr = row[6];
-    const contact = row[7];
-    const emailField = row[8];
-    const website = row[9];
-    const location = row[10];
-    const imageUrl = row[13];
-    const productDesc = row[15] || productName;
+    const categoryName = row['Category'];
+    const subcategoryName = row['Subcategory'];
+    const productName = row['Product Name'];
+    const companyName = row['Company Name'];
+    const priceStr = row['Price'];
+    const moqStr = row['MOQ'];
+    const contact = row['Phone Number ']; // with space
+    const emailField = row['email'];
+    const website = row['website'];
+    const location = row['Location'];
+    const imageUrl = row['Image URL'];
 
-    if (!productName || !companyName) continue;
+    if (!productName || !companyName || !categoryName || !subcategoryName) {
+      continue; // Skip incomplete records
+    }
 
     // Deduplication check
-    const listingKey = `${productName.toLowerCase()}_${companyName.toLowerCase()}`;
+    const listingKey = `${String(productName).toLowerCase()}_${String(companyName).toLowerCase()}`;
     if (uniqueListingKeys.has(listingKey)) {
-      continue; // Skip duplicates
+      continue;
     }
     uniqueListingKeys.add(listingKey);
 
-    // Get or Create Subcategory Level 2 (e.g. Readymade Garments)
-    const subCatSlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    // Get or Create Subcategory Level 2 (e.g. Industrial Electronics)
+    const subCatSlug = String(categoryName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let subCatId = categoryIdMap.get(subCatSlug);
     if (!subCatId) {
       let subCat = await prisma.category.findUnique({ where: { slug: subCatSlug } });
       if (!subCat) {
         subCat = await prisma.category.create({
           data: {
-            name: categoryName,
+            name: String(categoryName),
             slug: subCatSlug,
-            parentId: rootTextiles.id,
+            parentId: rootElectronics.id,
             applicableType: 'PRODUCT',
             depthLevel: 2,
             isActive: true
@@ -223,15 +199,15 @@ async function main() {
       categoryIdMap.set(subCatSlug, subCatId);
     }
 
-    // Get or Create Subcategory Level 3 (e.g. Mens T-Shirts)
-    const leafCatSlug = subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    // Get or Create Subcategory Level 3 (e.g. Barcode Scanner)
+    const leafCatSlug = String(subcategoryName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let leafCatId = categoryIdMap.get(leafCatSlug);
     if (!leafCatId) {
       let leafCat = await prisma.category.findUnique({ where: { slug: leafCatSlug } });
       if (!leafCat) {
         leafCat = await prisma.category.create({
           data: {
-            name: subcategoryName,
+            name: String(subcategoryName),
             slug: leafCatSlug,
             parentId: subCatId,
             applicableType: 'PRODUCT',
@@ -250,7 +226,6 @@ async function main() {
       const phone = getUniquePhoneForCompany(companyName, contact);
       const email = getUniqueEmailForCompany(companyName, emailField, phone);
 
-      // Check if user already exists
       let dbUser = await prisma.user.findUnique({ where: { phone } });
       if (!dbUser) {
         dbUser = await prisma.user.create({
@@ -264,18 +239,18 @@ async function main() {
             businessProfile: {
               create: {
                 businessName: companyName,
-                website: website !== 'NA' ? website : null,
-                description: `Verified wholesale B2B supplier of quality textile and apparel goods based in ${location}.`,
+                website: website !== 'NA' && website !== 'Close' ? String(website) : null,
+                description: `Verified B2B wholesale distributor of quality electronics, networking, and technology goods based in ${location}.`,
                 gstin: `29${Math.random().toString(36).substring(2, 12).toUpperCase()}1Z5`,
               }
             },
             addresses: {
               create: {
                 addressType: 'PRIMARY',
-                line1: location || 'India',
-                city: location || 'India',
+                line1: location !== 'N/A' ? String(location) : 'India',
+                city: location !== 'N/A' ? String(location) : 'India',
                 state: 'Gujarat', // Default/fallback state
-                pincode: '360001', // Default/fallback pincode
+                pincode: '380001', // Default/fallback pincode
                 country: 'India',
                 isPrimary: true
               }
@@ -287,19 +262,19 @@ async function main() {
       sellerIdMap.set(companyName, sellerId);
     }
 
-    // Parse Listing specifications
+    // Parse Listing parameters
     const { priceType, pricePerUnit } = parsePrice(priceStr);
     const unitOfMeasure = parseUnitOfMeasure(moqStr);
-    const modelNum = `JM-TXT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const modelNum = `JM-ELC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     listingsToCreate.push({
-      title: productName,
-      description: productDesc,
+      title: String(productName),
+      description: String(productName), // Fallback description
       listingType: 'PRODUCT',
       status: 'ACTIVE',
       sellerId,
       categoryId: leafCatId,
-      image: imageUrl && imageUrl !== 'NA' ? imageUrl : 'https://images.unsplash.com/photo-1528476513691-07e6f563d97f?auto=format&fit=crop&q=80&w=800',
+      image: imageUrl && imageUrl !== 'NA' ? String(imageUrl) : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800',
       productDetail: {
         brand: companyName,
         sku: `${modelNum}-${idx}`,
@@ -312,7 +287,7 @@ async function main() {
     });
   }
 
-  console.log(`✅ Loaded and parsed ${listingsToCreate.length} unique B2B textile products.`);
+  console.log(`✅ Loaded and parsed ${listingsToCreate.length} unique B2B electronics products.`);
 
   // 3. Batch Create listings
   const batchSize = 30;
@@ -347,7 +322,7 @@ async function main() {
     );
   }
 
-  console.log(`\n🎉 Import completed successfully! Added ${listingsToCreate.length} textile products.`);
+  console.log(`\n🎉 Import completed successfully! Added ${listingsToCreate.length} electronics products.`);
   process.exit(0);
 }
 

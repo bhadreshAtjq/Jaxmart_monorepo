@@ -18,7 +18,13 @@ const searchListings = async (req, res) => {
     const where = {
       status: 'ACTIVE',
       ...(type && { listingType: type.toUpperCase() }),
-      ...(categoryId && { categoryId }),
+      ...(categoryId && {
+        OR: [
+          { categoryId },
+          { category: { parentId: categoryId } },
+          { category: { parent: { parentId: categoryId } } }
+        ]
+      }),
       ...(minRating && { avgRating: { gte: parseFloat(minRating) } }),
       ...(q && {
         OR: [
@@ -146,7 +152,7 @@ const getListing = async (req, res) => {
     prisma.listing.update({
       where: { id },
       data: { viewCount: { increment: 1 } },
-    }).catch(() => {});
+    }).catch(() => { });
 
     await cacheSet(cacheKey, listing, CACHE_TTL.MEDIUM);
     const signedListing = await signListingMedia(listing);
@@ -662,8 +668,8 @@ const bulkCreateListings = async (req, res) => {
   }
 };
 
-module.exports = { 
-  searchListings, getListing, createListing, 
-  updateListing, getMyListings, publishListing, 
-  bulkCreateListings 
+module.exports = {
+  searchListings, getListing, createListing,
+  updateListing, getMyListings, publishListing,
+  bulkCreateListings
 };

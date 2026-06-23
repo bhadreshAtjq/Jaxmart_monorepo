@@ -14,3 +14,6 @@
 {"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-16 13:23:07"}
 {"level":"info","message":"Cache Layer: Synchronized","service":"b2b-platform-backend","timestamp":"2026-06-16 13:23:07"}
 {"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-16 13:23:08"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-23 16:27:35"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-23 16:27:35"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-23 16:27:36"}

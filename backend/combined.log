@@ -1379,3 +1379,53 @@
 {"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-05-26 15:06:34"}
 {"level":"info","message":"[DEBUG] uploadMultiple: starting","service":"b2b-platform-backend","timestamp":"2026-05-26 15:14:58"}
 {"level":"info","message":"[DEBUG] uploadMultiple: success, uploaded 1 files with signed URLs","service":"b2b-platform-backend","timestamp":"2026-05-26 15:14:58"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-15 15:24:36"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-15 15:24:36"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-15 15:24:38"}
+{"level":"warn","message":"Redis attempts tracking unavailable for 91999888222","service":"b2b-platform-backend","timestamp":"2026-06-15 15:29:40"}
+{"level":"warn","message":"Redis unavailable. Using in-memory store for OTP 91999888222","service":"b2b-platform-backend","timestamp":"2026-06-15 15:29:40"}
+{"level":"info","message":"DEV OTP for 91999888222: 628689 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-06-15 15:29:40"}
+{"level":"debug","message":"Verify OTP attempt: 91999888222, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-06-15 15:29:43"}
+{"level":"info","message":"Socket connected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-15 15:29:45"}
+{"level":"info","message":"Socket disconnected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-15 15:31:42"}
+{"level":"info","message":"Socket connected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-15 15:32:00"}
+{"level":"info","message":"Socket disconnected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-15 17:30:16"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-16 10:29:27"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-16 10:29:27"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-16 10:29:29"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-16 19:03:19"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-16 19:03:19"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-16 19:03:21"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-17 14:29:03"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-17 14:29:03"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-17 14:29:05"}
+{"level":"warn","message":"Redis attempts tracking unavailable for 91999888222","service":"b2b-platform-backend","timestamp":"2026-06-17 14:40:24"}
+{"level":"warn","message":"Redis unavailable. Using in-memory store for OTP 91999888222","service":"b2b-platform-backend","timestamp":"2026-06-17 14:40:24"}
+{"level":"info","message":"DEV OTP for 91999888222: 918289 (Bypass: 123456)","service":"b2b-platform-backend","timestamp":"2026-06-17 14:40:24"}
+{"level":"debug","message":"Verify OTP attempt: 91999888222, provided: 123456, bypass: true","service":"b2b-platform-backend","timestamp":"2026-06-17 14:40:26"}
+{"level":"info","message":"Socket connected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-17 14:40:30"}
+{"level":"info","message":"Socket disconnected: 60210ef2-6f0b-4ac3-93a6-1890281562fb","service":"b2b-platform-backend","timestamp":"2026-06-17 18:25:22"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-18 09:58:55"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-18 09:58:55"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-18 09:58:57"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findUnique. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-06-18 10:16:24"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findMany. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-06-18 10:16:25"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-19 10:13:21"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-19 10:13:21"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-19 10:13:23"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-19 15:12:25"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-19 15:12:25"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-19 15:12:27"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-19 16:53:43"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-19 16:53:44"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-19 16:53:45"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-22 10:06:22"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-22 10:06:22"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-22 10:06:24"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-23 10:12:46"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-23 10:12:46"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-23 10:12:49"}
+{"level":"warn","message":"Data Layer: Transient P1001 detected during findUnique. Retrying in 500ms... (Attempt 1/3)","service":"b2b-platform-backend","timestamp":"2026-06-23 16:02:39"}
+{"level":"info","message":"Server running on port 4000","service":"b2b-platform-backend","timestamp":"2026-06-25 12:14:31"}
+{"level":"warn","message":"Cache Layer: Offline Mode Initialized (Proceeding with Direct DB Sourcing)","service":"b2b-platform-backend","timestamp":"2026-06-25 12:14:31"}
+{"level":"info","message":"Database: Connection Active","service":"b2b-platform-backend","timestamp":"2026-06-25 12:14:33"}

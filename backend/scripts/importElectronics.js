@@ -17,7 +17,8 @@ function hashCode(str) {
 
 // Track phone numbers and emails to avoid DB unique constraint failures
 const companyPhoneMap = new Map();
-const usedPhones = new Set();
+const sellerPhoneIdMap = new Map(); // Global map of phone -> id
+const companyEmailMap = new Map();
 
 function getUniquePhoneForCompany(companyName, contact) {
   if (companyPhoneMap.has(companyName)) {
@@ -39,18 +40,15 @@ function getUniquePhoneForCompany(companyName, contact) {
 
   let finalPhone = basePhone;
   let attempt = 0;
-  while (usedPhones.has(finalPhone)) {
+  while (sellerPhoneIdMap.has(finalPhone)) {
     attempt++;
     const suffix = attempt.toString();
     finalPhone = basePhone.slice(0, -suffix.length) + suffix;
   }
 
-  usedPhones.add(finalPhone);
   companyPhoneMap.set(companyName, finalPhone);
   return finalPhone;
 }
-
-const companyEmailMap = new Map();
 
 function getUniqueEmailForCompany(companyName, emailField, phone) {
   if (companyEmailMap.has(companyName)) {
@@ -65,7 +63,6 @@ function getUniqueEmailForCompany(companyName, emailField, phone) {
     baseEmail = `contact@${cleanComp || 'unknown'}.com`;
   }
 
-  // To guarantee uniqueness, append the unique phone number's last 6 digits
   const parts = baseEmail.split('@');
   const cleanPhone = phone.replace(/\D/g, '').slice(-6);
   const finalEmail = `${parts[0]}_${cleanPhone}@${parts[1]}`;
@@ -105,9 +102,8 @@ function parseUnitOfMeasure(moqStr) {
 }
 
 async function main() {
-  console.log('🌱 Starting import of Electronics Excel products...');
+  console.log('🌱 Starting optimized import of Electronics Excel products...');
 
-  // 1. Locate and load Excel file
   const excelPath = path.join(__dirname, '..', '..', 'electronics_READY (2) (1) (Recovered).xlsx');
   if (!fs.existsSync(excelPath)) {
     console.error(`❌ Excel File not found at path: ${excelPath}`);
@@ -122,7 +118,7 @@ async function main() {
 
   console.log(`📊 Found ${rows.length} rows in sheet: ${sheetName}`);
 
-  // 2. Setup Category root ("Electronics")
+  // 1. Setup Category root ("Electronics")
   let rootElectronics = await prisma.category.findUnique({ where: { slug: 'electronics' } });
   if (!rootElectronics) {
     rootElectronics = await prisma.category.create({
@@ -136,22 +132,38 @@ async function main() {
     });
   }
 
-  // Pre-load existing sellers to avoid DB unique phone conflicts
-  console.log('🔍 Pre-loading existing sellers for cache alignment...');
+  // 2. Pre-load all Categories and Sellers into memory to optimize round-trips
+  console.log('🔍 Pre-loading categories and sellers for in-memory cache...');
+
+  const categoryIdMap = new Map();
+  const allCategories = await prisma.category.findMany({ select: { id: true, slug: true } });
+  for (const c of allCategories) {
+    categoryIdMap.set(c.slug, c.id);
+  }
+
   const allUsers = await prisma.user.findMany({
     where: { userType: 'SELLER' },
     select: { id: true, phone: true }
   });
   for (const u of allUsers) {
-    usedPhones.add(u.phone);
+    sellerPhoneIdMap.set(u.phone, u.id);
   }
 
-  const categoryIdMap = new Map();
-  const sellerIdMap = new Map(); // companyName -> Seller ID
-  const listingsToCreate = [];
-  const uniqueListingKeys = new Set(); // Prevent duplicates
+  const sellerIdMap = new Map();
+  const sellersWithProfiles = await prisma.user.findMany({
+    where: { userType: 'SELLER' },
+    include: { businessProfile: true }
+  });
+  for (const s of sellersWithProfiles) {
+    if (s.businessProfile) {
+      sellerIdMap.set(s.businessProfile.businessName, s.id);
+    }
+  }
 
-  console.log('🔄 Parsing Excel rows & resolving relations...');
+  const listingsToCreate = [];
+  const uniqueListingKeys = new Set();
+
+  console.log('🔄 Parsing Excel rows & resolving relations in-memory...');
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
 
@@ -161,74 +173,64 @@ async function main() {
     const companyName = row['Company Name'];
     const priceStr = row['Price'];
     const moqStr = row['MOQ'];
-    const contact = row['Phone Number ']; // with space
+    const contact = row['Phone Number '];
     const emailField = row['email'];
     const website = row['website'];
     const location = row['Location'];
     const imageUrl = row['Image URL'];
 
     if (!productName || !companyName || !categoryName || !subcategoryName) {
-      continue; // Skip incomplete records
-    }
-
-    // Deduplication check
-    const listingKey = `${String(productName).toLowerCase()}_${String(companyName).toLowerCase()}`;
-    if (uniqueListingKeys.has(listingKey)) {
       continue;
     }
+
+    const listingKey = `${String(productName).toLowerCase()}_${String(companyName).toLowerCase()}`;
+    if (uniqueListingKeys.has(listingKey)) continue;
     uniqueListingKeys.add(listingKey);
 
-    // Get or Create Subcategory Level 2 (e.g. Industrial Electronics)
+    // Resolve Category Level 2
     const subCatSlug = String(categoryName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let subCatId = categoryIdMap.get(subCatSlug);
     if (!subCatId) {
-      let subCat = await prisma.category.findUnique({ where: { slug: subCatSlug } });
-      if (!subCat) {
-        subCat = await prisma.category.create({
-          data: {
-            name: String(categoryName),
-            slug: subCatSlug,
-            parentId: rootElectronics.id,
-            applicableType: 'PRODUCT',
-            depthLevel: 2,
-            isActive: true
-          }
-        });
-      }
+      const subCat = await prisma.category.create({
+        data: {
+          name: String(categoryName),
+          slug: subCatSlug,
+          parentId: rootElectronics.id,
+          applicableType: 'PRODUCT',
+          depthLevel: 2,
+          isActive: true
+        }
+      });
       subCatId = subCat.id;
       categoryIdMap.set(subCatSlug, subCatId);
     }
 
-    // Get or Create Subcategory Level 3 (e.g. Barcode Scanner)
+    // Resolve Category Level 3
     const leafCatSlug = String(subcategoryName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let leafCatId = categoryIdMap.get(leafCatSlug);
     if (!leafCatId) {
-      let leafCat = await prisma.category.findUnique({ where: { slug: leafCatSlug } });
-      if (!leafCat) {
-        leafCat = await prisma.category.create({
-          data: {
-            name: String(subcategoryName),
-            slug: leafCatSlug,
-            parentId: subCatId,
-            applicableType: 'PRODUCT',
-            depthLevel: 3,
-            isActive: true
-          }
-        });
-      }
+      const leafCat = await prisma.category.create({
+        data: {
+          name: String(subcategoryName),
+          slug: leafCatSlug,
+          parentId: subCatId,
+          applicableType: 'PRODUCT',
+          depthLevel: 3,
+          isActive: true
+        }
+      });
       leafCatId = leafCat.id;
       categoryIdMap.set(leafCatSlug, leafCatId);
     }
 
-    // Get or Create Seller
+    // Resolve Seller
     let sellerId = sellerIdMap.get(companyName);
     if (!sellerId) {
       const phone = getUniquePhoneForCompany(companyName, contact);
       const email = getUniqueEmailForCompany(companyName, emailField, phone);
 
-      let dbUser = await prisma.user.findUnique({ where: { phone } });
-      if (!dbUser) {
-        dbUser = await prisma.user.create({
+      if (!sellerPhoneIdMap.has(phone)) {
+        const dbUser = await prisma.user.create({
           data: {
             phone,
             fullName: `${companyName} Representative`,
@@ -249,27 +251,29 @@ async function main() {
                 addressType: 'PRIMARY',
                 line1: location !== 'N/A' ? String(location) : 'India',
                 city: location !== 'N/A' ? String(location) : 'India',
-                state: 'Gujarat', // Default/fallback state
-                pincode: '380001', // Default/fallback pincode
+                state: 'Gujarat',
+                pincode: '380001',
                 country: 'India',
                 isPrimary: true
               }
             }
           }
         });
+        sellerId = dbUser.id;
+        sellerPhoneIdMap.set(phone, sellerId);
+      } else {
+        sellerId = sellerPhoneIdMap.get(phone);
       }
-      sellerId = dbUser.id;
       sellerIdMap.set(companyName, sellerId);
     }
 
-    // Parse Listing parameters
     const { priceType, pricePerUnit } = parsePrice(priceStr);
     const unitOfMeasure = parseUnitOfMeasure(moqStr);
     const modelNum = `JM-ELC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     listingsToCreate.push({
       title: String(productName),
-      description: String(productName), // Fallback description
+      description: String(productName),
       listingType: 'PRODUCT',
       status: 'ACTIVE',
       sellerId,
@@ -295,7 +299,7 @@ async function main() {
 
   for (let i = 0; i < listingsToCreate.length; i += batchSize) {
     const batch = listingsToCreate.slice(i, i + batchSize);
-    console.log(`⚡ Inserting batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(listingsToCreate.length / batchSize)}...`);
+    console.log('⚡ Inserting batch ' + (Math.floor(i / batchSize) + 1) + '/' + Math.ceil(listingsToCreate.length / batchSize) + '...');
 
     await Promise.all(
       batch.map((p) =>

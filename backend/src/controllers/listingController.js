@@ -43,12 +43,12 @@ const searchListings = async (req, res) => {
       }),
     };
 
-    let orderBy = {};
+    let orderBy = [];
     switch (sortBy) {
-      case 'rating': orderBy = { avgRating: 'desc' }; break;
-      case 'newest': orderBy = { createdAt: 'desc' }; break;
-      case 'featured': orderBy = { isFeatured: 'desc' }; break;
-      default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }];
+      case 'rating': orderBy = [{ avgRating: 'desc' }, { id: 'asc' }]; break;
+      case 'newest': orderBy = [{ createdAt: 'desc' }, { id: 'asc' }]; break;
+      case 'featured': orderBy = [{ isFeatured: 'desc' }, { id: 'asc' }]; break;
+      default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }];
     }
 
     const [listings, total] = await Promise.all([

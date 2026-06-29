@@ -112,7 +112,7 @@ export default function HomePage() {
       <section className="bg-gray-50 py-8 border-b border-gray-200/80">
         <Container size="xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
+
             {/* 1. Category Sidebar Menu (Alibaba-style) */}
             <div className="hidden lg:block lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden lg:h-[380px] flex flex-col">
               <div className="bg-gray-900 text-white px-4 py-3.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2.5 shrink-0">
@@ -147,7 +147,7 @@ export default function HomePage() {
 
             {/* 2. Central B2B Slider & Tabbed Search Panel */}
             <div className="lg:col-span-6 flex flex-col gap-4 lg:h-[380px]">
-              
+
               {/* Tabbed B2B Search Container */}
               <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between h-[136px] shrink-0">
                 <div className="flex gap-2 border-b border-gray-100 pb-1.5">
@@ -245,7 +245,7 @@ export default function HomePage() {
                         <span className="bg-[#36ADA3]/10 border border-[#36ADA3]/30 text-[#36ADA3] font-extrabold uppercase text-[8px] px-2.5 py-1 rounded-lg tracking-widest shadow-sm animate-pulse">
                           ✨ Upcoming B2B Event
                         </span>
-                        
+
                         <span className="text-[9px] font-bold text-gray-300 bg-white/[0.04] border border-white/[0.06] backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-mono shadow-sm">
                           <FaCalendarDays className="h-3 w-3 text-[#36ADA3]" />
                           {new Date(events[eventIndex].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -257,11 +257,11 @@ export default function HomePage() {
                         <h2 className="text-xs md:text-sm font-black text-white leading-snug uppercase tracking-tight line-clamp-1 bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">
                           {events[eventIndex].title}
                         </h2>
-                        
+
                         <p className="text-[10.5px] text-gray-400 leading-normal line-clamp-2 font-medium">
                           {events[eventIndex].description}
                         </p>
-                        
+
                         {/* Location and Info Row */}
                         <div className="flex items-center justify-between mt-1 text-[10px] text-gray-400 font-semibold border-t border-white/[0.05] pt-2">
                           <span className="flex items-center gap-1 truncate max-w-[140px]">
@@ -281,11 +281,10 @@ export default function HomePage() {
                           <button
                             key={idx}
                             onClick={() => setEventIndex(idx)}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              idx === eventIndex 
-                                ? 'w-4 bg-[#36ADA3] shadow-[0_0_8px_rgba(54,173,163,0.5)]' 
-                                : 'w-1 bg-white/20 hover:bg-white/40'
-                            }`}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${idx === eventIndex
+                              ? 'w-4 bg-[#36ADA3] shadow-[0_0_8px_rgba(54,173,163,0.5)]'
+                              : 'w-1 bg-white/20 hover:bg-white/40'
+                              }`}
                             aria-label={`Go to slide ${idx + 1}`}
                           />
                         ))}
@@ -391,10 +390,10 @@ export default function HomePage() {
       {/* Main Home Content */}
       <Container size="xl" className="py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Main Content Area */}
           <div className="lg:col-span-9 space-y-12">
-            
+
             {/* 1. Hot Products Section (Alibaba Grid Layout) */}
             <section>
               <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-3">
@@ -466,7 +465,7 @@ export default function HomePage() {
                             <p className="text-[10px] text-gray-500 mt-0.5">
                               Min. Order: <strong>{item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pcs'}</strong>
                             </p>
-                            
+
                             <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center gap-1.5">
                               <FaCircleCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                               <span className="text-[10px] text-gray-500 truncate font-semibold">
@@ -528,7 +527,7 @@ export default function HomePage() {
                     View Sourcing Board <FaArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {rfqsLoading ? (
                     Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
@@ -577,7 +576,7 @@ export default function HomePage() {
 
           {/* Right Sidebar Widgets */}
           <div className="lg:col-span-3 space-y-6">
-            
+
             {/* Trust and Safety Banner */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
               <h3 className="text-xs font-bold text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wider">
@@ -615,7 +614,7 @@ export default function HomePage() {
                 <FaHandshake className="text-jungle-green-500 h-4 w-4" />
                 Featured Factories
               </h3>
-              
+
               <div className="space-y-4">
                 {[
                   { name: "Vardhman Textiles Ltd", city: "Ludhiana", category: "Textiles", year: 1998 },
@@ -624,7 +623,7 @@ export default function HomePage() {
                 ].map((fac, idx) => (
                   <div key={idx} className="border-b border-gray-100 last:border-none pb-3 last:pb-0 flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-200 font-black text-xs text-jungle-green-600">
-                      {fac.name.substring(0,2)}
+                      {fac.name.substring(0, 2)}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-gray-800 truncate">{fac.name}</p>

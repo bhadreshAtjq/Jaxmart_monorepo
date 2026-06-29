@@ -2,8 +2,8 @@
 import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { 
-  FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot, 
+import {
+  FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot,
   FaShieldHalved, FaCubes, FaXmark, FaBolt, FaBoxesStacked,
   FaIndustry, FaGlobe, FaChevronRight, FaList, FaTableCells,
   FaCheck, FaShip, FaClock, FaBoxOpen, FaCreditCard
@@ -111,10 +111,10 @@ function SearchPageContent() {
   });
 
   const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
-  const activeFilterCount = 
-    (filters.isVerified ? 1 : 0) + 
-    (filters.minTrust ? 1 : 0) + 
-    (filters.minRating ? 1 : 0) + 
+  const activeFilterCount =
+    (filters.isVerified ? 1 : 0) +
+    (filters.minTrust ? 1 : 0) +
+    (filters.minRating ? 1 : 0) +
     (filters.city ? 1 : 0) +
     (minPrice || maxPrice ? 1 : 0) +
     (minQty ? 1 : 0) +
@@ -149,7 +149,7 @@ function SearchPageContent() {
                 <span className="text-xs text-gray-500 font-normal">({total} items found)</span>
               </h1>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <span className="text-xs text-gray-500 font-semibold">View Mode:</span>
               <div className="inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-50">
@@ -182,11 +182,11 @@ function SearchPageContent() {
       {/* Main Container */}
       <Container size="xl" className="py-8 pb-20">
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* 1. Left B2B Sidebar Filters (Alibaba Style) */}
           <aside className={clsx('lg:w-68 shrink-0 space-y-6', !showFilters && 'hidden lg:block')}>
             <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-6 sticky top-24">
-              
+
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <h3 className="font-bold text-xs text-gray-900 uppercase tracking-wider">Filters</h3>
                 {activeFilterCount > 0 && (
@@ -326,17 +326,17 @@ function SearchPageContent() {
 
           {/* 2. Search Results Grid & List View (Alibaba/Global Sources Layout) */}
           <div className="flex-1 min-w-0">
-            
+
             {/* Top Search bar inside grid */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input 
-                  value={q} 
-                  onChange={e => setQ(e.target.value)} 
-                  onKeyDown={e => e.key === 'Enter' && setPage(1)} 
-                  placeholder="Enter keywords to search wholesale products..." 
-                  className="w-full h-11 bg-white border border-gray-300 rounded-lg pl-10 pr-6 text-sm text-gray-800 focus:border-jungle-green-500 outline-none transition-colors shadow-sm" 
+                <input
+                  value={q}
+                  onChange={e => setQ(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && setPage(1)}
+                  placeholder="Enter keywords to search wholesale products..."
+                  className="w-full h-11 bg-white border border-gray-300 rounded-lg pl-10 pr-6 text-sm text-gray-800 focus:border-jungle-green-500 outline-none transition-colors shadow-sm"
                 />
                 {isFetching && !isLoading && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -344,11 +344,11 @@ function SearchPageContent() {
                   </div>
                 )}
               </div>
-              
-              <button 
-                onClick={() => setShowFilters(!showFilters)} 
+
+              <button
+                onClick={() => setShowFilters(!showFilters)}
                 className={clsx(
-                  'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors', 
+                  'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors',
                   activeFilterCount > 0 ? 'bg-jungle-green-500 text-white' : 'bg-gray-900 text-white shadow'
                 )}
               >
@@ -474,10 +474,10 @@ function SearchPageContent() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-4 mt-12 bg-white py-2 px-4 rounded-xl border border-gray-200 max-w-xs mx-auto shadow-sm text-xs">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.max(1, p - 1))} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="text-jungle-green-600 font-bold"
                 >
@@ -486,10 +486,10 @@ function SearchPageContent() {
                 <span className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">
                   PAGE {page} / {totalPages}
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="text-jungle-green-600 font-bold"
                 >
@@ -514,18 +514,18 @@ function SearchListingRow({ listing }: { listing: any }) {
   const pd = listing.productDetail;
 
   return (
-    <div 
+    <div
       onClick={() => router.push(`/listings/${listing.id}`)}
       className="bg-white border border-gray-200 rounded-xl hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer p-4 flex flex-col md:flex-row gap-5"
     >
-      
+
       {/* Listing Image */}
       <div className="w-full md:w-48 h-48 bg-gray-50 rounded-lg overflow-hidden shrink-0 relative border border-gray-100 flex items-center justify-center">
         {listing.media?.[0] ? (
-          <img 
-            src={listing.media[0].url} 
-            alt={listing.title} 
-            className="w-full h-full object-cover" 
+          <img
+            src={listing.media[0].url}
+            alt={listing.title}
+            className="w-full h-full object-cover"
           />
         ) : (
           <FaIndustry className="h-10 w-10 text-gray-200" />
@@ -591,7 +591,7 @@ function SearchListingRow({ listing }: { listing: any }) {
 
       {/* Supplier & Trust Widget Column */}
       <div className="w-full md:w-56 border-t md:border-t-0 md:border-l border-gray-150 pt-4 md:pt-0 md:pl-5 flex flex-col justify-between shrink-0">
-        
+
         {/* Verification Status */}
         <div className="space-y-3.5">
           <div className="flex items-start gap-2">
@@ -619,18 +619,18 @@ function SearchListingRow({ listing }: { listing: any }) {
 
         {/* Call to action */}
         <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
-          <Button 
-            fullWidth 
-            size="sm" 
-            variant="outline" 
+          <Button
+            fullWidth
+            size="sm"
+            variant="outline"
             className="text-[11px] h-9 rounded-lg"
             onClick={() => router.push(`/listings/${listing.id}`)}
           >
             Details
           </Button>
-          <Button 
-            fullWidth 
-            size="sm" 
+          <Button
+            fullWidth
+            size="sm"
             className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[11px] h-9 rounded-lg"
             onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
           >
@@ -652,17 +652,17 @@ function SearchListingGridCard({ listing }: { listing: any }) {
   const pd = listing.productDetail;
 
   return (
-    <Card 
-      onClick={() => router.push(`/listings/${listing.id}`)} 
-      padding={false} 
+    <Card
+      onClick={() => router.push(`/listings/${listing.id}`)}
+      padding={false}
       className="group overflow-hidden border border-gray-200 hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 bg-white cursor-pointer h-full flex flex-col justify-between"
     >
       <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-150 flex items-center justify-center shrink-0">
         {listing.media?.[0] ? (
-          <img 
-            src={listing.media[0].url} 
-            alt={listing.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          <img
+            src={listing.media[0].url}
+            alt={listing.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <FaIndustry className="h-10 w-10 text-gray-200" />
@@ -715,18 +715,18 @@ function SearchListingGridCard({ listing }: { listing: any }) {
           </div>
 
           <div className="flex gap-2 pt-2.5 mt-1 border-t border-gray-50" onClick={(e) => e.stopPropagation()}>
-            <Button 
-              fullWidth 
-              size="sm" 
-              variant="outline" 
+            <Button
+              fullWidth
+              size="sm"
+              variant="outline"
               className="text-[10px] h-8 rounded-lg"
               onClick={() => router.push(`/listings/${listing.id}`)}
             >
               Details
             </Button>
-            <Button 
-              fullWidth 
-              size="sm" 
+            <Button
+              fullWidth
+              size="sm"
               className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[10px] h-8 rounded-lg"
               onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
             >

@@ -16,7 +16,8 @@ function hashCode(str) {
 
 // Track phone numbers and emails to avoid DB unique constraint failures
 const companyPhoneMap = new Map();
-const usedPhones = new Set();
+const sellerPhoneIdMap = new Map(); // Global map of phone -> id
+const companyEmailMap = new Map();
 
 function getUniquePhoneForCompany(companyName, contact) {
   if (companyPhoneMap.has(companyName)) {
@@ -38,18 +39,15 @@ function getUniquePhoneForCompany(companyName, contact) {
 
   let finalPhone = basePhone;
   let attempt = 0;
-  while (usedPhones.has(finalPhone)) {
+  while (sellerPhoneIdMap.has(finalPhone)) {
     attempt++;
     const suffix = attempt.toString();
     finalPhone = basePhone.slice(0, -suffix.length) + suffix;
   }
 
-  usedPhones.add(finalPhone);
   companyPhoneMap.set(companyName, finalPhone);
   return finalPhone;
 }
-
-const companyEmailMap = new Map();
 
 function getUniqueEmailForCompany(companyName, emailField, phone) {
   if (companyEmailMap.has(companyName)) {
@@ -64,7 +62,6 @@ function getUniqueEmailForCompany(companyName, emailField, phone) {
     baseEmail = `contact@${cleanComp || 'unknown'}.com`;
   }
 
-  // To guarantee uniqueness, append the unique phone number's last 6 digits
   const parts = baseEmail.split('@');
   const cleanPhone = phone.replace(/\D/g, '').slice(-6);
   const finalEmail = `${parts[0]}_${cleanPhone}@${parts[1]}`;
@@ -125,9 +122,8 @@ function parseUnitOfMeasure(moqStr) {
 }
 
 async function main() {
-  console.log('🌱 Starting import of Textile CSV products...');
+  console.log('🌱 Starting optimized import of Textile CSV products...');
 
-  // 1. Locate CSV file
   const csvPath = path.join(__dirname, '..', 'textiles_products (2) - textiles_products (2).csv.csv');
   if (!fs.existsSync(csvPath)) {
     console.error(`❌ CSV File not found at path: ${csvPath}`);
@@ -146,7 +142,7 @@ async function main() {
   const headers = parseCSVLine(lines[0]);
   console.log(`📊 Found ${lines.length - 1} rows with headers:`, headers.join(', '));
 
-  // 2. Setup Category root ("Textiles")
+  // 1. Setup Category root ("Textiles")
   let rootTextiles = await prisma.category.findUnique({ where: { slug: 'textiles' } });
   if (!rootTextiles) {
     rootTextiles = await prisma.category.create({
@@ -160,25 +156,41 @@ async function main() {
     });
   }
 
-  // Pre-load existing sellers to avoid trying to create duplicate entries
-  console.log('🔍 Pre-loading existing sellers for cache alignment...');
+  // 2. Pre-load all Categories and Sellers into memory to optimize round-trips
+  console.log('🔍 Pre-loading categories and sellers for in-memory cache...');
+  
+  const categoryIdMap = new Map();
+  const allCategories = await prisma.category.findMany({ select: { id: true, slug: true } });
+  for (const c of allCategories) {
+    categoryIdMap.set(c.slug, c.id);
+  }
+
   const allUsers = await prisma.user.findMany({
     where: { userType: 'SELLER' },
     select: { id: true, phone: true }
   });
   for (const u of allUsers) {
-    usedPhones.add(u.phone);
+    sellerPhoneIdMap.set(u.phone, u.id);
   }
 
-  const categoryIdMap = new Map();
-  const sellerIdMap = new Map(); // companyName -> Seller ID
-  const listingsToCreate = [];
-  const uniqueListingKeys = new Set(); // To prevent exact duplicates from CSV
+  const sellerIdMap = new Map();
+  const sellersWithProfiles = await prisma.user.findMany({
+    where: { userType: 'SELLER' },
+    include: { businessProfile: true }
+  });
+  for (const s of sellersWithProfiles) {
+    if (s.businessProfile) {
+      sellerIdMap.set(s.businessProfile.businessName, s.id);
+    }
+  }
 
-  console.log('🔄 Parsing CSV rows & resolving relations...');
+  const listingsToCreate = [];
+  const uniqueListingKeys = new Set();
+
+  console.log('🔄 Parsing CSV rows & resolving relations in-memory...');
   for (let idx = 1; idx < lines.length; idx++) {
     const row = parseCSVLine(lines[idx]);
-    if (row.length < 10) continue; // Skip malformed lines
+    if (row.length < 10) continue;
 
     const categoryName = row[0];
     const subcategoryName = row[1];
@@ -195,65 +207,54 @@ async function main() {
 
     if (!productName || !companyName) continue;
 
-    // Deduplication check
     const listingKey = `${productName.toLowerCase()}_${companyName.toLowerCase()}`;
-    if (uniqueListingKeys.has(listingKey)) {
-      continue; // Skip duplicates
-    }
+    if (uniqueListingKeys.has(listingKey)) continue;
     uniqueListingKeys.add(listingKey);
 
-    // Get or Create Subcategory Level 2 (e.g. Readymade Garments)
+    // Resolve Category Level 2
     const subCatSlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let subCatId = categoryIdMap.get(subCatSlug);
     if (!subCatId) {
-      let subCat = await prisma.category.findUnique({ where: { slug: subCatSlug } });
-      if (!subCat) {
-        subCat = await prisma.category.create({
-          data: {
-            name: categoryName,
-            slug: subCatSlug,
-            parentId: rootTextiles.id,
-            applicableType: 'PRODUCT',
-            depthLevel: 2,
-            isActive: true
-          }
-        });
-      }
+      const subCat = await prisma.category.create({
+        data: {
+          name: categoryName,
+          slug: subCatSlug,
+          parentId: rootTextiles.id,
+          applicableType: 'PRODUCT',
+          depthLevel: 2,
+          isActive: true
+        }
+      });
       subCatId = subCat.id;
       categoryIdMap.set(subCatSlug, subCatId);
     }
 
-    // Get or Create Subcategory Level 3 (e.g. Mens T-Shirts)
+    // Resolve Category Level 3
     const leafCatSlug = subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let leafCatId = categoryIdMap.get(leafCatSlug);
     if (!leafCatId) {
-      let leafCat = await prisma.category.findUnique({ where: { slug: leafCatSlug } });
-      if (!leafCat) {
-        leafCat = await prisma.category.create({
-          data: {
-            name: subcategoryName,
-            slug: leafCatSlug,
-            parentId: subCatId,
-            applicableType: 'PRODUCT',
-            depthLevel: 3,
-            isActive: true
-          }
-        });
-      }
+      const leafCat = await prisma.category.create({
+        data: {
+          name: subcategoryName,
+          slug: leafCatSlug,
+          parentId: subCatId,
+          applicableType: 'PRODUCT',
+          depthLevel: 3,
+          isActive: true
+        }
+      });
       leafCatId = leafCat.id;
       categoryIdMap.set(leafCatSlug, leafCatId);
     }
 
-    // Get or Create Seller
+    // Resolve Seller
     let sellerId = sellerIdMap.get(companyName);
     if (!sellerId) {
       const phone = getUniquePhoneForCompany(companyName, contact);
       const email = getUniqueEmailForCompany(companyName, emailField, phone);
 
-      // Check if user already exists
-      let dbUser = await prisma.user.findUnique({ where: { phone } });
-      if (!dbUser) {
-        dbUser = await prisma.user.create({
+      if (!sellerPhoneIdMap.has(phone)) {
+        const dbUser = await prisma.user.create({
           data: {
             phone,
             fullName: `${companyName} Representative`,
@@ -274,20 +275,22 @@ async function main() {
                 addressType: 'PRIMARY',
                 line1: location || 'India',
                 city: location || 'India',
-                state: 'Gujarat', // Default/fallback state
-                pincode: '360001', // Default/fallback pincode
+                state: 'Gujarat',
+                pincode: '360001',
                 country: 'India',
                 isPrimary: true
               }
             }
           }
         });
+        sellerId = dbUser.id;
+        sellerPhoneIdMap.set(phone, sellerId);
+      } else {
+        sellerId = sellerPhoneIdMap.get(phone);
       }
-      sellerId = dbUser.id;
       sellerIdMap.set(companyName, sellerId);
     }
 
-    // Parse Listing specifications
     const { priceType, pricePerUnit } = parsePrice(priceStr);
     const unitOfMeasure = parseUnitOfMeasure(moqStr);
     const modelNum = `JM-TXT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;

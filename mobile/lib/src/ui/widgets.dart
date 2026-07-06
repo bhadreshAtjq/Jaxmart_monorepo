@@ -563,7 +563,7 @@ class ListingTile extends StatelessWidget {
               ],
             ),
           ),
-          if (!isSellerMode) TrustScore(score: numOf(seller['trustScore']) ?? 85),
+          if (!isSellerMode && !['electronics', 'industrial registration', 'industrial textiles'].contains(textOf(item['title']).trim().toLowerCase())) TrustScore(score: numOf(seller['trustScore']) ?? 85),
         ],
       ),
       if (!isSellerMode) ...[

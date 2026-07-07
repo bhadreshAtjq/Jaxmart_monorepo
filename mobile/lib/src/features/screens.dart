@@ -5015,13 +5015,13 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                      scrollDirection: Axis.horizontal,
                      child: Row(
                        children: [
-                         _StepNavPill(title: 'CLASSIFICATION', icon: Icons.category_rounded, active: _step == 1),
+                         _StepNavPill(title: 'CLASSIFICATION', icon: Icons.category_rounded, active: _step == 1, completed: _step > 1),
                          const SizedBox(width: 8),
-                         _StepNavPill(title: 'TECHNICAL SPECS', icon: Icons.description_rounded, active: _step == 2),
+                         _StepNavPill(title: 'TECHNICAL SPECS', icon: Icons.description_rounded, active: _step == 2, completed: _step > 2),
                          const SizedBox(width: 8),
-                         _StepNavPill(title: 'COMMERCIAL TERMS', icon: Icons.currency_rupee_rounded, active: _step == 3),
+                         _StepNavPill(title: 'COMMERCIAL TERMS', icon: Icons.currency_rupee_rounded, active: _step == 3, completed: _step > 3),
                          const SizedBox(width: 8),
-                         _StepNavPill(title: 'MEDIA INDEX', icon: Icons.cloud_upload_rounded, active: _step == 4),
+                         _StepNavPill(title: 'MEDIA INDEX', icon: Icons.cloud_upload_rounded, active: _step == 4, completed: _step > 4),
                        ],
                      ),
                    ),
@@ -5952,10 +5952,11 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
 }
 
 class _StepNavPill extends StatelessWidget {
-  const _StepNavPill({required this.title, required this.icon, required this.active});
+  const _StepNavPill({required this.title, required this.icon, required this.active, required this.completed});
   final String title;
   final IconData icon;
   final bool active;
+  final bool completed;
 
   @override
   Widget build(BuildContext context) {
@@ -5971,6 +5972,10 @@ class _StepNavPill extends StatelessWidget {
           Icon(icon, size: 14, color: active ? Colors.white : JaxColors.outline),
           const SizedBox(width: 8),
           Text(title, style: JaxText.label.copyWith(fontSize: 10, color: active ? Colors.white : JaxColors.outline, letterSpacing: 1.0)),
+          if (completed) ...[
+            const SizedBox(width: 6),
+            const Icon(Icons.check_circle_rounded, size: 13, color: JaxColors.success),
+          ],
         ],
       ),
     );

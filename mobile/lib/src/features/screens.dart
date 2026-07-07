@@ -3299,7 +3299,20 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           children: _currentTabs.map((tab) {
                             final selected = _tab == tab;
                             return GestureDetector(
-                              onTap: () => setState(() => _tab = tab),
+                              onTap: () {
+                                if (_tab != tab) {
+                                  setState(() => _tab = tab);
+                                  final cubit = context.read<ResourceCubit>();
+                                  cubit.clear();
+                                  cubit.load(
+                                    () => apiOf(context).sellerRfqInbox({
+                                      'matchOnly': tab == 'MATCHED REQUESTS' ? 'true' : 'false',
+                                      'limit': 20,
+                                    }),
+                                    listKeys: const ['rfqs'],
+                                  );
+                                }
+                              },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 180),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

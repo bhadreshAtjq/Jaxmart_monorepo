@@ -51,6 +51,10 @@ class ResourceState extends Equatable {
 class ResourceCubit extends Cubit<ResourceState> {
   ResourceCubit() : super(const ResourceState());
 
+  void clear() {
+    emit(const ResourceState());
+  }
+
   Future<void> load(
     Future<dynamic> Function() loader, {
     List<String> listKeys = const [],

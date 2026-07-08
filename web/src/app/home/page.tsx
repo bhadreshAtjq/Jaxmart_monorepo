@@ -442,7 +442,9 @@ export default function HomePage() {
                               </span>
                             )}
                           </div>
-                          {item.seller?.trustScore && (
+                          {item.seller?.trustScore &&
+                            !['industrial registration', 'electronics', 'industrial textiles'].includes(item.category?.name?.toLowerCase()) &&
+                            !['industrial registration', 'electronics', 'industrial textiles'].includes(item.title?.toLowerCase()) && (
                             <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-800 shadow">
                               Trust: {item.seller.trustScore}%
                             </div>

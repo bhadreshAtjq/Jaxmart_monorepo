@@ -1275,7 +1275,26 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 22),
                 SectionTitle(title: 'Premium Bulk Listings', actionText: 'Browse All Products', action: () => context.push('/search')),
                 const SizedBox(height: 12),
-                ...asList(state.data['featured']).take(6).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: item))),
+                ...asList(state.data['featured']).take(6).map((item) {
+                  final catName = categoryName(item).toLowerCase();
+                  final title = textOf(item['title']).toLowerCase();
+                  final hideTrust = const [
+                    'industrial registration',
+                    'electronics',
+                    'industrial textiles',
+                  ].contains(catName) || const [
+                    'industrial registration',
+                    'electronics',
+                    'industrial textiles',
+                  ].contains(title);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ListingTile(
+                      item: item,
+                      hideTrustScore: hideTrust,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 10),
                 const EscrowInfoCard(),
                 const SizedBox(height: 18),

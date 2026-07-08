@@ -508,12 +508,21 @@ class EmptyState extends StatelessWidget {
 }
 
 class ListingTile extends StatelessWidget {
-  const ListingTile({required this.item, this.grid = false, this.showChat = false, this.isSellerMode = false, this.showActions = true, super.key});
+  const ListingTile({
+    required this.item,
+    this.grid = false,
+    this.showChat = false,
+    this.isSellerMode = false,
+    this.showActions = true,
+    this.hideTrustScore = false,
+    super.key,
+  });
   final JsonMap item;
   final bool grid;
   final bool showChat;
   final bool isSellerMode;
   final bool showActions;
+  final bool hideTrustScore;
 
   @override
   Widget build(BuildContext context) {
@@ -563,7 +572,7 @@ class ListingTile extends StatelessWidget {
               ],
             ),
           ),
-          if (!isSellerMode) TrustScore(score: numOf(seller['trustScore']) ?? 85),
+          if (!isSellerMode && !hideTrustScore) TrustScore(score: numOf(seller['trustScore']) ?? 85),
         ],
       ),
       if (!isSellerMode) ...[

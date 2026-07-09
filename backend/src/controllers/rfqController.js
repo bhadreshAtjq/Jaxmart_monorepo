@@ -31,7 +31,7 @@ const createRfq = async (req, res) => {
         deadline: deadline ? new Date(deadline) : null,
         locationPreference,
         preferredProviderType: preferredProviderType?.toUpperCase() || null,
-        isPublic: isPublic || false,
+        visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
         attachments: attachments || [],
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
@@ -41,12 +41,14 @@ const createRfq = async (req, res) => {
       },
     });
 
-    // AI matching — find and notify relevant providers
-    matchProvidersToRfq(rfq).catch((err) =>
-      logger.error('RFQ matching failed:', err)
-    );
+    // AI matching — find and notify relevant providersx`14  nkl
+    0
+    const notifiedSellers = await matchProvidersToRfq(rfq).catch((err) => {
+      logger.error('RFQ matching failed:', err);
+      return [];
+    });
 
-    res.status(201).json(rfq);
+    res.status(201).json({ ...rfq, notifiedSellers });
   } catch (err) {
     logger.error('createRfq error:', err);
     res.status(500).json({ error: 'Failed to create RFQ' });
@@ -78,7 +80,23 @@ const getMyRfqs = async (req, res) => {
       prisma.rfqRequest.count({ where }),
     ]);
 
-    res.json({ rfqs, total, page: parseInt(page) });
+    const notifs = await prisma.notification.findMany({
+      where: { type: 'RFQ_MATCH' },
+      include: { user: { select: { fullName: true, businessProfile: { select: { businessName: true } } } } }
+    });
+
+    const rfqsWithLeads = rfqs.map(rfq => {
+      const matchingNotifs = notifs.filter(n => n.data && n.data.rfqId === rfq.id);
+      return {
+        ...rfq,
+        leadsSentTo: matchingNotifs.map(n => ({
+          name: n.user.fullName,
+          business: n.user.businessProfile?.businessName || 'Individual'
+        }))
+      };
+    });
+
+    res.json({ rfqs: rfqsWithLeads, total, page: parseInt(page) });
   } catch (err) {
     logger.error('getMyRfqs error:', err);
     res.status(500).json({ error: 'Failed to fetch RFQs' });
@@ -122,7 +140,7 @@ const getRfq = async (req, res) => {
     // Authorization: Buyer, already quoted, public RFQ, or matched category seller
     const isBuyer = rfq.buyerId === req.user.id;
     const hasQuote = rfq.quotes.some(q => q.sellerId === req.user.id);
-    
+
     let isMatchedSeller = false;
     if (!isBuyer && !rfq.isPublic && !hasQuote && req.user.userType !== 'BUYER') {
       const match = await prisma.listing.findFirst({
@@ -342,14 +360,46 @@ const shortlistQuote = async (req, res) => {
       data: { rfqId: quote.rfqId, quoteId },
     });
 
-    res.json({ message: 'Quote shortlisted' });
+    res.json({ message: 'Quote short98listed' }); n
   } catch (err) {
     logger.error('shortlistQuote error:', err);
     res.status(500).json({ error: 'Failed to shortlist' });
   }
 };
 
+// GET /api/rfq/:id/notified-sellers
+const getRfqNotifiedSellers = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const rfq = await prisma.rfqRequest.findUnique({
+      where: { id },
+      select: { buyerId: true }
+    });
+
+    if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
+    if (rfq.buyerId !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
+
+    const notifs = await prisma.notification.findMany({
+      where: { type: 'RFQ_MATCH' },
+      include: { user: { select: { fullName: true, businessProfile: { select: { businessName: true } } } } }
+    });
+
+    const matchingNotifs = notifs.filter(n => n.data && n.data.rfqId === id);
+
+    const notifiedSellers = matchingNotifs.map(n => ({
+      name: n.user.fullName,
+      business: n.user.businessProfile?.businessName || 'Individual'
+    }));
+
+    res.json({ notifiedSellers });
+  } catch (err) {
+    logger.error('getRfqNotifiedSellers error:', err);
+    res.status(500).json({ error: 'Failed to fetch notified sellers' });
+  }
+};
+
 module.exports = {
   createRfq, getMyRfqs, getRfq, getSellerRfqInbox,
-  submitQuote, awardQuote, shortlistQuote,
+  submitQuote, awardQuote, shortlistQuote, getRfqNotifiedSellers,
 };

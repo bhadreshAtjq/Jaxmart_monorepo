@@ -133,7 +133,7 @@ async function main() {
   console.log(`📖 Loading CSV from: ${csvPath}`);
   const content = fs.readFileSync(csvPath, 'utf-8');
   const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
-  
+
   if (lines.length <= 1) {
     console.error('❌ Empty CSV file or header only.');
     process.exit(1);
@@ -158,7 +158,7 @@ async function main() {
 
   // 2. Pre-load all Categories and Sellers into memory to optimize round-trips
   console.log('🔍 Pre-loading categories and sellers for in-memory cache...');
-  
+
   const categoryIdMap = new Map();
   const allCategories = await prisma.category.findMany({ select: { id: true, slug: true } });
   for (const c of allCategories) {

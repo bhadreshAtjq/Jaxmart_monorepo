@@ -64,7 +64,19 @@ const searchListings = async (req, res) => {
               businessProfile: { select: { businessName: true } },
             },
           },
-          category: { select: { id: true, name: true, slug: true } },
+          category: {
+            select: {
+              id: true, name: true, slug: true,
+              parent: {
+                select: {
+                  id: true, name: true,
+                  parent: {
+                    select: { id: true, name: true }
+                  }
+                }
+              }
+            }
+          },
           location: { select: { city: true, state: true } },
           media: { where: { isPrimary: true }, take: 1 },
           productDetail: {

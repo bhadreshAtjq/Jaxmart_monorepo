@@ -3,42 +3,24 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Input, Textarea, Select, Card, Badge, Avatar } from '@/components/ui';
-import { rfqApi, categoryApi } from '@/lib/api';
+import { rfqApi } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 import { 
   FaCubes, 
   FaWrench, 
   FaCircleCheck, 
-  FaLightbulb, 
   FaCircleInfo, 
-  FaBolt,
   FaShieldHalved
 } from 'react-icons/fa6';
 import { RequirementGate } from '@/components/common/RequirementGate';
 
 const STEPS = ['Category & Type', 'Details', 'Shipping & Budget'];
 
-const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'electronics': ['solar', 'panel', 'battery', 'wiring', 'chip', 'sensor', 'led', 'camera', 'monitor'],
-  'industrial-supplies': ['drill', 'machinery', 'pump', 'valve', 'bearing', 'seal', 'motor', 'compressor'],
-  'construction': ['concrete', 'steel', 'brick', 'rebar', 'cement', 'tile', 'roofing'],
-  'textiles': ['cotton', 'fabric', 'yarn', 'silk', 'polyester', 'denim', 'wool'],
-  'services': ['consulting', 'logistics', 'shipping', 'maintenance', 'installation', 'cleaning'],
-};
-
 export default function RfqPostPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [suggestedCategories, setSuggestedCategories] = useState<any[]>([]);
-
-  useEffect(() => {
-    categoryApi.getAll()
-      .then(res => setCategories(res.data))
-      .catch(err => console.error('Failed to fetch categories:', err));
-  }, []);
 
   const [form, setForm] = useState({
     rfqType: 'PRODUCT', categoryId: '', title: '', description: '',
@@ -51,7 +33,6 @@ export default function RfqPostPage() {
   const scoreData = useMemo(() => {
     const checks = [
       { label: 'Product Name', score: 3, met: form.title.length >= 3 },
-      { label: 'Category', score: 5, met: !!form.categoryId },
       { label: 'Product Details', score: 43, met: form.description.length > 50 },
       { label: 'Sourcing Type', score: 3, met: !!form.rfqType },
       { label: 'Delivery Location', score: 3, met: !!form.locationPreference },
@@ -65,27 +46,6 @@ export default function RfqPostPage() {
 
     return { checks, percentage };
   }, [form]);
-
-  useEffect(() => {
-    if (form.title.length < 3) {
-      setSuggestedCategories([]);
-      return;
-    }
-    const titleLower = form.title.toLowerCase();
-    const keywords = titleLower.split(' ').filter(k => k.length > 2);
-    
-    const nameMatches = categories.filter(c => 
-      keywords.some(k => c.name.toLowerCase().includes(k))
-    );
-
-    const keywordMatches = categories.filter(c => {
-      const catKeywords = CATEGORY_KEYWORDS[c.slug] || [];
-      return catKeywords.some(kw => titleLower.includes(kw));
-    });
-
-    const combined = Array.from(new Set([...keywordMatches, ...nameMatches])).slice(0, 5);
-    setSuggestedCategories(combined);
-  }, [form.title, categories]);
 
   const submit = async () => {
     setLoading(true);
@@ -109,7 +69,7 @@ export default function RfqPostPage() {
   };
 
   const canNext = () => {
-    if (step === 0) return form.title.length >= 3 && !!form.categoryId;
+    if (step === 0) return form.title.length >= 3;
     if (step === 1) return form.description.length >= 20;
     return true;
   };
@@ -159,38 +119,7 @@ export default function RfqPostPage() {
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. Select Category</label>
-                      <Select 
-                        value={form.categoryId} 
-                        onChange={e => set('categoryId', e.target.value)}
-                        options={[{ value: '', label: 'Choose the closest matching category' }, ...categories.map(c => ({ value: c.id, label: c.name }))]} 
-                        className="h-14 rounded-2xl border-gray-100"
-                      />
-                      
-                      {suggestedCategories.length > 0 && !form.categoryId && (
-                        <div className="mt-6 p-6 bg-jax-light/50 rounded-2xl border border-dashed border-jax-blue/20">
-                          <div className="flex items-center gap-2 mb-4">
-                            <FaLightbulb className="text-amber-500 h-3.5 w-3.5" />
-                            <p className="text-[10px] font-black text-jax-blue uppercase tracking-widest">Suggested categories based on title :</p>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {suggestedCategories.map(c => (
-                              <button 
-                                key={c.id} 
-                                onClick={() => set('categoryId', c.id)}
-                                className="text-left px-4 py-3 bg-white border border-gray-100 hover:border-jax-blue hover:shadow-sm rounded-xl transition-all group"
-                              >
-                                <p className="text-xs font-bold text-jax-dark group-hover:text-jax-blue">{c.name}</p>
-                                <p className="text-[9px] text-gray-400 mt-1 uppercase tracking-tight">Marketplace &gt;&gt; Products</p>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">3. What do you need?</label>
+                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. What do you need?</label>
                       <div className="grid grid-cols-2 gap-4">
                         {[{ v: 'PRODUCT', icon: FaCubes, title: 'Products', sub: 'Materials, machinery, parts' },
                           { v: 'SERVICE', icon: FaWrench, title: 'Services', sub: 'Installation, logistics, support' }].map(({ v, icon: Icon, title, sub }) => (
@@ -270,9 +199,6 @@ export default function RfqPostPage() {
             {/* Scoring & Trust Sidebar */}
             <aside className="w-full lg:w-[320px] sticky top-8">
               <Card className="p-8 border-gray-100 shadow-xl rounded-[32px] overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <FaBolt className="h-20 w-20 text-jax-blue" />
-                </div>
 
                 <div className="relative z-10 text-center mb-10">
                   <p className="text-[10px] font-black text-jax-blue uppercase tracking-[0.2em] mb-6">Request Quality Score</p>

@@ -15,6 +15,9 @@ import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { MdVerified } from 'react-icons/md';
+import { ShoppingBag, MessageCircleQuestion, MonitorSmartphone, ClipboardCheck, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FeedbackModal } from '@/components/common/FeedbackModal';
 
 const CATEGORY_ICONS: Record<string, any> = {
   'industrial-supplies': FaIndustry,
@@ -45,6 +48,7 @@ export default function HomePage() {
   const [heroSearch, setHeroSearch] = useState('');
   const [feedIndex, setFeedIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -131,8 +135,10 @@ export default function HomePage() {
         <Container size="xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-            {/* 1. Category Sidebar Menu (Alibaba-style) */}
-            <div className="hidden lg:block lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden lg:h-[400px] flex flex-col group">
+            {/* Left Column: Categories + RFQ */}
+            <div className="hidden lg:flex flex-col lg:col-span-3 gap-6">
+              {/* 1. Category Sidebar Menu (Alibaba-style) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col group flex-1 min-h-[400px]">
               <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 shrink-0 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
                 <FaBoxesStacked className="h-4 w-4 text-jungle-green-400" />
@@ -166,8 +172,86 @@ export default function HomePage() {
               </div>
             </div>
 
+              {/* 3. Fast RFQ Form Block (Moved below Markets & Industries) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col justify-between relative overflow-hidden shrink-0">
+                {/* Decorative top gradient */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-jungle-green-400 to-[#36ADA3]" />
+                
+                <div className="flex flex-col flex-1 relative z-10">
+                  <div className="flex items-center gap-3 mb-6 shrink-0">
+                    <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-jungle-green-50 to-teal-50 border border-jungle-green-100/50 flex items-center justify-center text-jungle-green-600 shrink-0 shadow-sm">
+                      <FaFileContract className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest leading-none">Instant RFQ</h3>
+                      <p className="text-[10px] text-gray-500 font-medium mt-1">Get multiple quotes in 24 hours</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleQuickRFQ} className="flex flex-col gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">What product do you need?</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Cotton Yarn 30s, CNC inserts"
+                        value={rfqProduct}
+                        onChange={(e) => setRfqProduct(e.target.value)}
+                        className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="100"
+                          value={rfqQuantity}
+                          onChange={(e) => setRfqQuantity(e.target.value)}
+                          className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit</label>
+                        <select
+                          value={rfqUnit}
+                          onChange={(e) => setRfqUnit(e.target.value)}
+                          className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 cursor-pointer text-gray-700"
+                        >
+                          <option value="Pieces">Pieces</option>
+                          <option value="Metric Tons">Metric Tons</option>
+                          <option value="Kilograms">Kilograms</option>
+                          <option value="Boxes">Boxes</option>
+                          <option value="Rolls">Rolls</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full h-12 bg-[#232F72] hover:bg-[#1C265B] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-lg shadow-[#232F72]/20 hover:shadow-xl hover:shadow-[#232F72]/30 active:scale-95 flex items-center justify-center gap-2 mt-2 shrink-0 group/btn border border-[#232F72]"
+                    >
+                      Post Request Free 
+                      <FaArrowRight className="h-3 w-3 transform group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </form>
+                </div>
+
+                <div className="mt-5 bg-jungle-green-50/50 border border-jungle-green-100/50 p-3.5 rounded-xl flex items-start gap-3.5 shrink-0">
+                  <div className="h-7 w-7 rounded-full bg-jungle-green-100 flex items-center justify-center shrink-0 mt-0.5 border border-jungle-green-200/50">
+                    <FaBuildingShield className="h-3.5 w-3.5 text-jungle-green-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-jungle-green-900 uppercase tracking-widest">Secure Trade</p>
+                    <p className="text-[9px] text-jungle-green-700/80 leading-relaxed font-bold mt-0.5">Escrow payments protected, 100% money back guarantee.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 2. Central B2B Slider & Tabbed Search Panel */}
-            <div className="lg:col-span-6 flex flex-col gap-5 lg:h-[400px]">
+            <div className="lg:col-span-9 flex flex-col gap-5 min-h-[500px]">
 
               {/* Tabbed B2B Search Container */}
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between shrink-0">
@@ -251,166 +335,117 @@ export default function HomePage() {
                 ) : (
                   <>
                     {/* Background slide with image + gradient overlay */}
-                    <div className="absolute inset-0 z-0 transition-all duration-700 ease-in-out">
-                      <img
-                        src={events[eventIndex].mediaUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800"}
-                        alt={events[eventIndex].title}
-                        className="w-full h-full object-cover opacity-75 group-hover/carousel:scale-[1.03] transition-transform duration-[6000ms]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#090b11] via-[#090b11]/50 to-transparent" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b11]/40 to-transparent" />
+                    <div className="absolute inset-0 z-0 bg-[#090b11] overflow-hidden">
+                      <AnimatePresence>
+                        <motion.img
+                          key={eventIndex}
+                          initial={{ opacity: 0, scale: 1.05 }}
+                          animate={{ opacity: 0.75, scale: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.8, ease: "easeInOut" }}
+                          src={events[eventIndex].mediaUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800"}
+                          alt={events[eventIndex].title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover/carousel:scale-[1.03] transition-transform duration-[6000ms]"
+                        />
+                      </AnimatePresence>
+                      {/* Gradient to ensure text readability on the left */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b11] via-[#090b11]/80 to-transparent w-full md:w-[70%] pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#090b11]/60 via-transparent to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Content */}
-                    <div className="relative z-10 p-5 flex flex-col justify-between h-full">
-                      {/* Top Bar: Badge & Date */}
-                      <div className="flex justify-between items-start">
-                        <span className="bg-[#36ADA3]/10 border border-[#36ADA3]/30 text-[#36ADA3] font-extrabold uppercase text-[8px] px-2.5 py-1 rounded-lg tracking-widest shadow-sm animate-pulse">
-                          ✨ Upcoming B2B Event
-                        </span>
+                    {/* Content Container (Left Aligned) */}
+                    <div className="relative z-10 flex h-full items-center px-12 md:px-20 w-full md:w-3/4 group/content">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={eventIndex}
+                          initial={{ opacity: 0, x: -30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 30 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          className="flex flex-col w-full text-left"
+                        >
+                          {/* Top Info (Logo/Name + Date) */}
+                          <div className="flex items-center gap-5 mb-6">
+                            <div className="flex flex-col items-end">
+                              <span className="text-white font-bold text-sm md:text-base leading-tight tracking-wide flex items-center gap-1.5">
+                                <FaIndustry className="h-4 w-4 opacity-80"/> Jaxmart
+                              </span>
+                              <span className="text-white font-semibold text-xs md:text-sm tracking-widest mt-0.5">Exhibitions</span>
+                            </div>
+                            <div className="w-[1.5px] h-10 bg-white/40" />
+                            <div className="flex flex-col text-white font-semibold text-sm md:text-base">
+                              <span>{new Date(events[eventIndex].date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                              <span className="flex items-center gap-1.5 text-white/90 text-xs md:text-sm mt-0.5">
+                                <FaLocationDot className="h-3 w-3 text-red-400" /> {events[eventIndex].location || "Online"}
+                              </span>
+                            </div>
+                          </div>
 
-                        <span className="text-[9px] font-bold text-gray-300 bg-white/[0.04] border border-white/[0.06] backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-mono shadow-sm">
-                          <FaCalendarDays className="h-3 w-3 text-[#36ADA3]" />
-                          {new Date(events[eventIndex].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
+                          {/* Main Title */}
+                          <h2 className="text-3xl md:text-[2.75rem] font-black text-white leading-tight uppercase tracking-tight mb-5 max-w-3xl drop-shadow-lg">
+                            {events[eventIndex].title}
+                          </h2>
+                          
+                          {/* Description */}
+                          <p className="text-sm md:text-lg text-white/90 leading-relaxed font-medium max-w-xl mb-8 drop-shadow-md">
+                            {events[eventIndex].description}
+                          </p>
 
-                      {/* Info & Details Glass Plate */}
-                      <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-md p-4 rounded-xl flex flex-col gap-2 shadow-xl mt-auto">
-                        <h2 className="text-xs md:text-sm font-black text-white leading-snug uppercase tracking-tight line-clamp-1 bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">
-                          {events[eventIndex].title}
-                        </h2>
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-4">
+                            <button className="h-12 px-10 bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-sm md:text-base rounded transition-all duration-300 shadow-[0_4px_14px_0_rgba(239,68,68,0.39)] hover:shadow-[0_6px_20px_rgba(239,68,68,0.23)] hover:-translate-y-0.5">
+                              Register Now
+                            </button>
+                            <button className="h-12 px-10 bg-white hover:bg-gray-100 text-gray-900 font-bold text-sm md:text-base rounded transition-all duration-300 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-0.5">
+                              Show Info
+                            </button>
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
 
-                        <p className="text-[10.5px] text-gray-400 leading-normal line-clamp-2 font-medium">
-                          {events[eventIndex].description}
-                        </p>
-
-                        {/* Location and Info Row */}
-                        <div className="flex items-center justify-between mt-1 text-[10px] text-gray-400 font-semibold border-t border-white/[0.05] pt-2">
-                          <span className="flex items-center gap-1 truncate max-w-[140px]">
-                            <FaLocationDot className="text-[#36ADA3] h-3 w-3 shrink-0" />
-                            {events[eventIndex].location || "Online"}
-                          </span>
-
-                          <button className="h-7 px-3 bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-all duration-300 hover:shadow-jax-blue/20 hover:shadow-lg flex items-center gap-1 hover:scale-[1.03] active:scale-95 border-none cursor-pointer">
-                            Register Free <FaArrowRight className="h-2.5 w-2.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Footer Dot Indicators */}
-                      <div className="flex items-center justify-start gap-1.5 mt-3 shrink-0">
-                        {events.map((_, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setEventIndex(idx)}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${idx === eventIndex
-                                ? 'w-4 bg-[#36ADA3] shadow-[0_0_8px_rgba(54,173,163,0.5)]'
-                                : 'w-1 bg-white/20 hover:bg-white/40'
-                              }`}
-                            aria-label={`Go to slide ${idx + 1}`}
-                          />
-                        ))}
-                      </div>
+                    {/* Coming Soon Badge (Top Right) */}
+                    <div className="absolute top-0 right-10 z-20 bg-[#111111]/90 backdrop-blur-md px-6 py-2.5 rounded-b-xl shadow-2xl">
+                      <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Show Coming Soon</span>
                     </div>
 
                     {/* Prev/Next Navigation Controls */}
                     <button
                       onClick={() => setEventIndex((prev) => (prev - 1 + events.length) % events.length)}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/[0.02] border border-white/[0.08] backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 hover:bg-[#232F72] hover:border-transparent hover:text-white transition-all duration-200"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/20 backdrop-blur-md text-white/70 flex items-center justify-center hover:bg-black/40 hover:text-white transition-all duration-300 hover:scale-110"
                       aria-label="Previous event"
                     >
-                      <FaChevronLeft className="h-3 w-3" />
+                      <FaChevronLeft className="h-5 w-5 ml-0.5" />
                     </button>
                     <button
                       onClick={() => setEventIndex((prev) => (prev + 1) % events.length)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/[0.02] border border-white/[0.08] backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 hover:bg-[#232F72] hover:border-transparent hover:text-white transition-all duration-200"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/20 backdrop-blur-md text-white/70 flex items-center justify-center hover:bg-black/40 hover:text-white transition-all duration-300 hover:scale-110"
                       aria-label="Next event"
                     >
-                      <FaChevronRight className="h-3 w-3" />
+                      <FaChevronRight className="h-5 w-5 mr-0.5" />
                     </button>
+
+                    {/* Footer Dot Indicators */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                      {events.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setEventIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${idx === eventIndex
+                              ? 'w-4 bg-[#36ADA3]'
+                              : 'w-1.5 bg-[#2a3835] hover:bg-[#36ADA3]/50'
+                            }`}
+                          aria-label={`Go to slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
                   </>
                 )}
               </div>
 
             </div>
 
-            {/* 3. Fast RFQ Form Block */}
-            <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-6 flex flex-col justify-between lg:h-[400px] relative overflow-hidden">
-              {/* Decorative top gradient */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-jungle-green-400 to-[#36ADA3]" />
-              
-              <div className="flex flex-col flex-1 relative z-10">
-                <div className="flex items-center gap-3 mb-6 shrink-0">
-                  <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-jungle-green-50 to-teal-50 border border-jungle-green-100/50 flex items-center justify-center text-jungle-green-600 shrink-0 shadow-sm">
-                    <FaFileContract className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest leading-none">Instant RFQ</h3>
-                    <p className="text-[10px] text-gray-500 font-medium mt-1">Get multiple quotes in 24 hours</p>
-                  </div>
-                </div>
-
-                <form onSubmit={handleQuickRFQ} className="flex flex-col gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">What product do you need?</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Cotton Yarn 30s, CNC inserts"
-                      value={rfqProduct}
-                      onChange={(e) => setRfqProduct(e.target.value)}
-                      className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Quantity</label>
-                      <input
-                        type="number"
-                        placeholder="100"
-                        value={rfqQuantity}
-                        onChange={(e) => setRfqQuantity(e.target.value)}
-                        className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit</label>
-                      <select
-                        value={rfqUnit}
-                        onChange={(e) => setRfqUnit(e.target.value)}
-                        className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 cursor-pointer text-gray-700"
-                      >
-                        <option value="Pieces">Pieces</option>
-                        <option value="Metric Tons">Metric Tons</option>
-                        <option value="Kilograms">Kilograms</option>
-                        <option value="Boxes">Boxes</option>
-                        <option value="Rolls">Rolls</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full h-12 bg-[#232F72] hover:bg-[#1C265B] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-lg shadow-[#232F72]/20 hover:shadow-xl hover:shadow-[#232F72]/30 active:scale-95 flex items-center justify-center gap-2 mt-2 shrink-0 group/btn border border-[#232F72]"
-                  >
-                    Post Request Free 
-                    <FaArrowRight className="h-3 w-3 transform group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                </form>
-              </div>
-
-              <div className="mt-5 bg-jungle-green-50/50 border border-jungle-green-100/50 p-3.5 rounded-xl flex items-start gap-3.5 shrink-0">
-                <div className="h-7 w-7 rounded-full bg-jungle-green-100 flex items-center justify-center shrink-0 mt-0.5 border border-jungle-green-200/50">
-                  <FaBuildingShield className="h-3.5 w-3.5 text-jungle-green-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black text-jungle-green-900 uppercase tracking-widest">Secure Trade</p>
-                  <p className="text-[9px] text-jungle-green-700/80 leading-relaxed font-bold mt-0.5">Escrow payments protected, 100% money back guarantee.</p>
-                </div>
-              </div>
-            </div>
+            {/* Removed Fast RFQ Form Block from here (Moved to left column) */}
 
           </div>
         </Container>
@@ -863,6 +898,55 @@ export default function HomePage() {
 
         </div>
       </Container>
+
+      {/* Floating Side Menu */}
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.06)] rounded-l-lg py-5 px-3 flex flex-col gap-5 items-center border border-gray-100 border-r-0">
+        
+        <div className="relative group">
+          <button onClick={() => window.open('/exhibit', '_blank')} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Booth Application">
+            <ShoppingBag className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Booth Application
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button onClick={() => setIsFeedbackOpen(true)} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Help & Support">
+            <MessageCircleQuestion className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Leave us Feedback
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="App">
+            <MonitorSmartphone className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none text-left flex flex-col gap-0.5">
+            <span className="font-bold text-[14px] text-gray-800">Download App</span>
+            <span className="text-[12px] text-gray-500 font-medium">Scan the QR code to download...</span>
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button onClick={() => window.open('/survey', '_blank')} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Requirements">
+            <ClipboardCheck className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Take Our Survey
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+
+
+      </div>
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </PublicLayout>
   );
 }

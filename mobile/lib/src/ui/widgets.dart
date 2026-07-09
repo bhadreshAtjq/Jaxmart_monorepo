@@ -701,9 +701,10 @@ class _ListingImage extends StatelessWidget {
 }
 
 class RfqTile extends StatelessWidget {
-  const RfqTile({required this.item, this.sellerMode = false, super.key});
+  const RfqTile({required this.item, this.sellerMode = false, this.showMaxBudgetOnly = false, super.key});
   final JsonMap item;
   final bool sellerMode;
+  final bool showMaxBudgetOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -740,7 +741,7 @@ class RfqTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      formatRfqBudget(item),
+                      showMaxBudgetOnly ? formatMaxRfqBudget(item) : formatRfqBudget(item),
                       style: JaxText.h3.copyWith(fontSize: 16),
                     ),
                   ],

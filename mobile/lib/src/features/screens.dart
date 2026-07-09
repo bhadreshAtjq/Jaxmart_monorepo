@@ -1309,7 +1309,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   SectionTitle(title: 'Active RFQ Requests', action: () => context.push('/rfq')),
                   const SizedBox(height: 12),
-                  ...asList(state.data['rfqs']).take(4).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: RfqTile(item: item, sellerMode: true))),
+                  ...asList(state.data['rfqs']).take(4).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: RfqTile(item: item, sellerMode: true, showMaxBudgetOnly: true))),
                 ],
               ],
             ),

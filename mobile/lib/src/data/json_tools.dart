@@ -102,4 +102,29 @@ String formatRfqBudget(JsonMap item) {
   return 'Open budget';
 }
 
+String formatMaxRfqBudget(JsonMap item) {
+  final maxVal = numOf(item['budgetMax']);
+  final minVal = numOf(item['budgetMin']);
+
+  if (maxVal != null && maxVal != 0) {
+    final format = NumberFormat.decimalPattern('en_US');
+    return '₹${format.format(maxVal)}';
+  } else if (minVal != null && minVal != 0) {
+    final format = NumberFormat.decimalPattern('en_US');
+    return '₹${format.format(minVal)}';
+  }
+
+  final fallbackBudget = item['quotedAmount'];
+  if (fallbackBudget != null) {
+    final val = numOf(fallbackBudget);
+    if (val != null) {
+      final format = NumberFormat.decimalPattern('en_US');
+      return '₹${format.format(val)}';
+    }
+  }
+
+  return 'Open budget';
+}
+
+
 

@@ -707,7 +707,6 @@ class RfqTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final budget = item['budgetMax'] ?? item['quotedAmount'];
     return JaxCard(
       onTap: () => context.push('/rfq/${item['id']}'),
       child: Column(
@@ -728,9 +727,23 @@ class RfqTile extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  budget == null ? 'Open budget' : money(budget),
-                  style: JaxText.h3.copyWith(fontSize: 17),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BUDGET',
+                      style: JaxText.label.copyWith(
+                        fontSize: 9,
+                        color: JaxColors.onSurfaceVariant.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formatRfqBudget(item),
+                      style: JaxText.h3.copyWith(fontSize: 16),
+                    ),
+                  ],
                 ),
               ),
               if (sellerMode)

@@ -71,3 +71,35 @@ String statusOf(JsonMap item, [String fallback = 'OPEN']) {
   return textOf(item['status'], textOf(item['listingType'], fallback)).toUpperCase();
 }
 
+String formatRfqBudget(JsonMap item) {
+  final minVal = numOf(item['budgetMin']);
+  final maxVal = numOf(item['budgetMax']);
+
+  if (minVal == null && maxVal == null) {
+    final fallbackBudget = item['budgetMax'] ?? item['quotedAmount'];
+    if (fallbackBudget != null) {
+      final val = numOf(fallbackBudget);
+      if (val != null) {
+        final format = NumberFormat.decimalPattern('en_US');
+        return '₹${format.format(val)}';
+      }
+    }
+    return 'Open budget';
+  }
+
+  final format = NumberFormat.decimalPattern('en_US');
+
+  if (minVal != null && maxVal != null) {
+    if (minVal == 0 && maxVal == 0) {
+      return 'Open budget';
+    }
+    return '₹${format.format(minVal)} - ${format.format(maxVal)}';
+  } else if (minVal != null) {
+    return '₹${format.format(minVal)} - Open';
+  } else if (maxVal != null) {
+    return '₹0 - ${format.format(maxVal)}';
+  }
+  return 'Open budget';
+}
+
+

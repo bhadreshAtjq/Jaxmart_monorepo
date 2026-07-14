@@ -113,13 +113,7 @@ class AppShell extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 16,
-        title: Row(
-          children: [
-            Image.asset('assets/images/JaxMart_bg.png', height: 30),
-            const SizedBox(width: 10),
-            const StatusPill(label: 'SECURE', color: JaxColors.success, dense: true),
-          ],
-        ),
+        title: Image.asset('assets/images/JaxMart_bg.png', height: 30),
         actions: [
           if (isSeller)
             Padding(

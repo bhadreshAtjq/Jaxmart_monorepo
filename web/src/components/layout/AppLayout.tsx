@@ -142,7 +142,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200/80 z-30 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           
-          {/* Left section: Logo & Secure tag */}
+          {/* Left section: Logo */}
           <div className="flex items-center gap-4">
             <Link id="tour-logo" href="/home" className="flex items-center shrink-0 group">
               <Image
@@ -154,10 +154,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className="h-8 w-auto object-contain group-hover:scale-[1.02] transition-all duration-300"
               />
             </Link>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[8px] text-emerald-700 font-mono font-bold tracking-wider">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#36ADA3] animate-pulse" />
-              SECURE
-            </span>
           </div>
 
           {/* Center section: Navigation & Mode Switcher */}

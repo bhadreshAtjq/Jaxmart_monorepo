@@ -3,10 +3,12 @@ const router = express.Router();
 const {
   searchListings, getListing, createListing,
   updateListing, getMyListings, publishListing, bulkCreateListings,
+  getNewProducts
 } = require('../controllers/listingController');
 const { authenticate, requireSeller } = require('../middleware/auth');
 
 router.get('/search', searchListings);
+router.get('/new-products', getNewProducts);
 router.get('/seller/me', authenticate, requireSeller, getMyListings);
 router.get('/:id', getListing);
 router.post('/', authenticate, requireSeller, createListing);

@@ -13,7 +13,7 @@ const searchListings = async (req, res) => {
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = Math.min(parseInt(limit), 50);
+    const take = Math.min(parseInt(limit), 100);
 
     const where = {
       status: 'ACTIVE',
@@ -104,6 +104,49 @@ const searchListings = async (req, res) => {
   } catch (err) {
     logger.error('searchListings error:', err);
     res.status(500).json({ error: 'Search failed' });
+  }
+};
+
+// GET /api/listings/new-products
+const getNewProducts = async (req, res) => {
+  try {
+    const listings = await prisma.listing.findMany({
+      where: {
+        status: 'ACTIVE',
+        listingType: 'PRODUCT'
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 100,
+      include: {
+        seller: {
+          select: {
+            id: true, fullName: true, trustScore: true, sellerRating: true,
+            totalOrdersFulfilled: true, responseRatePercent: true,
+            kycStatus: true, createdAt: true, avatarUrl: true,
+          }
+        },
+        media: { orderBy: { sortOrder: 'asc' } },
+        productDetail: true,
+        variants: {
+          take: 1,
+          where: { isActive: true },
+        },
+      }
+    });
+
+    const signedListings = await Promise.all(
+      listings.map(listing => signListingMedia(listing))
+    );
+
+    res.json({
+      success: true,
+      data: signedListings
+    });
+  } catch (error) {
+    logger.error(`Get New Products Error: ${error.message}`);
+    res.status(500).json({ success: false, error: 'Failed to fetch new products' });
   }
 };
 
@@ -681,7 +724,12 @@ const bulkCreateListings = async (req, res) => {
 };
 
 module.exports = {
-  searchListings, getListing, createListing,
-  updateListing, getMyListings, publishListing,
-  bulkCreateListings
+  searchListings,
+  getNewProducts,
+  getListing,
+  createListing,
+  updateListing,
+  getMyListings,
+  publishListing,
+  bulkCreateListings,
 };

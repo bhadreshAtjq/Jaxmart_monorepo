@@ -17,15 +17,15 @@ import { motion } from 'framer-motion';
 
 type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
 
-export default function SearchPage() {
+export default function NewProductsPage() {
   return (
     <Suspense fallback={<ListingCardSkeleton />}>
-      <SearchPageContent />
+      <NewProductsContent />
     </Suspense>
   );
 }
 
-function SearchPageContent() {
+function NewProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -33,7 +33,7 @@ function SearchPageContent() {
   const [q, setQ] = useState(searchParams.get('q') ?? '');
   const [type, setType] = useState(searchParams.get('type') ?? '');
   const [categoryId, setCategoryId] = useState(searchParams.get('category') ?? '');
-  const [sortBy, setSortBy] = useState<SortOption>('relevance');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [page, setPage] = useState(1);
 
   // Filters
@@ -68,7 +68,7 @@ function SearchPageContent() {
     }
   }, [searchParams]);
 
-  // Construct API params
+  // Construct API params (using backend search for robust filtering)
   const apiParams = {
     q,
     limit: sortBy === 'newest' ? 100 : 12,
@@ -112,6 +112,7 @@ function SearchPageContent() {
   });
 
   const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
+  
   const activeFilterCount =
     (filters.isVerified ? 1 : 0) +
     (filters.minTrust ? 1 : 0) +
@@ -143,10 +144,10 @@ function SearchPageContent() {
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                 <Link href="/home" className="hover:text-jungle-green-500">Home</Link>
                 <span>›</span>
-                <span className="text-gray-800 font-semibold">Search Results</span>
+                <span className="text-gray-800 font-semibold">New Products</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-baseline gap-2">
-                {q ? `Search results for "${q}"` : 'Wholesale Market Directory'}
+                New Products
                 <span className="text-xs text-gray-500 font-normal">({total} items found)</span>
               </h1>
             </div>
@@ -205,7 +206,7 @@ function SearchPageContent() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Category</p>
                 <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
                   <button
-                    onClick={() => setCategoryId('')}
+                    onClick={() => { setCategoryId(''); setPage(1); }}
                     className={clsx(
                       "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
                       categoryId === '' ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
@@ -216,7 +217,7 @@ function SearchPageContent() {
                   {categories.map((cat: any) => (
                     <button
                       key={cat.id}
-                      onClick={() => setCategoryId(cat.id)}
+                      onClick={() => { setCategoryId(cat.id); setPage(1); }}
                       className={clsx(
                         "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
                         categoryId === cat.id ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
@@ -362,7 +363,7 @@ function SearchPageContent() {
             <div className="flex flex-wrap gap-2 items-center mb-6">
               <span className="text-xs text-gray-500 font-semibold">Quick Filters:</span>
               <button
-                onClick={() => setFilters(f => ({ ...f, isVerified: !f.isVerified }))}
+                onClick={() => { setFilters(f => ({ ...f, isVerified: !f.isVerified })); setPage(1); }}
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.isVerified
@@ -375,7 +376,7 @@ function SearchPageContent() {
               </button>
 
               <button
-                onClick={() => setFilters(f => ({ ...f, minTrust: f.minTrust === '90' ? '' : '90' }))}
+                onClick={() => { setFilters(f => ({ ...f, minTrust: f.minTrust === '90' ? '' : '90' })); setPage(1); }}
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.minTrust === '90'
@@ -388,7 +389,7 @@ function SearchPageContent() {
               </button>
 
               <button
-                onClick={() => setFilters(f => ({ ...f, minRating: f.minRating === '4.5' ? '' : '4.5' }))}
+                onClick={() => { setFilters(f => ({ ...f, minRating: f.minRating === '4.5' ? '' : '4.5' })); setPage(1); }}
                 className={clsx(
                   "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
                   filters.minRating === '4.5'
@@ -407,7 +408,7 @@ function SearchPageContent() {
                 {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
                   <button
                     key={s}
-                    onClick={() => setSortBy(s)}
+                    onClick={() => { setSortBy(s); setPage(1); }}
                     className={clsx(
                       'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-colors',
                       sortBy === s ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'

@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button, Card, Badge, Avatar, Container, Skeleton, TrustScore } from '@/components/ui';
-import { useCategories, useFeaturedListings, useRfqInbox, useEvents } from '@/lib/hooks';
+import { useCategories, useFeaturedListings, useRfqInbox, useEvents, useNewProducts } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -39,6 +39,9 @@ export default function HomePage() {
   const { data: featured, isLoading: featuredLoading } = useFeaturedListings();
   const { data: globalRfqs, isLoading: rfqsLoading } = useRfqInbox({ matchOnly: false, limit: 6 });
   const liveRfqs = globalRfqs?.rfqs ?? [];
+
+  const { data: newProductsRes, isLoading: newProductsLoading } = useNewProducts();
+  const newProducts = newProductsRes?.data || [];
 
   const [searchTab, setSearchTab] = useState<'products' | 'suppliers'>('products');
   const [heroSearch, setHeroSearch] = useState('');
@@ -480,6 +483,112 @@ export default function HomePage() {
                 )}
               </div>
             </section>
+
+            {/* 1.5. Dual Showcase: New Products & Most Popular */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* New Products */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">New Products</h2>
+                    <p className="text-[11px] text-gray-500 mt-0.5">Explore the hottest releases in the past two weeks</p>
+                  </div>
+                  <Link href="/new-products" className="text-xs font-semibold text-gray-600 hover:text-jungle-green-600">
+                    See All
+                  </Link>
+                </div>
+
+                <div className="flex overflow-x-auto gap-3 pb-2 snap-x hide-scrollbar">
+                  {newProductsLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                      <div key={i} className="flex-none w-[120px] flex flex-col gap-2">
+                        <Skeleton className="h-[120px] rounded-xl" />
+                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    ))
+                  ) : (
+                    newProducts.map((product: any) => (
+                      <Link key={product.id} href={`/listings/${product.id}`} className="flex-none w-[120px] snap-start group">
+                        <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2">
+                          {product.media?.[0]?.url ? (
+                            <img
+                              src={product.media[0].url}
+                              alt={product.title}
+                              className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <FaBoxesStacked className="h-8 w-8 text-gray-300" />
+                          )}
+                        </div>
+                        <div className="font-bold text-gray-900 text-xs mb-0.5">
+                          {product.productDetail?.pricePerUnit ? `US$ ${product.productDetail.pricePerUnit.toLocaleString('en-US')}` : 'Get Price'}
+                        </div>
+                        <div className="text-[9px] text-gray-500 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                          Min. Order: {product.productDetail?.minOrderQty || 1} {product.productDetail?.unitOfMeasure || 'Pieces'}
+                        </div>
+                        <h3 className="text-[9px] text-gray-700 line-clamp-2 group-hover:text-jungle-green-600 transition-colors leading-tight">
+                          {product.title}
+                        </h3>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </section>
+
+              {/* Most Popular */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Most Popular</h2>
+                    <p className="text-[11px] text-gray-500 mt-0.5">Trending B2B wholesale products: bulk deals from suppliers</p>
+                  </div>
+                  <Link href="/search?type=product&sort=popular" className="text-xs font-semibold text-gray-600 hover:text-jungle-green-600">
+                    See All
+                  </Link>
+                </div>
+
+                <div className="flex overflow-x-auto gap-3 pb-2 snap-x hide-scrollbar">
+                  {featuredLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                      <div key={i} className="flex-none w-[120px] flex flex-col gap-2">
+                        <Skeleton className="h-[120px] rounded-xl" />
+                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    ))
+                  ) : (
+                    featured?.listings?.slice(0, 10).map((item: any, idx: number) => (
+                      <Link key={item.id} href={`/listings/${item.id}`} className="flex-none w-[120px] snap-start group relative">
+                        <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2 relative">
+                          <div className="absolute top-1 left-1 bg-white/90 shadow text-[9px] font-bold px-1.5 py-0.5 rounded-sm z-10 text-orange-600 border border-orange-100">
+                            {idx + 1}
+                          </div>
+                          {item.media?.[0]?.url ? (
+                            <img
+                              src={item.media[0].url}
+                              alt={item.title}
+                              className="object-cover h-full w-full group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <FaFire className="h-8 w-8 text-gray-300" />
+                          )}
+                        </div>
+                        <h3 className="text-[9px] text-gray-700 line-clamp-2 group-hover:text-jungle-green-600 transition-colors leading-tight mb-0.5">
+                          {item.title}
+                        </h3>
+                        <div className="font-bold text-gray-900 text-xs mb-0.5">
+                          {item.productDetail?.pricePerUnit ? `US$ ${item.productDetail.pricePerUnit.toLocaleString('en-US')}` : 'Get Price'}
+                        </div>
+                        <div className="text-[9px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">
+                          Min. Order: {item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pieces'}
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </section>
+            </div>
 
             {/* 2. Industry Showcase (Categories Display) */}
             <section className="bg-gray-50 rounded-2xl border border-gray-200/80 p-6">

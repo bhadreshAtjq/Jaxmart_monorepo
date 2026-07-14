@@ -73,6 +73,9 @@ const updateProfile = async (req, res) => {
     });
   } catch (err) {
     logger.error('updateProfile error:', err);
+    if (err.code === 'P2002' && err.meta?.target?.includes('email')) {
+      return res.status(400).json({ error: 'Email is already in use.' });
+    }
     res.status(500).json({ error: 'Failed to update profile' });
   }
 };

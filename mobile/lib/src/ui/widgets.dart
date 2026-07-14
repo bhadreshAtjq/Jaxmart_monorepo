@@ -120,11 +120,6 @@ class AppShell extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8),
               child: ModeSwitcher(isSellerView: isSellerView),
             ),
-          IconButton(
-            onPressed: () => context.push('/notifications'),
-            icon: const Icon(Icons.notifications_rounded),
-            tooltip: 'Notifications',
-          ),
         ],
       ),
       body: child,

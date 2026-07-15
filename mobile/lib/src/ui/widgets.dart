@@ -697,56 +697,220 @@ class RfqTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rfqId = textOf(item['id']);
+    final shortId = rfqId.length >= 8 ? rfqId.substring(0, 8).toUpperCase() : rfqId.toUpperCase();
+    final title = textOf(item['title'], 'RFQ Request');
+    final category = categoryName(item);
+    
+    // Quotes count
+    final quotesCount = (item['quotesCount'] is num) ? (item['quotesCount'] as num).toInt() : 0;
+    
+    // Relative posting time formatting
+    final createdAtStr = textOf(item['createdAt']);
+    String relativeTime = 'POSTED RECENTLY';
+    if (createdAtStr.isNotEmpty) {
+      try {
+        final createdAt = DateTime.parse(createdAtStr);
+        final difference = DateTime.now().difference(createdAt);
+        if (difference.inDays >= 365) {
+          final yrs = (difference.inDays / 365).floor();
+          relativeTime = 'POSTED $yrs ${yrs == 1 ? 'YEAR' : 'YEARS'} AGO';
+        } else if (difference.inDays >= 30) {
+          final mos = (difference.inDays / 30).floor();
+          relativeTime = 'POSTED $mos ${mos == 1 ? 'MONTH' : 'MONTHS'} AGO';
+        } else if (difference.inDays >= 1) {
+          relativeTime = 'POSTED ${difference.inDays} ${difference.inDays == 1 ? 'DAY' : 'DAYS'} AGO';
+        } else if (difference.inHours >= 1) {
+          relativeTime = 'POSTED ${difference.inHours} ${difference.inHours == 1 ? 'HOUR' : 'HOURS'} AGO';
+        } else {
+          relativeTime = 'POSTED JUST NOW';
+        }
+      } catch (_) {}
+    }
+
     return JaxCard(
-      onTap: () => context.push('/rfq/${item['id']}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              StatusPill(label: textOf(item['rfqType'], 'RFQ')),
-              const SizedBox(width: 8),
-              Expanded(child: Text(categoryName(item), style: JaxText.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(textOf(item['title'], 'RFQ request'), style: JaxText.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 6),
-          Text(textOf(item['description'], 'No description provided'), style: JaxText.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'BUDGET',
-                      style: JaxText.label.copyWith(
-                        fontSize: 9,
-                        color: JaxColors.onSurfaceVariant.withValues(alpha: 0.6),
-                        fontWeight: FontWeight.bold,
+      onTap: () => context.push(sellerMode ? '/seller/rfq/${item['id']}/quote' : '/rfq/${item['id']}'),
+      padding: EdgeInsets.zero,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Content Panel (RFQ Info)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Type Badge & Short ID
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E7FF), // Light indigo/blue
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF4338CA), // Indigo text
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 3,
+                        height: 3,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD1D5DB),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '#$shortId',
+                        style: const TextStyle(
+                          color: Color(0xFF9CA3AF), // Gray 400
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Title in uppercase
+                  Text(
+                    title.toUpperCase(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF121358), // primaryContainer
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Meta: Posted Time & Category with icons
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade500),
+                      const SizedBox(width: 4),
+                      Text(
+                        relativeTime,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.grey.shade500,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.flash_on_rounded, size: 12, color: JaxColors.secondary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          category.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: JaxColors.secondaryDark,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Thin separator line
+            Container(height: 1, color: const Color(0xFFF3F4F6)),
+            
+            // Bottom Panel (Stats and Action link)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: const Color(0xFFF9FAFB), // Very light gray background
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'QUOTES RECEIVED',
+                        style: TextStyle(
+                          color: Color(0xFF9CA3AF), // Gray 400
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            '$quotesCount',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF121358), // primaryContainer (jax-dark)
+                            ),
+                          ),
+                          if (quotesCount > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5), // Emerald light
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'NEW',
+                                style: TextStyle(
+                                  color: Color(0xFF047857), // Emerald text
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                  
+                  // Action button/indicator
+                  if (sellerMode)
+                    ElevatedButton.icon(
+                      onPressed: () => context.push('/seller/rfq/${item['id']}/quote'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: JaxColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.request_quote_rounded, size: 14),
+                      label: const Text(
+                        'Quote',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      showMaxBudgetOnly ? formatMaxRfqBudget(item) : formatRfqBudget(item),
-                      style: JaxText.h3.copyWith(fontSize: 16),
-                    ),
-                  ],
-                ),
+                ],
               ),
-              if (sellerMode)
-                JaxButton(
-                  label: 'Quote',
-                  icon: Icons.request_quote_rounded,
-                  onPressed: () => context.push('/seller/rfq/${item['id']}/quote'),
-                )
-              else
-                StatusPill(label: statusOf(item)),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -6444,12 +6444,99 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             return n.contains(_query.toLowerCase());
                           }).toList();
                     if (items.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: EmptyState(icon: Icons.chat_bubble_outline_rounded, title: 'No conversations yet'),
-                        ),
-                      );
+                      if (state.items.isEmpty) {
+                        return Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFF3F4F6)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.06),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.forum_rounded,
+                                      size: 34,
+                                      color: JaxColors.primary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'JAXMART MESSAGE CENTER',
+                                  textAlign: TextAlign.center,
+                                  style: JaxText.title.copyWith(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: Text(
+                                    'Select a supplier or buyer conversation to start negotiating prices, sharing files, and finalising transaction contracts under secure escrow.',
+                                    textAlign: TextAlign.center,
+                                    style: JaxText.bodySmall.copyWith(
+                                      fontStyle: FontStyle.italic,
+                                      color: JaxColors.onSurfaceVariant,
+                                      height: 1.45,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.forum_rounded,
+                                  size: 54,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'NO MESSAGES FOUND',
+                                  textAlign: TextAlign.center,
+                                  style: JaxText.title.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Active chats will appear here.',
+                                  textAlign: TextAlign.center,
+                                  style: JaxText.bodySmall.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: JaxColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
                     }
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 10),

@@ -113,24 +113,7 @@ class _AppShellState extends State<AppShell> {
     context.go(path);
   }
 
-  PopupMenuItem<String> _buildMenuItem(String label, String path, IconData icon) {
-    return PopupMenuItem<String>(
-      value: path,
-      child: Row(
-        children: [
-          Icon(icon, color: JaxColors.primaryContainer, size: 18),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: JaxText.bodyMedium.copyWith(
-              color: JaxColors.primaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -198,32 +181,18 @@ class _AppShellState extends State<AppShell> {
               const SizedBox(width: 8),
               ModeSwitcher(isSellerView: isSellerView),
             ],
-            const SizedBox(width: 8),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.menu_rounded, color: JaxColors.primaryContainer, size: 24),
-              onSelected: _handleNavigation,
-              itemBuilder: (context) => isSellerView
-                  ? [
-                      _buildMenuItem('Seller Home', '/seller/dashboard', Icons.dashboard_rounded),
-                      _buildMenuItem('Buyer Requests', '/seller/rfq-inbox', Icons.inbox_rounded),
-                      _buildMenuItem('My Products', '/seller/listings', Icons.storefront_rounded),
-                      _buildMenuItem('Messages', '/messages', Icons.chat_bubble_rounded),
-                      _buildMenuItem('Profile', '/profile', Icons.person_rounded),
-                      _buildMenuItem('Home (Buying)', '/home', Icons.home_rounded),
-                    ]
-                  : [
-                      _buildMenuItem('Home', '/home', Icons.home_rounded),
-                      _buildMenuItem('Products', '/search', Icons.search_rounded),
-                      _buildMenuItem('Buyer Requests', '/rfq', Icons.description_rounded),
-                      _buildMenuItem('Messages', '/messages', Icons.chat_bubble_rounded),
-                      _buildMenuItem('My Orders', '/orders', Icons.shopping_bag_rounded),
-                      _buildMenuItem('Post a Request', '/rfq/create', Icons.add_circle_rounded),
-                    ],
-            ),
           ],
         ),
       ),
-      body: widget.child,
+      body: Stack(
+        children: [
+          widget.child,
+          FloatingActionMenu(
+            isSellerView: isSellerView,
+            onNavigate: _handleNavigation,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1051,4 +1020,255 @@ void showResultSnack(BuildContext context, ResourceState state) {
   if (state.message == null) return;
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
 }
+
+class FloatingActionMenu extends StatefulWidget {
+  final bool isSellerView;
+  final ValueChanged<String> onNavigate;
+
+  const FloatingActionMenu({
+    required this.isSellerView,
+    required this.onNavigate,
+    super.key,
+  });
+
+  @override
+  State<FloatingActionMenu> createState() => _FloatingActionMenuState();
+}
+
+class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _expandAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _rotateAnimation;
+  bool _isOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.fastOutSlowIn,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
+    ));
+    _rotateAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleMenu() {
+    setState(() {
+      _isOpen = !_isOpen;
+      if (_isOpen) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
+
+  void _closeMenu() {
+    if (_isOpen) {
+      setState(() {
+        _isOpen = false;
+        _controller.reverse();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> items = widget.isSellerView
+        ? [
+            {'label': 'Seller Home', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
+            {'label': 'Buyer Requests', 'path': '/seller/rfq-inbox', 'icon': Icons.inbox_rounded},
+            {'label': 'My Products', 'path': '/seller/listings', 'icon': Icons.storefront_rounded},
+            {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
+            {'label': 'Profile', 'path': '/profile', 'icon': Icons.person_rounded},
+            {'label': 'Home (Buying)', 'path': '/home', 'icon': Icons.home_rounded},
+          ]
+        : [
+            {'label': 'Home', 'path': '/home', 'icon': Icons.home_rounded},
+            {'label': 'Products', 'path': '/search', 'icon': Icons.search_rounded},
+            {'label': 'Buyer Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
+            {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
+            {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
+            {'label': 'Post a Request', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
+          ];
+
+    return Stack(
+      children: [
+        if (_isOpen)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _closeMenu,
+              child: AnimatedBuilder(
+                animation: _fadeAnimation,
+                builder: (context, child) {
+                  return Container(
+                    color: Colors.black.withValues(alpha: 0.4 * _fadeAnimation.value),
+                  );
+                },
+              ),
+            ),
+          ),
+        Positioned(
+          bottom: 24,
+          right: 20,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (_isOpen)
+                SizeTransition(
+                  sizeFactor: _expandAnimation,
+                  axis: Axis.vertical,
+                  axisAlignment: 1.0,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: items.map((item) {
+                          final isAction = item['isAction'] == true;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _buildMenuItem(item, isAction),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              GestureDetector(
+                onTap: _toggleMenu,
+                child: RotationTransition(
+                  turns: _rotateAnimation,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: widget.isSellerView ? JaxColors.secondary : JaxColors.secondary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: JaxColors.secondary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      _isOpen ? Icons.close_rounded : Icons.add_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(Map<String, dynamic> item, bool isAction) {
+    if (isAction) {
+      return GestureDetector(
+        onTap: () {
+          _closeMenu();
+          widget.onNavigate(item['path']);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: JaxColors.secondary,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                item['label'],
+                style: JaxText.bodyMedium.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                item['icon'],
+                color: Colors.white,
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        _closeMenu();
+        widget.onNavigate(item['path']);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              item['label'],
+              style: JaxText.bodyMedium.copyWith(
+                color: JaxColors.primaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(
+              item['icon'],
+              color: JaxColors.primaryContainer,
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 

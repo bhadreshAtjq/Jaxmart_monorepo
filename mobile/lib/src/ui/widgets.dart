@@ -1163,11 +1163,11 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: widget.isSellerView ? JaxColors.secondary : JaxColors.secondary,
+                      color: JaxColors.primary,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: JaxColors.secondary.withValues(alpha: 0.3),
+                          color: JaxColors.primary.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),

@@ -80,10 +80,53 @@ class RefreshConfiguration extends StatelessWidget {
   Widget build(BuildContext context) => child;
 }
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({required this.child, super.key});
 
   final Widget child;
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _handleSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      context.push('/search?q=${Uri.encodeComponent(query)}');
+    }
+  }
+
+  void _handleNavigation(String path) {
+    context.go(path);
+  }
+
+  PopupMenuItem<String> _buildMenuItem(String label, String path, IconData icon) {
+    return PopupMenuItem<String>(
+      value: path,
+      child: Row(
+        children: [
+          Icon(icon, color: JaxColors.primaryContainer, size: 18),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: JaxText.bodyMedium.copyWith(
+              color: JaxColors.primaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,74 +134,94 @@ class AppShell extends StatelessWidget {
     final auth = context.watch<AuthCubit>().state;
     final isSellerView = location.startsWith('/seller');
     final isSeller = auth.isSeller;
-    final items = isSellerView
-        ? const [
-            _NavItem('/seller/dashboard', Icons.dashboard_rounded, 'Seller'),
-            _NavItem('/seller/rfq-inbox', Icons.inbox_rounded, 'Buyer Requests'),
-            _NavItem('/seller/listings', Icons.storefront_rounded, 'Products'),
-            _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
-            _NavItem('/profile', Icons.person_rounded, 'Profile'),
-          ]
-        : const [
-            _NavItem('/home', Icons.home_rounded, 'Home'),
-            _NavItem('/search', Icons.search_rounded, 'Products'),
-            _NavItem('/rfq', Icons.description_rounded, 'Buyer Requests'),
-            _NavItem('/messages', Icons.chat_bubble_rounded, 'Messages'),
-            _NavItem('/seller/dashboard', Icons.dashboard_rounded, 'Dashboard'),
-            _NavItem('/profile', Icons.person_rounded, 'Profile'),
-          ];
 
     return Scaffold(
       backgroundColor: JaxColors.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        title: Image.asset('assets/images/JaxMart_bg.png', height: 30),
-        actions: [
-          if (isSeller)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ModeSwitcher(isSellerView: isSellerView),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        titleSpacing: 12,
+        title: Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Search products, suppliers...',
+                            hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          onSubmitted: (_) => _handleSearch(),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _handleSearch,
+                      child: Container(
+                        width: 44,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: JaxColors.primaryContainer,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(7),
+                            bottomRight: Radius.circular(7),
+                          ),
+                        ),
+                        child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-        ],
-      ),
-      body: child,
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+            if (isSeller) ...[
+              const SizedBox(width: 8),
+              ModeSwitcher(isSellerView: isSellerView),
+            ],
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.menu_rounded, color: JaxColors.primaryContainer, size: 24),
+              onSelected: _handleNavigation,
+              itemBuilder: (context) => isSellerView
+                  ? [
+                      _buildMenuItem('Seller Home', '/seller/dashboard', Icons.dashboard_rounded),
+                      _buildMenuItem('Buyer Requests', '/seller/rfq-inbox', Icons.inbox_rounded),
+                      _buildMenuItem('My Products', '/seller/listings', Icons.storefront_rounded),
+                      _buildMenuItem('Messages', '/messages', Icons.chat_bubble_rounded),
+                      _buildMenuItem('Profile', '/profile', Icons.person_rounded),
+                      _buildMenuItem('Home (Buying)', '/home', Icons.home_rounded),
+                    ]
+                  : [
+                      _buildMenuItem('Home', '/home', Icons.home_rounded),
+                      _buildMenuItem('Products', '/search', Icons.search_rounded),
+                      _buildMenuItem('Buyer Requests', '/rfq', Icons.description_rounded),
+                      _buildMenuItem('Messages', '/messages', Icons.chat_bubble_rounded),
+                      _buildMenuItem('My Orders', '/orders', Icons.shopping_bag_rounded),
+                      _buildMenuItem('Post a Request', '/rfq/create', Icons.add_circle_rounded),
+                    ],
+            ),
+          ],
         ),
-        child: SafeArea(
-          top: false,
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            selectedFontSize: 10,
-            unselectedFontSize: 10,
-            currentIndex: _activeIndex(location, items),
-            onTap: (index) => context.go(items[index].path),
-            items: items
-                .map((item) => BottomNavigationBarItem(icon: Icon(item.icon), label: item.label))
-                .toList(),
-          ),
-        ),
       ),
+      body: widget.child,
     );
   }
-
-  int _activeIndex(String location, List<_NavItem> items) {
-    final index = items.indexWhere((item) {
-      final path = item.path.split('?').first;
-      return location == path || location.startsWith('$path/');
-    });
-    return index < 0 ? 0 : index;
-  }
-}
-
-class _NavItem {
-  const _NavItem(this.path, this.icon, this.label);
-  final String path;
-  final IconData icon;
-  final String label;
 }
 
 class ModeSwitcher extends StatelessWidget {

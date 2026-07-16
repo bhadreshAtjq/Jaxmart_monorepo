@@ -1141,15 +1141,17 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
                     opacity: _fadeAnimation,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: items.map((item) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _buildMenuItem(item),
-                          );
-                        }).toList(),
+                      child: IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: items.map((item) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _buildMenuItem(item),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
                   ),
@@ -1209,7 +1211,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             ],
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 item['label'],
@@ -1218,7 +1220,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Icon(
                 item['icon'],
                 color: Colors.white,
@@ -1249,7 +1251,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               item['label'],

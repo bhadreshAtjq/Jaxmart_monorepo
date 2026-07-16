@@ -1254,11 +1254,8 @@ class HomeScreen extends StatelessWidget {
           return result;
         }),
       child: JaxPage(
-        title: 'Wholesale Market',
-        subtitle: 'Verified suppliers, live RFQs, escrow-backed transactions',
-        actions: [
-          IconButton(onPressed: () => context.push('/rfq/create'), icon: const Icon(Icons.bolt_rounded), tooltip: 'Post RFQ'),
-        ],
+        title: '',
+        subtitle: null,
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) => AsyncContent(
             state: state,

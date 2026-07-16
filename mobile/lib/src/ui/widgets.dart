@@ -32,6 +32,7 @@ class JaxPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasHeader = title.isNotEmpty || titleWidget != null || subtitle != null || actions != null;
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
       child: Column(
@@ -41,25 +42,28 @@ class JaxPage extends StatelessWidget {
             topWidget!,
             const SizedBox(height: 12),
           ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleWidget ?? Text(title, style: JaxText.h2),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(subtitle!, style: JaxText.bodySmall),
+          if (hasHeader) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (title.isNotEmpty || titleWidget != null)
+                        titleWidget ?? Text(title, style: JaxText.h2),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(subtitle!, style: JaxText.bodySmall),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (actions != null) ...actions!,
-            ],
-          ),
-          const SizedBox(height: 18),
+                if (actions != null) ...actions!,
+              ],
+            ),
+            const SizedBox(height: 18),
+          ],
           child,
         ],
       ),

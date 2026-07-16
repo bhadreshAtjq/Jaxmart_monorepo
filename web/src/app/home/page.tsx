@@ -388,277 +388,266 @@ export default function HomePage() {
       </section>
 
       {/* Main Home Content */}
-      <Container size="xl" className="py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <Container size="xl" className="py-12 space-y-12">
 
-          {/* Main Content Area */}
-          <div className="lg:col-span-9 space-y-12">
-
-            {/* 1. Hot Products Section (Alibaba Grid Layout) */}
-            <section>
-              <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-3">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <FaFire className="text-jungle-green-500 h-5 w-5" />
-                    Premium Bulk Listings
-                  </h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Top trending manufactured products ready for wholesale orders</p>
-                </div>
-                <Link href="/search" className="text-xs font-bold text-jungle-green-600 hover:underline flex items-center gap-1">
-                  Browse All Products <FaArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {featuredLoading ? (
-                  Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-80 rounded-lg" />)
-                ) : (
-                  featured?.listings?.slice(0, 12).map((item: any) => (
-                    <Link key={item.id} href={`/listings/${item.id}`} className="group">
-                      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg hover:border-jungle-green-200 transition-all h-full flex flex-col">
-                        <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-100">
-                          {item.media?.[0] ? (
-                            <img
-                              src={item.media[0].url}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              alt={item.title}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-200">
-                              <FaIndustry className="h-12 w-12" />
-                            </div>
-                          )}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                            {item.seller?.kycStatus === 'VERIFIED' && (
-                              <span className="bg-jungle-green-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
-                                <FaCircleCheck className="h-2.5 w-2.5 shrink-0" />
-                                Verified
-                              </span>
-                            )}
-                            {item.isFeatured && (
-                              <span className="bg-gray-900 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
-                                <FaFire className="h-2.5 w-2.5 text-amber-400 shrink-0" />
-                                Hot
-                              </span>
-                            )}
-                          </div>
-                          {item.seller?.trustScore &&
-                            !['industrial registration', 'electronics', 'industrial textiles'].includes(item.category?.name?.toLowerCase()) &&
-                            !['industrial registration', 'electronics', 'industrial textiles'].includes(item.title?.toLowerCase()) && (
-                            <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-800 shadow">
-                              Trust: {item.seller.trustScore}%
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-3 flex-1 flex flex-col">
-                          <span className="text-[10px] font-bold text-jungle-green-600 uppercase tracking-widest block mb-1">
-                            {item.category?.name}
-                          </span>
-                          <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-2 group-hover:text-jungle-green-600 transition-colors min-h-[2.5rem]">
-                            {item.title}
-                          </h3>
-
-                          <div className="mt-auto">
-                            <div className="text-base font-bold text-gray-900">
-                              {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
-                              {item.productDetail?.pricePerUnit && (
-                                <span className="text-[10px] text-gray-400 font-normal"> /{item.productDetail?.unitOfMeasure || 'Pc'}</span>
-                              )}
-                            </div>
-                            <p className="text-[10px] text-gray-500 mt-0.5">
-                              Min. Order: <strong>{item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pcs'}</strong>
-                            </p>
-
-                            <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center gap-1.5">
-                              <FaCircleCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                              <span className="text-[10px] text-gray-500 truncate font-semibold">
-                                {item.seller?.businessProfile?.businessName || item.seller?.fullName}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </section>
-
-            {/* 2. Industry Showcase (Categories Display) */}
-            <section className="bg-gray-50 rounded-2xl border border-gray-200/80 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-5">Browse Markets & Industries</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {catsLoading ? (
-                  Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
-                ) : (
-                  categories.map((cat: any) => {
-                    const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
-                    return (
-                      <Link key={cat.id} href={`/search?category=${cat.id}`}>
-                        <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-jungle-green-200 transition-all group flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-jungle-green-50 text-jungle-green-500 flex items-center justify-center group-hover:bg-jungle-green-500 group-hover:text-white transition-colors shrink-0">
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-sm text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">
-                              {cat.name}
-                            </p>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">
-                              Source Now →
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })
-                )}
-              </div>
-            </section>
-
-            {/* 3. Live Buyer Requests Board */}
-            {showAuth && (
-              <section>
-                <div className="flex items-center justify-between mb-5 border-b border-gray-100 pb-3">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <FaEnvelope className="text-jungle-green-500" />
-                      Active RFQ Sourcing Requests
-                    </h2>
-                    <p className="text-xs text-gray-500 mt-0.5">Live requests posted by buyers waiting for suppliers to quote</p>
-                  </div>
-                  <Link href="/rfq" className="text-xs font-bold text-jungle-green-600 hover:underline flex items-center gap-1">
-                    View Sourcing Board <FaArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rfqsLoading ? (
-                    Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
-                  ) : liveRfqs.length === 0 ? (
-                    <div className="col-span-2 bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center text-sm text-gray-400">
-                      No active requests right now. Be the first to post!
-                    </div>
-                  ) : (
-                    liveRfqs.slice(0, 4).map((rfq: any) => (
-                      <Link key={rfq.id} href={`/rfq/${rfq.id}`}>
-                        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-jungle-green-200 transition-all group h-full flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge status={rfq.rfqType} className="text-[9px] font-black" />
-                              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
-                                {rfq.category?.name}
-                              </span>
-                            </div>
-                            <h4 className="text-xs font-bold text-gray-800 group-hover:text-jungle-green-600 transition-colors line-clamp-1">
-                              {rfq.title}
-                            </h4>
-                            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">
-                              {rfq.description}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between border-t border-gray-50 pt-3 mt-3">
-                            <div>
-                              <p className="text-xs font-black text-gray-900">
-                                ₹{rfq.budgetMax?.toLocaleString('en-IN') || 'Open Budget'}
-                              </p>
-                              <p className="text-[9px] text-gray-400 font-medium">Estimated Budget</p>
-                            </div>
-                            <Button size="sm" className="text-[10px] px-3 py-1 font-bold h-8 rounded-lg shrink-0">
-                              Send Quote
-                            </Button>
-                          </div>
-                        </div>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </section>
-            )}
-
+        {/* 1. Hot Products Section (Alibaba Grid Layout) */}
+        <section>
+          <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-3">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <FaFire className="text-jungle-green-500 h-5 w-5" />
+                Premium Bulk Listings
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">Top trending manufactured products ready for wholesale orders</p>
+            </div>
+            <Link href="/search" className="text-xs font-bold text-jungle-green-600 hover:underline flex items-center gap-1">
+              Browse All Products <FaArrowRight className="h-3 w-3" />
+            </Link>
           </div>
 
-          {/* Right Sidebar Widgets */}
-          <div className="lg:col-span-3 space-y-6">
-
-            {/* Trust and Safety Banner */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-bold text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                <FaShieldHalved className="text-emerald-500 h-4.5 w-4.5" /> JaxMart Escrow
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    title: '1. Secure Payments',
-                    desc: 'JaxMart holds your funds in escrow, protecting you from fraud.'
-                  },
-                  {
-                    title: '2. Verified Shipping',
-                    desc: 'We verify GSTIN, HSN, and carrier logistics before releasing funds.'
-                  },
-                  {
-                    title: '3. Inspection Guarantee',
-                    desc: 'Release payments to suppliers only after verifying cargo quality.'
-                  },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-2.5">
-                    <FaCircleCheck className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold text-gray-800">{item.title}</p>
-                      <p className="text-[11px] text-gray-500 leading-normal mt-0.5">{item.desc}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+            {featuredLoading ? (
+              Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-80 rounded-lg" />)
+            ) : (
+              featured?.listings?.slice(0, 12).map((item: any) => (
+                <Link key={item.id} href={`/listings/${item.id}`} className="group">
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg hover:border-jungle-green-200 transition-all h-full flex flex-col">
+                    <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-100">
+                      {item.media?.[0] ? (
+                        <img
+                          src={item.media[0].url}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          alt={item.title}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-200">
+                          <FaIndustry className="h-12 w-12" />
+                        </div>
+                      )}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                        {item.seller?.kycStatus === 'VERIFIED' && (
+                          <span className="bg-jungle-green-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
+                            <FaCircleCheck className="h-2.5 w-2.5 shrink-0" />
+                            Verified
+                          </span>
+                        )}
+                        {item.isFeatured && (
+                          <span className="bg-gray-900 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
+                            <FaFire className="h-2.5 w-2.5 text-amber-400 shrink-0" />
+                            Hot
+                          </span>
+                        )}
+                      </div>
+                      {item.seller?.trustScore &&
+                        !['industrial registration', 'electronics', 'industrial textiles'].includes(item.category?.name?.toLowerCase()) &&
+                        !['industrial registration', 'electronics', 'industrial textiles'].includes(item.title?.toLowerCase()) && (
+                        <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-800 shadow">
+                          Trust: {item.seller.trustScore}%
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Featured Factories Showcase */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-2">
-                <FaHandshake className="text-jungle-green-500 h-4 w-4" />
-                Featured Factories
-              </h3>
-
-              <div className="space-y-4">
-                {[
-                  { name: "Vardhman Textiles Ltd", city: "Ludhiana", category: "Textiles", year: 1998 },
-                  { name: "Apex Industries", city: "Mumbai", category: "Industrial", year: 2004 },
-                  { name: "Swastik Chemicals", city: "Ahmedabad", category: "Chemicals", year: 2011 }
-                ].map((fac, idx) => (
-                  <div key={idx} className="border-b border-gray-100 last:border-none pb-3 last:pb-0 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-200 font-black text-xs text-jungle-green-600">
-                      {fac.name.substring(0, 2)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-gray-800 truncate">{fac.name}</p>
-                      <p className="text-[10px] text-gray-500 font-medium">
-                        {fac.city} • Est. {fac.year}
-                      </p>
-                      <span className="inline-block mt-1 text-[9px] bg-jungle-green-50 text-jungle-green-600 px-1.5 py-0.5 rounded font-bold uppercase">
-                        {fac.category}
+                    <div className="p-3 flex-1 flex flex-col">
+                      <span className="text-[10px] font-bold text-jungle-green-600 uppercase tracking-widest block mb-1">
+                        {item.category?.name}
                       </span>
+                      <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-2 group-hover:text-jungle-green-600 transition-colors min-h-[2.5rem]">
+                        {item.title}
+                      </h3>
+
+                      <div className="mt-auto">
+                        <div className="text-base font-bold text-gray-900">
+                          {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                          {item.productDetail?.pricePerUnit && (
+                            <span className="text-[10px] text-gray-400 font-normal"> /{item.productDetail?.unitOfMeasure || 'Pc'}</span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-0.5">
+                          Min. Order: <strong>{item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pcs'}</strong>
+                        </p>
+
+                        <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center gap-1.5">
+                          <FaCircleCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                          <span className="text-[10px] text-gray-500 truncate font-semibold">
+                            {item.seller?.businessProfile?.businessName || item.seller?.fullName}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
 
-            {/* Direct Manufacturer Link Button */}
-            <div className="bg-gradient-to-br from-[#232F72] to-[#2F578A] text-white rounded-xl p-5 shadow-sm">
-              <h4 className="font-bold text-sm mb-1 text-white">Join as a Wholesale Supplier</h4>
-              <p className="text-[11px] text-white/90 leading-relaxed mb-4">
-                List your products, register your GSTIN, and quote on thousands of active RFQ requests.
-              </p>
-              <Link href={showAuth ? "/seller/dashboard" : "/auth/login"}>
-                <button className="w-full h-9 bg-white text-[#232F72] font-bold text-xs uppercase tracking-wider rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-                  Register Factory Center
-                </button>
+        {/* 2. Industry Showcase (Categories Display) */}
+        <section className="bg-gray-50 rounded-2xl border border-gray-200/80 p-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Browse Markets & Industries</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {catsLoading ? (
+              Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
+            ) : (
+              categories.map((cat: any) => {
+                const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
+                return (
+                  <Link key={cat.id} href={`/search?category=${cat.id}`}>
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-jungle-green-200 transition-all group flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-jungle-green-50 text-jungle-green-500 flex items-center justify-center group-hover:bg-jungle-green-500 group-hover:text-white transition-colors shrink-0">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">
+                          {cat.name}
+                        </p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">
+                          Source Now →
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* 3. Live Buyer Requests Board */}
+        {showAuth && (
+          <section>
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <FaEnvelope className="text-jungle-green-500" />
+                  Active RFQ Sourcing Requests
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Live requests posted by buyers waiting for suppliers to quote</p>
+              </div>
+              <Link href="/rfq" className="text-xs font-bold text-jungle-green-600 hover:underline flex items-center gap-1">
+                View Sourcing Board <FaArrowRight className="h-3 w-3" />
               </Link>
             </div>
 
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {rfqsLoading ? (
+                Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
+              ) : liveRfqs.length === 0 ? (
+                <div className="col-span-4 bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center text-sm text-gray-400">
+                  No active requests right now. Be the first to post!
+                </div>
+              ) : (
+                liveRfqs.slice(0, 4).map((rfq: any) => (
+                  <Link key={rfq.id} href={`/rfq/${rfq.id}`}>
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-jungle-green-200 transition-all group h-full flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge status={rfq.rfqType} className="text-[9px] font-black" />
+                          <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                            {rfq.category?.name}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-800 group-hover:text-jungle-green-600 transition-colors line-clamp-1">
+                          {rfq.title}
+                        </h4>
+                        <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">
+                          {rfq.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-gray-50 pt-3 mt-3">
+                        <div>
+                          <p className="text-xs font-black text-gray-900">
+                            ₹{rfq.budgetMax?.toLocaleString('en-IN') || 'Open Budget'}
+                          </p>
+                          <p className="text-[9px] text-gray-400 font-medium">Estimated Budget</p>
+                        </div>
+                        <Button size="sm" className="text-[10px] px-3 py-1 font-bold h-8 rounded-lg shrink-0">
+                          Send Quote
+                        </Button>
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
+        )}
 
-        </div>
+        {/* 4. Trust and Safety Banner */}
+        <section className="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2 uppercase tracking-wider">
+            <FaShieldHalved className="text-emerald-500 h-5 w-5" /> JaxMart Escrow Protection
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: '1. Secure Payments',
+                desc: 'JaxMart holds your funds in escrow, protecting you from fraud.'
+              },
+              {
+                title: '2. Verified Shipping',
+                desc: 'We verify GSTIN, HSN, and carrier logistics before releasing funds.'
+              },
+              {
+                title: '3. Inspection Guarantee',
+                desc: 'Release payments to suppliers only after verifying cargo quality.'
+              },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl border border-emerald-100/50 p-5 shadow-sm flex items-start gap-4">
+                <FaCircleCheck className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">{item.title}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed mt-1.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 5. Featured Factories Showcase */}
+        <section className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 uppercase tracking-wider flex items-center gap-2">
+            <FaHandshake className="text-jungle-green-500 h-5 w-5" />
+            Featured Factories
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: "Vardhman Textiles Ltd", city: "Ludhiana", category: "Textiles", year: 1998 },
+              { name: "Apex Industries", city: "Mumbai", category: "Industrial", year: 2004 },
+              { name: "Swastik Chemicals", city: "Ahmedabad", category: "Chemicals", year: 2011 }
+            ].map((fac, idx) => (
+              <div key={idx} className="bg-gray-50 border border-gray-200/60 rounded-xl p-5 flex items-center gap-4 hover:shadow-md hover:border-jungle-green-200 transition-all">
+                <div className="h-12 w-12 rounded-xl bg-jungle-green-50 flex items-center justify-center border border-jungle-green-150 font-black text-sm text-jungle-green-600 shrink-0">
+                  {fac.name.substring(0, 2)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-800 text-sm truncate">{fac.name}</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">
+                    {fac.city} • Est. {fac.year}
+                  </p>
+                  <span className="inline-block mt-2 text-[9px] bg-jungle-green-100 text-jungle-green-700 px-2 py-0.5 rounded font-black uppercase tracking-wider">
+                    {fac.category}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 6. Join as a Wholesale Supplier */}
+        <section className="bg-gradient-to-r from-[#232F72] via-[#2F578A] to-[#1C265B] text-white rounded-2xl p-8 md:p-12 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="max-w-xl text-center md:text-left">
+            <h3 className="font-extrabold text-xl md:text-2xl mb-2 text-white">Join as a Wholesale Supplier</h3>
+            <p className="text-sm text-white/90 leading-relaxed">
+              List your products, register your GSTIN, and quote on thousands of active RFQ requests. Reach buyers nationwide.
+            </p>
+          </div>
+          <Link href={showAuth ? "/seller/dashboard" : "/auth/login"} className="w-full md:w-auto shrink-0">
+            <button className="w-full md:w-auto h-12 px-8 bg-white text-[#232F72] font-black text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-colors shadow-lg">
+              Register Factory Center
+            </button>
+          </Link>
+        </section>
+
       </Container>
     </PublicLayout>
   );

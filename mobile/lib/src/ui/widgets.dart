@@ -1145,10 +1145,9 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: items.map((item) {
-                          final isAction = item['isAction'] == true;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
-                            child: _buildMenuItem(item, isAction),
+                            child: _buildMenuItem(item),
                           );
                         }).toList(),
                       ),
@@ -1188,7 +1187,8 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
     );
   }
 
-  Widget _buildMenuItem(Map<String, dynamic> item, bool isAction) {
+  Widget _buildMenuItem(Map<String, dynamic> item) {
+    final isAction = item['isAction'] == true;
     if (isAction) {
       return GestureDetector(
         onTap: () {
@@ -1198,11 +1198,11 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: JaxColors.secondary,
+            color: JaxColors.primary,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: JaxColors.primary.withValues(alpha: 0.25),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

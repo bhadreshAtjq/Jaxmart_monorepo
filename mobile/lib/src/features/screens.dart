@@ -7038,7 +7038,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -1405,6 +1405,14 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SegmentedButton<String>(
+            style: SegmentedButton.styleFrom(
+              backgroundColor: Colors.white,
+              selectedBackgroundColor: JaxColors.primary,
+              foregroundColor: JaxColors.onSurfaceVariant,
+              selectedForegroundColor: Colors.white,
+              side: const BorderSide(color: Color(0xFFE5E7EB)),
+              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
             segments: const [
               ButtonSegment(value: 'products', label: Text('Products'), icon: Icon(Icons.category_rounded)),
               ButtonSegment(value: 'suppliers', label: Text('Suppliers'), icon: Icon(Icons.factory_rounded)),

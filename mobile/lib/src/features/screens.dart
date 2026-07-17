@@ -510,6 +510,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: Pinput(
                       length: 6,
                       controller: _pinController,
+                      autofocus: true,
                       defaultPinTheme: defaultPinTheme,
                       focusedPinTheme: focusedPinTheme,
                       onCompleted: _verify,

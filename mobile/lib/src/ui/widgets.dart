@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -122,66 +123,173 @@ class _AppShellState extends State<AppShell> {
     final isSellerView = location.startsWith('/seller');
     final isSeller = auth.isSeller;
 
+    final showTopBar = location.startsWith('/home') ||
+                       location.startsWith('/search') ||
+                       location == '/messages';
+
     return Scaffold(
       backgroundColor: JaxColors.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        titleSpacing: 12,
-        title: Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 12),
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Search products, suppliers...',
-                            hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          style: const TextStyle(fontSize: 13),
-                          onSubmitted: (_) => _handleSearch(),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+          (showTopBar ? 32.0 : 0.0) + 56.0 + MediaQuery.of(context).padding.top,
+        ),
+        child: Container(
+          color: showTopBar ? const Color(0xFF0F172A) : Colors.white,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showTopBar)
+                  Container(
+                    height: 32,
+                    color: const Color(0xFF0F172A),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Left: Verified Suppliers
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF10B981),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Verified Suppliers',
+                              style: TextStyle(
+                                fontFamily: 'SourceSans3',
+                                color: Colors.grey.shade400,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        // Right: My Orders | profile icon & name
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => context.push('/orders'),
+                              child: Text(
+                                'My Orders',
+                                style: TextStyle(
+                                  fontFamily: 'SourceSans3',
+                                  color: Colors.grey.shade400,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: Text(
+                                '|',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.push('/profile'),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    color: Colors.grey.shade400,
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    auth.isLoggedIn ? auth.name.split(' ')[0] : 'Guest',
+                                    style: const TextStyle(
+                                      fontFamily: 'SourceSans3',
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    GestureDetector(
-                      onTap: _handleSearch,
-                      child: Container(
-                        width: 44,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: JaxColors.primaryContainer,
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(7),
-                            bottomRight: Radius.circular(7),
+                  ),
+                Container(
+                  color: Colors.white,
+                  child: AppBar(
+                    primary: false,
+                    systemOverlayStyle: showTopBar
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark,
+                    automaticallyImplyLeading: false,
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    titleSpacing: 12,
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: TextField(
+                                      controller: _searchController,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        hintText: 'Search products, suppliers...',
+                                        hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                      ),
+                                      style: const TextStyle(fontSize: 13),
+                                      onSubmitted: (_) => _handleSearch(),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: _handleSearch,
+                                  child: Container(
+                                    width: 44,
+                                    height: 40,
+                                    decoration: const BoxDecoration(
+                                      color: JaxColors.primaryContainer,
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(7),
+                                        bottomRight: Radius.circular(7),
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
-                      ),
+                        if (isSeller) ...[
+                          const SizedBox(width: 8),
+                          ModeSwitcher(isSellerView: isSellerView),
+                        ],
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-            if (isSeller) ...[
-              const SizedBox(width: 8),
-              ModeSwitcher(isSellerView: isSellerView),
-            ],
-          ],
+          ),
         ),
       ),
       body: Stack(

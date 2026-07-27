@@ -1228,10 +1228,10 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
 
     final List<Map<String, dynamic>> items = widget.isSellerView
         ? [
-            {'label': 'Dashboard', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
+            {'label': 'Seller Homes', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
             {'label': 'Buyer Requests', 'path': '/seller/rfq-inbox', 'icon': Icons.inbox_rounded},
             {'label': 'My Products', 'path': '/seller/listings', 'icon': Icons.storefront_rounded},
-            {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
+            {'label': 'My Orders', 'path': '/orders?role=seller', 'icon': Icons.shopping_bag_rounded},
             {'label': 'Profile', 'path': '/profile', 'icon': Icons.person_rounded},
             {'label': 'Home (Buying)', 'path': '/home', 'icon': Icons.home_rounded},
           ]

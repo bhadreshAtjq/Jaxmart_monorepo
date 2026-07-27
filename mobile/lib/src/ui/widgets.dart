@@ -896,190 +896,366 @@ class RfqTile extends StatelessWidget {
       } catch (_) {}
     }
 
+    final buyer = asMap(item['buyer']);
+
     return JaxCard(
       onTap: () => context.push(sellerMode ? '/seller/rfq/${item['id']}/quote' : '/rfq/${item['id']}'),
-      padding: EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(JaxRadius.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Top Content Panel (RFQ Info)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Type Badge & Short ID
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE0E7FF), // Light indigo/blue
-                          borderRadius: BorderRadius.circular(6),
+      padding: sellerMode ? const EdgeInsets.all(16) : EdgeInsets.zero,
+      child: sellerMode
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Row: Badge, Time, and Budget on the right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge & Time
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0E7FF), // Light indigo/blue
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF4338CA), // Indigo text
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade400),
+                              const SizedBox(width: 4),
+                              Text(
+                                relativeTime,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.grey.shade500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Budget (right-aligned)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'BUDGET',
+                          style: TextStyle(
+                            color: Color(0xFF9CA3AF), // Gray 400
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                        child: Text(
-                          textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatRfqBudget(item),
                           style: const TextStyle(
-                            color: Color(0xFF4338CA), // Indigo text
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF1E1B4B), // Indigo-950
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: JaxText.heading,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E1B4B),
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Description
+                if (textOf(item['description']).isNotEmpty) ...[
+                  Text(
+                    '"${textOf(item['description'])}"',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: JaxText.body,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                const SizedBox(height: 12),
+                // Buyer info + Category
+                Row(
+                  children: [
+                    JaxAvatar(
+                      name: textOf(buyer['fullName'], 'Buyer'),
+                      url: textOf(buyer['avatarUrl']),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            textOf(buyer['fullName'], 'Buyer'),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF374151), // Gray 700
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            category.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: JaxColors.secondaryDark,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Bottom Action Area: Quotes Count & Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$quotesCount ${quotesCount == 1 ? 'QUOTE' : 'QUOTES'} RECEIVED',
+                          style: const TextStyle(
+                            color: Color(0xFF6B7280), // Gray 500
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 3,
-                        height: 3,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFD1D5DB),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '#$shortId',
-                        style: const TextStyle(
-                          color: Color(0xFF9CA3AF), // Gray 400
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Title in uppercase
-                  Text(
-                    title.toUpperCase(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: JaxText.heading,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF121358), // primaryContainer
-                      height: 1.25,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Meta: Posted Time & Category with icons
-                  Row(
-                    children: [
-                      Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade500),
-                      const SizedBox(width: 4),
-                      Text(
-                        relativeTime,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.grey.shade500,
-                          letterSpacing: 0.2,
-                        ),
+                    ElevatedButton(
+                      onPressed: () => context.push('/seller/rfq/${item['id']}/quote'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E1B4B), // Primary dark indigo
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        elevation: 0,
                       ),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.flash_on_rounded, size: 12, color: JaxColors.secondary),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          category.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: JaxColors.secondaryDark,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            // Thin separator line
-            Container(height: 1, color: const Color(0xFFF3F4F6)),
-            
-            // Bottom Panel (Stats and Action link)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: const Color(0xFFF9FAFB), // Very light gray background
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'QUOTES RECEIVED',
-                        style: TextStyle(
-                          color: Color(0xFF9CA3AF), // Gray 400
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '$quotesCount',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF121358), // primaryContainer (jax-dark)
-                            ),
+                            'Send Quote',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                           ),
-                          if (quotesCount > 0) ...[
+                          SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_rounded, size: 12),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(JaxRadius.xl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Top Content Panel (RFQ Info)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Type Badge & Short ID
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0E7FF), // Light indigo/blue
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
+                                style: const TextStyle(
+                                  color: Color(0xFF4338CA), // Indigo text
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5), // Emerald light
-                                borderRadius: BorderRadius.circular(4),
+                              width: 3,
+                              height: 3,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFD1D5DB),
+                                shape: BoxShape.circle,
                               ),
-                              child: const Text(
-                                'NEW',
-                                style: TextStyle(
-                                  color: Color(0xFF047857), // Emerald text
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '#$shortId',
+                              style: const TextStyle(
+                                color: Color(0xFF9CA3AF), // Gray 400
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Title in uppercase
+                        Text(
+                          title.toUpperCase(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF121358), // primaryContainer
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Meta: Posted Time & Category with icons
+                        Row(
+                          children: [
+                            Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Text(
+                              relativeTime,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.grey.shade500,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(Icons.flash_on_rounded, size: 12, color: JaxColors.secondary),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                category.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: JaxColors.secondaryDark,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                   
-                  // Action button/indicator
-                  if (sellerMode)
-                    ElevatedButton.icon(
-                      onPressed: () => context.push('/seller/rfq/${item['id']}/quote'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: JaxColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.request_quote_rounded, size: 14),
-                      label: const Text(
-                        'Quote',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
+                  // Thin separator line
+                  Container(height: 1, color: const Color(0xFFF3F4F6)),
+                  
+                  // Bottom Panel (Stats and Action link)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    color: const Color(0xFFF9FAFB), // Very light gray background
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'QUOTES RECEIVED',
+                              style: TextStyle(
+                                color: Color(0xFF9CA3AF), // Gray 400
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text(
+                                  '$quotesCount',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF121358), // primaryContainer (jax-dark)
+                                  ),
+                                ),
+                                if (quotesCount > 0) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFECFDF5), // Emerald light
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'NEW',
+                                      style: TextStyle(
+                                        color: Color(0xFF047857), // Emerald text
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -3207,7 +3207,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
           ],
         ),
         subtitle: sellerMode
-            ? 'Quote on matching buyer requests'
+            ? 'Active buyer requests awaiting quotes.'
             : 'Manage your sourcing requests and get quotes from sellers.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) {
@@ -3342,7 +3342,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 duration: const Duration(milliseconds: 180),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: selected ? const Color(0xFF16104A) : Colors.transparent, // Dark blue from image
+                                  color: selected ? const Color(0xFF1E1B4B) : Colors.transparent, // Primary dark indigo
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(

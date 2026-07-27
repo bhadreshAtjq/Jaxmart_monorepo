@@ -279,7 +279,7 @@ class _AppShellState extends State<AppShell> {
                             ),
                           ),
                         ),
-                        if (isSeller) ...[
+                        if (isSeller && MediaQuery.of(context).size.width > 600) ...[
                           const SizedBox(width: 8),
                           ModeSwitcher(isSellerView: isSellerView),
                         ],
@@ -1199,6 +1199,9 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthCubit>().state;
+    final isSeller = auth.isSeller;
+
     final List<Map<String, dynamic>> items = widget.isSellerView
         ? [
             {'label': 'Seller Home', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
@@ -1214,6 +1217,8 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             {'label': 'Buyer Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
             {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
             {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
+            if (isSeller)
+              {'label': 'Home (Selling)', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
             {'label': 'Post a Request', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
           ];
 

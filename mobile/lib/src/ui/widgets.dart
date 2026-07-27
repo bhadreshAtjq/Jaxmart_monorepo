@@ -233,53 +233,60 @@ class _AppShellState extends State<AppShell> {
                     titleSpacing: 12,
                     title: Row(
                       children: [
-                        Expanded(
-                          child: Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200),
+                        if (isSellerView)
+                          Expanded(
+                            child: Center(
+                              child: ModeSwitcher(isSellerView: isSellerView),
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: TextField(
-                                      controller: _searchController,
-                                      decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: 'Search products, suppliers...',
-                                        hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                                        isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
-                                      ),
-                                      style: const TextStyle(fontSize: 13),
-                                      onSubmitted: (_) => _handleSearch(),
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: _handleSearch,
-                                  child: Container(
-                                    width: 44,
-                                    height: 40,
-                                    decoration: const BoxDecoration(
-                                      color: JaxColors.primaryContainer,
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(7),
-                                        bottomRight: Radius.circular(7),
+                          )
+                        else
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 12),
+                                      child: TextField(
+                                        controller: _searchController,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          hintText: 'Search products, suppliers...',
+                                          hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                        ),
+                                        style: const TextStyle(fontSize: 13),
+                                        onSubmitted: (_) => _handleSearch(),
                                       ),
                                     ),
-                                    child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
                                   ),
-                                ),
-                              ],
+                                  GestureDetector(
+                                    onTap: _handleSearch,
+                                    child: Container(
+                                      width: 44,
+                                      height: 40,
+                                      decoration: const BoxDecoration(
+                                        color: JaxColors.primaryContainer,
+                                        borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(7),
+                                          bottomRight: Radius.circular(7),
+                                        ),
+                                      ),
+                                      child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        if (isSeller && MediaQuery.of(context).size.width > 600) ...[
+                        if (isSeller && !isSellerView && MediaQuery.of(context).size.width > 600) ...[
                           const SizedBox(width: 8),
                           ModeSwitcher(isSellerView: isSellerView),
                         ],
@@ -312,13 +319,14 @@ class ModeSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        border: Border.all(color: Colors.grey.shade200),
+        color: const Color(0xFFF1F5F9),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _ModeButton(
             label: 'Buying',
@@ -326,6 +334,7 @@ class ModeSwitcher extends StatelessWidget {
             onTap: () => context.go('/home'),
             gradient: JaxGradients.primary,
           ),
+          const SizedBox(width: 2),
           _ModeButton(
             label: 'Selling',
             active: isSellerView,
@@ -351,14 +360,29 @@ class _ModeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           gradient: active ? gradient : null,
           borderRadius: BorderRadius.circular(10),
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: gradient.colors.first.withValues(alpha: 0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label.toUpperCase(),
-          style: JaxText.label.copyWith(color: active ? Colors.white : Colors.grey.shade600, fontSize: 8),
+          style: TextStyle(
+            fontFamily: 'SourceSans3',
+            color: active ? Colors.white : Colors.grey.shade600,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
         ),
       ),
     );

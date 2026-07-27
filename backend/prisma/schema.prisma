@@ -326,17 +326,21 @@ model Address {
 }
 
 model KycDocument {
-  id           String    @id @default(uuid())
-  userId       String
-  documentType String    // "AADHAAR", "PAN", "GST_CERTIFICATE", "TRADE_LICENSE"
-  documentUrl  String
-  backSideUrl  String?
-  status       KycStatus @default(PENDING)
-  reviewNote   String?
-  reviewedBy   String?   // admin user id
-  reviewedAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  userId             String
+  documentType       String    // "AADHAAR", "PAN", "GSTIN", "GST_CERTIFICATE", "DRIVING_LICENSE", "UDYAM_MSME"
+  documentNumber     String?   // PAN/GSTIN/Aadhaar/DL/Udyam number
+  documentUrl        String
+  backSideUrl        String?
+  status             KycStatus @default(PENDING)
+  verificationMethod String?   @default("API_SETU") // "API_SETU", "SIGNZY", "MANUAL"
+  txnId              String?   // API Setu / Provider transaction ID
+  metadata           Json?     // Government API response data
+  reviewNote         String?
+  reviewedBy         String?   // admin user id
+  reviewedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

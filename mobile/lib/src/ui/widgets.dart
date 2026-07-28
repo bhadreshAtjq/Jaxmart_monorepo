@@ -136,7 +136,7 @@ class _AppShellState extends State<AppShell> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: JaxColors.secondaryDark,
+          color: JaxColors.primary,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.grey.shade200, width: 1.5),
         ),
@@ -1479,7 +1479,6 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             {'label': 'My Products', 'path': '/seller/listings', 'icon': Icons.storefront_rounded},
             {'label': 'My Orders', 'path': '/orders?role=seller', 'icon': Icons.shopping_bag_rounded},
             {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
-            {'label': 'Profile', 'path': '/profile', 'icon': Icons.person_rounded},
             {'label': 'Home (Buying)', 'path': '/home', 'icon': Icons.home_rounded},
           ]
         : [
@@ -1734,7 +1733,7 @@ class _ProfileDropdownCardState extends State<ProfileDropdownCard> {
                   width: 42,
                   height: 42,
                   decoration: const BoxDecoration(
-                    color: JaxColors.secondaryDark,
+                    color: JaxColors.primary,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,

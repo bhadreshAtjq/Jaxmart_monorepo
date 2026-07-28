@@ -7133,15 +7133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 48),
-              Center(
-                child: JaxButton(
-                  label: 'Secure Log Out',
-                  variant: JaxButtonVariant.danger,
-                  icon: Icons.logout_rounded,
-                  onPressed: () => context.read<AuthCubit>().logout(),
-                ),
-              ),
+
             ],
           ),
         );
@@ -7185,7 +7177,7 @@ class _ProfileCard extends StatelessWidget {
                   height: 80,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: JaxColors.secondaryDark,
+                    color: JaxColors.primary,
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white, width: 4),

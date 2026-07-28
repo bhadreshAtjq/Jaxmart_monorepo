@@ -7041,6 +7041,74 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool _isEditing = false;
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  String _accountType = 'INDIVIDUAL';
+  String _userType = 'BUYER';
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _commitChanges() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registry name cannot be empty')),
+      );
+      return;
+    }
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid contact email')),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+
+    try {
+      await context.read<AuthCubit>().updateProfile({
+        'fullName': name,
+        'email': email,
+        'accountType': _accountType,
+        'userType': _userType,
+      });
+      if (!mounted) return;
+      final newState = context.read<AuthCubit>().state;
+      if (newState.status == AuthStatus.authenticated) {
+        setState(() {
+          _isEditing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registry updated successfully')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update registry details')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
@@ -7072,9 +7140,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       if (!isWide) const SizedBox(height: 16),
                       OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.edit_note_rounded, size: 16),
-                        label: Text('Modify Registry', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
+                        onPressed: () {
+                          if (_isEditing) {
+                            setState(() => _isEditing = false);
+                          } else {
+                            setState(() {
+                              _nameController.text = state.name;
+                              _emailController.text = textOf(state.user['email']);
+                              _accountType = textOf(state.user['accountType'], 'INDIVIDUAL');
+                              _userType = textOf(state.user['userType'], 'BUYER');
+                              _isEditing = true;
+                            });
+                          }
+                        },
+                        icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_note_rounded, size: 16),
+                        label: Text(_isEditing ? 'Cancel Edit' : 'Modify Registry', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: JaxColors.primaryContainer,
                           side: const BorderSide(color: JaxColors.outlineVariant),
@@ -7109,7 +7189,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           flex: 6,
                           child: Column(
                             children: [
-                              _CoreIdentitySchemaCard(state: state),
+                              _CoreIdentitySchemaCard(
+                                state: state,
+                                isEditing: _isEditing,
+                                nameController: _nameController,
+                                emailController: _emailController,
+                                accountType: _accountType,
+                                userType: _userType,
+                                onAccountTypeChanged: (val) => setState(() => _accountType = val ?? 'INDIVIDUAL'),
+                                onUserTypeChanged: (val) => setState(() => _userType = val ?? 'BUYER'),
+                                onCommit: _commitChanges,
+                                onDiscard: () => setState(() => _isEditing = false),
+                                submitting: _submitting,
+                              ),
+                              const SizedBox(height: 24),
+                              _BusinessIntelligenceCard(),
                               const SizedBox(height: 24),
                               _ComplianceVaultCard(),
                             ],
@@ -7123,7 +7217,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _ProfileCard(state: state),
                         const SizedBox(height: 24),
-                        _CoreIdentitySchemaCard(state: state),
+                        _CoreIdentitySchemaCard(
+                          state: state,
+                          isEditing: _isEditing,
+                          nameController: _nameController,
+                          emailController: _emailController,
+                          accountType: _accountType,
+                          userType: _userType,
+                          onAccountTypeChanged: (val) => setState(() => _accountType = val ?? 'INDIVIDUAL'),
+                          onUserTypeChanged: (val) => setState(() => _userType = val ?? 'BUYER'),
+                          onCommit: _commitChanges,
+                          onDiscard: () => setState(() => _isEditing = false),
+                          submitting: _submitting,
+                        ),
+                        const SizedBox(height: 24),
+                        _BusinessIntelligenceCard(),
                         const SizedBox(height: 24),
                         _ComplianceVaultCard(),
                         const SizedBox(height: 24),
@@ -7133,7 +7241,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
               ),
-
             ],
           ),
         );
@@ -7310,8 +7417,83 @@ class _SecurityBadgeCard extends StatelessWidget {
 }
 
 class _CoreIdentitySchemaCard extends StatelessWidget {
-  const _CoreIdentitySchemaCard({required this.state});
+  const _CoreIdentitySchemaCard({
+    required this.state,
+    required this.isEditing,
+    required this.nameController,
+    required this.emailController,
+    required this.accountType,
+    required this.userType,
+    required this.onAccountTypeChanged,
+    required this.onUserTypeChanged,
+    required this.onCommit,
+    required this.onDiscard,
+    required this.submitting,
+  });
+
   final AuthState state;
+  final bool isEditing;
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final String accountType;
+  final String userType;
+  final ValueChanged<String?> onAccountTypeChanged;
+  final ValueChanged<String?> onUserTypeChanged;
+  final VoidCallback onCommit;
+  final VoidCallback onDiscard;
+  final bool submitting;
+
+  String getAccountTypeLabel(String val) {
+    switch (val.toUpperCase()) {
+      case 'INDIVIDUAL':
+        return 'INDIVIDUAL PROFESSIONAL';
+      case 'BUSINESS':
+        return 'BUSINESS ORGANIZATIONAL';
+      default:
+        return val.toUpperCase();
+    }
+  }
+
+  String getUserTypeLabel(String val) {
+    switch (val.toUpperCase()) {
+      case 'BUYER':
+        return 'PROCUREMENT (BUYER)';
+      case 'SELLER':
+        return 'FULL SUPPLY (SELLER)';
+      case 'BOTH':
+        return 'OMNICHANNEL (BOTH)';
+      default:
+        return val.toUpperCase();
+    }
+  }
+
+  InputDecoration _fieldDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(
+        color: Colors.grey,
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.0,
+      ),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      fillColor: const Color(0xFFF8FAFC),
+      filled: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: JaxColors.primary, width: 1.5),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -7329,38 +7511,199 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
         children: [
           Text('Core Identity Schema', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _SchemaField(
-                  label: 'FULL FULLNAME', 
-                  value: state.name.toUpperCase(),
+          if (isEditing) ...[
+            TextField(
+              controller: nameController,
+              decoration: _fieldDecoration('REGISTRY NAME'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: _fieldDecoration('CONTACT EMAIL'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: accountType,
+              decoration: _fieldDecoration('ACCOUNT ARCHITECTURE'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: JaxColors.primaryContainer),
+              items: const [
+                DropdownMenuItem(value: 'INDIVIDUAL', child: Text('INDIVIDUAL PROFESSIONAL')),
+                DropdownMenuItem(value: 'BUSINESS', child: Text('BUSINESS ORGANIZATIONAL')),
+              ],
+              onChanged: onAccountTypeChanged,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: userType,
+              decoration: _fieldDecoration('MARKET PERMISSIONS'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: JaxColors.primaryContainer),
+              items: const [
+                DropdownMenuItem(value: 'BUYER', child: Text('PROCUREMENT (BUYER)')),
+                DropdownMenuItem(value: 'SELLER', child: Text('FULL SUPPLY (SELLER)')),
+                DropdownMenuItem(value: 'BOTH', child: Text('OMNICHANNEL (BOTH)')),
+              ],
+              onChanged: onUserTypeChanged,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: submitting ? null : onCommit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E1B4B),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    elevation: 0,
+                  ),
+                  child: submitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'COMMIT CHANGES',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                        ),
                 ),
-              ),
-              Expanded(
-                child: _SchemaField(
-                  label: 'VERIFIED EMAIL', 
-                  value: textOf(state.user['email'], 'no-email@provided.com').toUpperCase(),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: onDiscard,
+                  child: const Text(
+                    'DISCARD',
+                    style: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _SchemaField(
-                  label: 'ACCOUNT ARCHITECTURE', 
-                  value: textOf(state.user['accountType'], 'INDIVIDUAL').toUpperCase(),
+              ],
+            ),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _SchemaField(
+                    label: 'REGISTRY NAME', 
+                    value: state.name.toUpperCase(),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _SchemaField(
-                  label: 'MARKET PERMISSIONS', 
-                  value: state.userType.toUpperCase(),
+                Expanded(
+                  child: _SchemaField(
+                    label: 'CONTACT EMAIL', 
+                    value: textOf(state.user['email'], 'no-email@provided.com').toUpperCase(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _SchemaField(
+                    label: 'ACCOUNT ARCHITECTURE', 
+                    value: getAccountTypeLabel(textOf(state.user['accountType'], 'INDIVIDUAL')),
+                  ),
+                ),
+                Expanded(
+                  child: _SchemaField(
+                    label: 'MARKET PERMISSIONS', 
+                    value: getUserTypeLabel(state.userType),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BusinessIntelligenceCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(JaxRadius.xl),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Business Intelligence Profile', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.business_rounded, color: Color(0xFF0F766E), size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ORGANIZATION NOT CLASSIFIED',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E1B4B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Text(
+                            'GSTIN: REDACTED',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F766E),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
+                          const SizedBox(width: 6),
+                          Text(
+                            'SETUP REQUIRED',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

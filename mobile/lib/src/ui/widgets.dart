@@ -1408,6 +1408,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             {'label': 'Buyer Requests', 'path': '/seller/rfq-inbox', 'icon': Icons.inbox_rounded},
             {'label': 'My Products', 'path': '/seller/listings', 'icon': Icons.storefront_rounded},
             {'label': 'My Orders', 'path': '/orders?role=seller', 'icon': Icons.shopping_bag_rounded},
+            {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
             {'label': 'Profile', 'path': '/profile', 'icon': Icons.person_rounded},
             {'label': 'Home (Buying)', 'path': '/home', 'icon': Icons.home_rounded},
           ]
@@ -1417,7 +1418,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             {'label': 'Buyer Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
             {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
             {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
-            {'label': 'Post a Request', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
+            {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
             if (isSeller)
               {'label': 'Dashboard', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
           ];

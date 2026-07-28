@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/auth_cubit.dart';
 import '../core/resource_cubit.dart';
+import '../core/api_client.dart';
 import '../data/json_tools.dart';
 import '../design/design_system.dart';
 
@@ -97,6 +98,8 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   final _searchController = TextEditingController();
 
+  bool _isProfileDropdownOpen = false;
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -111,7 +114,43 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _handleNavigation(String path) {
+    setState(() {
+      _isProfileDropdownOpen = false;
+    });
     context.go(path);
+  }
+
+  Widget _buildProfileAvatarButton(BuildContext context, AuthState auth) {
+    final initials = auth.name.isNotEmpty
+        ? (auth.name.length > 1
+            ? auth.name.substring(0, 2).toUpperCase()
+            : auth.name.substring(0, 1).toUpperCase())
+        : 'US';
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isProfileDropdownOpen = !_isProfileDropdownOpen;
+        });
+      },
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: JaxColors.secondaryDark,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade200, width: 1.5),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initials,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
 
@@ -233,12 +272,15 @@ class _AppShellState extends State<AppShell> {
                     titleSpacing: 12,
                     title: Row(
                       children: [
-                        if (isSellerView)
+                        if (isSellerView) ...[
+                          const SizedBox(width: 36),
                           Expanded(
                             child: Center(
                               child: ModeSwitcher(isSellerView: isSellerView),
                             ),
-                          )
+                          ),
+                          _buildProfileAvatarButton(context, auth),
+                        ]
                         else
                           Expanded(
                             child: Container(
@@ -302,6 +344,34 @@ class _AppShellState extends State<AppShell> {
       body: Stack(
         children: [
           widget.child,
+          if (_isProfileDropdownOpen) ...[
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  setState(() {
+                    _isProfileDropdownOpen = false;
+                  });
+                },
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.15),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: ProfileDropdownCard(
+                auth: auth,
+                onNavigate: _handleNavigation,
+                onClose: () {
+                  setState(() {
+                    _isProfileDropdownOpen = false;
+                  });
+                },
+              ),
+            ),
+          ],
           FloatingActionMenu(
             isSellerView: isSellerView,
             onNavigate: _handleNavigation,
@@ -1581,6 +1651,258 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
               size: 18,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfileDropdownCard extends StatefulWidget {
+  const ProfileDropdownCard({
+    required this.auth,
+    required this.onNavigate,
+    required this.onClose,
+    super.key,
+  });
+
+  final AuthState auth;
+  final ValueChanged<String> onNavigate;
+  final VoidCallback onClose;
+
+  @override
+  State<ProfileDropdownCard> createState() => _ProfileDropdownCardState();
+}
+
+class _ProfileDropdownCardState extends State<ProfileDropdownCard> {
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUnreadCount();
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    if (!widget.auth.isLoggedIn) return;
+    try {
+      final res = await context.read<JaxApiClient>().notifications();
+      final list = asList(res['notifications']);
+      final unread = list.where((n) => n['isRead'] != true).length;
+      if (mounted) {
+        setState(() {
+          _unreadCount = unread;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = widget.auth.name.isNotEmpty
+        ? (widget.auth.name.length > 1
+            ? widget.auth.name.substring(0, 2).toUpperCase()
+            : widget.auth.name.substring(0, 1).toUpperCase())
+        : 'US';
+
+    final isVerified = widget.auth.user['kycStatus'] == 'VERIFIED';
+
+    return Container(
+      width: 260,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header: Avatar + Details
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: const BoxDecoration(
+                    color: JaxColors.secondaryDark,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.auth.name,
+                        style: const TextStyle(
+                          color: JaxColors.primaryContainer,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Seller Account',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (isVerified)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 10),
+                              SizedBox(width: 2),
+                              Text(
+                                'Verified Seller',
+                                style: TextStyle(color: Color(0xFF15803D), fontSize: 8, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.pending_rounded, color: Color(0xFFD97706), size: 10),
+                              SizedBox(width: 2),
+                              Text(
+                                'Registry Pending',
+                                style: TextStyle(color: Color(0xFFB45309), fontSize: 8, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 4),
+          _buildDropdownItem(
+            icon: Icons.person_outline_rounded,
+            label: 'My Profile',
+            onTap: () {
+              widget.onClose();
+              widget.onNavigate('/profile');
+            },
+          ),
+          _buildDropdownItem(
+            icon: Icons.notifications_none_rounded,
+            label: 'Notifications',
+            badgeCount: _unreadCount,
+            onTap: () {
+              widget.onClose();
+              widget.onNavigate('/notifications');
+            },
+          ),
+          const SizedBox(height: 4),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 4),
+          _buildDropdownItem(
+            icon: Icons.logout_rounded,
+            label: 'Logout',
+            iconColor: Colors.red,
+            textColor: Colors.red,
+            onTap: () async {
+              widget.onClose();
+              await context.read<AuthCubit>().logout();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    int badgeCount = 0,
+    Color? iconColor,
+    Color? textColor,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: iconColor ?? JaxColors.primaryContainer.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: textColor ?? JaxColors.primaryContainer,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (badgeCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: JaxColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$badgeCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

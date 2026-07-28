@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button, Card, Badge, Avatar, Container, Skeleton, TrustScore } from '@/components/ui';
-import { useCategories, useFeaturedListings, useRfqInbox, useEvents, useNewProducts } from '@/lib/hooks';
+import { useCategories, useFeaturedListings, useRfqInbox, useEvents, useNewProducts, useListingSearch } from '@/lib/hooks';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -42,6 +42,15 @@ export default function HomePage() {
 
   const { data: newProductsRes, isLoading: newProductsLoading } = useNewProducts();
   const newProducts = newProductsRes?.data || [];
+
+  const { data: analystChoiceData } = useListingSearch({ tag: 'analysts-choice', limit: 2 });
+  const analystChoiceProducts = analystChoiceData?.listings || [];
+
+  const { data: lowMoqData } = useListingSearch({ tag: 'low-moq', limit: 2 });
+  const lowMoqProducts = lowMoqData?.listings || [];
+
+  const { data: oemData } = useListingSearch({ tag: 'oem', limit: 2 });
+  const oemProducts = oemData?.listings || [];
 
   const [searchTab, setSearchTab] = useState<'products' | 'suppliers'>('products');
   const [heroSearch, setHeroSearch] = useState('');
@@ -498,18 +507,18 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                <div className="flex overflow-x-auto gap-3 pb-2 snap-x hide-scrollbar">
+                <div className="grid grid-cols-2 gap-4 pb-2">
                   {newProductsLoading ? (
                     Array(4).fill(0).map((_, i) => (
-                      <div key={i} className="flex-none w-[120px] flex flex-col gap-2">
-                        <Skeleton className="h-[120px] rounded-xl" />
+                      <div key={i} className="flex flex-col gap-2">
+                        <Skeleton className="aspect-square rounded-xl" />
                         <Skeleton className="h-3 w-3/4" />
                         <Skeleton className="h-3 w-1/2" />
                       </div>
                     ))
                   ) : (
-                    newProducts.map((product: any) => (
-                      <Link key={product.id} href={`/listings/${product.id}`} className="flex-none w-[120px] snap-start group">
+                    newProducts.slice(0, 4).map((product: any) => (
+                      <Link key={product.id} href={`/listings/${product.id}`} className="group">
                         <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2">
                           {product.media?.[0]?.url ? (
                             <img
@@ -522,7 +531,7 @@ export default function HomePage() {
                           )}
                         </div>
                         <div className="font-bold text-gray-900 text-xs mb-0.5">
-                          {product.productDetail?.pricePerUnit ? `US$ ${product.productDetail.pricePerUnit.toLocaleString('en-US')}` : 'Get Price'}
+                          {product.productDetail?.pricePerUnit ? `₹${product.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
                         </div>
                         <div className="text-[9px] text-gray-500 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                           Min. Order: {product.productDetail?.minOrderQty || 1} {product.productDetail?.unitOfMeasure || 'Pieces'}
@@ -548,18 +557,18 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                <div className="flex overflow-x-auto gap-3 pb-2 snap-x hide-scrollbar">
+                <div className="grid grid-cols-2 gap-4 pb-2">
                   {featuredLoading ? (
                     Array(4).fill(0).map((_, i) => (
-                      <div key={i} className="flex-none w-[120px] flex flex-col gap-2">
-                        <Skeleton className="h-[120px] rounded-xl" />
+                      <div key={i} className="flex flex-col gap-2">
+                        <Skeleton className="aspect-square rounded-xl" />
                         <Skeleton className="h-3 w-3/4" />
                         <Skeleton className="h-3 w-1/2" />
                       </div>
                     ))
                   ) : (
-                    featured?.listings?.slice(0, 10).map((item: any, idx: number) => (
-                      <Link key={item.id} href={`/listings/${item.id}`} className="flex-none w-[120px] snap-start group relative">
+                    featured?.listings?.slice(0, 4).map((item: any, idx: number) => (
+                      <Link key={item.id} href={`/listings/${item.id}`} className="group relative">
                         <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2 relative">
                           <div className="absolute top-1 left-1 bg-white/90 shadow text-[9px] font-bold px-1.5 py-0.5 rounded-sm z-10 text-orange-600 border border-orange-100">
                             {idx + 1}
@@ -578,7 +587,7 @@ export default function HomePage() {
                           {item.title}
                         </h3>
                         <div className="font-bold text-gray-900 text-xs mb-0.5">
-                          {item.productDetail?.pricePerUnit ? `US$ ${item.productDetail.pricePerUnit.toLocaleString('en-US')}` : 'Get Price'}
+                          {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
                         </div>
                         <div className="text-[9px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">
                           Min. Order: {item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pieces'}
@@ -588,6 +597,98 @@ export default function HomePage() {
                   )}
                 </div>
               </section>
+            </div>
+
+            {/* 1.6. Triple Showcase: Analyst's Choice, Low MOQ, OEM Products */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+              {/* Analyst's Choice */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900 line-clamp-1">Analyst's Choice</h2>
+                    <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Discover products handpicked by experts</p>
+                  </div>
+                  <Link href="/search?tag=analysts-choice" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
+                    See All
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-auto">
+                  {analystChoiceProducts.map((item: any) => (
+                    <Link key={`ac-${item.id}`} href={`/listings/${item.id}`} className="group block">
+                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                        {item.media?.[0]?.url ? (
+                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <FaStar className="h-6 w-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="font-bold text-gray-900 text-[10px] truncate text-center">
+                        {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              {/* Low MOQ */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900 line-clamp-1">Low MOQ</h2>
+                    <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Small quantities for customization</p>
+                  </div>
+                  <Link href="/search?tag=low-moq" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
+                    See All
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-auto">
+                  {lowMoqProducts.map((item: any) => (
+                    <Link key={`lm-${item.id}`} href={`/listings/${item.id}`} className="group block">
+                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                        {item.media?.[0]?.url ? (
+                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <FaBoxesStacked className="h-6 w-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="font-bold text-gray-900 text-[10px] truncate text-center">
+                        {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              {/* OEM Products */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900 line-clamp-1">OEM Products</h2>
+                    <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Cut production for cost savings.</p>
+                  </div>
+                  <Link href="/search?tag=oem" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
+                    See All
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-auto">
+                  {oemProducts.map((item: any) => (
+                    <Link key={`oem-${item.id}`} href={`/listings/${item.id}`} className="group block">
+                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                        {item.media?.[0]?.url ? (
+                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <FaIndustry className="h-6 w-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="font-bold text-gray-900 text-[10px] truncate text-center">
+                        {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
             </div>
 
             {/* 2. Industry Showcase (Categories Display) */}

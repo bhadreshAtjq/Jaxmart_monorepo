@@ -7,7 +7,7 @@ const { signListingMedia, cleanS3Url } = require('../utils/s3');
 const searchListings = async (req, res) => {
   try {
     const {
-      q, type, categoryId, city, state, minTrust, isVerified,
+      q, tag, type, categoryId, city, state, minTrust, isVerified,
       minRating, page = 1, limit = 20, sortBy = 'relevance',
       providerType, serviceMode,
     } = req.query;
@@ -33,6 +33,9 @@ const searchListings = async (req, res) => {
           { tags: { has: q.toLowerCase() } },
         ],
       }),
+      ...(tag && {
+        tags: { has: tag.toLowerCase() }
+      }),
       seller: {
         isActive: true,
         ...(isVerified === 'true' && { kycStatus: 'VERIFIED' }),
@@ -48,15 +51,22 @@ const searchListings = async (req, res) => {
       case 'rating': orderBy = [{ avgRating: 'desc' }, { id: 'asc' }]; break;
       case 'newest': orderBy = [{ createdAt: 'desc' }, { id: 'asc' }]; break;
       case 'featured': orderBy = [{ isFeatured: 'desc' }, { id: 'asc' }]; break;
+      case 'popular': orderBy = [{ viewCount: 'desc' }, { quoteCount: 'desc' }, { reviewCount: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }]; break;
       default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }];
     }
 
-    const [listings, total] = await Promise.all([
+    let finalTake = take;
+    if (sortBy === 'popular') {
+      if (skip >= 100) finalTake = 0;
+      else if (skip + take > 100) finalTake = 100 - skip;
+    }
+
+    const [listings, rawTotal] = await Promise.all([
       prisma.listing.findMany({
         where,
         orderBy,
         skip,
-        take,
+        take: finalTake,
         include: {
           seller: {
             select: {
@@ -90,6 +100,8 @@ const searchListings = async (req, res) => {
       prisma.listing.count({ where }),
     ]);
 
+    const finalTotal = sortBy === 'popular' ? Math.min(rawTotal, 100) : rawTotal;
+
     const signedListings = await Promise.all(listings.map(l => signListingMedia(l)));
 
     res.json({
@@ -97,8 +109,8 @@ const searchListings = async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: take,
-        total,
-        pages: Math.ceil(total / take),
+        total: finalTotal,
+        pages: Math.ceil(finalTotal / take),
       },
     });
   } catch (err) {

@@ -15,7 +15,7 @@ import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
-type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
+type SortOption = 'relevance' | 'rating' | 'newest' | 'featured' | 'popular';
 
 export default function SearchPage() {
   return (
@@ -31,9 +31,10 @@ function SearchPageContent() {
 
   // Search parameters
   const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const [tag, setTag] = useState(searchParams.get('tag') ?? '');
   const [type, setType] = useState(searchParams.get('type') ?? '');
   const [categoryId, setCategoryId] = useState(searchParams.get('category') ?? '');
-  const [sortBy, setSortBy] = useState<SortOption>('relevance');
+  const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) ?? 'relevance');
   const [page, setPage] = useState(1);
 
   // Filters
@@ -61,17 +62,22 @@ function SearchPageContent() {
   // Synchronize category or query from URL if changed
   useEffect(() => {
     setQ(searchParams.get('q') ?? '');
+    setTag(searchParams.get('tag') ?? '');
     setType(searchParams.get('type') ?? '');
     setCategoryId(searchParams.get('category') ?? '');
     if (searchParams.get('verified') === 'true') {
       setFilters(f => ({ ...f, isVerified: true }));
+    }
+    if (searchParams.get('sort')) {
+      setSortBy(searchParams.get('sort') as SortOption);
     }
   }, [searchParams]);
 
   // Construct API params
   const apiParams = {
     q,
-    limit: sortBy === 'newest' ? 100 : 12,
+    tag,
+    limit: 12,
     page,
     ...(type && { type }),
     ...(categoryId && { categoryId }),
@@ -86,9 +92,8 @@ function SearchPageContent() {
 
   // Clean-up and helper computations
   const listingsRaw = data?.listings ?? [];
-  const isNewestMode = sortBy === 'newest';
-  const totalRaw = isNewestMode ? listingsRaw.length : (data?.pagination?.total ?? 0);
-  const totalPages = isNewestMode ? 1 : (data?.pagination?.pages ?? 1);
+  const totalRaw = data?.pagination?.total ?? 0;
+  const totalPages = data?.pagination?.pages ?? 1;
 
   // Apply client-side advanced B2B filters (like price range, min order quantity, port, payment terms)
   const listings = listingsRaw.filter((l: any) => {
@@ -404,7 +409,7 @@ function SearchPageContent() {
             <div className="flex items-center justify-between mb-6 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-gray-500 font-semibold px-2">Sort By:</span>
-                {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
+                {(['relevance', 'newest', 'rating', 'featured', 'popular'] as SortOption[]).map(s => (
                   <button
                     key={s}
                     onClick={() => setSortBy(s)}

@@ -68,14 +68,14 @@ function NewProductsContent() {
     }
   }, [searchParams]);
 
-  // Construct API params (using backend search for robust filtering)
+  // Construct API params (fetch the newest 100 products from backend)
   const apiParams = {
     q,
-    limit: sortBy === 'newest' ? 100 : 12,
-    page,
-    ...(type && { type }),
+    limit: 100,
+    page: 1, // We only fetch the first 100 newest products
+    type: type || 'PRODUCT', // Explicitly default to PRODUCT for new products page
     ...(categoryId && { categoryId }),
-    ...(sortBy !== 'relevance' && { sortBy }),
+    sortBy: 'newest', // ALWAYS sort by newest from the backend initially
     ...(filters.isVerified && { isVerified: 'true' }),
     ...(filters.minTrust && { minTrust: filters.minTrust }),
     ...(filters.minRating && { minRating: filters.minRating }),
@@ -86,12 +86,9 @@ function NewProductsContent() {
 
   // Clean-up and helper computations
   const listingsRaw = data?.listings ?? [];
-  const isNewestMode = sortBy === 'newest';
-  const totalRaw = isNewestMode ? listingsRaw.length : (data?.pagination?.total ?? 0);
-  const totalPages = isNewestMode ? 1 : (data?.pagination?.pages ?? 1);
 
   // Apply client-side advanced B2B filters (like price range, min order quantity, port, payment terms)
-  const listings = listingsRaw.filter((l: any) => {
+  let filteredListings = listingsRaw.filter((l: any) => {
     const pd = l.productDetail;
     if (!pd) return true; // Keep service listings unfiltered by product specs
 
@@ -111,7 +108,20 @@ function NewProductsContent() {
     return true;
   });
 
-  const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
+  // Apply client-side sorting
+  if (sortBy === 'rating') {
+    filteredListings.sort((a: any, b: any) => (b.avgRating || 0) - (a.avgRating || 0));
+  } else if (sortBy === 'featured') {
+    filteredListings.sort((a: any, b: any) => (b.isFeatured === a.isFeatured ? 0 : b.isFeatured ? 1 : -1));
+  } // 'newest' and 'relevance' just use the backend default (which is newest)
+
+  // Client-side pagination
+  const itemsPerPage = 12;
+  const total = filteredListings.length;
+  const totalPages = Math.ceil(total / itemsPerPage) || 1;
+  const currentPage = Math.min(page, totalPages);
+  
+  const listings = filteredListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   
   const activeFilterCount =
     (filters.isVerified ? 1 : 0) +

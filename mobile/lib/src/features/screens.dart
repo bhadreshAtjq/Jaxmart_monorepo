@@ -2573,13 +2573,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       ),
     );
   }
-
-  Future<void> _startChat(BuildContext context, JsonMap seller, String listingId) async {
-    final recipientId = textOf(seller['id']);
-    if (recipientId.isEmpty) return;
-    final conv = await apiOf(context).startConversation({'recipientId': recipientId, 'listingId': listingId});
-    if (context.mounted) context.push('/messages/${conv['id']}');
-  }
 }
 
 
@@ -3045,6 +3038,7 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
   final _volume = TextEditingController();
   final _unit = TextEditingController();
   final _message = TextEditingController();
+  bool _loading = false;
 
   @override
   void initState() {
@@ -3106,9 +3100,47 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
             const SizedBox(height: 16),
             JaxButton(
               label: 'DISPATCH RFQ MESSAGE',
-              onPressed: () {
+              loading: _loading,
+              onPressed: _loading ? null : () async {
                 if (_formKey.currentState!.validate()) {
-                  context.push('/rfq/create?listingId=${widget.id}&title=${Uri.encodeComponent(textOf(widget.item['title']))}');
+                  final messenger = ScaffoldMessenger.of(context);
+                  final router = GoRouter.of(context);
+                  final api = apiOf(context);
+                  
+                  setState(() => _loading = true);
+                  try {
+                    final seller = asMap(widget.item['seller']);
+                    final sellerId = textOf(seller['id']);
+                    if (sellerId.isEmpty) {
+                      throw Exception('Seller information is missing.');
+                    }
+                    final volume = _volume.text.trim();
+                    final unit = _unit.text.trim();
+                    final specifications = _message.text.trim();
+                    final targetQuantity = volume.isNotEmpty ? '$volume $unit' : '';
+                    final payloadMessage = targetQuantity.isNotEmpty
+                        ? '$specifications\n\n*Target Volume: $targetQuantity*'
+                        : specifications;
+
+                    final conv = await api.startConversation({
+                      'recipientId': sellerId,
+                      'listingId': widget.id,
+                      'initialMessage': payloadMessage,
+                    });
+                    
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Inquiry dispatched successfully!')),
+                    );
+                    router.push('/messages/${conv['id']}');
+                  } catch (err) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(err.toString().replaceAll('Exception: ', ''))),
+                    );
+                  } finally {
+                    if (mounted) {
+                      setState(() => _loading = false);
+                    }
+                  }
                 }
               },
             ),
@@ -6669,6 +6701,9 @@ class ConversationScreen extends StatefulWidget {
 class _ConversationScreenState extends State<ConversationScreen> {
   final _msgCtrl = TextEditingController();
   bool _showQuickReplies = true;
+  JsonMap? _conversation;
+  JsonMap? _listing;
+  bool _isLoadingInfo = true;
 
   static const _quickReplies = [
     'Interested in your listing. Can you share more details?',
@@ -6680,10 +6715,81 @@ class _ConversationScreenState extends State<ConversationScreen> {
   ];
 
   @override
-  void dispose() { _msgCtrl.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+    _loadInfo();
+  }
+
+  Future<void> _loadInfo() async {
+    try {
+      final api = apiOf(context);
+      final convs = await api.conversations();
+      final conv = convs.firstWhere((c) => textOf(c['id']) == widget.id, orElse: () => <String, dynamic>{});
+      JsonMap? listing;
+      if (conv.isNotEmpty && textOf(conv['listingId']).isNotEmpty) {
+        listing = await api.conversationListing(widget.id);
+      }
+      if (mounted) {
+        setState(() {
+          _conversation = conv;
+          _listing = listing;
+          _isLoadingInfo = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingInfo = false);
+      }
+    }
+  }
+
+  Future<void> _sendMessage(BuildContext scaffoldContext) async {
+    final text = _msgCtrl.text.trim();
+    if (text.isEmpty || _conversation == null) return;
+    
+    _msgCtrl.clear();
+    
+    final cubit = scaffoldContext.read<ResourceCubit>();
+    final messenger = ScaffoldMessenger.of(scaffoldContext);
+    final api = apiOf(scaffoldContext);
+    
+    try {
+      final recipientId = textOf(asMap(_conversation!['recipient'])['id']);
+      if (recipientId.isEmpty) return;
+      
+      await api.startConversation({
+        'recipientId': recipientId,
+        'initialMessage': text,
+        if (textOf(_conversation!['listingId']).isNotEmpty) 'listingId': _conversation!['listingId'],
+      });
+      
+      cubit.load(() => api.messages(widget.id), listKeys: const ['messages']);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to send message: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _msgCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingInfo) {
+      return const Scaffold(
+        backgroundColor: JaxColors.surface,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final recipientName = _conversation != null ? textOf(asMap(_conversation!['recipient'])['fullName']) : '';
+    final avatarUrl = _conversation != null ? textOf(asMap(_conversation!['recipient'])['avatarUrl']) : '';
+    final businessName = _conversation != null ? textOf(asMap(_conversation!['recipient'])['businessName']) : '';
+
     return BlocProvider(
       create: (_) => ResourceCubit()..load(() => apiOf(context).messages(widget.id), listKeys: const ['messages']),
       child: Scaffold(
@@ -6694,20 +6800,35 @@ class _ConversationScreenState extends State<ConversationScreen> {
             children: [
               Stack(
                 children: [
-                  const JaxAvatar(name: 'Contact', size: 36),
+                  JaxAvatar(name: recipientName.isNotEmpty ? recipientName : 'Contact', size: 36, url: avatarUrl),
                   Positioned(
-                    right: 0, bottom: 0,
-                    child: Container(width: 10, height: 10, decoration: BoxDecoration(color: JaxColors.success, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5))),
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: JaxColors.success,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('CONTACT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                    Text('Company Name', style: TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+                    Text(
+                      recipientName.isNotEmpty ? recipientName.toUpperCase() : 'CONTACT',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      businessName.isNotEmpty ? businessName : 'Independent Partner',
+                      style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280)),
+                    ),
                   ],
                 ),
               ),
@@ -6732,163 +6853,260 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: BlocBuilder<ResourceCubit, ResourceState>(
-                builder: (context, state) {
-                  if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
-                  if (!state.hasData || state.items.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+        body: Builder(
+          builder: (scaffoldContext) {
+            return Column(
+              children: [
+                if (_listing != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFF3F4F6)),
+                      ),
+                      child: Row(
                         children: [
-                          Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey.shade300),
-                          const SizedBox(height: 16),
-                          Text('NO MESSAGES YET', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 16)),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Initiate conversation below using quick\ntemplates or custom text.',
-                            textAlign: TextAlign.center,
-                            style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                          if (asList(_listing!['media']).isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.network(
+                                textOf(asList(_listing!['media']).first['url']),
+                                width: 38,
+                                height: 38,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          else
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.shopping_bag_outlined, size: 18, color: Colors.grey),
+                            ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  textOf(_listing!['title']).toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.primaryContainer),
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    (() {
+                                      final pd = asMap(_listing!['productDetail']);
+                                      final priceVal = numOf(pd['pricePerUnit']) ?? numOf(_listing!['pricePerUnit']) ?? 0;
+                                      final unit = textOf(pd['unitOfMeasure'], 'Unit');
+                                      if (priceVal > 0) {
+                                        return Text(
+                                          '₹${priceVal.toStringAsFixed(0)}/$unit',
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.secondary),
+                                        );
+                                      }
+                                      return const Text('Ask Price', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.secondary));
+                                    })(),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'MOQ: ${textOf(asMap(_listing!['productDetail'])['minOrderQty'], '1')}',
+                                      style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280), fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: JaxColors.primary,
+                              side: BorderSide(color: JaxColors.primary.withValues(alpha: .3)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => context.push('/listings/${_listing!['id']}'),
+                            child: const Text('VIEW PRODUCT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ),
-                    );
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    itemCount: state.items.length,
-                    itemBuilder: (context, index) {
-                      final msg = state.items[index];
-                      final mine = textOf(msg['senderId']) == textOf(context.read<AuthCubit>().state.user['id']);
-                      return Align(
-                        alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 280),
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: mine ? JaxColors.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 6, offset: const Offset(0, 2))],
-                          ),
-                          child: Text(textOf(msg['content']), style: JaxText.bodyMedium.copyWith(color: mine ? Colors.white : JaxColors.onSurface)),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            // ── B2B Quick Replies ────────────────────────────────────────
-            if (_showQuickReplies)
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
-                        const SizedBox(width: 5),
-                        Text('B2B QUICK REPLIES', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant, letterSpacing: 1)),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => setState(() => _showQuickReplies = false),
-                          child: Text('Dismiss', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary)),
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 7),
-                    SizedBox(
-                      height: 30,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _quickReplies.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (context, i) {
-                          final label = _quickReplies[i];
-                          final short = label.length > 32 ? '${label.substring(0, 32)}...' : label;
-                          return GestureDetector(
-                            onTap: () => setState(() => _msgCtrl.text = label),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: JaxColors.surfaceLow,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: JaxColors.outlineVariant),
+                  ),
+                Expanded(
+                  child: BlocBuilder<ResourceCubit, ResourceState>(
+                    builder: (context, state) {
+                      if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
+                      if (!state.hasData || state.items.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey.shade300),
+                              const SizedBox(height: 16),
+                              Text('NO MESSAGES YET', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 16)),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Initiate conversation below using quick\ntemplates or custom text.',
+                                textAlign: TextAlign.center,
+                                style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
                               ),
-                              child: Text(short, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
+                            ],
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        itemCount: state.items.length,
+                        itemBuilder: (context, index) {
+                          final msg = state.items[index];
+                          final mine = textOf(msg['senderId']) == textOf(context.read<AuthCubit>().state.user['id']);
+                          return Align(
+                            alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 280),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: mine ? JaxColors.primary : Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 6, offset: const Offset(0, 2))],
+                              ),
+                              child: Text(textOf(msg['content']), style: JaxText.bodyMedium.copyWith(color: mine ? Colors.white : JaxColors.onSurface)),
                             ),
                           );
                         },
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-            // ── Input Bar ───────────────────────────────────────────────
-            SafeArea(
-              top: false,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
-                ),
-                child: Row(
-                  children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: JaxColors.secondary,
-                        side: const BorderSide(color: JaxColors.secondary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () {},
-                      icon: const Icon(Icons.handshake_rounded, size: 14),
-                      label: const Text('MAKE A DEAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _msgCtrl,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: InputDecoration(
-                          hintText: 'Type your message...',
-                          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.primary.withValues(alpha: .5))),
-                          filled: true,
-                          fillColor: JaxColors.surfaceLow,
-                          isDense: true,
+                // ── B2B Quick Replies ────────────────────────────────────────
+                if (_showQuickReplies)
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                            const SizedBox(width: 5),
+                            Text('B2B QUICK REPLIES', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant, letterSpacing: 1)),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () => setState(() => _showQuickReplies = false),
+                              child: Text('Dismiss', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary)),
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 7),
+                        SizedBox(
+                          height: 30,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _quickReplies.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (context, i) {
+                              final label = _quickReplies[i];
+                              final short = label.length > 32 ? '${label.substring(0, 32)}...' : label;
+                              return GestureDetector(
+                                onTap: () {
+                                  _msgCtrl.text = label;
+                                  _sendMessage(scaffoldContext);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: JaxColors.surfaceLow,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: JaxColors.outlineVariant),
+                                  ),
+                                  child: Text(short, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.attach_file_rounded, color: Color(0xFF9CA3AF)),
-                      iconSize: 20,
-                      visualDensity: VisualDensity.compact,
+                  ),
+                // ── Input Bar ───────────────────────────────────────────────
+                SafeArea(
+                  top: false,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.send_rounded, color: JaxColors.primary),
-                      iconSize: 20,
-                      visualDensity: VisualDensity.compact,
+                    child: Row(
+                      children: [
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: JaxColors.secondary,
+                            side: const BorderSide(color: JaxColors.secondary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {},
+                          icon: const Icon(Icons.handshake_rounded, size: 14),
+                          label: const Text('MAKE A DEAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _msgCtrl,
+                            onSubmitted: (_) => _sendMessage(scaffoldContext),
+                            style: const TextStyle(fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: 'Type your message...',
+                              hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.primary.withValues(alpha: .5))),
+                              filled: true,
+                              fillColor: JaxColors.surfaceLow,
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.attach_file_rounded, color: Color(0xFF9CA3AF)),
+                          iconSize: 20,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        IconButton(
+                          onPressed: () => _sendMessage(scaffoldContext),
+                          icon: const Icon(Icons.send_rounded, color: JaxColors.primary),
+                          iconSize: 20,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );

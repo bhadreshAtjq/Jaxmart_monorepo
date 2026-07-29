@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from 'react-hot-toast';
+import { ScrollRestorer } from '@/components/ScrollRestorer';
 
 const raleway = localFont({
   src: [
@@ -94,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${raleway.variable} ${sourceSans.variable}`}>
       <body>
+        <ScrollRestorer />
         <Providers>
           {children}
           <Toaster

@@ -24,7 +24,7 @@ export default function RfqPostPage() {
 
   const [form, setForm] = useState({
     rfqType: 'PRODUCT', categoryId: '', title: '', description: '',
-    locationPreference: '', deadline: '', preferredProviderType: '',
+    locationPreference: '', deadline: '', preferredProviderType: 'ALL',
     budgetMin: '', budgetMax: '', hasBudget: false,
   });
 
@@ -55,7 +55,7 @@ export default function RfqPostPage() {
         categoryId: form.categoryId || undefined,
         locationPreference: form.locationPreference || undefined,
         deadline: form.deadline || undefined,
-        preferredProviderType: form.preferredProviderType || undefined,
+        preferredProviderType: form.preferredProviderType === 'ALL' ? undefined : form.preferredProviderType,
       };
       if (form.hasBudget) {
         payload.budgetMin = parseFloat(form.budgetMin) || 0;
@@ -160,7 +160,11 @@ export default function RfqPostPage() {
                     </div>
                     
                     <Select label="Partner Verification Tier" value={form.preferredProviderType} onChange={e => set('preferredProviderType', e.target.value)}
-                      options={[{ value: '', label: 'Global Standard (Open)' }, { value: 'INDIVIDUAL', label: 'Verified Individual Expert' }, { value: 'BUSINESS', label: 'Certified Corporate Entity' }]} />
+                      options={[
+                        { value: 'ALL', label: 'Global Standard (Open)', description: 'Available to all registered and active partners on the platform' }, 
+                        { value: 'INDIVIDUAL', label: 'Verified Individual Expert', description: 'Subject matter experts with verified credentials and track record' }, 
+                        { value: 'BUSINESS', label: 'Certified Corporate Entity', description: 'Registered companies with verified business documents and capacity' }
+                      ]} />
                     
                     <div className="p-6 bg-jax-light rounded-2xl border border-gray-100">
                       <label className="flex items-center gap-3 mb-4 cursor-pointer">

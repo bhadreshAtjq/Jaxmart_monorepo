@@ -7,14 +7,22 @@ import {
   FaShieldHalved, FaCubes, FaXmark, FaBolt, FaBoxesStacked,
   FaIndustry, FaGlobe, FaChevronRight, FaList, FaTableCells,
   FaCheck, FaShip, FaClock, FaBoxOpen, FaCreditCard,
-  FaChevronDown, FaChevronUp
+  FaChevronDown, FaChevronUp, FaLaptop, FaWrench
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore } from '@/components/ui';
+import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore, Select } from '@/components/ui';
 import { clsx } from 'clsx';
 import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+
+const CATEGORY_ICONS: Record<string, any> = {
+  'industrial-supplies': FaIndustry,
+  electronics: FaLaptop,
+  construction: FaCubes,
+  textiles: FaBoxesStacked,
+  services: FaWrench,
+};
 
 type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
 
@@ -140,150 +148,173 @@ function SearchPageContent() {
         
         {/* 1. Left B2B Sidebar Filters (Full Height Connected) */}
         <aside className={clsx(
-          'lg:w-[280px] shrink-0 border-r border-[#1a3357] bg-[#234371] lg:sticky lg:top-[64px] lg:h-[calc(100vh-64px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-40', 
+          'lg:w-[280px] shrink-0 border-r border-gray-200 bg-gray-50 lg:sticky lg:top-[64px] lg:h-[calc(100vh-64px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-40', 
           !showFilters && 'hidden lg:block'
         )}>
-          <div className="p-6 space-y-7">
-              
-              <div className="flex items-center justify-between border-b border-[#30568f] pb-4">
-                <h3 className="font-black text-xs text-white uppercase tracking-widest flex items-center gap-2">
-                  <FaSliders className="h-3.5 w-3.5 text-[#4ade80]" />
-                  Filters
-                </h3>
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={resetAllFilters}
-                    className="text-[10px] text-[#4ade80] font-bold uppercase tracking-wider hover:underline"
-                  >
-                    Reset All
-                  </button>
-                )}
+          <div className="p-5 space-y-6">
+            
+            {/* Markets & Industries Card (Matches Image 2) */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col">
+              <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 relative">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+                <FaBoxesStacked className="h-4 w-4 text-jungle-green-400 relative z-10" />
+                <span className="relative z-10">Markets & Industries</span>
               </div>
-
-              {/* Category Tree */}
-              <div>
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2.5">Category</p>
-                <div className="space-y-1.5">
-                  <button
-                    onClick={() => setCategoryId('')}
-                    className={clsx(
-                      "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors",
-                      categoryId === '' ? "bg-[#1a3357] text-[#4ade80] font-bold" : "text-blue-100 hover:bg-[#30568f]"
-                    )}
-                  >
-                    <span>All Categories</span>
-                  </button>
-                  {categories.map((cat: any) => (
+              <div className="divide-y divide-gray-50/50 py-2">
+                <button
+                  onClick={() => setCategoryId('')}
+                  className={clsx(
+                    "w-full flex items-center justify-between px-5 py-3 text-sm transition-all duration-300 font-bold group",
+                    categoryId === '' ? "text-jungle-green-600 bg-jungle-green-50/50" : "text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700"
+                  )}
+                >
+                  <span className="flex items-center gap-3.5 transform group-hover:translate-x-1 transition-transform duration-300">
+                    <div className={clsx(
+                      "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
+                      categoryId === '' ? "bg-jungle-green-100/50 text-jungle-green-600 border-transparent" : "bg-gray-50 border-gray-100/50 group-hover:bg-jungle-green-100/50 group-hover:text-jungle-green-600 group-hover:border-transparent"
+                    )}>
+                      <FaGlobe className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    All Categories
+                  </span>
+                  <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                </button>
+                {categories.map((cat: any) => {
+                  const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
+                  return (
                     <button
                       key={cat.id}
                       onClick={() => setCategoryId(cat.id)}
                       className={clsx(
-                        "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors",
-                        categoryId === cat.id ? "bg-[#1a3357] text-[#4ade80] font-bold" : "text-blue-100 hover:bg-[#30568f]"
+                        "w-full flex items-center justify-between px-5 py-3 text-sm transition-all duration-300 font-bold group",
+                        categoryId === cat.id ? "text-jungle-green-600 bg-jungle-green-50/50" : "text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700"
                       )}
                     >
-                      <span className="truncate">{cat.name}</span>
+                      <span className="flex items-center gap-3.5 transform group-hover:translate-x-1 transition-transform duration-300">
+                        <div className={clsx(
+                          "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
+                          categoryId === cat.id ? "bg-jungle-green-100/50 text-jungle-green-600 border-transparent" : "bg-gray-50 border-gray-100/50 group-hover:bg-jungle-green-100/50 group-hover:text-jungle-green-600 group-hover:border-transparent"
+                        )}>
+                          <Icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                        </div>
+                        {cat.name}
+                      </span>
+                      <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Verification & Trust */}
-              <div className="space-y-3 pt-4 border-t border-[#30568f]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Supplier Verification</p>
-                <label className="flex items-center gap-2.5 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={filters.isVerified}
-                    onChange={(e) => setFilters(f => ({ ...f, isVerified: e.target.checked }))}
-                    className="accent-[#4ade80] w-4 h-4 rounded border-[#30568f]"
-                  />
-                  <div>
-                    <span className="block text-xs font-bold text-white group-hover:text-[#4ade80] transition-colors">
-                      Verified Supplier
-                    </span>
-                    <span className="block text-[9px] text-blue-200 font-medium">GSTIN & PAN Audited</span>
-                  </div>
-                </label>
+            {/* Other Filters Header */}
+            <div className="flex items-center justify-between pb-2">
+              <h3 className="font-black text-xs text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                <FaSliders className="h-3.5 w-3.5 text-jungle-green-500" />
+                Refine Search
+              </h3>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={resetAllFilters}
+                  className="text-[10px] text-jungle-green-600 font-bold uppercase tracking-wider hover:underline"
+                >
+                  Reset All
+                </button>
+              )}
+            </div>
 
-                <div className="pt-2">
-                  <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2">Min Trust Score</label>
-                  <select
-                    value={filters.minTrust}
-                    onChange={(e) => setFilters(f => ({ ...f, minTrust: e.target.value }))}
-                    className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg px-2 text-xs outline-none focus:border-[#4ade80] transition-colors cursor-pointer"
-                  >
-                    <option value="">Any Trust Level</option>
-                    <option value="90">90% + Trust (Top tier)</option>
-                    <option value="80">80% + Trust (Verified)</option>
-                  </select>
+            {/* Verification & Trust */}
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-jungle-green-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={filters.isVerified}
+                  onChange={(e) => setFilters(f => ({ ...f, isVerified: e.target.checked }))}
+                  className="accent-jungle-green-500 w-4 h-4 rounded"
+                />
+                <div>
+                  <span className="block text-xs font-bold text-gray-800 group-hover:text-jungle-green-600 transition-colors">
+                    Verified Supplier
+                  </span>
+                  <span className="block text-[10px] text-gray-400 font-medium mt-0.5">GSTIN & PAN Audited</span>
                 </div>
-              </div>
+              </label>
 
-              {/* B2B Price Range Filter */}
-              <div className="pt-4 border-t border-[#30568f]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2.5">Price (INR)</p>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg px-2 text-xs outline-none focus:border-[#4ade80] text-center placeholder:text-blue-300"
-                  />
-                  <span className="text-blue-300 text-xs">-</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg px-2 text-xs outline-none focus:border-[#4ade80] text-center placeholder:text-blue-300"
-                  />
-                </div>
-              </div>
+              <Select
+                label="Min Trust Score"
+                value={filters.minTrust || 'ALL'}
+                onChange={(e) => setFilters(f => ({ ...f, minTrust: e.target.value === 'ALL' ? '' : e.target.value }))}
+                options={[
+                  { value: 'ALL', label: 'Any Trust Level', description: 'Show all suppliers' },
+                  { value: '90', label: '90% + Trust (Top tier)', description: 'Premium verified suppliers with highest trust' },
+                  { value: '80', label: '80% + Trust (Verified)', description: 'Standard verified suppliers' }
+                ]}
+              />
+            </div>
 
-              {/* Min Order Qty */}
-              <div className="pt-4 border-t border-[#30568f]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2">Max Min. Order Qty</p>
+            {/* B2B Price Range Filter */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">Price (INR)</p>
+              <div className="flex gap-2 items-center">
                 <input
                   type="number"
-                  placeholder="e.g. 50"
-                  value={minQty}
-                  onChange={(e) => setMinQty(e.target.value)}
-                  className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg px-3 text-xs outline-none focus:border-[#4ade80] transition-colors placeholder:text-blue-300"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 text-center placeholder:text-gray-300 shadow-sm"
+                />
+                <span className="text-gray-400 text-xs font-bold">-</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 text-center placeholder:text-gray-300 shadow-sm"
                 />
               </div>
-
-              {/* Loading FOB Ports Selector */}
-              <div className="pt-4 border-t border-[#30568f]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2">FOB Loading Port</p>
-                <select
-                  value={selectedPort}
-                  onChange={(e) => setSelectedPort(e.target.value)}
-                  className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg px-2 text-xs outline-none focus:border-[#4ade80] transition-colors cursor-pointer"
-                >
-                  <option value="">All Ports</option>
-                  <option value="Mundra">Mundra Port (Gujarat)</option>
-                  <option value="Nhava Sheva">Nhava Sheva Port (JNPT)</option>
-                </select>
-              </div>
-
-              {/* Location City */}
-              <div className="pt-4 border-t border-[#30568f]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-2">Supplier Location</p>
-                <div className="relative">
-                  <FaLocationDot className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-300 h-3.5 w-3.5" />
-                  <input
-                    value={filters.city}
-                    onChange={(e) => setFilters(f => ({ ...f, city: e.target.value }))}
-                    placeholder="Search supplier city"
-                    className="w-full h-9 bg-[#1a3357] border border-[#30568f] text-white rounded-lg pl-9 pr-3 text-xs outline-none focus:border-[#4ade80] transition-colors placeholder:text-blue-300"
-                  />
-                </div>
-              </div>
-
             </div>
-          </aside>
+
+            {/* Min Order Qty */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Max Min. Order Qty</p>
+              <input
+                type="number"
+                placeholder="e.g. 50"
+                value={minQty}
+                onChange={(e) => setMinQty(e.target.value)}
+                className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 transition-colors placeholder:text-gray-300 shadow-sm"
+              />
+            </div>
+
+            {/* Loading FOB Ports Selector */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <Select
+                label="FOB Loading Port"
+                value={selectedPort || 'ALL'}
+                onChange={(e) => setSelectedPort(e.target.value === 'ALL' ? '' : e.target.value)}
+                options={[
+                  { value: 'ALL', label: 'All Ports', description: 'Any available loading port' },
+                  { value: 'Mundra', label: 'Mundra Port', description: 'Gujarat' },
+                  { value: 'Nhava Sheva', label: 'Nhava Sheva Port', description: 'JNPT, Maharashtra' }
+                ]}
+              />
+            </div>
+
+            {/* Location City */}
+            <div className="pt-4 border-t border-gray-200/60 pb-6">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Supplier Location</p>
+              <div className="relative">
+                <FaLocationDot className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                <input
+                  value={filters.city}
+                  onChange={(e) => setFilters(f => ({ ...f, city: e.target.value }))}
+                  placeholder="Search supplier city"
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl pl-9 pr-3 text-xs outline-none focus:border-jungle-green-400 transition-colors placeholder:text-gray-300 shadow-sm"
+                />
+              </div>
+            </div>
+
+          </div>
+        </aside>
 
           {/* 2. Main Content Right Side */}
           <main className="flex-1 min-w-0 flex flex-col bg-gray-50/30">
@@ -373,65 +404,67 @@ function SearchPageContent() {
             </div>
 
             {/* Quick Filter Tags (Premium Style) */}
-            <div className="flex flex-wrap gap-3 items-center mb-8 bg-gray-50/50 p-3 rounded-2xl border border-gray-100/80">
-              <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest pl-2">Quick Filters:</span>
+            <div className="flex flex-wrap gap-2.5 items-center mb-8 bg-white p-3 px-5 rounded-[1.25rem] border border-gray-100 shadow-[0_4px_24px_rgb(0,0,0,0.02)]">
+              <span className="text-[11px] text-[#8fa1b4] font-bold uppercase tracking-[0.15em] mr-2">Quick Filters:</span>
               <button
                 onClick={() => setFilters(f => ({ ...f, isVerified: !f.isVerified }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.isVerified
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
-                <FaShieldHalved className="h-3.5 w-3.5" />
+                <FaShieldHalved className={filters.isVerified ? "text-blue-500" : "text-[#5c738f] h-3.5 w-3.5"} />
                 Verified Supplier
               </button>
 
               <button
                 onClick={() => setFilters(f => ({ ...f, minTrust: f.minTrust === '90' ? '' : '90' }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.minTrust === '90'
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
-                <FaStar className="h-3.5 w-3.5" />
+                <FaStar className={filters.minTrust === '90' ? "text-blue-500" : "text-[#5c738f] h-3.5 w-3.5"} />
                 90%+ Trust
               </button>
 
               <button
                 onClick={() => setFilters(f => ({ ...f, minRating: f.minRating === '4.5' ? '' : '4.5' }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.minRating === '4.5'
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
                 Top Rated (4.5★+)
               </button>
             </div>
 
-            {/* Sort Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 p-2 bg-white border border-gray-200/60 rounded-2xl text-xs shadow-sm shadow-gray-200/20">
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest px-3">Sort By:</span>
+            {/* Sort Bar (Premium Style) */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 bg-white p-2.5 px-5 rounded-[1.25rem] border border-gray-100 shadow-[0_4px_24px_rgb(0,0,0,0.02)]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-[#8fa1b4] font-bold uppercase tracking-[0.15em] mr-2">Sort By:</span>
                 {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
                   <button
                     key={s}
                     onClick={() => setSortBy(s)}
                     className={clsx(
-                      'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-colors',
-                      sortBy === s ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      'px-4 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-300',
+                      sortBy === s 
+                        ? 'bg-white border border-gray-200 text-teal-600 shadow-[0_2px_8px_rgb(0,0,0,0.04)]' 
+                        : 'text-[#6b7b8f] hover:text-[#425b76] border border-transparent'
                     )}
                   >
                     {s}
                   </button>
                 ))}
               </div>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold px-2">
+              <span className="text-[11px] text-[#8fa1b4] uppercase tracking-wider font-semibold">
                 Showing {listings.length} of {total} items
               </span>
             </div>

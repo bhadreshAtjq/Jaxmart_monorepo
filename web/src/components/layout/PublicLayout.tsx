@@ -10,6 +10,7 @@ import {
 import { useAuthStore } from '@/lib/store';
 import { Avatar, PageLoader } from '@/components/ui';
 import { userApi } from '@/lib/api';
+import { useLocationCurrency } from '@/components/providers/LocationCurrencyProvider';
 
 import Image from 'next/image';
 
@@ -33,6 +34,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(isLoggedIn);
+  const { countryCode, currency, isLoading } = useLocationCurrency();
 
   useEffect(() => {
     setMounted(true);
@@ -86,6 +88,14 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
             <span className="hidden md:inline">|</span>
             <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
+            <span className="hidden md:inline">|</span>
+            <span className="hidden md:flex items-center gap-1">
+              {!isLoading && countryCode ? (
+                <>Ship to: <strong className="text-white">{countryCode}</strong> ({currency.symbol} {currency.code})</>
+              ) : (
+                <span className="text-gray-500 animate-pulse">Location...</span>
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             {showAuth ? (

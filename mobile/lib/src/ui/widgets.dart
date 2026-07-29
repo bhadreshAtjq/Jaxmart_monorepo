@@ -834,8 +834,13 @@ class ListingTile extends StatelessWidget {
             label: Text('Chat Now', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 12)),
             onPressed: () {
               final sellerId = textOf(seller['id']);
+              final listingId = textOf(item['id']);
               if (sellerId.isNotEmpty) {
-                context.push('/messages/$sellerId');
+                if (listingId.isNotEmpty) {
+                  context.push('/messages/$sellerId?listingId=$listingId');
+                } else {
+                  context.push('/messages/$sellerId');
+                }
               }
             },
           ),

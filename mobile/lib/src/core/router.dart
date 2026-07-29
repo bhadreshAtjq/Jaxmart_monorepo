@@ -95,7 +95,13 @@ class AppRouter {
                 ),
                 GoRoute(path: '/orders/:id', builder: (_, state) => OrderDetailScreen(id: state.pathParameters['id']!)),
                 GoRoute(path: '/messages', builder: (_, __) => const MessagesScreen()),
-                GoRoute(path: '/messages/:id', builder: (_, state) => ConversationScreen(id: state.pathParameters['id']!)),
+                GoRoute(
+                  path: '/messages/:id',
+                  builder: (_, state) => ConversationScreen(
+                    id: state.pathParameters['id']!,
+                    listingId: state.uri.queryParameters['listingId'],
+                  ),
+                ),
                 GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
                 GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
                 GoRoute(path: '/seller/dashboard', builder: (_, __) => const SellerDashboardScreen()),

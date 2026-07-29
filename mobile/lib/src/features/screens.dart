@@ -8450,8 +8450,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
 }
 
 class ConversationScreen extends StatefulWidget {
-  const ConversationScreen({required this.id, super.key});
+  const ConversationScreen({required this.id, this.listingId, super.key});
   final String id;
+  final String? listingId;
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
@@ -8462,6 +8463,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   JsonMap? _conversation;
   JsonMap? _listing;
   bool _isLoadingInfo = true;
+  late final ResourceCubit _resourceCubit;
 
   static const _quickReplies = [
     'Interested in your listing. Can you share more details?',
@@ -8475,6 +8477,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void initState() {
     super.initState();
+    _resourceCubit = ResourceCubit();
     _loadInfo();
   }
 
@@ -8482,12 +8485,45 @@ class _ConversationScreenState extends State<ConversationScreen> {
     try {
       final api = apiOf(context);
       final convs = await api.conversations();
-      final conv = convs.firstWhere((c) => textOf(c['id']) == widget.id,
+      
+      // 1. Try to find conversation by conversation ID
+      var conv = convs.firstWhere((c) => textOf(c['id']) == widget.id,
           orElse: () => <String, dynamic>{});
-      JsonMap? listing;
-      if (conv.isNotEmpty && textOf(conv['listingId']).isNotEmpty) {
-        listing = await api.conversationListing(widget.id);
+          
+      // 2. If not found, check if widget.id is a seller/recipient ID
+      if (conv.isEmpty) {
+        conv = convs.firstWhere((c) {
+          final isRecipient = textOf(asMap(c['recipient'])['id']) == widget.id;
+          if (widget.listingId != null) {
+            return isRecipient && textOf(c['listingId']) == widget.listingId;
+          }
+          return isRecipient;
+        }, orElse: () => <String, dynamic>{});
       }
+      
+      // 3. If still not found, start a new conversation
+      if (conv.isEmpty) {
+        try {
+          final newConv = await api.startConversation({
+            'recipientId': widget.id,
+            if (widget.listingId != null) 'listingId': widget.listingId,
+          });
+          conv = newConv;
+        } catch (e) {
+          // If starting conversation failed, rethrow or let it be handled
+        }
+      }
+
+      JsonMap? listing;
+      final convId = textOf(conv['id']);
+      if (conv.isNotEmpty && textOf(conv['listingId']).isNotEmpty) {
+        listing = await api.conversationListing(convId);
+      }
+      
+      if (convId.isNotEmpty) {
+        _resourceCubit.load(() => api.messages(convId), listKeys: const ['messages']);
+      }
+      
       if (mounted) {
         setState(() {
           _conversation = conv;
@@ -8508,7 +8544,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
     _msgCtrl.clear();
 
-    final cubit = scaffoldContext.read<ResourceCubit>();
     final messenger = ScaffoldMessenger.of(scaffoldContext);
     final api = apiOf(scaffoldContext);
 
@@ -8516,6 +8551,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       final recipientId = textOf(asMap(_conversation!['recipient'])['id']);
       if (recipientId.isEmpty) return;
 
+      final convId = textOf(_conversation!['id']);
       await api.startConversation({
         'recipientId': recipientId,
         'initialMessage': text,
@@ -8523,7 +8559,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
           'listingId': _conversation!['listingId'],
       });
 
-      cubit.load(() => api.messages(widget.id), listKeys: const ['messages']);
+      if (convId.isNotEmpty) {
+        _resourceCubit.load(() => api.messages(convId), listKeys: const ['messages']);
+      }
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -8536,6 +8574,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void dispose() {
     _msgCtrl.dispose();
+    _resourceCubit.close();
     super.dispose();
   }
 
@@ -8558,10 +8597,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ? textOf(asMap(_conversation!['recipient'])['businessName'])
         : '';
 
-    return BlocProvider(
-      create: (_) => ResourceCubit()
-        ..load(() => apiOf(context).messages(widget.id),
-            listKeys: const ['messages']),
+    return BlocProvider.value(
+      value: _resourceCubit,
       child: Scaffold(
         backgroundColor: JaxColors.surface,
         appBar: AppBar(

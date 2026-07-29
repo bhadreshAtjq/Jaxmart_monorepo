@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  
+
                   // B2B Market Showcase
                   const Text(
                     "India's trusted\nB2B marketplace",
@@ -148,9 +148,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Showcase Features List
                   ...[
-                    {'title': 'GST Verified Sellers', 'desc': 'Every supplier on JaxMart is identity-verified.'},
-                    {'title': 'Escrow Protection', 'desc': 'Payments released only after delivery confirmation.'},
-                    {'title': 'AI-Powered Matching', 'desc': 'Get the best quotes from relevant suppliers instantly.'},
+                    {
+                      'title': 'GST Verified Sellers',
+                      'desc': 'Every supplier on JaxMart is identity-verified.'
+                    },
+                    {
+                      'title': 'Escrow Protection',
+                      'desc':
+                          'Payments released only after delivery confirmation.'
+                    },
+                    {
+                      'title': 'AI-Powered Matching',
+                      'desc':
+                          'Get the best quotes from relevant suppliers instantly.'
+                    },
                   ].map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 14),
                         child: Row(
@@ -204,16 +215,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         final currentUri = GoRouterState.of(context).uri;
                         final redirect = currentUri.queryParameters['redirect'];
                         final type = currentUri.queryParameters['type'];
-                        
+
                         final queryParams = <String, String>{
                           'phone': state.phone!,
                           if (redirect != null) 'redirect': redirect,
                           if (type != null) 'type': type,
                         };
-                        final uri = Uri(path: '/auth/otp', queryParameters: queryParams);
+                        final uri = Uri(
+                            path: '/auth/otp', queryParameters: queryParams);
                         context.push(uri.toString());
                       }
-                      if (state.status == AuthStatus.failure && state.message != null) {
+                      if (state.status == AuthStatus.failure &&
+                          state.message != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(state.message!)),
                         );
@@ -248,7 +261,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 4),
                             Text(
                               "Enter your mobile number to continue",
-                              style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+                              style: JaxText.bodySmall
+                                  .copyWith(color: Colors.grey.shade500),
                             ),
                             const SizedBox(height: 24),
 
@@ -260,19 +274,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                 hintText: 'Phone number',
                                 fillColor: const Color(0xFFF6F8FB),
                                 filled: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: JaxColors.primary, width: 1.5),
+                                  borderSide: const BorderSide(
+                                      color: JaxColors.primary, width: 1.5),
                                 ),
                               ),
                               initialCountryCode: 'IN',
-                              style: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: JaxColors.onSurface),
-                              dropdownTextStyle: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: JaxColors.onSurface),
+                              style: JaxText.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: JaxColors.onSurface),
+                              dropdownTextStyle: JaxText.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: JaxColors.onSurface),
                               onCountryChanged: (country) {
                                 _countryCode = country.dialCode;
                               },
@@ -282,17 +303,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // Submit Button
                             InkWell(
-                              onTap: state.status == AuthStatus.loading ? null : _sendOtp,
+                              onTap: state.status == AuthStatus.loading
+                                  ? null
+                                  : _sendOtp,
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 decoration: BoxDecoration(
                                   gradient: JaxGradients.primary,
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: JaxColors.primary.withValues(alpha: .3),
+                                      color: JaxColors.primary
+                                          .withValues(alpha: .3),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -309,7 +334,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       )
                                     : const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             'GET OTP',
@@ -336,7 +362,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 "By continuing, you agree to our Terms of Service and Privacy Policy",
                                 textAlign: TextAlign.center,
-                                style: JaxText.bodySmall.copyWith(color: Colors.grey.shade400, fontSize: 10),
+                                style: JaxText.bodySmall.copyWith(
+                                    color: Colors.grey.shade400, fontSize: 10),
                               ),
                             ),
                           ],
@@ -344,24 +371,33 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 28),
-                  
+
                   // Footer badges
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.lock_outline_rounded, color: Colors.white38, size: 12),
+                      const Icon(Icons.lock_outline_rounded,
+                          color: Colors.white38, size: 12),
                       const SizedBox(width: 4),
-                      Text("Secure login", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                      Text("Secure login",
+                          style: JaxText.bodySmall
+                              .copyWith(color: Colors.white38, fontSize: 11)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.verified_outlined, color: Colors.white38, size: 12),
+                      const Icon(Icons.verified_outlined,
+                          color: Colors.white38, size: 12),
                       const SizedBox(width: 4),
-                      Text("GST verified", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                      Text("GST verified",
+                          style: JaxText.bodySmall
+                              .copyWith(color: Colors.white38, fontSize: 11)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.shield_outlined, color: Colors.white38, size: 12),
+                      const Icon(Icons.shield_outlined,
+                          color: Colors.white38, size: 12),
                       const SizedBox(width: 4),
-                      Text("Escrow protected", style: JaxText.bodySmall.copyWith(color: Colors.white38, fontSize: 11)),
+                      Text("Escrow protected",
+                          style: JaxText.bodySmall
+                              .copyWith(color: Colors.white38, fontSize: 11)),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -376,7 +412,8 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class OtpScreen extends StatefulWidget {
-  const OtpScreen({required this.phone, this.fullName, this.userType, super.key});
+  const OtpScreen(
+      {required this.phone, this.fullName, this.userType, super.key});
   final String phone;
   final String? fullName;
   final String? userType;
@@ -431,7 +468,10 @@ class _OtpScreenState extends State<OtpScreen> {
     final defaultPinTheme = PinTheme(
       width: 46,
       height: 52,
-      textStyle: JaxText.h2.copyWith(color: JaxColors.onSurface, fontSize: 20, fontWeight: FontWeight.bold),
+      textStyle: JaxText.h2.copyWith(
+          color: JaxColors.onSurface,
+          fontSize: 20,
+          fontWeight: FontWeight.bold),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -455,10 +495,13 @@ class _OtpScreenState extends State<OtpScreen> {
               if (state.isLoggedIn) {
                 final currentUri = GoRouterState.of(context).uri;
                 final redirect = currentUri.queryParameters['redirect'];
-                context.go(redirect != null && redirect.isNotEmpty ? redirect : '/home');
+                context.go(redirect != null && redirect.isNotEmpty
+                    ? redirect
+                    : '/home');
               }
               if (state.status == AuthStatus.failure && state.message != null) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(state.message!)));
                 _pinController.clear();
               }
             },
@@ -467,11 +510,12 @@ class _OtpScreenState extends State<OtpScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  
+
                   // Link back to change number
                   TextButton.icon(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 16, color: JaxColors.primary),
+                    icon: const Icon(Icons.arrow_back_rounded,
+                        size: 16, color: JaxColors.primary),
                     label: const Text(
                       'Change number',
                       style: TextStyle(
@@ -501,7 +545,8 @@ class _OtpScreenState extends State<OtpScreen> {
                   const SizedBox(height: 6),
                   Text(
                     "Sent to +${widget.phone}",
-                    style: JaxText.bodyMedium.copyWith(color: Colors.grey.shade500),
+                    style: JaxText.bodyMedium
+                        .copyWith(color: Colors.grey.shade500),
                   ),
                   const SizedBox(height: 32),
 
@@ -522,7 +567,8 @@ class _OtpScreenState extends State<OtpScreen> {
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.only(bottom: 24),
-                        child: CircularProgressIndicator(color: JaxColors.primary),
+                        child:
+                            CircularProgressIndicator(color: JaxColors.primary),
                       ),
                     ),
 
@@ -531,14 +577,17 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: _countdown > 0
                         ? Text(
                             'Resend in ${_countdown}s',
-                            style: JaxText.bodyMedium.copyWith(color: Colors.grey.shade400, fontWeight: FontWeight.bold),
+                            style: JaxText.bodyMedium.copyWith(
+                                color: Colors.grey.shade400,
+                                fontWeight: FontWeight.bold),
                           )
                         : TextButton(
                             onPressed: () {
                               context.read<AuthCubit>().sendOtp(widget.phone);
                               _startTimer();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('OTP resent successfully')),
+                                const SnackBar(
+                                    content: Text('OTP resent successfully')),
                               );
                             },
                             child: const Text(
@@ -588,7 +637,8 @@ class _SetupScreenState extends State<SetupScreen> {
   final _establishedYearController = TextEditingController();
   String _accountType = 'INDIVIDUAL'; // INDIVIDUAL | BUSINESS
   String _userType = 'BUYER'; // BUYER | SELLER | BOTH
-  String _employeeRange = 'ELEVEN_TO_FIFTY'; // ONE_TO_TEN | ELEVEN_TO_FIFTY | FIFTY_ONE_TO_TWO_HUNDRED | TWO_HUNDRED_PLUS
+  String _employeeRange =
+      'ELEVEN_TO_FIFTY'; // ONE_TO_TEN | ELEVEN_TO_FIFTY | FIFTY_ONE_TO_TWO_HUNDRED | TWO_HUNDRED_PLUS
 
   @override
   void dispose() {
@@ -620,8 +670,11 @@ class _SetupScreenState extends State<SetupScreen> {
     } else if (_step == 2) {
       setState(() => _step = 3);
     } else if (_step == 3) {
-      final isBusinessSetupRequired = _accountType == 'BUSINESS' || _userType == 'SELLER' || _userType == 'BOTH';
-      if (isBusinessSetupRequired && _businessNameController.text.trim().isEmpty) {
+      final isBusinessSetupRequired = _accountType == 'BUSINESS' ||
+          _userType == 'SELLER' ||
+          _userType == 'BOTH';
+      if (isBusinessSetupRequired &&
+          _businessNameController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Business Legal Name is required')),
         );
@@ -637,7 +690,10 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
-  bool get _isBusinessSetupRequired => _accountType == 'BUSINESS' || _userType == 'SELLER' || _userType == 'BOTH';
+  bool get _isBusinessSetupRequired =>
+      _accountType == 'BUSINESS' ||
+      _userType == 'SELLER' ||
+      _userType == 'BOTH';
 
   String _formatWorkforceSummary(String range) {
     switch (range) {
@@ -662,8 +718,10 @@ class _SetupScreenState extends State<SetupScreen> {
       'userType': _userType,
       if (_isBusinessSetupRequired) ...{
         'businessName': _businessNameController.text.trim(),
-        if (_gstController.text.trim().isNotEmpty) 'gstNumber': _gstController.text.trim().toUpperCase(),
-        if (_establishedYearController.text.trim().isNotEmpty) 'establishedYear': _establishedYearController.text.trim(),
+        if (_gstController.text.trim().isNotEmpty)
+          'gstNumber': _gstController.text.trim().toUpperCase(),
+        if (_establishedYearController.text.trim().isNotEmpty)
+          'establishedYear': _establishedYearController.text.trim(),
         'employeeRange': _employeeRange,
       }
     };
@@ -672,7 +730,8 @@ class _SetupScreenState extends State<SetupScreen> {
       await context.read<AuthCubit>().updateProfile(payload);
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to complete profile registration')),
+        const SnackBar(
+            content: Text('Failed to complete profile registration')),
       );
     }
   }
@@ -710,11 +769,15 @@ class _SetupScreenState extends State<SetupScreen> {
                             color: JaxColors.primaryContainer,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: const [
-                              BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+                              BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4)),
                             ],
                           ),
                           alignment: Alignment.center,
-                          child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 28),
+                          child: const Icon(Icons.shield_rounded,
+                              color: JaxColors.secondary, size: 28),
                         ),
                         const SizedBox(height: 12),
                         const Text(
@@ -750,11 +813,21 @@ class _SetupScreenState extends State<SetupScreen> {
                     children: [
                       const Text(
                         'PROGRESS STATUS',
-                        style: TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.5),
+                        style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey,
+                            letterSpacing: 1.5),
                       ),
                       Text(
                         'STEP $_step OF 4',
-                        style: TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey.shade700, letterSpacing: 1.5),
+                        style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey.shade700,
+                            letterSpacing: 1.5),
                       ),
                     ],
                   ),
@@ -787,7 +860,10 @@ class _SetupScreenState extends State<SetupScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.grey.shade200),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: .015), blurRadius: 15, offset: const Offset(0, 5)),
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: .015),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5)),
                       ],
                     ),
                     child: Column(
@@ -808,26 +884,42 @@ class _SetupScreenState extends State<SetupScreen> {
                             if (_step > 1)
                               OutlinedButton.icon(
                                 onPressed: loading ? null : _prevStep,
-                                icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                                label: const Text('BACK', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                icon: const Icon(Icons.arrow_back_rounded,
+                                    size: 16),
+                                label: const Text('BACK',
+                                    style: TextStyle(
+                                        fontFamily: JaxText.heading,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1)),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.grey.shade700,
                                   side: BorderSide(color: Colors.grey.shade300),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
                                 ),
                               ),
                             const Spacer(),
                             if (_step < 4)
                               ElevatedButton.icon(
                                 onPressed: _nextStep,
-                                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                                label: const Text('NEXT STEP', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                icon: const Icon(Icons.arrow_forward_rounded,
+                                    size: 16),
+                                label: const Text('NEXT STEP',
+                                    style: TextStyle(
+                                        fontFamily: JaxText.heading,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1)),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: JaxColors.primaryContainer,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
                                 ),
                               )
                             else
@@ -837,15 +929,25 @@ class _SetupScreenState extends State<SetupScreen> {
                                     ? const SizedBox(
                                         height: 16,
                                         width: 16,
-                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2),
                                       )
-                                    : const Icon(Icons.check_circle_rounded, size: 16),
-                                label: const Text('CONFIRM REGISTRY', style: TextStyle(fontFamily: JaxText.heading, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                    : const Icon(Icons.check_circle_rounded,
+                                        size: 16),
+                                label: const Text('CONFIRM REGISTRY',
+                                    style: TextStyle(
+                                        fontFamily: JaxText.heading,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1)),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: JaxColors.secondary,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 14),
                                   elevation: 0,
                                 ),
                               ),
@@ -869,7 +971,11 @@ class _SetupScreenState extends State<SetupScreen> {
       children: [
         const Text(
           '1. Profile Credentials',
-          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+          style: TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: JaxColors.onSurface),
         ),
         const SizedBox(height: 2),
         Text(
@@ -877,7 +983,6 @@ class _SetupScreenState extends State<SetupScreen> {
           style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
         ),
         const SizedBox(height: 20),
-
         const FieldLabel('Full Name'),
         TextField(
           controller: _fullNameController,
@@ -888,7 +993,6 @@ class _SetupScreenState extends State<SetupScreen> {
           textCapitalization: TextCapitalization.words,
         ),
         const SizedBox(height: 16),
-
         const FieldLabel('Email Address'),
         TextField(
           controller: _emailController,
@@ -899,21 +1003,31 @@ class _SetupScreenState extends State<SetupScreen> {
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 24),
-
         const FieldLabel('Company Legal Type'),
         const SizedBox(height: 4),
         Row(
           children: [
-            Expanded(child: _buildAccountTypeCard('INDIVIDUAL', 'Individual / Proprietorship', Icons.person_rounded, 'For sole proprietors, freelancers, or personal buyers')),
+            Expanded(
+                child: _buildAccountTypeCard(
+                    'INDIVIDUAL',
+                    'Individual / Proprietorship',
+                    Icons.person_rounded,
+                    'For sole proprietors, freelancers, or personal buyers')),
             const SizedBox(width: 12),
-            Expanded(child: _buildAccountTypeCard('BUSINESS', 'Registered Firm', Icons.business_rounded, 'For Pvt Ltd, LLC, or GST registered firms')),
+            Expanded(
+                child: _buildAccountTypeCard(
+                    'BUSINESS',
+                    'Registered Firm',
+                    Icons.business_rounded,
+                    'For Pvt Ltd, LLC, or GST registered firms')),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildAccountTypeCard(String type, String title, IconData icon, String desc) {
+  Widget _buildAccountTypeCard(
+      String type, String title, IconData icon, String desc) {
     final isSelected = _accountType == type;
     return InkWell(
       onTap: () => setState(() => _accountType = type),
@@ -922,7 +1036,9 @@ class _SetupScreenState extends State<SetupScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? JaxColors.secondary.withValues(alpha: .03) : Colors.white,
+          color: isSelected
+              ? JaxColors.secondary.withValues(alpha: .03)
+              : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? JaxColors.secondary : Colors.grey.shade200,
@@ -932,16 +1048,27 @@ class _SetupScreenState extends State<SetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: isSelected ? JaxColors.secondary : Colors.grey.shade300, size: 22),
+            Icon(icon,
+                color: isSelected ? JaxColors.secondary : Colors.grey.shade300,
+                size: 22),
             const SizedBox(height: 10),
             Text(
               title,
-              style: TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: isSelected ? JaxColors.onSurface : Colors.grey.shade700),
+              style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color:
+                      isSelected ? JaxColors.onSurface : Colors.grey.shade700),
             ),
             const SizedBox(height: 4),
             Text(
               desc,
-              style: TextStyle(fontFamily: JaxText.body, fontSize: 9, color: Colors.grey.shade500, height: 1.35),
+              style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 9,
+                  color: Colors.grey.shade500,
+                  height: 1.35),
             ),
           ],
         ),
@@ -955,7 +1082,11 @@ class _SetupScreenState extends State<SetupScreen> {
       children: [
         const Text(
           '2. Marketplace Role Designation',
-          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+          style: TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: JaxColors.onSurface),
         ),
         const SizedBox(height: 2),
         Text(
@@ -963,12 +1094,23 @@ class _SetupScreenState extends State<SetupScreen> {
           style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
         ),
         const SizedBox(height: 20),
-
-        _buildRoleCard('BUYER', 'Source & Purchase (Buyer)', Icons.shopping_bag_rounded, 'Post custom sourcing RFQs, search products, compare supplier bids, and execute secure Escrow orders.'),
+        _buildRoleCard(
+            'BUYER',
+            'Source & Purchase (Buyer)',
+            Icons.shopping_bag_rounded,
+            'Post custom sourcing RFQs, search products, compare supplier bids, and execute secure Escrow orders.'),
         const SizedBox(height: 12),
-        _buildRoleCard('SELLER', 'Supply & Merchant (Seller)', Icons.storefront_rounded, 'Create product/service listings, setup tiered delivery packages, receive and bid on buyer RFQ requests.'),
+        _buildRoleCard(
+            'SELLER',
+            'Supply & Merchant (Seller)',
+            Icons.storefront_rounded,
+            'Create product/service listings, setup tiered delivery packages, receive and bid on buyer RFQ requests.'),
         const SizedBox(height: 12),
-        _buildRoleCard('BOTH', 'Dual Trading (Buyer & Seller)', Icons.swap_horiz_rounded, 'Full capability to both request corporate custom quotes and list wholesale supply inventories.'),
+        _buildRoleCard(
+            'BOTH',
+            'Dual Trading (Buyer & Seller)',
+            Icons.swap_horiz_rounded,
+            'Full capability to both request corporate custom quotes and list wholesale supply inventories.'),
       ],
     );
   }
@@ -982,7 +1124,9 @@ class _SetupScreenState extends State<SetupScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? JaxColors.secondary.withValues(alpha: .03) : Colors.white,
+          color: isSelected
+              ? JaxColors.secondary.withValues(alpha: .03)
+              : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? JaxColors.secondary : Colors.grey.shade200,
@@ -996,12 +1140,21 @@ class _SetupScreenState extends State<SetupScreen> {
               height: 42,
               width: 42,
               decoration: BoxDecoration(
-                color: isSelected ? JaxColors.secondary.withValues(alpha: .12) : Colors.grey.shade50,
+                color: isSelected
+                    ? JaxColors.secondary.withValues(alpha: .12)
+                    : Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: isSelected ? JaxColors.secondary.withValues(alpha: .2) : Colors.grey.shade200),
+                border: Border.all(
+                    color: isSelected
+                        ? JaxColors.secondary.withValues(alpha: .2)
+                        : Colors.grey.shade200),
               ),
               alignment: Alignment.center,
-              child: Icon(icon, color: isSelected ? JaxColors.secondaryDark : Colors.grey.shade500, size: 20),
+              child: Icon(icon,
+                  color: isSelected
+                      ? JaxColors.secondaryDark
+                      : Colors.grey.shade500,
+                  size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1010,12 +1163,22 @@ class _SetupScreenState extends State<SetupScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontFamily: JaxText.heading, fontSize: 13, fontWeight: FontWeight.w900, color: isSelected ? JaxColors.onSurface : Colors.grey.shade700),
+                    style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: isSelected
+                            ? JaxColors.onSurface
+                            : Colors.grey.shade700),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     desc,
-                    style: TextStyle(fontFamily: JaxText.body, fontSize: 10, color: Colors.grey.shade500, height: 1.35),
+                    style: TextStyle(
+                        fontFamily: JaxText.body,
+                        fontSize: 10,
+                        color: Colors.grey.shade500,
+                        height: 1.35),
                   ),
                 ],
               ),
@@ -1032,7 +1195,11 @@ class _SetupScreenState extends State<SetupScreen> {
       children: [
         const Text(
           '3. Merchant & Corporate Profile',
-          style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+          style: TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: JaxColors.onSurface),
         ),
         const SizedBox(height: 2),
         Text(
@@ -1040,7 +1207,6 @@ class _SetupScreenState extends State<SetupScreen> {
           style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
         ),
         const SizedBox(height: 20),
-
         if (!_isBusinessSetupRequired)
           Container(
             width: double.infinity,
@@ -1052,17 +1218,23 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.green, size: 36),
+                const Icon(Icons.check_circle_rounded,
+                    color: Colors.green, size: 36),
                 const SizedBox(height: 10),
                 const Text(
                   'REGISTRY DETAILS WAIVED',
-                  style: TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+                  style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: JaxColors.onSurface),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'As an Individual Buyer, corporate merchant registration is not required. You can skip this step.',
                   textAlign: TextAlign.center,
-                  style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500, height: 1.4),
+                  style: JaxText.bodySmall
+                      .copyWith(color: Colors.grey.shade500, height: 1.4),
                 ),
               ],
             ),
@@ -1078,7 +1250,6 @@ class _SetupScreenState extends State<SetupScreen> {
             textCapitalization: TextCapitalization.words,
           ),
           const SizedBox(height: 16),
-
           const FieldLabel('GSTIN Number (Optional)'),
           TextField(
             controller: _gstController,
@@ -1099,12 +1270,18 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
+                  const Icon(Icons.check_circle_rounded,
+                      color: Colors.green, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'GST REGISTRY ID FORMAT VALID. VERIFIED POST-ONBOARDING.',
-                      style: TextStyle(fontFamily: JaxText.heading, fontSize: 8, fontWeight: FontWeight.w900, color: Colors.green.shade800, letterSpacing: 0.5),
+                      style: TextStyle(
+                          fontFamily: JaxText.heading,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.green.shade800,
+                          letterSpacing: 0.5),
                     ),
                   ),
                 ],
@@ -1112,7 +1289,6 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ],
           const SizedBox(height: 16),
-
           const FieldLabel('Establishment Year (Optional)'),
           TextField(
             controller: _establishedYearController,
@@ -1123,19 +1299,24 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
           const FieldLabel('Operational Workforce *'),
           DropdownButtonFormField<String>(
             value: _employeeRange,
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.people_rounded, size: 20),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             items: const [
-              DropdownMenuItem(value: 'ONE_TO_TEN', child: Text('1-10 Employees')),
-              DropdownMenuItem(value: 'ELEVEN_TO_FIFTY', child: Text('11-50 Employees')),
-              DropdownMenuItem(value: 'FIFTY_ONE_TO_TWO_HUNDRED', child: Text('51-200 Employees')),
-              DropdownMenuItem(value: 'TWO_HUNDRED_PLUS', child: Text('200+ Employees')),
+              DropdownMenuItem(
+                  value: 'ONE_TO_TEN', child: Text('1-10 Employees')),
+              DropdownMenuItem(
+                  value: 'ELEVEN_TO_FIFTY', child: Text('11-50 Employees')),
+              DropdownMenuItem(
+                  value: 'FIFTY_ONE_TO_TWO_HUNDRED',
+                  child: Text('51-200 Employees')),
+              DropdownMenuItem(
+                  value: 'TWO_HUNDRED_PLUS', child: Text('200+ Employees')),
             ],
             onChanged: (val) {
               if (val != null) {
@@ -1164,12 +1345,17 @@ class _SetupScreenState extends State<SetupScreen> {
                   border: Border.all(color: Colors.green.shade100),
                 ),
                 alignment: Alignment.center,
-                child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 24),
+                child: const Icon(Icons.check_circle_rounded,
+                    color: Colors.green, size: 24),
               ),
               const SizedBox(height: 10),
               const Text(
                 '4. Verify Onboarding Prospectus',
-                style: TextStyle(fontFamily: JaxText.heading, fontSize: 16, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+                style: TextStyle(
+                    fontFamily: JaxText.heading,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: JaxColors.onSurface),
               ),
               const SizedBox(height: 2),
               Text(
@@ -1180,7 +1366,6 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         ),
         const SizedBox(height: 24),
-
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1197,19 +1382,24 @@ class _SetupScreenState extends State<SetupScreen> {
               _buildSummaryRow('Account Entity', _accountType),
               const Divider(height: 20, thickness: 0.5),
               _buildSummaryRow('Platform Role', _userType),
-              if (_isBusinessSetupRequired && _businessNameController.text.trim().isNotEmpty) ...[
+              if (_isBusinessSetupRequired &&
+                  _businessNameController.text.trim().isNotEmpty) ...[
                 const Divider(height: 20, thickness: 0.5),
                 _buildSummaryRow(
                   'Business Registry',
                   _businessNameController.text.trim() +
-                      (_gstController.text.trim().isNotEmpty ? ' (GSTIN: ${_gstController.text.trim().toUpperCase()})' : ''),
+                      (_gstController.text.trim().isNotEmpty
+                          ? ' (GSTIN: ${_gstController.text.trim().toUpperCase()})'
+                          : ''),
                 ),
                 if (_establishedYearController.text.trim().isNotEmpty) ...[
                   const Divider(height: 20, thickness: 0.5),
-                  _buildSummaryRow('Establishment Year', _establishedYearController.text.trim()),
+                  _buildSummaryRow('Establishment Year',
+                      _establishedYearController.text.trim()),
                 ],
                 const Divider(height: 20, thickness: 0.5),
-                _buildSummaryRow('Workforce', _formatWorkforceSummary(_employeeRange)),
+                _buildSummaryRow(
+                    'Workforce', _formatWorkforceSummary(_employeeRange)),
               ],
             ],
           ),
@@ -1224,11 +1414,20 @@ class _SetupScreenState extends State<SetupScreen> {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontFamily: JaxText.heading, fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1),
+          style: const TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: Colors.grey,
+              letterSpacing: 1),
         ),
         Text(
           value,
-          style: const TextStyle(fontFamily: JaxText.heading, fontSize: 12, fontWeight: FontWeight.w900, color: JaxColors.onSurface),
+          style: const TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: JaxColors.onSurface),
         ),
       ],
     );
@@ -1247,10 +1446,14 @@ class HomeScreen extends StatelessWidget {
           final auth = context.read<AuthCubit>().state;
           final result = <String, dynamic>{};
           result['categories'] = await api.categories();
-          result['featured'] = asMap(await api.searchListings({'limit': 12, 'sortBy': 'featured'}))['listings'] ?? [];
+          result['featured'] = asMap(await api.searchListings(
+                  {'limit': 12, 'sortBy': 'featured'}))['listings'] ??
+              [];
           result['events'] = asMap(await api.events())['events'] ?? [];
           if (auth.isLoggedIn) {
-            result['rfqs'] = asMap(await api.sellerRfqInbox({'matchOnly': 'false', 'limit': 6}))['rfqs'] ?? [];
+            result['rfqs'] = asMap(await api.sellerRfqInbox(
+                    {'matchOnly': 'false', 'limit': 6}))['rfqs'] ??
+                [];
           }
           return result;
         }),
@@ -1261,7 +1464,9 @@ class HomeScreen extends StatelessWidget {
           builder: (context, state) => AsyncContent(
             state: state,
             emptyTitle: 'Marketplace content unavailable',
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).searchListings({'limit': 12})),
+            onRetry: () => context
+                .read<ResourceCubit>()
+                .load(() => apiOf(context).searchListings({'limit': 12})),
             builder: (_) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1271,20 +1476,24 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 18),
                 const InstantRfqCard(),
                 const SizedBox(height: 22),
-                SectionTitle(title: 'Premium Bulk Listings', actionText: 'Browse All Products', action: () => context.push('/search')),
+                SectionTitle(
+                    title: 'Premium Bulk Listings',
+                    actionText: 'Browse All Products',
+                    action: () => context.push('/search')),
                 const SizedBox(height: 12),
                 ...asList(state.data['featured']).take(6).map((item) {
                   final catName = categoryName(item).toLowerCase();
                   final title = textOf(item['title']).toLowerCase();
                   final hideTrust = const [
-                    'industrial registration',
-                    'electronics',
-                    'industrial textiles',
-                  ].contains(catName) || const [
-                    'industrial registration',
-                    'electronics',
-                    'industrial textiles',
-                  ].contains(title);
+                        'industrial registration',
+                        'electronics',
+                        'industrial textiles',
+                      ].contains(catName) ||
+                      const [
+                        'industrial registration',
+                        'electronics',
+                        'industrial textiles',
+                      ].contains(title);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: ListingTile(
@@ -1299,9 +1508,16 @@ class HomeScreen extends StatelessWidget {
                 CategoryGrid(categories: asList(state.data['categories'])),
                 if (asList(state.data['rfqs']).isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  SectionTitle(title: 'Active RFQ Requests', action: () => context.push('/rfq')),
+                  SectionTitle(
+                      title: 'Active RFQ Requests',
+                      action: () => context.push('/rfq')),
                   const SizedBox(height: 12),
-                  ...asList(state.data['rfqs']).take(4).map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: RfqTile(item: item, sellerMode: true, showMaxBudgetOnly: true))),
+                  ...asList(state.data['rfqs']).take(4).map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: RfqTile(
+                          item: item,
+                          sellerMode: true,
+                          showMaxBudgetOnly: true))),
                 ],
                 const SizedBox(height: 24),
                 const EscrowInfoCard(),
@@ -1330,7 +1546,10 @@ class SupplierJoinCard extends StatelessWidget {
         color: JaxColors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: JaxColors.primaryContainer.withValues(alpha: .2), blurRadius: 12, offset: const Offset(0, 6)),
+          BoxShadow(
+              color: JaxColors.primaryContainer.withValues(alpha: .2),
+              blurRadius: 12,
+              offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -1343,7 +1562,8 @@ class SupplierJoinCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'List your products, register your GSTIN, and quote on thousands of active RFQ requests.',
-            style: JaxText.bodyMedium.copyWith(color: Colors.white.withValues(alpha: .9), height: 1.5),
+            style: JaxText.bodyMedium.copyWith(
+                color: Colors.white.withValues(alpha: .9), height: 1.5),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -1352,13 +1572,16 @@ class SupplierJoinCard extends StatelessWidget {
               onPressed: () async {
                 final auth = context.read<AuthCubit>().state;
                 if (!auth.isLoggedIn) {
-                  context.push('/auth/login?redirect=${Uri.encodeComponent('/seller/dashboard')}&type=SELLER');
+                  context.push(
+                      '/auth/login?redirect=${Uri.encodeComponent('/seller/dashboard')}&type=SELLER');
                   return;
                 }
                 if (auth.isSeller) {
                   context.go('/seller/dashboard');
                 } else {
-                  await context.read<AuthCubit>().updateProfile({'userType': 'SELLER'});
+                  await context
+                      .read<AuthCubit>()
+                      .updateProfile({'userType': 'SELLER'});
                   if (context.mounted) context.go('/seller/dashboard');
                 }
               },
@@ -1366,12 +1589,17 @@ class SupplierJoinCard extends StatelessWidget {
                 backgroundColor: Colors.white,
                 foregroundColor: JaxColors.primaryContainer,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
                 elevation: 0,
               ),
               child: Text(
                 'REGISTER FACTORY CENTER',
-                style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1),
+                style: JaxText.label.copyWith(
+                    color: JaxColors.primaryContainer,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1),
               ),
             ),
           ),
@@ -1411,11 +1639,18 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
               foregroundColor: JaxColors.onSurfaceVariant,
               selectedForegroundColor: Colors.white,
               side: const BorderSide(color: Color(0xFFE5E7EB)),
-              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              textStyle:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             segments: const [
-              ButtonSegment(value: 'products', label: Text('Products'), icon: Icon(Icons.category_rounded)),
-              ButtonSegment(value: 'suppliers', label: Text('Suppliers'), icon: Icon(Icons.factory_rounded)),
+              ButtonSegment(
+                  value: 'products',
+                  label: Text('Products'),
+                  icon: Icon(Icons.category_rounded)),
+              ButtonSegment(
+                  value: 'suppliers',
+                  label: Text('Suppliers'),
+                  icon: Icon(Icons.factory_rounded)),
             ],
             selected: {_tab},
             onSelectionChanged: (value) => setState(() => _tab = value.first),
@@ -1424,9 +1659,13 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
           TextField(
             controller: _query,
             decoration: InputDecoration(
-              hintText: _tab == 'products' ? 'Search products, HSN codes, brands...' : 'Search factories, suppliers, GSTIN...',
+              hintText: _tab == 'products'
+                  ? 'Search products, HSN codes, brands...'
+                  : 'Search factories, suppliers, GSTIN...',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: IconButton(icon: const Icon(Icons.arrow_forward_rounded), onPressed: _go),
+              suffixIcon: IconButton(
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                  onPressed: _go),
             ),
             onSubmitted: (_) => _go(),
           ),
@@ -1438,7 +1677,8 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
   void _go() {
     final q = _query.text.trim();
     if (q.isEmpty) return;
-    context.push('/search?q=${Uri.encodeComponent(q)}${_tab == 'suppliers' ? '&type=supplier' : ''}');
+    context.push(
+        '/search?q=${Uri.encodeComponent(q)}${_tab == 'suppliers' ? '&type=supplier' : ''}');
   }
 }
 
@@ -1451,16 +1691,44 @@ class InstantRfqCard extends StatefulWidget {
 
 class _InstantRfqCardState extends State<InstantRfqCard> {
   final _rfqProduct = TextEditingController();
-  final _rfqQty = TextEditingController(text: '100');
+  final _rfqQty = TextEditingController();
   String _unit = 'Pieces';
 
-  static const _units = ['Pieces', 'Metric Tons', 'Kilograms', 'Boxes', 'Rolls'];
+  static const _units = [
+    'Pieces',
+    'Metric Tons',
+    'Kilograms',
+    'Boxes',
+    'Rolls'
+  ];
 
   @override
   void dispose() {
     _rfqProduct.dispose();
     _rfqQty.dispose();
     super.dispose();
+  }
+
+  InputDecoration _inputDecoration({required String hintText}) {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFF9FAFB),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      hintText: hintText,
+      hintStyle: TextStyle(
+        fontFamily: JaxText.body,
+        fontSize: 13,
+        color: Colors.grey.shade400,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: JaxColors.secondary, width: 1.2),
+      ),
+    );
   }
 
   @override
@@ -1473,106 +1741,222 @@ class _InstantRfqCardState extends State<InstantRfqCard> {
           Row(
             children: [
               Container(
-                height: 44,
-                width: 44,
+                height: 36,
+                width: 36,
                 decoration: BoxDecoration(
-                  color: JaxColors.secondary.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFD2EFEA),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.request_quote_rounded, color: JaxColors.secondary, size: 24),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.description_rounded,
+                  color: Color(0xFF2C9A91),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('INSTANT RFQ', style: JaxText.title.copyWith(fontSize: 15, color: JaxColors.primaryContainer)),
-                  Text('Get multiple quotes in 24 hours', style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+                  Text(
+                    'INSTANT RFQ',
+                    style: JaxText.title.copyWith(
+                      fontSize: 13,
+                      color: JaxColors.primaryContainer,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    'Get multiple quotes in 24 hours',
+                    style: JaxText.bodySmall.copyWith(
+                      color: Colors.grey.shade400,
+                      fontSize: 10,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 16),
           // Product label + field
-          Text('WHAT PRODUCT DO YOU NEED?', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+          Text(
+            'WHAT PRODUCT DO YOU NEED?',
+            style: JaxText.label
+                .copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: _rfqProduct,
-            decoration: const InputDecoration(hintText: 'e.g. Cotton Yarn 30s, CNC inserts'),
+            style: const TextStyle(
+              fontFamily: JaxText.body,
+              fontSize: 13,
+              color: JaxColors.primaryContainer,
+            ),
+            decoration:
+                _inputDecoration(hintText: 'e.g. Cotton Yarn 30s, CNC inserts'),
           ),
           const SizedBox(height: 14),
-          // Quantity + Unit row
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('QUANTITY', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _rfqQty,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(),
-                    ),
-                  ],
-                ),
+          // Quantity row (full width)
+          Text(
+            'QUANTITY',
+            style: JaxText.label
+                .copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _rfqQty,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(
+              fontFamily: JaxText.body,
+              fontSize: 13,
+              color: JaxColors.primaryContainer,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF9FAFB),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              hintText: '100',
+              hintStyle: TextStyle(
+                fontFamily: JaxText.body,
+                fontSize: 13,
+                color: Colors.grey.shade400,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('UNIT', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      value: _unit,
-                      decoration: const InputDecoration(),
-                      items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
-                      onChanged: (v) => setState(() => _unit = v ?? 'Pieces'),
-                    ),
-                  ],
-                ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: Color(0xFFE5E7EB), width: 1.0),
               ),
-            ],
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: JaxColors.secondary, width: 1.2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Unit row (full width)
+          Text(
+            'UNIT',
+            style: JaxText.label
+                .copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            value: _unit,
+            style: const TextStyle(
+              fontFamily: JaxText.body,
+              fontSize: 13,
+              color: JaxColors.primaryContainer,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF9FAFB),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: Color(0xFFE5E7EB), width: 1.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: JaxColors.secondary, width: 1.2),
+              ),
+            ),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: JaxColors.primaryContainer,
+              size: 20,
+            ),
+            items: _units
+                .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                .toList(),
+            onChanged: (v) => setState(() => _unit = v ?? 'Pieces'),
           ),
           const SizedBox(height: 18),
           // POST REQUEST FREE button
-          JaxButton(
-            label: 'POST REQUEST FREE',
-            fullWidth: true,
-            icon: Icons.arrow_forward_rounded,
-            onPressed: _postRfq,
+          Container(
+            width: double.infinity,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: JaxGradients.primary,
+              borderRadius: BorderRadius.circular(JaxRadius.lg),
+              boxShadow: [
+                BoxShadow(
+                  color: JaxColors.primary.withValues(alpha: 0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _postRfq,
+                borderRadius: BorderRadius.circular(JaxRadius.lg),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'POST REQUEST FREE',
+                      style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 14),
           // Secure Trade footer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: JaxColors.secondary.withValues(alpha: .06),
+              color: const Color(0xFFF0FAF9),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: JaxColors.secondary.withValues(alpha: .15)),
+              border: Border.all(color: const Color(0xFFE6F4F2)),
             ),
             child: Row(
               children: [
-                Container(
-                  height: 36,
-                  width: 36,
-                  decoration: BoxDecoration(
-                    color: JaxColors.secondary.withValues(alpha: .12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 18),
+                const Icon(
+                  Icons.security_rounded,
+                  color: JaxColors.secondary,
+                  size: 24,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('SECURE TRADE', style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 11)),
+                      Text(
+                        'SECURE TRADE',
+                        style: JaxText.label.copyWith(
+                          color: const Color(0xFF0C3733),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         'Escrow payments protected, 100% money back guarantee.',
-                        style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontSize: 11),
+                        style: JaxText.bodySmall.copyWith(
+                          color: const Color(0xFF165A54),
+                          fontSize: 10,
+                        ),
                       ),
                     ],
                   ),
@@ -1593,8 +1977,10 @@ class _InstantRfqCardState extends State<InstantRfqCard> {
       );
       return;
     }
-    final qty = _rfqQty.text.trim();
-    context.push('/rfq/create?title=${Uri.encodeComponent(product)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
+    final qtyVal = _rfqQty.text.trim();
+    final qty = qtyVal.isEmpty ? '100' : qtyVal;
+    context.push(
+        '/rfq/create?title=${Uri.encodeComponent(product)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
   }
 }
 
@@ -1609,17 +1995,23 @@ class EscrowInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 20),
+              const Icon(Icons.shield_rounded,
+                  color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('JAXMART ESCROW', style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+              Text('JAXMART ESCROW',
+                  style: JaxText.title.copyWith(
+                      fontSize: 14, color: JaxColors.primaryContainer)),
             ],
           ),
           const SizedBox(height: 18),
-          _buildItem('1. Secure Payments', 'JaxMart holds your funds in escrow, protecting you from fraud.'),
+          _buildItem('1. Secure Payments',
+              'JaxMart holds your funds in escrow, protecting you from fraud.'),
           const SizedBox(height: 16),
-          _buildItem('2. Verified Shipping', 'We verify GSTIN, HSN, and carrier logistics before releasing funds.'),
+          _buildItem('2. Verified Shipping',
+              'We verify GSTIN, HSN, and carrier logistics before releasing funds.'),
           const SizedBox(height: 16),
-          _buildItem('3. Inspection Guarantee', 'Release payments to suppliers only after verifying cargo quality.'),
+          _buildItem('3. Inspection Guarantee',
+              'Release payments to suppliers only after verifying cargo quality.'),
         ],
       ),
     );
@@ -1629,15 +2021,22 @@ class EscrowInfoCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.check_circle_rounded, color: JaxColors.secondary, size: 20),
+        const Icon(Icons.check_circle_rounded,
+            color: JaxColors.secondary, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.primaryContainer)),
+              Text(title,
+                  style: JaxText.label.copyWith(
+                      fontSize: 13, color: JaxColors.primaryContainer)),
               const SizedBox(height: 4),
-              Text(subtitle, style: JaxText.bodyMedium.copyWith(color: JaxColors.onSurfaceVariant, fontSize: 13, height: 1.4)),
+              Text(subtitle,
+                  style: JaxText.bodyMedium.copyWith(
+                      color: JaxColors.onSurfaceVariant,
+                      fontSize: 13,
+                      height: 1.4)),
             ],
           ),
         ),
@@ -1724,27 +2123,35 @@ class FeaturedFactoriesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.handshake_rounded, color: JaxColors.secondary, size: 20),
+              const Icon(Icons.handshake_rounded,
+                  color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('FEATURED FACTORIES', style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+              Text('FEATURED FACTORIES',
+                  style: JaxText.title.copyWith(
+                      fontSize: 14, color: JaxColors.primaryContainer)),
             ],
           ),
           const SizedBox(height: 18),
           ..._featuredFactories.map((seller) {
             final business = asMap(seller['businessProfile']);
-            final name = textOf(business['businessName'], textOf(seller['fullName'], 'Supplier'));
-            
+            final name = textOf(business['businessName'],
+                textOf(seller['fullName'], 'Supplier'));
+
             final addresses = asList(seller['addresses']);
-            final primaryAddress = addresses.isNotEmpty ? addresses.first : null;
+            final primaryAddress =
+                addresses.isNotEmpty ? addresses.first : null;
             final location = primaryAddress != null
                 ? textOf(primaryAddress['city'], 'India')
                 : 'India';
-            
+
             final rawEstYear = business['establishedYear'];
             final est = rawEstYear != null ? rawEstYear.toString() : '2015';
-            
+
             final category = textOf(business['businessType'], 'Industrial');
-            final initials = name.length >= 2 ? name.substring(0, 1).toUpperCase() + name.substring(1, 2).toLowerCase() : name.toUpperCase();
+            final initials = name.length >= 2
+                ? name.substring(0, 1).toUpperCase() +
+                    name.substring(1, 2).toLowerCase()
+                : name.toUpperCase();
             final isLast = seller == _featuredFactories.last;
 
             return Column(
@@ -1763,13 +2170,15 @@ class FeaturedFactoriesCard extends StatelessWidget {
                         height: 52,
                         decoration: BoxDecoration(
                           color: JaxColors.surface,
-                          border: Border.all(color: JaxColors.outlineVariant, width: 1.2),
+                          border: Border.all(
+                              color: JaxColors.outlineVariant, width: 1.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           initials,
-                          style: JaxText.title.copyWith(color: JaxColors.secondary, fontSize: 16),
+                          style: JaxText.title.copyWith(
+                              color: JaxColors.secondary, fontSize: 16),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -1777,17 +2186,29 @@ class FeaturedFactoriesCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name, style: JaxText.title.copyWith(fontSize: 14, color: JaxColors.primaryContainer)),
+                            Text(name,
+                                style: JaxText.title.copyWith(
+                                    fontSize: 14,
+                                    color: JaxColors.primaryContainer)),
                             const SizedBox(height: 4),
-                            Text('$location • Est. $est', style: JaxText.bodySmall.copyWith(fontSize: 11, color: JaxColors.onSurfaceVariant)),
+                            Text('$location • Est. $est',
+                                style: JaxText.bodySmall.copyWith(
+                                    fontSize: 11,
+                                    color: JaxColors.onSurfaceVariant)),
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: JaxColors.secondary.withValues(alpha: .12),
+                                color:
+                                    JaxColors.secondary.withValues(alpha: .12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(category.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9, letterSpacing: 0.5)),
+                              child: Text(category.toUpperCase(),
+                                  style: JaxText.label.copyWith(
+                                      color: JaxColors.secondaryDark,
+                                      fontSize: 9,
+                                      letterSpacing: 0.5)),
                             ),
                           ],
                         ),
@@ -1821,7 +2242,8 @@ class _EventCarouselState extends State<EventCarousel> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
-      if (mounted && widget.events.length > 1) setState(() => _index = (_index + 1) % widget.events.length);
+      if (mounted && widget.events.length > 1)
+        setState(() => _index = (_index + 1) % widget.events.length);
     });
   }
 
@@ -1838,30 +2260,52 @@ class _EventCarouselState extends State<EventCarousel> {
     final media = textOf(event['mediaUrl']);
     return Container(
       height: 210,
-      decoration: BoxDecoration(color: const Color(0xFF090B11), borderRadius: BorderRadius.circular(JaxRadius.xl)),
+      decoration: BoxDecoration(
+          color: const Color(0xFF090B11),
+          borderRadius: BorderRadius.circular(JaxRadius.xl)),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (media.isNotEmpty) Image.network(media, fit: BoxFit.cover, opacity: const AlwaysStoppedAnimation(.72)),
-          const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, Colors.black87], begin: Alignment.topCenter, end: Alignment.bottomCenter))),
+          if (media.isNotEmpty)
+            Image.network(media,
+                fit: BoxFit.cover, opacity: const AlwaysStoppedAnimation(.72)),
+          const DecoratedBox(
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [Colors.transparent, Colors.black87],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter))),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const StatusPill(label: 'Upcoming B2B Event', color: JaxColors.secondary),
+                const StatusPill(
+                    label: 'Upcoming B2B Event', color: JaxColors.secondary),
                 const SizedBox(height: 10),
-                Text(textOf(event['title']), style: JaxText.h3.copyWith(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(textOf(event['title']),
+                    style: JaxText.h3.copyWith(color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 6),
-                Text(textOf(event['description']), style: JaxText.bodySmall.copyWith(color: Colors.white70), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(textOf(event['description']),
+                    style: JaxText.bodySmall.copyWith(color: Colors.white70),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, color: JaxColors.secondary, size: 16),
-                    Expanded(child: Text(textOf(event['location'], 'Online'), style: JaxText.bodySmall.copyWith(color: Colors.white70), maxLines: 1)),
-                    Text(shortDate(event['date']), style: JaxText.label.copyWith(color: Colors.white)),
+                    const Icon(Icons.location_on_rounded,
+                        color: JaxColors.secondary, size: 16),
+                    Expanded(
+                        child: Text(textOf(event['location'], 'Online'),
+                            style: JaxText.bodySmall
+                                .copyWith(color: Colors.white70),
+                            maxLines: 1)),
+                    Text(shortDate(event['date']),
+                        style: JaxText.label.copyWith(color: Colors.white)),
                   ],
                 ),
               ],
@@ -1879,12 +2323,17 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categories.isEmpty) return const EmptyState(title: 'No categories available');
+    if (categories.isEmpty)
+      return const EmptyState(title: 'No categories available');
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: categories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 2.4, crossAxisSpacing: 10, mainAxisSpacing: 10),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 2.4,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10),
       itemBuilder: (context, index) {
         final cat = categories[index];
         return JaxCard(
@@ -1892,9 +2341,20 @@ class CategoryGrid extends StatelessWidget {
           onTap: () => context.push('/search?category=${cat['id']}'),
           child: Row(
             children: [
-              Container(height: 38, width: 38, decoration: BoxDecoration(color: JaxColors.secondary.withValues(alpha: .10), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.category_rounded, color: JaxColors.secondaryDark)),
+              Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                      color: JaxColors.secondary.withValues(alpha: .10),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.category_rounded,
+                      color: JaxColors.secondaryDark)),
               const SizedBox(width: 10),
-              Expanded(child: Text(textOf(cat['name']), style: JaxText.title.copyWith(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis)),
+              Expanded(
+                  child: Text(textOf(cat['name']),
+                      style: JaxText.title.copyWith(fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis)),
             ],
           ),
         );
@@ -1904,7 +2364,11 @@ class CategoryGrid extends StatelessWidget {
 }
 
 class SectionTitle extends StatelessWidget {
-  const SectionTitle({required this.title, this.action, this.actionText = 'View all', super.key});
+  const SectionTitle(
+      {required this.title,
+      this.action,
+      this.actionText = 'View all',
+      super.key});
   final String title;
   final VoidCallback? action;
   final String actionText;
@@ -1914,7 +2378,8 @@ class SectionTitle extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(title, style: JaxText.h3)),
-        if (action != null) TextButton(onPressed: action, child: Text(actionText)),
+        if (action != null)
+          TextButton(onPressed: action, child: Text(actionText)),
       ],
     );
   }
@@ -1962,8 +2427,14 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ResourceCubit()..load(() => apiOf(context).searchListings(_params), listKeys: const ['listings'])),
-        BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
+        BlocProvider(
+            create: (_) => ResourceCubit()
+              ..load(() => apiOf(context).searchListings(_params),
+                  listKeys: const ['listings'])),
+        BlocProvider(
+            create: (_) => CategoriesCubit()
+              ..load(() => apiOf(context).categories(),
+                  listKeys: const ['categories'])),
       ],
       child: Builder(
         builder: (context) {
@@ -1971,7 +2442,8 @@ class _SearchScreenState extends State<SearchScreen> {
             builder: (context, state) {
               final pagination = asMap(state.data['pagination']);
               final total = (numOf(pagination['total']) ?? 0).toInt();
-              final titleText = _q.text.isEmpty ? 'Wholesale Directory' : 'Search Results';
+              final titleText =
+                  _q.text.isEmpty ? 'Wholesale Directory' : 'Search Results';
 
               final titleWidget = Text.rich(
                 TextSpan(
@@ -1982,7 +2454,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       TextSpan(
                         text: '($total items found)',
                         style: JaxText.bodySmall.copyWith(
-                          color: JaxColors.onSurfaceVariant.withValues(alpha: 0.7),
+                          color:
+                              JaxColors.onSurfaceVariant.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w400,
                           fontSize: 13,
                         ),
@@ -1995,7 +2468,9 @@ class _SearchScreenState extends State<SearchScreen> {
               return JaxPage(
                 title: titleText,
                 titleWidget: titleWidget,
-                subtitle: _q.text.isEmpty ? 'Find verified products and suppliers' : _q.text,
+                subtitle: _q.text.isEmpty
+                    ? 'Find verified products and suppliers'
+                    : _q.text,
                 child: Column(
                   children: [
                     Builder(
@@ -2009,7 +2484,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               prefixIcon: const Icon(Icons.search_rounded),
                               hintText: 'Enter keywords to search...',
                               suffixIcon: IconButton(
-                                icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded),
+                                icon: Icon(_grid
+                                    ? Icons.list_rounded
+                                    : Icons.grid_view_rounded),
                                 onPressed: () => setState(() => _grid = !_grid),
                               ),
                             ),
@@ -2021,7 +2498,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('Quick Filters:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                              Text('Quick Filters:',
+                                  style: JaxText.label.copyWith(
+                                      fontSize: 13,
+                                      color: JaxColors.onSurfaceVariant)),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: SingleChildScrollView(
@@ -2033,7 +2513,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                         icon: Icons.verified_user_rounded,
                                         selected: _verified,
                                         onTap: () {
-                                          setState(() => _verified = !_verified);
+                                          setState(
+                                              () => _verified = !_verified);
                                           _reload(context);
                                         },
                                       ),
@@ -2053,7 +2534,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                         icon: null,
                                         selected: _topRated,
                                         onTap: () {
-                                          setState(() => _topRated = !_topRated);
+                                          setState(
+                                              () => _topRated = !_topRated);
                                           _reload(context);
                                         },
                                       ),
@@ -2067,25 +2549,58 @@ class _SearchScreenState extends State<SearchScreen> {
 
                           // ── Sort By ──────────────────────────────────────────────
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
                               color: JaxColors.surface,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: JaxColors.outlineVariant, width: 1),
+                              border: Border.all(
+                                  color: JaxColors.outlineVariant, width: 1),
                             ),
                             child: Row(
                               children: [
-                                Text('Sort By:', style: JaxText.label.copyWith(fontSize: 13, color: JaxColors.onSurfaceVariant)),
+                                Text('Sort By:',
+                                    style: JaxText.label.copyWith(
+                                        fontSize: 13,
+                                        color: JaxColors.onSurfaceVariant)),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        _SortTab(label: 'RELEVANCE', value: 'relevance', selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                        _SortTab(label: 'NEWEST',    value: 'newest',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                        _SortTab(label: 'RATING',    value: 'rating',    selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
-                                        _SortTab(label: 'FEATURED',  value: 'featured',  selected: _sort, onTap: (v) { setState(() => _sort = v); _reload(context); }),
+                                        _SortTab(
+                                            label: 'RELEVANCE',
+                                            value: 'relevance',
+                                            selected: _sort,
+                                            onTap: (v) {
+                                              setState(() => _sort = v);
+                                              _reload(context);
+                                            }),
+                                        _SortTab(
+                                            label: 'NEWEST',
+                                            value: 'newest',
+                                            selected: _sort,
+                                            onTap: (v) {
+                                              setState(() => _sort = v);
+                                              _reload(context);
+                                            }),
+                                        _SortTab(
+                                            label: 'RATING',
+                                            value: 'rating',
+                                            selected: _sort,
+                                            onTap: (v) {
+                                              setState(() => _sort = v);
+                                              _reload(context);
+                                            }),
+                                        _SortTab(
+                                            label: 'FEATURED',
+                                            value: 'featured',
+                                            selected: _sort,
+                                            onTap: (v) {
+                                              setState(() => _sort = v);
+                                              _reload(context);
+                                            }),
                                       ],
                                     ),
                                   ),
@@ -2102,11 +2617,20 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: [
-                                  ChoiceChip(label: const Text('All'), selected: _category.isEmpty, onSelected: (_) => _setCategory(context, '')),
+                                  ChoiceChip(
+                                      label: const Text('All'),
+                                      selected: _category.isEmpty,
+                                      onSelected: (_) =>
+                                          _setCategory(context, '')),
                                   const SizedBox(width: 8),
                                   ...cats.items.map((cat) => Padding(
-                                        padding: const EdgeInsets.only(right: 8),
-                                        child: ChoiceChip(label: Text(textOf(cat['name'])), selected: _category == cat['id'], onSelected: (_) => _setCategory(context, textOf(cat['id']))),
+                                        padding:
+                                            const EdgeInsets.only(right: 8),
+                                        child: ChoiceChip(
+                                            label: Text(textOf(cat['name'])),
+                                            selected: _category == cat['id'],
+                                            onSelected: (_) => _setCategory(
+                                                context, textOf(cat['id']))),
                                       )),
                                 ],
                               ),
@@ -2125,15 +2649,26 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [
                             ...state.items.map((item) => Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
-                                  child: ListingTile(item: item, grid: _grid, showChat: true),
+                                  child: ListingTile(
+                                      item: item, grid: _grid, showChat: true),
                                 )),
                             if (state.totalPages > 1)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  TextButton(onPressed: _page > 1 ? () => _pageTo(context, _page - 1) : null, child: const Text('PREV')),
-                                  Text('PAGE ${state.page} / ${state.totalPages}', style: JaxText.label),
-                                  TextButton(onPressed: _page < state.totalPages ? () => _pageTo(context, _page + 1) : null, child: const Text('NEXT')),
+                                  TextButton(
+                                      onPressed: _page > 1
+                                          ? () => _pageTo(context, _page - 1)
+                                          : null,
+                                      child: const Text('PREV')),
+                                  Text(
+                                      'PAGE ${state.page} / ${state.totalPages}',
+                                      style: JaxText.label),
+                                  TextButton(
+                                      onPressed: _page < state.totalPages
+                                          ? () => _pageTo(context, _page + 1)
+                                          : null,
+                                      child: const Text('NEXT')),
                                 ],
                               ),
                           ],
@@ -2164,7 +2699,10 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _reload(BuildContext context) {
-    context.read<ResourceCubit>().load(() => apiOf(context).searchListings(_params), listKeys: const ['listings'], refresh: true);
+    context.read<ResourceCubit>().load(
+        () => apiOf(context).searchListings(_params),
+        listKeys: const ['listings'],
+        refresh: true);
   }
 }
 
@@ -2190,7 +2728,9 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? JaxColors.secondary.withValues(alpha: .12) : Colors.transparent,
+          color: selected
+              ? JaxColors.secondary.withValues(alpha: .12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? JaxColors.secondary : JaxColors.outlineVariant,
@@ -2244,7 +2784,8 @@ class _SortTab extends StatelessWidget {
           style: JaxText.label.copyWith(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? JaxColors.secondary : JaxColors.onSurfaceVariant,
+            color:
+                isSelected ? JaxColors.secondary : JaxColors.onSurfaceVariant,
             letterSpacing: 0.4,
           ),
         ),
@@ -2280,14 +2821,17 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).listing(widget.id)),
+      create: (_) =>
+          ResourceCubit()..load(() => apiOf(context).listing(widget.id)),
       child: BlocBuilder<ResourceCubit, ResourceState>(
         builder: (context, state) => JaxPage(
           title: state.data.isEmpty ? 'Listing' : textOf(state.data['title']),
           subtitle: categoryName(state.data),
           child: AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).listing(widget.id)),
+            onRetry: () => context
+                .read<ResourceCubit>()
+                .load(() => apiOf(context).listing(widget.id)),
             builder: (_) {
               final item = state.data;
               final product = asMap(item['productDetail']);
@@ -2295,13 +2839,15 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final seller = asMap(item['seller']);
               final media = asList(item['media']);
               final currentUser = context.watch<AuthCubit>().state.user;
-              final isOwner = currentUser != null && textOf(currentUser['id']) == textOf(seller['id']);
+              final isOwner = currentUser != null &&
+                  textOf(currentUser['id']) == textOf(seller['id']);
               final basePriceNum = numOf(product['pricePerUnit']);
               final bulkSlabs = asList(product['bulkPriceSlabs']);
               final productCerts = asStringList(product['certifications']);
               final businessProfile = asMap(seller['businessProfile']);
               final businessCerts = asList(businessProfile['certifications']);
-              final hasCerts = productCerts.isNotEmpty || businessCerts.isNotEmpty;
+              final hasCerts =
+                  productCerts.isNotEmpty || businessCerts.isNotEmpty;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2309,11 +2855,20 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     aspectRatio: 1,
                     child: JaxCard(
                       padding: EdgeInsets.zero,
-                      child: media.isEmpty ? const Center(child: Icon(Icons.factory_rounded, size: 56, color: JaxColors.outlineVariant)) : Image.network(textOf(media.first['url']), fit: BoxFit.cover),
+                      child: media.isEmpty
+                          ? const Center(
+                              child: Icon(Icons.factory_rounded,
+                                  size: 56, color: JaxColors.outlineVariant))
+                          : Image.network(textOf(media.first['url']),
+                              fit: BoxFit.cover),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(children: [StatusPill(label: statusOf(item, 'PRODUCT')), const SizedBox(width: 8), StatusPill(label: textOf(seller['kycStatus'], 'VERIFIED'))]),
+                  Row(children: [
+                    StatusPill(label: statusOf(item, 'PRODUCT')),
+                    const SizedBox(width: 8),
+                    StatusPill(label: textOf(seller['kycStatus'], 'VERIFIED'))
+                  ]),
                   const SizedBox(height: 14),
                   Text(textOf(item['title']), style: JaxText.h1),
                   const SizedBox(height: 10),
@@ -2330,7 +2885,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           product.isNotEmpty
                               ? (product['priceType'] == 'ON_REQUEST'
                                   ? 'Ask Price'
-                                  : product['priceType'] == 'RANGE' && product['priceRangeMin'] != null
+                                  : product['priceType'] == 'RANGE' &&
+                                          product['priceRangeMin'] != null
                                       ? 'Rs ${numOf(product['priceRangeMin'])?.toStringAsFixed(0)} - Rs ${numOf(product['priceRangeMax'])?.toStringAsFixed(0)}'
                                       : product['priceType'] == 'NEGOTIABLE'
                                           ? '${money(product['pricePerUnit'])} (Negotiable)'
@@ -2339,7 +2895,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           style: JaxText.h2,
                         ),
                         const SizedBox(height: 6),
-                        Text(product.isNotEmpty ? 'MOQ ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}' : '${textOf(service['serviceMode'], 'Service')} • ${textOf(service['typicalDuration'], 'Flexible timeline')}', style: JaxText.bodySmall),
+                        Text(
+                            product.isNotEmpty
+                                ? 'MOQ ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}'
+                                : '${textOf(service['serviceMode'], 'Service')} • ${textOf(service['typicalDuration'], 'Flexible timeline')}',
+                            style: JaxText.bodySmall),
                       ],
                     ),
                   ),
@@ -2364,7 +2924,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       icon: const Icon(Icons.send_rounded, size: 18),
                       label: Text(
                         'INITIATE INQUIRY DISPATCH',
-                        style: JaxText.label.copyWith(color: Colors.white, fontSize: 13, letterSpacing: 0.8),
+                        style: JaxText.label.copyWith(
+                            color: Colors.white,
+                            fontSize: 13,
+                            letterSpacing: 0.8),
                       ),
                     ),
                   ),
@@ -2375,7 +2938,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: JaxColors.primaryContainer,
-                        side: const BorderSide(color: JaxColors.primaryContainer, width: 1.4),
+                        side: const BorderSide(
+                            color: JaxColors.primaryContainer, width: 1.4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(JaxRadius.lg),
                         ),
@@ -2387,7 +2951,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       icon: const Icon(Icons.business_rounded, size: 17),
                       label: Text(
                         'VIEW SUPPLIER PROFILE',
-                        style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 12, letterSpacing: 0.7),
+                        style: JaxText.label.copyWith(
+                            color: JaxColors.primaryContainer,
+                            fontSize: 12,
+                            letterSpacing: 0.7),
                       ),
                     ),
                   ),
@@ -2402,7 +2969,17 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       children: [
                         const Text('MERCHANT PROFILE', style: JaxText.h3),
                         const SizedBox(height: 12),
-                        Row(children: [JaxAvatar(name: sellerName(item), url: textOf(seller['avatarUrl'])), const SizedBox(width: 12), Expanded(child: Text(sellerName(item), style: JaxText.title)), if (!isOwner) TrustScore(score: numOf(seller['trustScore']) ?? 85)]),
+                        Row(children: [
+                          JaxAvatar(
+                              name: sellerName(item),
+                              url: textOf(seller['avatarUrl'])),
+                          const SizedBox(width: 12),
+                          Expanded(
+                              child:
+                                  Text(sellerName(item), style: JaxText.title)),
+                          if (!isOwner)
+                            TrustScore(score: numOf(seller['trustScore']) ?? 85)
+                        ]),
                       ],
                     ),
                   ),
@@ -2431,16 +3008,28 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                                 ),
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                                    child: Text('MIN QTY VOLUME', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    child: Text('MIN QTY VOLUME',
+                                        style: JaxText.label.copyWith(
+                                            color: JaxColors.outline,
+                                            fontSize: 9)),
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                                    child: Text('MAX QTY VOLUME', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    child: Text('MAX QTY VOLUME',
+                                        style: JaxText.label.copyWith(
+                                            color: JaxColors.outline,
+                                            fontSize: 9)),
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                                    child: Text('UNIT RATE PRICE', style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 9)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    child: Text('UNIT RATE PRICE',
+                                        style: JaxText.label.copyWith(
+                                            color: JaxColors.outline,
+                                            fontSize: 9)),
                                   ),
                                 ],
                               ),
@@ -2455,27 +3044,42 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                               ...bulkSlabs.asMap().entries.expand((entry) {
                                 final index = entry.key;
                                 final slab = asMap(entry.value);
-                                final minQty = slab['minQty']?.toString() ?? '1';
-                                final maxQty = slab['maxQty'] != null ? slab['maxQty'].toString() : '∞';
+                                final minQty =
+                                    slab['minQty']?.toString() ?? '1';
+                                final maxQty = slab['maxQty'] != null
+                                    ? slab['maxQty'].toString()
+                                    : '∞';
                                 final priceVal = numOf(slab['price']) ?? 0;
-                                final priceText = money(priceVal).replaceAll('Rs ', '₹');
+                                final priceText =
+                                    money(priceVal).replaceAll('Rs ', '₹');
 
                                 return [
                                   TableRow(
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                        child: Text(minQty, style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 4),
+                                        child: Text(minQty,
+                                            style: JaxText.title.copyWith(
+                                                fontSize: 12,
+                                                color: JaxColors
+                                                    .primaryContainer)),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                        child: Text(maxQty, style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 4),
+                                        child: Text(maxQty,
+                                            style: JaxText.bodySmall
+                                                .copyWith(fontSize: 12)),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 4),
                                         child: Text(
                                           priceText,
-                                          style: JaxText.title.copyWith(fontSize: 12, color: JaxColors.secondaryDark),
+                                          style: JaxText.title.copyWith(
+                                              fontSize: 12,
+                                              color: JaxColors.secondaryDark),
                                         ),
                                       ),
                                     ],
@@ -2504,13 +3108,15 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
                             child: const Text(
                               'REGULATORY STANDARDS & COMPLIANCE CERTIFICATES',
                               style: JaxText.h3,
                             ),
                           ),
-                          const Divider(height: 1, color: JaxColors.outlineVariant),
+                          const Divider(
+                              height: 1, color: JaxColors.outlineVariant),
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Wrap(
@@ -2527,11 +3133,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                                   (() {
                                     final certMap = asMap(certObj);
                                     final name = textOf(certMap['certName']);
-                                    final isVerified = certMap['isVerified'] == true;
+                                    final isVerified =
+                                        certMap['isVerified'] == true;
                                     return CertificationChip(
                                       label: name,
                                       isVerified: isVerified,
-                                      color: isVerified ? JaxColors.success : JaxColors.outline,
+                                      color: isVerified
+                                          ? JaxColors.success
+                                          : JaxColors.outline,
                                     );
                                   })(),
                               ],
@@ -2546,9 +3155,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('ACCEPTED SETTLEMENT CHANNELS', style: JaxText.h3),
+                        const Text('ACCEPTED SETTLEMENT CHANNELS',
+                            style: JaxText.h3),
                         const SizedBox(height: 12),
-                        const Text('• JAXMART ESCROW CLEARING\n• TELEGRAPHIC TRANSFER (T/T)\n• IRREVOCABLE LETTER OF CREDIT (L/C)\n• NET BANKING / NEFT SETTLEMENT', style: JaxText.bodySmall),
+                        const Text(
+                            '• JAXMART ESCROW CLEARING\n• TELEGRAPHIC TRANSFER (T/T)\n• IRREVOCABLE LETTER OF CREDIT (L/C)\n• NET BANKING / NEFT SETTLEMENT',
+                            style: JaxText.bodySmall),
                       ],
                     ),
                   ),
@@ -2557,14 +3169,20 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('TECHNICAL PROSPECTUS & SCOPE DESCRIPTION', style: JaxText.h3),
+                        const Text('TECHNICAL PROSPECTUS & SCOPE DESCRIPTION',
+                            style: JaxText.h3),
                         const SizedBox(height: 12),
-                        Text(textOf(item['description']), style: JaxText.bodyMedium),
+                        Text(textOf(item['description']),
+                            style: JaxText.bodyMedium),
                       ],
                     ),
                   ),
                   const SizedBox(height: 18),
-                  DispatchInquiryCard(key: _dispatchKey, id: widget.id, item: item, product: product),
+                  DispatchInquiryCard(
+                      key: _dispatchKey,
+                      id: widget.id,
+                      item: item,
+                      product: product),
                 ],
               );
             },
@@ -2574,7 +3192,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 }
-
 
 class SupplierProfileDialog extends StatelessWidget {
   const SupplierProfileDialog({required this.seller, super.key});
@@ -2599,13 +3216,16 @@ class SupplierProfileDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final business = asMap(seller['businessProfile']);
-    final name = textOf(business['businessName'], textOf(seller['fullName'], 'Supplier'));
+    final name = textOf(
+        business['businessName'], textOf(seller['fullName'], 'Supplier'));
     final kycStatus = textOf(seller['kycStatus'], 'VERIFIED');
     final trust = (numOf(seller['trustScore']) ?? 85).toInt();
     final trustValue = (trust.clamp(0, 100) / 100.0);
-    final registryProfile = textOf(business['businessType'], 'MANUFACTURER / SUPPLIER');
+    final registryProfile =
+        textOf(business['businessType'], 'MANUFACTURER / SUPPLIER');
     final rawEstYear = business['establishedYear'];
-    final establishmentYear = rawEstYear != null ? rawEstYear.toString() : '2015';
+    final establishmentYear =
+        rawEstYear != null ? rawEstYear.toString() : '2015';
     final workforce = _formatWorkforce(textOf(business['employeeRange']));
     final gstin = textOf(business['gstin']);
     final hasGst = gstin.isNotEmpty && gstin != 'N/A';
@@ -2628,13 +3248,17 @@ class SupplierProfileDialog extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(color: JaxColors.primaryContainer),
+              decoration:
+                  const BoxDecoration(color: JaxColors.primaryContainer),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      JaxAvatar(name: name, url: textOf(seller['avatarUrl']), size: 46),
+                      JaxAvatar(
+                          name: name,
+                          url: textOf(seller['avatarUrl']),
+                          size: 46),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -2642,30 +3266,35 @@ class SupplierProfileDialog extends StatelessWidget {
                           children: [
                             Text(
                               name.toUpperCase(),
-                              style: JaxText.title.copyWith(color: Colors.white, fontSize: 13),
+                              style: JaxText.title
+                                  .copyWith(color: Colors.white, fontSize: 13),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.verified_rounded, color: JaxColors.secondary, size: 14),
+                                const Icon(Icons.verified_rounded,
+                                    color: JaxColors.secondary, size: 14),
                                 const SizedBox(width: 4),
                                 Text(
                                   kycStatus.replaceAll('_', ' ') + ' SUPPLIER',
-                                  style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10),
+                                  style: JaxText.label.copyWith(
+                                      color: JaxColors.secondary, fontSize: 10),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.location_on_rounded, color: Colors.white54, size: 13),
+                                const Icon(Icons.location_on_rounded,
+                                    color: Colors.white54, size: 13),
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
                                     location,
-                                    style: JaxText.bodySmall.copyWith(color: Colors.white70, fontSize: 10),
+                                    style: JaxText.bodySmall.copyWith(
+                                        color: Colors.white70, fontSize: 10),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -2677,7 +3306,8 @@ class SupplierProfileDialog extends StatelessWidget {
                       ),
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                        icon: const Icon(Icons.close_rounded,
+                            color: Colors.white54, size: 20),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
@@ -2700,7 +3330,10 @@ class SupplierProfileDialog extends StatelessWidget {
                       const SizedBox(width: 10),
                       Text(
                         '$trust% TRUST',
-                        style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 11, fontWeight: FontWeight.w700),
+                        style: JaxText.label.copyWith(
+                            color: JaxColors.secondary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -2712,10 +3345,13 @@ class SupplierProfileDialog extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Column(
                 children: [
-                  _ProfileRow(label: 'Registry Profile', value: registryProfile),
-                  _ProfileRow(label: 'Establishment Year', value: establishmentYear),
+                  _ProfileRow(
+                      label: 'Registry Profile', value: registryProfile),
+                  _ProfileRow(
+                      label: 'Establishment Year', value: establishmentYear),
                   _ProfileRow(label: 'Operational Workforce', value: workforce),
-                  if (hasGst) _ProfileRow(label: 'GST Registry ID', value: gstin),
+                  if (hasGst)
+                    _ProfileRow(label: 'GST Registry ID', value: gstin),
                 ],
               ),
             ),
@@ -2729,7 +3365,10 @@ class SupplierProfileDialog extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'ABOUT THE MERCHANT',
-                    style: JaxText.label.copyWith(color: JaxColors.primary, fontSize: 10, letterSpacing: 1),
+                    style: JaxText.label.copyWith(
+                        color: JaxColors.primary,
+                        fontSize: 10,
+                        letterSpacing: 1),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -2737,7 +3376,10 @@ class SupplierProfileDialog extends StatelessWidget {
                       business['description'],
                       '$name is an established $registryProfile based in $location, specializing in high-quality ${textOf(seller['primaryCategory'], 'Industrial Goods').toLowerCase()} and premium B2B solutions.',
                     ),
-                    style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, fontSize: 11.5, height: 1.35),
+                    style: JaxText.bodySmall.copyWith(
+                        color: JaxColors.onSurfaceVariant,
+                        fontSize: 11.5,
+                        height: 1.35),
                   ),
                 ],
               ),
@@ -2749,7 +3391,8 @@ class SupplierProfileDialog extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: JaxColors.secondary.withValues(alpha: .07),
-                  border: Border.all(color: JaxColors.secondary.withValues(alpha: .18)),
+                  border: Border.all(
+                      color: JaxColors.secondary.withValues(alpha: .18)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -2762,18 +3405,23 @@ class SupplierProfileDialog extends StatelessWidget {
                         color: JaxColors.secondary.withValues(alpha: .12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 18),
+                      child: const Icon(Icons.shield_rounded,
+                          color: JaxColors.secondary, size: 18),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TRADE ASSURANCE INDEX', style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 11)),
+                          Text('TRADE ASSURANCE INDEX',
+                              style: JaxText.label.copyWith(
+                                  color: JaxColors.secondaryDark,
+                                  fontSize: 11)),
                           const SizedBox(height: 4),
                           Text(
                             'Contracts registered under Trade Assurance include escrow protection and transit compliance guarantees.',
-                            style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontSize: 11),
+                            style: JaxText.bodySmall.copyWith(
+                                color: JaxColors.secondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -2805,12 +3453,15 @@ class _ProfileRow extends StatelessWidget {
             children: [
               SizedBox(
                 width: 120,
-                child: Text(label, style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+                child: Text(label,
+                    style: JaxText.bodySmall
+                        .copyWith(color: JaxColors.onSurfaceVariant)),
               ),
               Expanded(
                 child: Text(
                   value,
-                  style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                  style:
+                      JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700),
                   textAlign: TextAlign.end,
                 ),
               ),
@@ -2828,7 +3479,8 @@ class SelectedConfigurationCard extends StatefulWidget {
   final List<JsonMap> configurations;
 
   @override
-  State<SelectedConfigurationCard> createState() => _SelectedConfigurationCardState();
+  State<SelectedConfigurationCard> createState() =>
+      _SelectedConfigurationCardState();
 }
 
 class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
@@ -2839,7 +3491,9 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
     if (widget.configurations.isEmpty) return const SizedBox.shrink();
     final selected = widget.configurations[_selectedIndex];
     final stock = (selected['stock'] as num?)?.toInt() ?? 0;
-    final stockText = stock >= 999 ? 'Available on demand' : '$stock units available for immediate dispatch';
+    final stockText = stock >= 999
+        ? 'Available on demand'
+        : '$stock units available for immediate dispatch';
 
     return JaxCard(
       child: Column(
@@ -2858,11 +3512,16 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
                 onTap: () => setState(() => _selectedIndex = i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? JaxColors.primary.withValues(alpha: .12) : Colors.transparent,
+                    color: isSelected
+                        ? JaxColors.primary.withValues(alpha: .12)
+                        : Colors.transparent,
                     border: Border.all(
-                      color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                      color: isSelected
+                          ? JaxColors.primary
+                          : JaxColors.outlineVariant,
                       width: isSelected ? 1.8 : 1.0,
                     ),
                     borderRadius: BorderRadius.circular(10),
@@ -2873,7 +3532,8 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
                       Text(
                         textOf(cfg['name']),
                         style: JaxText.bodySmall.copyWith(
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
                           color: isSelected ? JaxColors.primary : null,
                         ),
                       ),
@@ -2881,7 +3541,9 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
                       Text(
                         money(cfgPrice),
                         style: JaxText.label.copyWith(
-                          color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                          color: isSelected
+                              ? JaxColors.primary
+                              : JaxColors.outlineVariant,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -2895,14 +3557,17 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
           Row(
             children: [
               Icon(
-                stock >= 999 ? Icons.inventory_2_rounded : Icons.local_shipping_rounded,
+                stock >= 999
+                    ? Icons.inventory_2_rounded
+                    : Icons.local_shipping_rounded,
                 size: 15,
                 color: JaxColors.secondary,
               ),
               const SizedBox(width: 6),
               Text(
                 stockText,
-                style: JaxText.bodySmall.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.w600),
+                style: JaxText.bodySmall.copyWith(
+                    color: JaxColors.secondary, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -2913,7 +3578,8 @@ class _SelectedConfigurationCardState extends State<SelectedConfigurationCard> {
 }
 
 class RatingReviewBar extends StatelessWidget {
-  const RatingReviewBar({required this.rating, required this.reviewCount, super.key});
+  const RatingReviewBar(
+      {required this.rating, required this.reviewCount, super.key});
   final double rating;
   final int reviewCount;
 
@@ -2925,17 +3591,21 @@ class RatingReviewBar extends StatelessWidget {
       children: [
         ...List.generate(5, (i) {
           if (i < fullStars) {
-            return const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 20);
+            return const Icon(Icons.star_rounded,
+                color: Color(0xFFFFB300), size: 20);
           } else if (i == fullStars && hasHalf) {
-            return const Icon(Icons.star_half_rounded, color: Color(0xFFFFB300), size: 20);
+            return const Icon(Icons.star_half_rounded,
+                color: Color(0xFFFFB300), size: 20);
           } else {
-            return const Icon(Icons.star_outline_rounded, color: Color(0xFFFFB300), size: 20);
+            return const Icon(Icons.star_outline_rounded,
+                color: Color(0xFFFFB300), size: 20);
           }
         }),
         const SizedBox(width: 8),
         Text(
           rating.toStringAsFixed(1),
-          style: JaxText.title.copyWith(color: const Color(0xFFFFB300), fontSize: 14),
+          style: JaxText.title
+              .copyWith(color: const Color(0xFFFFB300), fontSize: 14),
         ),
         const SizedBox(width: 6),
         Text(
@@ -2976,14 +3646,17 @@ class SpecsGrid extends StatelessWidget {
       if (sku.isNotEmpty) MapEntry('Model SKU', sku),
       MapEntry('Place of Origin', country),
       MapEntry('Min. Order Quantity', '$minOrderQty $unitOfMeasure'),
-      if (leadTimeDays != null) MapEntry('Global Lead Time', '$leadTimeDays Days'),
+      if (leadTimeDays != null)
+        MapEntry('Global Lead Time', '$leadTimeDays Days'),
       if (supplyAbility.isNotEmpty) MapEntry('Supply Capacity', supplyAbility),
       if (deliveryTime.isNotEmpty) MapEntry('Transit Terms', deliveryTime),
-      if (packagingDetails.isNotEmpty) MapEntry('Packaging Format', packagingDetails),
+      if (packagingDetails.isNotEmpty)
+        MapEntry('Packaging Format', packagingDetails),
       if (paymentTerms.isNotEmpty) MapEntry('Payment Terms', paymentTerms),
       if (fobPort.isNotEmpty) MapEntry('FOB Port', fobPort),
       if (warranty.isNotEmpty) MapEntry('Warranty Duration', warranty),
-      if (returnPolicy.isNotEmpty) MapEntry('Industrial Return Policy', returnPolicy),
+      if (returnPolicy.isNotEmpty)
+        MapEntry('Industrial Return Policy', returnPolicy),
       if (hsnCode.isNotEmpty) MapEntry('HSN Code', hsnCode),
       if (gstRate != null) MapEntry('GST Rate', '$gstRate%'),
     ];
@@ -3004,14 +3677,16 @@ class SpecsGrid extends StatelessWidget {
                       flex: 4,
                       child: Text(
                         e.key.toUpperCase(),
-                        style: JaxText.bodySmall.copyWith(color: Colors.grey.shade500),
+                        style: JaxText.bodySmall
+                            .copyWith(color: Colors.grey.shade500),
                       ),
                     ),
                     Expanded(
                       flex: 6,
                       child: Text(
                         e.value,
-                        style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                        style: JaxText.bodySmall
+                            .copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ],
@@ -3024,7 +3699,8 @@ class SpecsGrid extends StatelessWidget {
 }
 
 class DispatchInquiryCard extends StatefulWidget {
-  const DispatchInquiryCard({required this.id, required this.item, required this.product, super.key});
+  const DispatchInquiryCard(
+      {required this.id, required this.item, required this.product, super.key});
   final String id;
   final JsonMap item;
   final JsonMap product;
@@ -3066,9 +3742,12 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
                       const FieldLabel('TARGET VOLUME (PIECE)'),
                       TextFormField(
                         controller: _volume,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? 'Required' : null,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(hintText: 'Min: ${textOf(widget.product['minOrderQty'], '100')}'),
+                        decoration: InputDecoration(
+                            hintText:
+                                'Min: ${textOf(widget.product['minOrderQty'], '100')}'),
                       ),
                     ],
                   ),
@@ -3081,7 +3760,8 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
                       const FieldLabel('LOGISTICS UNIT TYPE'),
                       TextFormField(
                         controller: _unit,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? 'Required' : null,
                         decoration: const InputDecoration(),
                       ),
                     ],
@@ -3093,56 +3773,66 @@ class _DispatchInquiryCardState extends State<DispatchInquiryCard> {
             const FieldLabel('INQUIRY SPECIFICATIONS MESSAGE'),
             TextFormField(
               controller: _message,
-              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Required' : null,
               maxLines: 4,
-              decoration: InputDecoration(hintText: 'Provide clear scope descriptions...'),
+              decoration: InputDecoration(
+                  hintText: 'Provide clear scope descriptions...'),
             ),
             const SizedBox(height: 16),
             JaxButton(
               label: 'DISPATCH RFQ MESSAGE',
               loading: _loading,
-              onPressed: _loading ? null : () async {
-                if (_formKey.currentState!.validate()) {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final router = GoRouter.of(context);
-                  final api = apiOf(context);
-                  
-                  setState(() => _loading = true);
-                  try {
-                    final seller = asMap(widget.item['seller']);
-                    final sellerId = textOf(seller['id']);
-                    if (sellerId.isEmpty) {
-                      throw Exception('Seller information is missing.');
-                    }
-                    final volume = _volume.text.trim();
-                    final unit = _unit.text.trim();
-                    final specifications = _message.text.trim();
-                    final targetQuantity = volume.isNotEmpty ? '$volume $unit' : '';
-                    final payloadMessage = targetQuantity.isNotEmpty
-                        ? '$specifications\n\n*Target Volume: $targetQuantity*'
-                        : specifications;
+              onPressed: _loading
+                  ? null
+                  : () async {
+                      if (_formKey.currentState!.validate()) {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final router = GoRouter.of(context);
+                        final api = apiOf(context);
 
-                    final conv = await api.startConversation({
-                      'recipientId': sellerId,
-                      'listingId': widget.id,
-                      'initialMessage': payloadMessage,
-                    });
-                    
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('Inquiry dispatched successfully!')),
-                    );
-                    router.push('/messages/${conv['id']}');
-                  } catch (err) {
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(err.toString().replaceAll('Exception: ', ''))),
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() => _loading = false);
-                    }
-                  }
-                }
-              },
+                        setState(() => _loading = true);
+                        try {
+                          final seller = asMap(widget.item['seller']);
+                          final sellerId = textOf(seller['id']);
+                          if (sellerId.isEmpty) {
+                            throw Exception('Seller information is missing.');
+                          }
+                          final volume = _volume.text.trim();
+                          final unit = _unit.text.trim();
+                          final specifications = _message.text.trim();
+                          final targetQuantity =
+                              volume.isNotEmpty ? '$volume $unit' : '';
+                          final payloadMessage = targetQuantity.isNotEmpty
+                              ? '$specifications\n\n*Target Volume: $targetQuantity*'
+                              : specifications;
+
+                          final conv = await api.startConversation({
+                            'recipientId': sellerId,
+                            'listingId': widget.id,
+                            'initialMessage': payloadMessage,
+                          });
+
+                          messenger.showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Inquiry dispatched successfully!')),
+                          );
+                          router.push('/messages/${conv['id']}');
+                        } catch (err) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                                content: Text(err
+                                    .toString()
+                                    .replaceAll('Exception: ', ''))),
+                          );
+                        } finally {
+                          if (mounted) {
+                            setState(() => _loading = false);
+                          }
+                        }
+                      }
+                    },
             ),
           ],
         ),
@@ -3166,7 +3856,9 @@ class _RfqListScreenState extends State<RfqListScreen> {
 
   bool get sellerMode => widget.sellerMode;
 
-  List<String> get _currentTabs => sellerMode ? const ['ALL REQUESTS', 'MATCHED REQUESTS'] : const ['OPEN', 'AWARDED', 'CLOSED'];
+  List<String> get _currentTabs => sellerMode
+      ? const ['ALL REQUESTS', 'MATCHED REQUESTS']
+      : const ['OPEN', 'AWARDED', 'CLOSED'];
 
   @override
   void initState() {
@@ -3179,8 +3871,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
       if (sellerMode) {
         final matchTab = true;
         final matchSearch = _search.isEmpty ||
-            textOf(item['title']).toLowerCase().contains(_search.toLowerCase()) ||
-            textOf(item['description']).toLowerCase().contains(_search.toLowerCase());
+            textOf(item['title'])
+                .toLowerCase()
+                .contains(_search.toLowerCase()) ||
+            textOf(item['description'])
+                .toLowerCase()
+                .contains(_search.toLowerCase());
         return matchTab && matchSearch;
       }
       final status = textOf(item['status']).toUpperCase();
@@ -3188,10 +3884,14 @@ class _RfqListScreenState extends State<RfqListScreen> {
           ? (status == 'OPEN' || status.isEmpty)
           : _tab == 'AWARDED'
               ? status == 'AWARDED'
-              : (status == 'CLOSED' || status == 'CANCELLED' || status == 'COMPLETED');
+              : (status == 'CLOSED' ||
+                  status == 'CANCELLED' ||
+                  status == 'COMPLETED');
       final matchSearch = _search.isEmpty ||
           textOf(item['title']).toLowerCase().contains(_search.toLowerCase()) ||
-          textOf(item['description']).toLowerCase().contains(_search.toLowerCase());
+          textOf(item['description'])
+              .toLowerCase()
+              .contains(_search.toLowerCase());
       return matchTab && matchSearch;
     }).toList();
   }
@@ -3208,36 +3908,59 @@ class _RfqListScreenState extends State<RfqListScreen> {
       create: (_) => ResourceCubit()
         ..load(
           () => sellerMode
-              ? apiOf(context).sellerRfqInbox({'matchOnly': 'false', 'limit': 20})
+              ? apiOf(context)
+                  .sellerRfqInbox({'matchOnly': 'false', 'limit': 20})
               : apiOf(context).myRfqs({'limit': 20}),
           listKeys: const ['rfqs'],
         ),
       child: JaxPage(
         title: sellerMode ? 'BUYER REQUESTS' : 'My Requests',
-        topWidget: sellerMode ? null : Row(
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-                Text('MY REQUESTS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
-              ],
-            ),
-            const SizedBox(width: 24),
-            GestureDetector(
-              onTap: () => context.go('/orders'),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+        topWidget: sellerMode
+            ? null
+            : Row(
                 children: [
-                  Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle)),
-                  const SizedBox(width: 6),
-                  Text('MY ORDERS', style: JaxText.label.copyWith(color: JaxColors.outlineVariant, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                              color: JaxColors.secondary,
+                              shape: BoxShape.circle)),
+                      const SizedBox(width: 6),
+                      Text('MY REQUESTS',
+                          style: JaxText.label.copyWith(
+                              color: JaxColors.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                              letterSpacing: 1)),
+                    ],
+                  ),
+                  const SizedBox(width: 24),
+                  GestureDetector(
+                    onTap: () => context.go('/orders'),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                                color: Colors.transparent,
+                                shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        Text('MY ORDERS',
+                            style: JaxText.label.copyWith(
+                                color: JaxColors.outlineVariant,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                                letterSpacing: 1)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
         subtitle: sellerMode
             ? 'Active buyer requests awaiting quotes.'
             : 'Manage your sourcing requests and get quotes from sellers.',
@@ -3259,7 +3982,8 @@ class _RfqListScreenState extends State<RfqListScreen> {
                     children: [
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -3271,22 +3995,37 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('YOUR REQUESTS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                    Text('YOUR REQUESTS',
+                                        style: JaxText.label.copyWith(
+                                            fontSize: 10,
+                                            color: JaxColors.onSurfaceVariant)),
                                     const SizedBox(height: 4),
-                                    Text('${allItems.length}', style: JaxText.h2.copyWith(fontSize: 22)),
+                                    Text('${allItems.length}',
+                                        style:
+                                            JaxText.h2.copyWith(fontSize: 22)),
                                   ],
                                 ),
                               ),
-                              Container(width: 1, height: 36, color: JaxColors.outlineVariant),
+                              Container(
+                                  width: 1,
+                                  height: 36,
+                                  color: JaxColors.outlineVariant),
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.only(left: 14),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('QUOTES RECEIVED', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                      Text('QUOTES RECEIVED',
+                                          style: JaxText.label.copyWith(
+                                              fontSize: 10,
+                                              color:
+                                                  JaxColors.onSurfaceVariant)),
                                       const SizedBox(height: 4),
-                                      Text('$quotesCount', style: JaxText.h2.copyWith(fontSize: 22)),
+                                      Text('$quotesCount',
+                                          style: JaxText.h2
+                                              .copyWith(fontSize: 22)),
                                     ],
                                   ),
                                 ),
@@ -3300,12 +4039,16 @@ class _RfqListScreenState extends State<RfqListScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: JaxColors.primaryContainer,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
                           elevation: 0,
                         ),
                         icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('New Request', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        label: const Text('New Request',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
                         onPressed: () => context.push('/rfq/create'),
                       ),
                     ],
@@ -3328,18 +4071,34 @@ class _RfqListScreenState extends State<RfqListScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .02), blurRadius: 4, offset: const Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: .02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2))
+                          ],
                         ),
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _search = v),
                           decoration: InputDecoration(
                             hintText: 'Search keywords...',
-                            hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
-                            prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant, width: 0.5)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant, width: 0.5)),
+                            hintStyle: JaxText.bodySmall
+                                .copyWith(color: JaxColors.onSurfaceVariant),
+                            prefixIcon:
+                                const Icon(Icons.search_rounded, size: 18),
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: JaxColors.outlineVariant,
+                                    width: 0.5)),
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: JaxColors.outlineVariant,
+                                    width: 0.5)),
                           ),
                         ),
                       ),
@@ -3349,7 +4108,8 @@ class _RfqListScreenState extends State<RfqListScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: JaxColors.outlineVariant, width: 0.5),
+                          border: Border.all(
+                              color: JaxColors.outlineVariant, width: 0.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -3363,7 +4123,9 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   cubit.clear();
                                   cubit.load(
                                     () => apiOf(context).sellerRfqInbox({
-                                      'matchOnly': tab == 'MATCHED REQUESTS' ? 'true' : 'false',
+                                      'matchOnly': tab == 'MATCHED REQUESTS'
+                                          ? 'true'
+                                          : 'false',
                                       'limit': 20,
                                     }),
                                     listKeys: const ['rfqs'],
@@ -3372,9 +4134,13 @@ class _RfqListScreenState extends State<RfqListScreen> {
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: selected ? const Color(0xFF1E1B4B) : Colors.transparent, // Primary dark indigo
+                                  color: selected
+                                      ? const Color(0xFF1E1B4B)
+                                      : Colors
+                                          .transparent, // Primary dark indigo
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -3382,8 +4148,13 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   style: JaxText.label.copyWith(
                                     fontSize: 10,
                                     letterSpacing: 0.5,
-                                    color: selected ? Colors.white : JaxColors.onSurfaceVariant.withValues(alpha: .6),
-                                    fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                                    color: selected
+                                        ? Colors.white
+                                        : JaxColors.onSurfaceVariant
+                                            .withValues(alpha: .6),
+                                    fontWeight: selected
+                                        ? FontWeight.w800
+                                        : FontWeight.w700,
                                   ),
                                 ),
                               ),
@@ -3415,17 +4186,24 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 onTap: () => setState(() => _tab = tab),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 180),
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 7),
                                   decoration: BoxDecoration(
-                                    color: selected ? JaxColors.primaryContainer : Colors.transparent,
+                                    color: selected
+                                        ? JaxColors.primaryContainer
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     tab,
                                     style: JaxText.label.copyWith(
                                       fontSize: 12,
-                                      color: selected ? Colors.white : JaxColors.onSurfaceVariant,
-                                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                      color: selected
+                                          ? Colors.white
+                                          : JaxColors.onSurfaceVariant,
+                                      fontWeight: selected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -3443,10 +4221,16 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           onChanged: (v) => setState(() => _search = v),
                           decoration: InputDecoration(
                             hintText: 'Search requests...',
-                            hintStyle: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
-                            prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.outlineVariant)),
+                            hintStyle: JaxText.bodySmall
+                                .copyWith(color: JaxColors.onSurfaceVariant),
+                            prefixIcon:
+                                const Icon(Icons.search_rounded, size: 18),
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: JaxColors.outlineVariant)),
                           ),
                         ),
                       ),
@@ -3458,33 +4242,41 @@ class _RfqListScreenState extends State<RfqListScreen> {
                 if (state.status == ResourceStatus.loading && !state.hasData)
                   const PageLoader()
                 else if (filtered.isEmpty)
-                  sellerMode 
-                    ? JaxCard(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.inbox_rounded, size: 48, color: Colors.grey.shade400),
-                              const SizedBox(height: 16),
-                              Text('Inbox is empty', style: JaxText.h3.copyWith(color: const Color(0xFF16104A))),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Requests matching your categories will appear here.',
-                                textAlign: TextAlign.center,
-                                style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
-                              ),
-                            ],
+                  sellerMode
+                      ? JaxCard(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 60, horizontal: 16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.inbox_rounded,
+                                    size: 48, color: Colors.grey.shade400),
+                                const SizedBox(height: 16),
+                                Text('Inbox is empty',
+                                    style: JaxText.h3.copyWith(
+                                        color: const Color(0xFF16104A))),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Requests matching your categories will appear here.',
+                                  textAlign: TextAlign.center,
+                                  style: JaxText.bodySmall.copyWith(
+                                      color: JaxColors.onSurfaceVariant,
+                                      height: 1.5),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : _EmptyRequests(onPost: () => context.push('/rfq/create'))
+                        )
+                      : _EmptyRequests(
+                          onPost: () => context.push('/rfq/create'))
                 else
                   Column(
                     children: filtered
                         .map((item) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: RfqTile(item: item, sellerMode: sellerMode),
+                              child:
+                                  RfqTile(item: item, sellerMode: sellerMode),
                             ))
                         .toList(),
                   ),
@@ -3498,81 +4290,114 @@ class _RfqListScreenState extends State<RfqListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: JaxColors.secondary.withValues(alpha: .15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text('TIPS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.secondaryDark)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Detailed requests with quantities and budgets get up to 40% more quotes.',
-                        style: JaxText.bodyMedium.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
-                      ),
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: JaxColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('SELLERS ONLINE', style: JaxText.label.copyWith(fontSize: 10, color: Colors.white70)),
-                                const SizedBox(height: 3),
-                                Text('8,204 Suppliers', style: JaxText.title.copyWith(color: Colors.white, fontSize: 15)),
-                              ],
-                            ),
-                            const Spacer(),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(color: JaxColors.success.withValues(alpha: .2), borderRadius: BorderRadius.circular(20)),
-                              child: Row(
-                                children: [
-                                  Container(width: 7, height: 7, decoration: const BoxDecoration(color: JaxColors.success, shape: BoxShape.circle)),
-                                  const SizedBox(width: 5),
-                                  Text('Online', style: JaxText.label.copyWith(color: JaxColors.success, fontSize: 11)),
-                                ],
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color:
+                                    JaxColors.secondary.withValues(alpha: .15),
+                                borderRadius: BorderRadius.circular(6),
                               ),
+                              child: Text('TIPS',
+                                  style: JaxText.label.copyWith(
+                                      fontSize: 10,
+                                      color: JaxColors.secondaryDark)),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          const Icon(Icons.verified_user_rounded, color: JaxColors.secondary, size: 18),
-                          const SizedBox(width: 8),
-                          Text('TRUST & SAFETY', style: JaxText.label.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Quotes come from verified suppliers with full profiles.',
-                        style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 10),
-                      OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: JaxColors.primaryContainer,
-                          side: const BorderSide(color: JaxColors.outlineVariant),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          minimumSize: const Size(double.infinity, 38),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Detailed requests with quantities and budgets get up to 40% more quotes.',
+                          style: JaxText.bodyMedium.copyWith(
+                              color: JaxColors.onSurfaceVariant, height: 1.5),
                         ),
-                        child: Text('HOW ESCROW WORKS', style: JaxText.label.copyWith(fontSize: 12, color: JaxColors.primaryContainer)),
-                      ),
-                    ],
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: JaxColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('SELLERS ONLINE',
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 10, color: Colors.white70)),
+                                  const SizedBox(height: 3),
+                                  Text('8,204 Suppliers',
+                                      style: JaxText.title.copyWith(
+                                          color: Colors.white, fontSize: 15)),
+                                ],
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                    color:
+                                        JaxColors.success.withValues(alpha: .2),
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: const BoxDecoration(
+                                            color: JaxColors.success,
+                                            shape: BoxShape.circle)),
+                                    const SizedBox(width: 5),
+                                    Text('Online',
+                                        style: JaxText.label.copyWith(
+                                            color: JaxColors.success,
+                                            fontSize: 11)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            const Icon(Icons.verified_user_rounded,
+                                color: JaxColors.secondary, size: 18),
+                            const SizedBox(width: 8),
+                            Text('TRUST & SAFETY',
+                                style: JaxText.label.copyWith(
+                                    fontSize: 12,
+                                    color: JaxColors.primaryContainer)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Quotes come from verified suppliers with full profiles.',
+                          style: JaxText.bodySmall
+                              .copyWith(color: JaxColors.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton(
+                          onPressed: () {},
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: JaxColors.primaryContainer,
+                            side: const BorderSide(
+                                color: JaxColors.outlineVariant),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            minimumSize: const Size(double.infinity, 38),
+                          ),
+                          child: Text('HOW ESCROW WORKS',
+                              style: JaxText.label.copyWith(
+                                  fontSize: 12,
+                                  color: JaxColors.primaryContainer)),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             );
           },
@@ -3597,23 +4422,30 @@ class _EmptyRequests extends StatelessWidget {
           children: [
             Icon(Icons.inbox_rounded, size: 56, color: Colors.grey.shade300),
             const SizedBox(height: 16),
-            Text('NO REQUESTS YET', style: JaxText.h3.copyWith(letterSpacing: 0.5)),
+            Text('NO REQUESTS YET',
+                style: JaxText.h3.copyWith(letterSpacing: 0.5)),
             const SizedBox(height: 8),
             Text(
               'Post a new request to start getting quotes from verified sellers.',
               textAlign: TextAlign.center,
-              style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+              style: JaxText.bodySmall
+                  .copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
             ),
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: onPost,
               style: OutlinedButton.styleFrom(
                 foregroundColor: JaxColors.primaryContainer,
-                side: const BorderSide(color: JaxColors.primaryContainer, width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                side: const BorderSide(
+                    color: JaxColors.primaryContainer, width: 1.2),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               ),
-              child: Text('Post a Request', style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 13)),
+              child: Text('Post a Request',
+                  style: JaxText.label.copyWith(
+                      color: JaxColors.primaryContainer, fontSize: 13)),
             ),
           ],
         ),
@@ -3621,7 +4453,6 @@ class _EmptyRequests extends StatelessWidget {
     );
   }
 }
-
 
 class RfqCreateScreen extends StatefulWidget {
   const RfqCreateScreen({this.title, this.listingId, super.key});
@@ -3648,11 +4479,59 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
   bool _showChecklist = false;
 
   static const _categoryKeywords = {
-    'c1': ['concrete', 'steel', 'brick', 'rebar', 'cement', 'tile', 'roofing', 'construction'],
-    'c2': ['solar', 'panel', 'battery', 'wiring', 'chip', 'sensor', 'led', 'camera', 'monitor', 'electronics'],
-    'c3': ['drill', 'machinery', 'pump', 'valve', 'bearing', 'seal', 'motor', 'compressor', 'industrial', 'tool'],
-    'c4': ['consulting', 'logistics', 'shipping', 'maintenance', 'installation', 'cleaning', 'services'],
-    'c5': ['cotton', 'fabric', 'yarn', 'silk', 'polyester', 'denim', 'wool', 'textiles'],
+    'c1': [
+      'concrete',
+      'steel',
+      'brick',
+      'rebar',
+      'cement',
+      'tile',
+      'roofing',
+      'construction'
+    ],
+    'c2': [
+      'solar',
+      'panel',
+      'battery',
+      'wiring',
+      'chip',
+      'sensor',
+      'led',
+      'camera',
+      'monitor',
+      'electronics'
+    ],
+    'c3': [
+      'drill',
+      'machinery',
+      'pump',
+      'valve',
+      'bearing',
+      'seal',
+      'motor',
+      'compressor',
+      'industrial',
+      'tool'
+    ],
+    'c4': [
+      'consulting',
+      'logistics',
+      'shipping',
+      'maintenance',
+      'installation',
+      'cleaning',
+      'services'
+    ],
+    'c5': [
+      'cotton',
+      'fabric',
+      'yarn',
+      'silk',
+      'polyester',
+      'denim',
+      'wool',
+      'textiles'
+    ],
   };
 
   @override
@@ -3673,19 +4552,36 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
 
   Map<String, dynamic> _calculateScore() {
     final checks = [
-      {'label': 'Product Name', 'score': 5, 'met': _title.text.trim().length >= 3},
+      {
+        'label': 'Product Name',
+        'score': 5,
+        'met': _title.text.trim().length >= 3
+      },
       {'label': 'Category', 'score': 5, 'met': _category.isNotEmpty},
-      {'label': 'Product Details', 'score': 43, 'met': _desc.text.trim().length > 50},
+      {
+        'label': 'Product Details',
+        'score': 43,
+        'met': _desc.text.trim().length > 50
+      },
       {'label': 'Sourcing Type', 'score': 3, 'met': _type.isNotEmpty},
-      {'label': 'Delivery Location', 'score': 3, 'met': _locationPreference.text.trim().isNotEmpty},
-      {'label': 'Target Price', 'score': 3, 'met': _hasBudget && _budgetMax.text.trim().isNotEmpty},
+      {
+        'label': 'Delivery Location',
+        'score': 3,
+        'met': _locationPreference.text.trim().isNotEmpty
+      },
+      {
+        'label': 'Target Price',
+        'score': 3,
+        'met': _hasBudget && _budgetMax.text.trim().isNotEmpty
+      },
       {'label': 'Valid Until', 'score': 1, 'met': _deadline != null},
     ];
 
     final currentScore = checks
         .where((c) => c['met'] == true)
         .fold<int>(0, (sum, c) => sum + (c['score'] as int));
-    final totalPotential = checks.fold<int>(0, (sum, c) => sum + (c['score'] as int));
+    final totalPotential =
+        checks.fold<int>(0, (sum, c) => sum + (c['score'] as int));
     final percentage = ((currentScore / totalPotential) * 100).round();
 
     return {
@@ -3700,20 +4596,24 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
     final keywords = titleLower.split(' ').where((k) => k.length > 2).toList();
     if (keywords.isEmpty) return [];
 
-    return categories.where((c) {
-      final name = textOf(c['name']).toLowerCase();
-      final id = textOf(c['id']).toLowerCase();
-      
-      final matchKeyword = keywords.any((k) => name.contains(k));
-      final extraKeywords = _categoryKeywords[id] ?? [];
-      final matchExtra = extraKeywords.any((kw) => titleLower.contains(kw));
-      
-      return matchKeyword || matchExtra;
-    }).take(5).toList();
+    return categories
+        .where((c) {
+          final name = textOf(c['name']).toLowerCase();
+          final id = textOf(c['id']).toLowerCase();
+
+          final matchKeyword = keywords.any((k) => name.contains(k));
+          final extraKeywords = _categoryKeywords[id] ?? [];
+          final matchExtra = extraKeywords.any((kw) => titleLower.contains(kw));
+
+          return matchKeyword || matchExtra;
+        })
+        .take(5)
+        .toList();
   }
 
   bool _canNext() {
-    if (_step == 0) return _title.text.trim().length >= 3 && _category.isNotEmpty;
+    if (_step == 0)
+      return _title.text.trim().length >= 3 && _category.isNotEmpty;
     if (_step == 1) return _desc.text.trim().length >= 20;
     return true;
   }
@@ -3723,7 +4623,10 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => FormSubmitCubit()),
-        BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
+        BlocProvider(
+            create: (_) => CategoriesCubit()
+              ..load(() => apiOf(context).categories(),
+                  listKeys: const ['categories'])),
       ],
       child: JaxPage(
         title: '',
@@ -3758,7 +4661,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       // Main Step Form Content
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
-                        child: _buildStepContent(context, categories, suggested),
+                        child:
+                            _buildStepContent(context, categories, suggested),
                       ),
                       const SizedBox(height: 28),
 
@@ -3820,7 +4724,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
               decoration: BoxDecoration(
-                color: isActive ? JaxColors.primaryContainer : Colors.transparent,
+                color:
+                    isActive ? JaxColors.primaryContainer : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -3830,18 +4735,22 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                     width: 18,
                     height: 18,
                     decoration: BoxDecoration(
-                       shape: BoxShape.circle,
-                       border: Border.all(
-                         color: isActive ? Colors.white24 : JaxColors.outlineVariant,
-                         width: 2,
-                       ),
-                       color: isActive ? Colors.white10 : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isActive
+                            ? Colors.white24
+                            : JaxColors.outlineVariant,
+                        width: 2,
+                      ),
+                      color: isActive ? Colors.white10 : Colors.transparent,
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       '${i + 1}',
                       style: TextStyle(
-                        color: isActive ? Colors.white : JaxColors.onSurfaceVariant,
+                        color: isActive
+                            ? Colors.white
+                            : JaxColors.onSurfaceVariant,
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),
@@ -3853,7 +4762,9 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       steps[i].toUpperCase(),
                       maxLines: 2,
                       style: JaxText.label.copyWith(
-                        color: isActive ? Colors.white : JaxColors.onSurfaceVariant,
+                        color: isActive
+                            ? Colors.white
+                            : JaxColors.onSurfaceVariant,
                         fontSize: 8.5,
                         fontWeight: FontWeight.bold,
                       ),
@@ -3903,7 +4814,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       ),
                       Text(
                         '$percentage%',
-                        style: JaxText.title.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: JaxText.title.copyWith(
+                            fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -3926,7 +4838,9 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                   ),
                 ),
                 Icon(
-                  _showChecklist ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  _showChecklist
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
                   color: JaxColors.outline,
                 ),
               ],
@@ -3941,8 +4855,11 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      isMet ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                      color: isMet ? JaxColors.success : JaxColors.outlineVariant,
+                      isMet
+                          ? Icons.check_circle_rounded
+                          : Icons.radio_button_unchecked_rounded,
+                      color:
+                          isMet ? JaxColors.success : JaxColors.outlineVariant,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
@@ -3950,16 +4867,20 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       child: Text(
                         c['label'] as String,
                         style: JaxText.bodyMedium.copyWith(
-                          color: isMet ? JaxColors.onSurface : JaxColors.outline,
+                          color:
+                              isMet ? JaxColors.onSurface : JaxColors.outline,
                           fontSize: 13,
-                          fontWeight: isMet ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight:
+                              isMet ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),
                     Text(
                       '${c['score']}',
                       style: JaxText.title.copyWith(
-                        color: isMet ? JaxColors.primary : JaxColors.outlineVariant,
+                        color: isMet
+                            ? JaxColors.primary
+                            : JaxColors.outlineVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -3973,7 +4894,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
     );
   }
 
-  Widget _buildStepContent(BuildContext context, List<JsonMap> categories, List<JsonMap> suggested) {
+  Widget _buildStepContent(
+      BuildContext context, List<JsonMap> categories, List<JsonMap> suggested) {
     if (_step == 0) {
       return FormCard(
         key: const ValueKey(0),
@@ -4023,15 +4945,18 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
             minLines: 6,
             maxLines: 12,
             decoration: InputDecoration(
-              hintText: 'Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms...',
-              hintStyle: JaxText.bodyMedium.copyWith(color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+              hintText:
+                  'Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms...',
+              hintStyle: JaxText.bodyMedium.copyWith(
+                  color: Colors.grey.shade400, fontStyle: FontStyle.italic),
             ),
           ),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               '${_desc.text.length} chars -- Aim for at least 100 for high quality responses',
-              style: JaxText.bodySmall.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
+              style: JaxText.bodySmall
+                  .copyWith(fontSize: 11, fontStyle: FontStyle.italic),
             ),
           ),
         ],
@@ -4054,21 +4979,26 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
             onPressed: () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: _deadline ?? DateTime.now().add(const Duration(days: 7)),
+                initialDate:
+                    _deadline ?? DateTime.now().add(const Duration(days: 7)),
                 firstDate: DateTime.now(),
                 lastDate: DateTime.now().add(const Duration(days: 365)),
               );
               if (picked != null) setState(() => _deadline = picked);
             },
-            icon: const Icon(Icons.calendar_month_rounded, color: JaxColors.primary, size: 20),
+            icon: const Icon(Icons.calendar_month_rounded,
+                color: JaxColors.primary, size: 20),
             label: Text(
-              _deadline == null ? 'Set Desired Delivery Date' : shortDate(_deadline!.toIso8601String()),
+              _deadline == null
+                  ? 'Set Desired Delivery Date'
+                  : shortDate(_deadline!.toIso8601String()),
               style: JaxText.bodyMedium.copyWith(fontWeight: FontWeight.bold),
             ),
             style: OutlinedButton.styleFrom(
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(JaxRadius.lg)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(JaxRadius.lg)),
               side: const BorderSide(color: JaxColors.outlineVariant),
             ),
           ),
@@ -4079,9 +5009,18 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
             isExpanded: true,
             decoration: const InputDecoration(),
             items: const [
-              DropdownMenuItem(value: '', child: Text('Global Standard (Open)', overflow: TextOverflow.ellipsis)),
-              DropdownMenuItem(value: 'INDIVIDUAL', child: Text('Verified Individual Expert', overflow: TextOverflow.ellipsis)),
-              DropdownMenuItem(value: 'BUSINESS', child: Text('Certified Corporate Entity', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                  value: '',
+                  child: Text('Global Standard (Open)',
+                      overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                  value: 'INDIVIDUAL',
+                  child: Text('Verified Individual Expert',
+                      overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                  value: 'BUSINESS',
+                  child: Text('Certified Corporate Entity',
+                      overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (v) => setState(() => _preferredProviderType = v ?? ''),
           ),
@@ -4093,7 +5032,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
   }
 
   Widget _buildSuggestedCategories(List<JsonMap> suggested) {
-    if (suggested.isEmpty || _category.isNotEmpty) return const SizedBox.shrink();
+    if (suggested.isEmpty || _category.isNotEmpty)
+      return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(top: 10),
@@ -4101,18 +5041,21 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
       decoration: BoxDecoration(
         color: JaxColors.surfaceLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: JaxColors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 16),
+              const Icon(Icons.lightbulb_outline_rounded,
+                  color: Colors.amber, size: 16),
               const SizedBox(width: 6),
               Text(
                 'SUGGESTED CATEGORIES BASED ON TITLE:',
-                style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primaryContainer),
+                style: JaxText.label
+                    .copyWith(fontSize: 9, color: JaxColors.primaryContainer),
               ),
             ],
           ),
@@ -4127,7 +5070,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                 onTap: () => setState(() => _category = catId),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
@@ -4178,10 +5122,13 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
               ),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? JaxColors.surfaceLow.withValues(alpha: 0.3) : Colors.white,
+                color: isSelected
+                    ? JaxColors.surfaceLow.withValues(alpha: 0.3)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSelected ? JaxColors.primary : JaxColors.outlineVariant,
+                  color:
+                      isSelected ? JaxColors.primary : JaxColors.outlineVariant,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -4194,7 +5141,9 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isSelected ? JaxColors.primary : JaxColors.surfaceLow,
+                          color: isSelected
+                              ? JaxColors.primary
+                              : JaxColors.surfaceLow,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
@@ -4206,12 +5155,14 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       const SizedBox(height: 12),
                       Text(
                         opt['title'] as String,
-                        style: JaxText.title.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: JaxText.title.copyWith(
+                            fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         opt['subtitle'] as String,
-                        style: JaxText.bodySmall.copyWith(fontSize: 10, height: 1.2),
+                        style: JaxText.bodySmall
+                            .copyWith(fontSize: 10, height: 1.2),
                       ),
                     ],
                   ),
@@ -4258,7 +5209,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                 Expanded(
                   child: Text(
                     'ENABLE BUDGET CONTROLS',
-                    style: JaxText.label.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                    style: JaxText.label
+                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -4313,7 +5265,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.shield_rounded, color: JaxColors.secondary, size: 20),
+          const Icon(Icons.shield_rounded,
+              color: JaxColors.secondary, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -4321,12 +5274,14 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
               children: [
                 Text(
                   'SAFETY GUARANTEE',
-                  style: JaxText.label.copyWith(color: Colors.white, fontSize: 10, letterSpacing: 1),
+                  style: JaxText.label.copyWith(
+                      color: Colors.white, fontSize: 10, letterSpacing: 1),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Your contact details are protected. Only selected sellers can access your profile during negotiation.',
-                  style: JaxText.bodySmall.copyWith(color: Colors.white70, fontSize: 11, height: 1.3),
+                  style: JaxText.bodySmall.copyWith(
+                      color: Colors.white70, fontSize: 11, height: 1.3),
                 ),
               ],
             ),
@@ -4345,7 +5300,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
               onPressed: () => setState(() => _step--),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 side: const BorderSide(color: JaxColors.outlineVariant),
               ),
               child: Text(
@@ -4358,43 +5314,58 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
         ],
         Expanded(
           child: ElevatedButton(
-            onPressed: !_canNext() || submitState.status == ResourceStatus.submitting
+            onPressed: !_canNext() ||
+                    submitState.status == ResourceStatus.submitting
                 ? null
                 : () {
                     if (_step < 2) {
                       setState(() => _step++);
                     } else {
-                      context.read<FormSubmitCubit>().submit(() => apiOf(context).createRfq({
-                            'rfqType': _type,
-                            'title': _title.text.trim(),
-                            'description': _desc.text.trim(),
-                            if (_category.isNotEmpty) 'categoryId': _category,
-                            if (_locationPreference.text.isNotEmpty) 'locationPreference': _locationPreference.text.trim(),
-                            if (_deadline != null) 'deadline': _deadline!.toIso8601String(),
-                            if (_preferredProviderType.isNotEmpty) 'preferredProviderType': _preferredProviderType,
-                            if (_hasBudget) ...{
-                              'budgetMin': double.tryParse(_budgetMin.text) ?? 0.0,
-                              'budgetMax': double.tryParse(_budgetMax.text) ?? 0.0,
-                            },
-                            'isPublic': true,
-                            if (widget.listingId != null) 'listingId': widget.listingId,
-                          }));
+                      context
+                          .read<FormSubmitCubit>()
+                          .submit(() => apiOf(context).createRfq({
+                                'rfqType': _type,
+                                'title': _title.text.trim(),
+                                'description': _desc.text.trim(),
+                                if (_category.isNotEmpty)
+                                  'categoryId': _category,
+                                if (_locationPreference.text.isNotEmpty)
+                                  'locationPreference':
+                                      _locationPreference.text.trim(),
+                                if (_deadline != null)
+                                  'deadline': _deadline!.toIso8601String(),
+                                if (_preferredProviderType.isNotEmpty)
+                                  'preferredProviderType':
+                                      _preferredProviderType,
+                                if (_hasBudget) ...{
+                                  'budgetMin':
+                                      double.tryParse(_budgetMin.text) ?? 0.0,
+                                  'budgetMax':
+                                      double.tryParse(_budgetMax.text) ?? 0.0,
+                                },
+                                'isPublic': true,
+                                if (widget.listingId != null)
+                                  'listingId': widget.listingId,
+                              }));
                     }
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: _step == 2 ? JaxColors.primary : JaxColors.primaryContainer,
+              backgroundColor:
+                  _step == 2 ? JaxColors.primary : JaxColors.primaryContainer,
               foregroundColor: Colors.white,
               disabledBackgroundColor: JaxColors.outlineVariant,
               disabledForegroundColor: Colors.white70,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
               elevation: 0,
             ),
             child: submitState.status == ResourceStatus.submitting
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2),
                   )
                 : Text(
                     _step == 2 ? 'Post Request' : 'Next',
@@ -4417,11 +5388,14 @@ class RfqDetailScreen extends StatelessWidget {
       create: (_) => ResourceCubit()..load(() => apiOf(context).rfq(id)),
       child: BlocBuilder<ResourceCubit, ResourceState>(
         builder: (context, state) => JaxPage(
-          title: state.data.isEmpty ? 'RFQ Detail' : textOf(state.data['title']),
+          title:
+              state.data.isEmpty ? 'RFQ Detail' : textOf(state.data['title']),
           subtitle: categoryName(state.data),
           child: AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).rfq(id)),
+            onRetry: () => context
+                .read<ResourceCubit>()
+                .load(() => apiOf(context).rfq(id)),
             builder: (_) {
               final quotes = asList(state.data['quotes']);
               return Column(
@@ -4440,16 +5414,36 @@ class RfqDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(children: [Expanded(child: Text(sellerName(quote), style: JaxText.title)), StatusPill(label: statusOf(quote, 'SUBMITTED'))]),
+                                Row(children: [
+                                  Expanded(
+                                      child: Text(sellerName(quote),
+                                          style: JaxText.title)),
+                                  StatusPill(
+                                      label: statusOf(quote, 'SUBMITTED'))
+                                ]),
                                 const SizedBox(height: 8),
-                                Text(money(quote['quotedAmount']), style: JaxText.h2),
+                                Text(money(quote['quotedAmount']),
+                                    style: JaxText.h2),
                                 const SizedBox(height: 6),
-                                Text(textOf(quote['proposalText']), style: JaxText.bodySmall),
+                                Text(textOf(quote['proposalText']),
+                                    style: JaxText.bodySmall),
                                 const SizedBox(height: 12),
                                 Row(children: [
-                                  Expanded(child: JaxButton(label: 'Shortlist', variant: JaxButtonVariant.outline, onPressed: () => apiOf(context).shortlistQuote(textOf(quote['id'])))),
+                                  Expanded(
+                                      child: JaxButton(
+                                          label: 'Shortlist',
+                                          variant: JaxButtonVariant.outline,
+                                          onPressed: () => apiOf(context)
+                                              .shortlistQuote(
+                                                  textOf(quote['id'])))),
                                   const SizedBox(width: 10),
-                                  Expanded(child: JaxButton(label: 'Award', icon: Icons.emoji_events_rounded, onPressed: () => apiOf(context).awardQuote(id, textOf(quote['id'])))),
+                                  Expanded(
+                                      child: JaxButton(
+                                          label: 'Award',
+                                          icon: Icons.emoji_events_rounded,
+                                          onPressed: () => apiOf(context)
+                                              .awardQuote(
+                                                  id, textOf(quote['id'])))),
                                 ]),
                               ],
                             ),
@@ -4488,23 +5482,39 @@ class _SubmitQuoteScreenState extends State<SubmitQuoteScreen> {
         child: BlocConsumer<ResourceCubit, ResourceState>(
           listener: (context, state) {
             showResultSnack(context, state);
-            if (state.message == 'Saved successfully') context.go('/seller/rfq-inbox');
+            if (state.message == 'Saved successfully')
+              context.go('/seller/rfq-inbox');
           },
           builder: (context, state) => FormCard(
             children: [
-              TextField(controller: _amount, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'QUOTED AMOUNT')),
-              TextField(controller: _timeline, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'TIMELINE DAYS')),
-              TextField(controller: _proposal, minLines: 5, maxLines: 8, decoration: const InputDecoration(labelText: 'PROPOSAL TEXT')),
+              TextField(
+                  controller: _amount,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'QUOTED AMOUNT')),
+              TextField(
+                  controller: _timeline,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'TIMELINE DAYS')),
+              TextField(
+                  controller: _proposal,
+                  minLines: 5,
+                  maxLines: 8,
+                  decoration:
+                      const InputDecoration(labelText: 'PROPOSAL TEXT')),
               JaxButton(
                 label: 'Submit quote',
                 fullWidth: true,
                 loading: state.status == ResourceStatus.submitting,
                 icon: Icons.request_quote_rounded,
-                onPressed: () => context.read<ResourceCubit>().submit(() => apiOf(context).submitQuote(widget.rfqId, {
-                      'quotedAmount': _amount.text,
-                      'timelineDays': _timeline.text,
-                      'proposalText': _proposal.text,
-                    })),
+                onPressed: () => context
+                    .read<ResourceCubit>()
+                    .submit(() => apiOf(context).submitQuote(widget.rfqId, {
+                          'quotedAmount': _amount.text,
+                          'timelineDays': _timeline.text,
+                          'proposalText': _proposal.text,
+                        })),
               ),
             ],
           ),
@@ -4521,20 +5531,27 @@ class SellerDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
     final name = textOf(user?['fullName']).split(' ').first;
-    final greeting = name.isNotEmpty ? 'Welcome back, $name' : 'Manage your store and performance';
+    final greeting = name.isNotEmpty
+        ? 'Welcome back, $name'
+        : 'Manage your store and performance';
 
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).myListings({}), listKeys: const ['listings']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).myListings({}),
+            listKeys: const ['listings']),
       child: JaxPage(
         title: 'Seller Home',
         subtitle: greeting,
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) => AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({}), listKeys: const ['listings']),
+            onRetry: () => context.read<ResourceCubit>().load(
+                () => apiOf(context).myListings({}),
+                listKeys: const ['listings']),
             builder: (_) {
               final listings = state.items;
-              final activeCount = listings.where((l) => l['status'] == 'ACTIVE').length;
+              final activeCount =
+                  listings.where((l) => l['status'] == 'ACTIVE').length;
               final totalCount = numOf(state.data['total']) ?? listings.length;
 
               return Column(
@@ -4548,10 +5565,24 @@ class SellerDashboardScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      _SellerStatCard(label: 'ACTIVE PRODUCTS', value: activeCount.toString(), icon: Icons.storefront_rounded),
-                      _SellerStatCard(label: 'TOTAL PRODUCTS', value: totalCount.toString(), icon: Icons.inventory_2_rounded),
-                      const _SellerStatCard(label: 'BUYER REQUESTS', value: '0', sub: 'Coming soon', icon: Icons.inbox_rounded),
-                      const _SellerStatCard(label: 'AVG RATING', value: '4.8', sub: 'Based on 0 reviews', icon: Icons.star_rounded),
+                      _SellerStatCard(
+                          label: 'ACTIVE PRODUCTS',
+                          value: activeCount.toString(),
+                          icon: Icons.storefront_rounded),
+                      _SellerStatCard(
+                          label: 'TOTAL PRODUCTS',
+                          value: totalCount.toString(),
+                          icon: Icons.inventory_2_rounded),
+                      const _SellerStatCard(
+                          label: 'BUYER REQUESTS',
+                          value: '0',
+                          sub: 'Coming soon',
+                          icon: Icons.inbox_rounded),
+                      const _SellerStatCard(
+                          label: 'AVG RATING',
+                          value: '4.8',
+                          sub: 'Based on 0 reviews',
+                          icon: Icons.star_rounded),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -4588,7 +5619,8 @@ class SellerDashboardScreen extends StatelessWidget {
                       Expanded(
                         child: _QuickActionCard(
                           title: 'Analytics',
-                          subtitle: 'View page visits, enquiries, and conversions',
+                          subtitle:
+                              'View page visits, enquiries, and conversions',
                           buttonText: 'Coming Soon',
                           icon: Icons.trending_up_rounded,
                           disabled: true,
@@ -4597,17 +5629,26 @@ class SellerDashboardScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 32),
-                  SectionTitle(title: 'Recent Products', action: () => context.push('/seller/listings')),
+                  SectionTitle(
+                      title: 'Recent Products',
+                      action: () => context.push('/seller/listings')),
                   const SizedBox(height: 12),
                   if (listings.isEmpty)
                     EmptyState(
                       title: 'No products listed yet',
-                      description: 'Create your first product or service listing to start getting enquiries.',
+                      description:
+                          'Create your first product or service listing to start getting enquiries.',
                       icon: Icons.storefront_rounded,
-                      action: JaxButton(label: 'Create Listing', onPressed: () => context.push('/seller/listings/new')),
+                      action: JaxButton(
+                          label: 'Create Listing',
+                          onPressed: () =>
+                              context.push('/seller/listings/new')),
                     )
                   else
-                    ...listings.take(6).map((l) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ListingTile(item: l, isSellerMode: true, showActions: false))),
+                    ...listings.take(6).map((l) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ListingTile(
+                            item: l, isSellerMode: true, showActions: false))),
                 ],
               );
             },
@@ -4619,7 +5660,8 @@ class SellerDashboardScreen extends StatelessWidget {
 }
 
 class _SellerStatCard extends StatelessWidget {
-  const _SellerStatCard({required this.label, required this.value, this.sub, required this.icon});
+  const _SellerStatCard(
+      {required this.label, required this.value, this.sub, required this.icon});
   final String label;
   final String value;
   final String? sub;
@@ -4635,7 +5677,12 @@ class _SellerStatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(label, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant, letterSpacing: 1))),
+              Expanded(
+                  child: Text(label,
+                      style: JaxText.label.copyWith(
+                          fontSize: 10,
+                          color: JaxColors.onSurfaceVariant,
+                          letterSpacing: 1))),
               Icon(icon, size: 14, color: JaxColors.outline),
             ],
           ),
@@ -4643,7 +5690,9 @@ class _SellerStatCard extends StatelessWidget {
           Text(value, style: JaxText.h2),
           if (sub != null) ...[
             const SizedBox(height: 4),
-            Text(sub!, style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primary)),
+            Text(sub!,
+                style: JaxText.label
+                    .copyWith(fontSize: 9, color: JaxColors.primary)),
           ],
         ],
       ),
@@ -4690,25 +5739,37 @@ class _QuickActionCard extends StatelessWidget {
               children: [
                 Text(title, style: JaxText.title.copyWith(fontSize: 14)),
                 const SizedBox(height: 4),
-                Text(subtitle, style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant)),
+                Text(subtitle,
+                    style: JaxText.bodySmall
+                        .copyWith(color: JaxColors.onSurfaceVariant)),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 32,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: JaxColors.primary,
-                      side: BorderSide(color: disabled ? JaxColors.outlineVariant : JaxColors.primary),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide(
+                          color: disabled
+                              ? JaxColors.outlineVariant
+                              : JaxColors.primary),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: disabled ? null : onTap,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(buttonText, style: JaxText.label.copyWith(fontSize: 11, color: disabled ? JaxColors.outline : JaxColors.primary)),
+                        Text(buttonText,
+                            style: JaxText.label.copyWith(
+                                fontSize: 11,
+                                color: disabled
+                                    ? JaxColors.outline
+                                    : JaxColors.primary)),
                         if (!disabled) ...[
                           const SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_rounded, size: 12, color: JaxColors.primary),
+                          Icon(Icons.arrow_forward_rounded,
+                              size: 12, color: JaxColors.primary),
                         ],
                       ],
                     ),
@@ -4729,7 +5790,9 @@ class SellerListingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).myListings({'limit': 30}),
+            listKeys: const ['listings']),
       child: BlocBuilder<ResourceCubit, ResourceState>(
         builder: (context, state) {
           final activeSkus = state.items.length;
@@ -4738,13 +5801,19 @@ class SellerListingsScreen extends StatelessWidget {
             scroll: false,
             topWidget: Row(
               children: [
-                const Icon(Icons.factory_rounded, color: JaxColors.secondary, size: 14),
+                const Icon(Icons.factory_rounded,
+                    color: JaxColors.secondary, size: 14),
                 const SizedBox(width: 8),
-                Text('SUPPLIER INVENTORY MANAGEMENT', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
+                Text('SUPPLIER INVENTORY MANAGEMENT',
+                    style: JaxText.label.copyWith(
+                        color: JaxColors.secondary,
+                        fontSize: 10,
+                        letterSpacing: 2.0)),
               ],
             ),
             title: 'MY SOURCING CATALOG',
-            subtitle: 'Control your active factory output and global distribution listings.',
+            subtitle:
+                'Control your active factory output and global distribution listings.',
             child: Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -4754,7 +5823,8 @@ class SellerListingsScreen extends StatelessWidget {
                     runSpacing: 12,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
                           color: JaxColors.surfaceLow,
                           borderRadius: BorderRadius.circular(8),
@@ -4763,9 +5833,14 @@ class SellerListingsScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('ACTIVE SKUS', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0)),
+                            Text('ACTIVE SKUS',
+                                style: JaxText.label.copyWith(
+                                    fontSize: 9,
+                                    color: JaxColors.outline,
+                                    letterSpacing: 1.0)),
                             const SizedBox(height: 2),
-                            Text(activeSkus.toString(), style: JaxText.title.copyWith(fontSize: 16)),
+                            Text(activeSkus.toString(),
+                                style: JaxText.title.copyWith(fontSize: 16)),
                           ],
                         ),
                       ),
@@ -4790,9 +5865,12 @@ class SellerListingsScreen extends StatelessWidget {
                     child: AsyncContent(
                       state: state,
                       emptyTitle: 'Registry Empty',
-                      emptyDescription: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+                      emptyDescription:
+                          'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
                       emptyIcon: Icons.inventory_2_rounded,
-                      onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).myListings({'limit': 30}), listKeys: const ['listings']),
+                      onRetry: () => context.read<ResourceCubit>().load(
+                          () => apiOf(context).myListings({'limit': 30}),
+                          listKeys: const ['listings']),
                       builder: (_) {
                         if (state.items.isEmpty) {
                           return ListView(
@@ -4800,9 +5878,13 @@ class SellerListingsScreen extends StatelessWidget {
                             children: [
                               EmptyState(
                                 title: 'Registry Empty',
-                                description: 'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
+                                description:
+                                    'Your supplier catalog currently has no indexed products. Start broadcasting your capabilities to the marketplace.',
                                 icon: Icons.inventory_2_rounded,
-                                action: JaxButton(label: 'Initial SKU Upload', onPressed: () => context.push('/seller/listings/new')),
+                                action: JaxButton(
+                                    label: 'Initial SKU Upload',
+                                    onPressed: () =>
+                                        context.push('/seller/listings/new')),
                               ),
                             ],
                           );
@@ -4813,7 +5895,8 @@ class SellerListingsScreen extends StatelessWidget {
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: ListingTile(item: state.items[index], isSellerMode: true),
+                              child: ListingTile(
+                                  item: state.items[index], isSellerMode: true),
                             );
                           },
                         );
@@ -4836,7 +5919,8 @@ class ListingMediaItem {
   ListingMediaItem({this.url, this.file});
 
   bool get isLocal => file != null;
-  String get name => file != null ? file!.name : (url?.split('/').last ?? 'image');
+  String get name =>
+      file != null ? file!.name : (url?.split('/').last ?? 'image');
 }
 
 class ListingFormScreen extends StatefulWidget {
@@ -4889,7 +5973,14 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
   final _sampleCost = TextEditingController();
   final List<String> _certifications = [];
   final _customCert = TextEditingController();
-  final List<String> _presetCerts = ['ISO 9001', 'CE Certified', 'RoHS Compliant', 'ISI Mark', 'BIS Standard', 'FSSAI Certified'];
+  final List<String> _presetCerts = [
+    'ISO 9001',
+    'CE Certified',
+    'RoHS Compliant',
+    'ISI Mark',
+    'BIS Standard',
+    'FSSAI Certified'
+  ];
 
   @override
   void initState() {
@@ -4929,10 +6020,14 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     _title.text = textOf(data['title']);
     _description.text = textOf(data['description']);
     final pdPrice = product['pricePerUnit'] ?? product['priceRangeMin'];
-    _price.text = (_type == 'PRODUCT' ? pdPrice : data['basePrice'])?.toString() ?? '';
+    _price.text =
+        (_type == 'PRODUCT' ? pdPrice : data['basePrice'])?.toString() ?? '';
     _moq.text = product['minOrderQty']?.toString() ?? '1';
-    _unit.text = (_type == 'PRODUCT' ? product['unitOfMeasure'] : data['priceUnit'])?.toString() ?? 'Pieces';
-    
+    _unit.text =
+        (_type == 'PRODUCT' ? product['unitOfMeasure'] : data['priceUnit'])
+                ?.toString() ??
+            'Pieces';
+
     // Step 2 details
     _brand.text = textOf(product['brand']);
     _sku.text = textOf(product['sku']);
@@ -4970,9 +6065,13 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     for (var slab in slabs) {
       final slabMap = asMap(slab);
       _pricingSlabs.add({
-        'minQty': TextEditingController(text: slabMap['minQty']?.toString() ?? ''),
-        'maxQty': slabMap['maxQty'] == null ? TextEditingController(text: '') : TextEditingController(text: slabMap['maxQty'].toString()),
-        'unitPrice': TextEditingController(text: slabMap['price']?.toString() ?? ''),
+        'minQty':
+            TextEditingController(text: slabMap['minQty']?.toString() ?? ''),
+        'maxQty': slabMap['maxQty'] == null
+            ? TextEditingController(text: '')
+            : TextEditingController(text: slabMap['maxQty'].toString()),
+        'unitPrice':
+            TextEditingController(text: slabMap['price']?.toString() ?? ''),
       });
     }
 
@@ -4986,7 +6085,8 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         'name': TextEditingController(text: textOf(vMap['name'])),
         'sku': TextEditingController(text: textOf(vMap['sku'])),
         'price': TextEditingController(text: vMap['price']?.toString() ?? ''),
-        'stock': TextEditingController(text: vMap['stock']?.toString() ?? '100'),
+        'stock':
+            TextEditingController(text: vMap['stock']?.toString() ?? '100'),
       });
     }
 
@@ -5017,11 +6117,17 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     }
   }
 
-  Widget _buildLabeledField(String label, TextEditingController controller, {String? hint, int maxLines = 1, TextInputType? keyboardType, Widget? suffixIcon}) {
+  Widget _buildLabeledField(String label, TextEditingController controller,
+      {String? hint,
+      int maxLines = 1,
+      TextInputType? keyboardType,
+      Widget? suffixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+        Text(label,
+            style: JaxText.label
+                .copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -5031,10 +6137,12 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintMaxLines: 3,
-            hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
+            hintStyle: JaxText.bodyMedium
+                .copyWith(color: JaxColors.outline, fontSize: 12),
             suffixIcon: suffixIcon,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
         ),
       ],
@@ -5046,7 +6154,10 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => FormSubmitCubit()),
-        BlocProvider(create: (_) => CategoriesCubit()..load(() => apiOf(context).categories(), listKeys: const ['categories'])),
+        BlocProvider(
+            create: (_) => CategoriesCubit()
+              ..load(() => apiOf(context).categories(),
+                  listKeys: const ['categories'])),
       ],
       child: JaxPage(
         topWidget: GestureDetector(
@@ -5054,13 +6165,20 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.arrow_back_rounded, size: 12, color: JaxColors.primary),
+              const Icon(Icons.arrow_back_rounded,
+                  size: 12, color: JaxColors.primary),
               const SizedBox(width: 8),
-              Text('BACK TO LEDGER', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary, letterSpacing: 1.5)),
+              Text('BACK TO LEDGER',
+                  style: JaxText.label.copyWith(
+                      fontSize: 10,
+                      color: JaxColors.primary,
+                      letterSpacing: 1.5)),
             ],
           ),
         ),
-        title: widget.listingId != null ? 'EDIT STOREFRONT SKU' : 'INITIALIZE STOREFRONT SKU',
+        title: widget.listingId != null
+            ? 'EDIT STOREFRONT SKU'
+            : 'INITIALIZE STOREFRONT SKU',
         subtitle: widget.listingId != null
             ? 'Modify existing technical specifications, commercial terms, and inventory data.'
             : 'Provision a new industrial product or technical service into the global search index.',
@@ -5068,7 +6186,8 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
           builder: (context) => BlocConsumer<FormSubmitCubit, ResourceState>(
             listener: (context, state) {
               showResultSnack(context, state);
-              if (state.message == 'Saved successfully') context.go('/seller/listings');
+              if (state.message == 'Saved successfully')
+                context.go('/seller/listings');
             },
             builder: (context, state) {
               if (_isLoadingListing) {
@@ -5081,936 +6200,1380 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
               }
               return Column(
                 children: [
-                   SingleChildScrollView(
-                     scrollDirection: Axis.horizontal,
-                     child: Row(
-                       children: [
-                         _StepNavPill(title: 'CLASSIFICATION', icon: Icons.category_rounded, active: _step == 1, completed: _step > 1),
-                         const SizedBox(width: 8),
-                         _StepNavPill(title: 'TECHNICAL SPECS', icon: Icons.description_rounded, active: _step == 2, completed: _step > 2),
-                         const SizedBox(width: 8),
-                         _StepNavPill(title: 'COMMERCIAL TERMS', icon: Icons.currency_rupee_rounded, active: _step == 3, completed: _step > 3),
-                         const SizedBox(width: 8),
-                         _StepNavPill(title: 'MEDIA INDEX', icon: Icons.cloud_upload_rounded, active: _step == 4, completed: _step > 4),
-                       ],
-                     ),
-                   ),
-                   const SizedBox(height: 32),
-                   
-                   JaxCard(
-                     padding: const EdgeInsets.all(24),
-                     child: Column(
-                       children: [
-                         if (_step == 1) ...[
-                           Text('STEP 01 / REGISTRY TYPE', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
-                           const SizedBox(height: 16),
-                           Text('HOW IS THIS ASSET CLASSIFIED?', style: JaxText.h2, textAlign: TextAlign.center),
-                           const SizedBox(height: 32),
-                           
-                           Row(
-                             children: [
-                               Expanded(
-                                 child: _AssetTypeCard(
-                                   title: 'INDUSTRIAL GOOD',
-                                   subtitle: 'MOVABLE ASSETS, MACHINERY, SPARE PARTS OR RAW MATERIALS',
-                                   icon: Icons.inventory_2_rounded,
-                                   selected: _type == 'PRODUCT',
-                                   onTap: () => setState(() => _type = 'PRODUCT'),
-                                 ),
-                               ),
-                               const SizedBox(width: 16),
-                               Expanded(
-                                 child: _AssetTypeCard(
-                                   title: 'TECHNICAL SERVICE',
-                                   subtitle: 'CONSULTING, INSTALLATION, MAINTENANCE OR SPECIALIZED LABOR',
-                                   icon: Icons.bolt_rounded,
-                                   selected: _type == 'SERVICE',
-                                   onTap: () => setState(() => _type = 'SERVICE'),
-                                 ),
-                               ),
-                             ],
-                           ),
-                           const SizedBox(height: 32),
-                           
-                           LayoutBuilder(
-                             builder: (context, constraints) {
-                               final isMobile = constraints.maxWidth < 600;
-                               final children = [
-                                 Expanded(
-                                   flex: isMobile ? 0 : 1,
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Text('TECHNICAL INDUSTRY VERTICAL', style: JaxText.label.copyWith(color: JaxColors.outline)),
-                                       const SizedBox(height: 8),
-                                       BlocBuilder<CategoriesCubit, ResourceState>(
-                                         builder: (context, cats) => DropdownButtonFormField<String>(
-                                           value: _category.isEmpty ? null : _category,
-                                           hint: const Text('SELECT VERTICAL REGISTRY...'),
-                                           decoration: const InputDecoration(
-                                             border: OutlineInputBorder(), 
-                                             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)
-                                           ),
-                                           items: cats.items.map((cat) => DropdownMenuItem(value: textOf(cat['id']), child: Text(textOf(cat['name'])))).toList(),
-                                           onChanged: (v) => setState(() => _category = v ?? ''),
-                                         ),
-                                       ),
-                                     ],
-                                   ),
-                                 ),
-                                 if (isMobile) const SizedBox(height: 24) else const SizedBox(width: 24),
-                                 Expanded(
-                                   flex: isMobile ? 0 : 1,
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Text('SEARCH TAGS (COMMA SEPARATED)', style: JaxText.label.copyWith(color: JaxColors.outline)),
-                                       const SizedBox(height: 8),
-                                       TextField(
-                                         controller: _tags,
-                                         decoration: const InputDecoration(
-                                           hintText: 'e.g. steel, high-tensile, construction',
-                                           border: OutlineInputBorder(),
-                                           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                         ),
-                                       ),
-                                     ],
-                                   ),
-                                 ),
-                               ];
-                               return isMobile ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children) : Row(crossAxisAlignment: CrossAxisAlignment.start, children: children);
-                             },
-                           ),
-                         ] else if (_step == 2) ...[
-                           Text('STEP 02 / SPEC SHEET', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5)),
-                           const SizedBox(height: 16),
-                           Text('CORE MARKETPLACE IDENTIFICATION', style: JaxText.h2, textAlign: TextAlign.center),
-                           const SizedBox(height: 32),
-                           _buildLabeledField('REGISTRY TITLE', _title, hint: 'e.g. Industrial Grade High-Torque AC Motor 5HP'),
-                           const SizedBox(height: 24),
-                           Row(children: [
-                             Expanded(child: _buildLabeledField('BRAND / MANUFACTURER', _brand, hint: 'Organization name')),
-                             const SizedBox(width: 16),
-                             Expanded(child: _buildLabeledField('PART NUMBER / SKU', _sku, hint: 'Internal registry ID')),
-                           ]),
-                           const SizedBox(height: 24),
-                           Row(children: [
-                             Expanded(child: _buildLabeledField('SOURCING UNIT', _unit, hint: 'Pieces')),
-                             const SizedBox(width: 16),
-                             Expanded(child: _buildLabeledField('GLOBAL LEAD TIME (DAYS)', _leadTime, hint: '7', keyboardType: TextInputType.number, suffixIcon: Column(
-                               mainAxisSize: MainAxisSize.min,
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 InkWell(
-                                   onTap: () {
-                                     int val = int.tryParse(_leadTime.text) ?? 0;
-                                     _leadTime.text = (val + 1).toString();
-                                   },
-                                   child: const Icon(Icons.arrow_drop_up_rounded, size: 20, color: JaxColors.outline),
-                                 ),
-                                 InkWell(
-                                   onTap: () {
-                                     int val = int.tryParse(_leadTime.text) ?? 0;
-                                     if (val > 0) _leadTime.text = (val - 1).toString();
-                                   },
-                                   child: const Icon(Icons.arrow_drop_down_rounded, size: 20, color: JaxColors.outline),
-                                 ),
-                               ],
-                             ))),
-                           ]),
-                           const SizedBox(height: 24),
-                           Row(children: [
-                             Expanded(child: _buildLabeledField('COUNTRY OF ORIGIN', _country, hint: 'India')),
-                             const SizedBox(width: 16),
-                             Expanded(child: _buildLabeledField('HSN CODE', _hsn, hint: 'Harmonized System Nomenclature')),
-                           ]),
-                           const SizedBox(height: 24),
-                           Row(children: [
-                             Expanded(child: _buildLabeledField('GST RATE (%)', _gst, hint: '18', keyboardType: TextInputType.number, suffixIcon: Column(
-                               mainAxisSize: MainAxisSize.min,
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 InkWell(
-                                   onTap: () {
-                                     int val = int.tryParse(_gst.text) ?? 0;
-                                     _gst.text = (val + 1).toString();
-                                   },
-                                   child: const Icon(Icons.arrow_drop_up_rounded, size: 20, color: JaxColors.outline),
-                                 ),
-                                 InkWell(
-                                   onTap: () {
-                                     int val = int.tryParse(_gst.text) ?? 0;
-                                     if (val > 0) _gst.text = (val - 1).toString();
-                                   },
-                                   child: const Icon(Icons.arrow_drop_down_rounded, size: 20, color: JaxColors.outline),
-                                 ),
-                               ],
-                             ))),
-                             const SizedBox(width: 16),
-                             Expanded(child: _buildLabeledField('FOB PORT', _fobPort, hint: 'e.g. Port of Mumbai')),
-                           ]),
-                           const SizedBox(height: 32),
-                           Row(
-                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                             children: [
-                               Expanded(child: Text('KEY PRODUCT SPECIFICATIONS (CUSTOM ATTRIBUTES)', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant))),
-                               TextButton.icon(
-                                 onPressed: () {
-                                   setState(() {
-                                     _customSpecs.add({'key': TextEditingController(), 'value': TextEditingController()});
-                                   });
-                                 },
-                                 icon: const Icon(Icons.add_rounded, size: 14),
-                                 label: const Text('ADD CUSTOM SPEC'),
-                                 style: TextButton.styleFrom(textStyle: JaxText.label.copyWith(fontSize: 10, letterSpacing: 1), foregroundColor: JaxColors.primary),
-                               )
-                             ],
-                           ),
-                           const SizedBox(height: 8),
-                           if (_customSpecs.isNotEmpty) ...[
-                             ..._customSpecs.asMap().entries.map((e) {
-                               final i = e.key;
-                               final item = e.value;
-                               return Padding(
-                                 padding: const EdgeInsets.only(bottom: 12),
-                                 child: Row(
-                                   children: [
-                                     Expanded(
-                                       child: TextField(
-                                         controller: item['key'],
-                                         style: JaxText.bodyMedium.copyWith(fontSize: 13),
-                                         decoration: InputDecoration(
-                                           hintText: 'Spec (e.g. Material)',
-                                           hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
-                                           border: const OutlineInputBorder(),
-                                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                         ),
-                                       ),
-                                     ),
-                                     const SizedBox(width: 8),
-                                     Expanded(
-                                       child: TextField(
-                                         controller: item['value'],
-                                         style: JaxText.bodyMedium.copyWith(fontSize: 13),
-                                         decoration: InputDecoration(
-                                           hintText: 'Value (e.g. Steel)',
-                                           hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
-                                           border: const OutlineInputBorder(),
-                                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                         ),
-                                       ),
-                                     ),
-                                     const SizedBox(width: 4),
-                                     IconButton(
-                                       icon: const Icon(Icons.close_rounded, color: JaxColors.error, size: 20),
-                                       padding: EdgeInsets.zero,
-                                       constraints: const BoxConstraints(),
-                                       onPressed: () => setState(() => _customSpecs.removeAt(i)),
-                                     )
-                                   ],
-                                 ),
-                               );
-                             }),
-                             const SizedBox(height: 16),
-                           ],
-                           const Divider(height: 32),
-                           Row(
-                             children: [
-                               SizedBox(
-                                 width: 24,
-                                 height: 24,
-                                 child: Checkbox(
-                                   value: _hasVariants,
-                                   onChanged: (v) {
-                                     setState(() {
-                                       _hasVariants = v ?? false;
-                                       if (_hasVariants && _variants.isEmpty) {
-                                         _variants.add({
-                                           'name': TextEditingController(),
-                                           'sku': TextEditingController(),
-                                           'price': TextEditingController(),
-                                           'stock': TextEditingController(text: '100'),
-                                         });
-                                       }
-                                     });
-                                   },
-                                 ),
-                               ),
-                               const SizedBox(width: 12),
-                               Expanded(child: Text('THIS PRODUCT HAS VARIANTS (E.G. SIZE, COLOR, CONFIGURATION OVERRIDES)', style: JaxText.label.copyWith(fontSize: 11, color: JaxColors.primaryContainer))),
-                             ],
-                           ),
-                           if (_hasVariants) ...[
-                             const SizedBox(height: 24),
-                             ..._variants.asMap().entries.map((e) {
-                               final i = e.key;
-                               final variant = e.value;
-                               return Container(
-                                 margin: const EdgeInsets.only(bottom: 16),
-                                 padding: const EdgeInsets.all(16),
-                                 decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(12), border: Border.all(color: JaxColors.outlineVariant)),
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Row(
-                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                       children: [
-                                         Text('VARIANT ${i + 1}', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.secondary)),
-                                         if (_variants.length > 1)
-                                           IconButton(
-                                             icon: const Icon(Icons.delete_outline_rounded, size: 16, color: JaxColors.error),
-                                             padding: EdgeInsets.zero,
-                                             constraints: const BoxConstraints(),
-                                             onPressed: () => setState(() => _variants.removeAt(i)),
-                                           )
-                                       ],
-                                     ),
-                                     const SizedBox(height: 12),
-                                     Row(
-                                       children: [
-                                         Expanded(child: _buildLabeledField('VARIANT NAME', variant['name']!, hint: 'e.g. Red, XL')),
-                                         const SizedBox(width: 12),
-                                         Expanded(child: _buildLabeledField('SKU OVERRIDE', variant['sku']!, hint: 'Unique ID')),
-                                       ],
-                                     ),
-                                     const SizedBox(height: 12),
-                                     Row(
-                                       children: [
-                                         Expanded(child: _buildLabeledField('PRICE OVERRIDE', variant['price']!, hint: 'Leave blank to use base', keyboardType: TextInputType.number)),
-                                         const SizedBox(width: 12),
-                                         Expanded(child: _buildLabeledField('STOCK', variant['stock']!, hint: 'Quantity', keyboardType: TextInputType.number)),
-                                       ],
-                                     ),
-                                   ],
-                                 ),
-                               );
-                             }),
-                             JaxButton(
-                               label: 'ADD ANOTHER VARIANT',
-                               icon: Icons.add_rounded,
-                               variant: JaxButtonVariant.outline,
-                               fullWidth: true,
-                               onPressed: () {
-                                 setState(() {
-                                   _variants.add({
-                                     'name': TextEditingController(),
-                                     'sku': TextEditingController(),
-                                     'price': TextEditingController(),
-                                     'stock': TextEditingController(text: '100'),
-                                   });
-                                 });
-                               },
-                             ),
-                           ],
-                           const SizedBox(height: 32),
-                           _buildLabeledField('MARKET PROSPECTUS (DESCRIPTION)', _description, hint: 'Provide detailed technical specifications, certifications, and capabilities...', maxLines: 6),
-                         ] else if (_step == 3) ...[
-                           Center(child: Text('STEP 03 / COMMERCIAL OPS', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5, fontSize: 9))),
-                           const SizedBox(height: 8),
-                           Center(child: Text('SUPPLY CHAIN TERMS & PRICING', style: JaxText.h2)),
-                           const SizedBox(height: 32),
-                           
-                           Row(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                               Expanded(
-                                 flex: 2,
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text('PRICING OPERATIONAL MODEL', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
-                                     const SizedBox(height: 8),
-                                     DropdownButtonFormField<String>(
-                                       value: _pricingModel,
-                                       isExpanded: true,
-                                       decoration: const InputDecoration(
-                                         border: OutlineInputBorder(),
-                                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                       ),
-                                       items: ['FIXED UNIT PRICE', 'VARIABLE PRICE RANGE', 'NEGOTIABLE', 'RFQ MODE'].map((m) => DropdownMenuItem(value: m, child: Text(m, style: JaxText.bodyMedium.copyWith(fontSize: 13, fontWeight: FontWeight.w600)))).toList(),
-                                       onChanged: (v) => setState(() => _pricingModel = v ?? 'FIXED UNIT PRICE'),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                               const SizedBox(width: 12),
-                               Expanded(
-                                 child: _buildLabeledField('UNIT PRICE (INR)', _price, hint: '0', keyboardType: TextInputType.number),
-                               ),
-                               const SizedBox(width: 12),
-                               Expanded(
-                                 child: _buildLabeledField('MINIMUM ORDER QTY', _moq, hint: '1', keyboardType: TextInputType.number),
-                               ),
-                             ],
-                           ),
-                           const SizedBox(height: 32),
-                           
-                           Row(
-                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                             children: [
-                               Expanded(
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text('TIERED WHOLESALE/BULK PRICING SLABS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
-                                     const SizedBox(height: 4),
-                                     Text('SPECIFY CUSTOM UNIT PRICE BASED ON LARGER VOLUME SIZES.', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.onSurfaceVariant)),
-                                   ],
-                                 ),
-                               ),
-                               const SizedBox(width: 8),
-                               TextButton.icon(
-                                 onPressed: () {
-                                   setState(() {
-                                     _pricingSlabs.add({
-                                       'minQty': TextEditingController(),
-                                       'maxQty': TextEditingController(),
-                                       'unitPrice': TextEditingController()
-                                     });
-                                   });
-                                 },
-                                 icon: const Icon(Icons.add_rounded, size: 14),
-                                 label: const Text('ADD PRICING SLAB'),
-                                 style: TextButton.styleFrom(
-                                   foregroundColor: JaxColors.primaryContainer,
-                                   textStyle: JaxText.label.copyWith(letterSpacing: 1.0, fontSize: 10),
-                                 ),
-                               ),
-                             ],
-                           ),
-                           if (_pricingSlabs.isNotEmpty) const SizedBox(height: 16),
-                           ...List.generate(_pricingSlabs.length, (i) {
-                             final slab = _pricingSlabs[i];
-                             return Padding(
-                               padding: const EdgeInsets.only(bottom: 12),
-                               child: Row(
-                                 crossAxisAlignment: CrossAxisAlignment.end,
-                                 children: [
-                                   Expanded(child: _buildLabeledField('MIN ORDER VOLUME', slab['minQty']!, hint: '1', keyboardType: TextInputType.number)),
-                                   const SizedBox(width: 12),
-                                   Expanded(child: _buildLabeledField('MAX ORDER VOLUME', slab['maxQty']!, hint: '10', keyboardType: TextInputType.number)),
-                                   const SizedBox(width: 12),
-                                   Expanded(child: _buildLabeledField('SLAB UNIT PRICE (INR)', slab['unitPrice']!, hint: '0', keyboardType: TextInputType.number)),
-                                   const SizedBox(width: 12),
-                                   Container(
-                                     decoration: BoxDecoration(
-                                       color: JaxColors.error.withValues(alpha: .08),
-                                       borderRadius: BorderRadius.circular(10),
-                                     ),
-                                     height: 48,
-                                     width: 48,
-                                     child: IconButton(
-                                       icon: const Icon(Icons.close_rounded, size: 20, color: JaxColors.error),
-                                       onPressed: () => setState(() => _pricingSlabs.removeAt(i)),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             );
-                           }),
-                           const SizedBox(height: 24),
-                           
-                           Row(
-                             children: [
-                               Expanded(child: _buildLabeledField('SUPPLY ABILITY', _supplyAbility, hint: 'e.g. 5000 Metric Tons/Month')),
-                               const SizedBox(width: 16),
-                               Expanded(child: _buildLabeledField('LOGISTICS DELIVERY TIME', _deliveryTime, hint: 'e.g. 10-15 Days after confirmation')),
-                             ],
-                           ),
-                           const SizedBox(height: 16),
-                           Row(
-                             children: [
-                               Expanded(child: _buildLabeledField('PACKAGING & CARTON SPECIFICATIONS', _packaging, hint: 'e.g. Industrial Palletized, Shrink-wrapped')),
-                               const SizedBox(width: 16),
-                               Expanded(child: _buildLabeledField('STANDARD PAYMENT TERMS', _paymentTerms, hint: 'e.g. 30% Advance, 70% Letter of Credit')),
-                             ],
-                           ),
-                           const SizedBox(height: 16),
-                           Row(
-                             children: [
-                               Expanded(child: _buildLabeledField('WARRANTY DURATION', _warranty, hint: 'e.g. 1 Year Manufacturer Warranty')),
-                               const SizedBox(width: 16),
-                               Expanded(child: _buildLabeledField('INDUSTRIAL RETURN POLICY', _returnPolicy, hint: 'e.g. 15-day return on defective goods')),
-                             ],
-                           ),
-                           const SizedBox(height: 32),
-                           
-                           Row(
-                             children: [
-                               Expanded(
-                                 child: Row(
-                                   children: [
-                                     SizedBox(
-                                       width: 24,
-                                       height: 24,
-                                       child: Checkbox(
-                                         value: _sampleAvailable,
-                                         onChanged: (v) => setState(() => _sampleAvailable = v ?? false),
-                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                       ),
-                                     ),
-                                     const SizedBox(width: 12),
-                                     Expanded(child: Text('EVALUATION SAMPLE AVAILABLE', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer))),
-                                   ],
-                                 ),
-                               ),
-                               if (_sampleAvailable) ...[
-                                 const SizedBox(width: 16),
-                                 Expanded(child: _buildLabeledField('EVALUATION SAMPLE COST (INR)', _sampleCost, hint: 'e.g. 500', keyboardType: TextInputType.number)),
-                               ] else
-                                 const Expanded(child: SizedBox()),
-                             ],
-                           ),
-                           const SizedBox(height: 32),
-                           
-                           Text('REGULATORY COMPLIANCE & CERTIFICATIONS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
-                           const SizedBox(height: 16),
-                           Wrap(
-                             spacing: 8,
-                             runSpacing: 12,
-                             children: [
-                               ..._presetCerts.map((cert) {
-                                 final isSelected = _certifications.contains(cert);
-                                 return ChoiceChip(
-                                   label: Text(cert, style: JaxText.label.copyWith(fontSize: 10, color: isSelected ? Colors.white : JaxColors.primaryContainer)),
-                                   selected: isSelected,
-                                   selectedColor: JaxColors.primaryContainer,
-                                   backgroundColor: Colors.transparent,
-                                   shape: RoundedRectangleBorder(
-                                     borderRadius: BorderRadius.circular(20),
-                                     side: BorderSide(color: isSelected ? JaxColors.primaryContainer : JaxColors.outlineVariant),
-                                   ),
-                                   onSelected: (v) {
-                                     setState(() {
-                                       if (v) _certifications.add(cert);
-                                       else _certifications.remove(cert);
-                                     });
-                                   },
-                                 );
-                               }),
-                               ..._certifications.where((c) => !_presetCerts.contains(c)).map((cert) {
-                                 return Chip(
-                                   label: Text(cert, style: JaxText.label.copyWith(fontSize: 10, color: Colors.white)),
-                                   backgroundColor: JaxColors.primaryContainer,
-                                   deleteIconColor: Colors.white,
-                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: JaxColors.primaryContainer)),
-                                   onDeleted: () => setState(() => _certifications.remove(cert)),
-                                 );
-                               }),
-                             ],
-                           ),
-                           const SizedBox(height: 16),
-                           Row(
-                             children: [
-                               Expanded(
-                                 child: TextField(
-                                   controller: _customCert,
-                                   style: JaxText.bodyMedium.copyWith(fontSize: 13),
-                                   decoration: InputDecoration(
-                                     hintText: 'Add Custom Certification...',
-                                     hintStyle: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12),
-                                     filled: true,
-                                     fillColor: JaxColors.surfaceContainer,
-                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                   ),
-                                 ),
-                               ),
-                               const SizedBox(width: 12),
-                               ElevatedButton(
-                                 onPressed: () {
-                                   if (_customCert.text.trim().isNotEmpty) {
-                                     setState(() {
-                                       _certifications.add(_customCert.text.trim());
-                                       _customCert.clear();
-                                     });
-                                   }
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                   backgroundColor: JaxColors.primaryContainer,
-                                   foregroundColor: Colors.white,
-                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                 ),
-                                 child: Text('ADD', style: JaxText.label.copyWith(fontSize: 11, color: Colors.white)),
-                               ),
-                             ],
-                           ),
-                         ] else ...[
-                           Center(child: Text('STEP 04 / CORE MEDIA', style: JaxText.label.copyWith(color: JaxColors.secondary, letterSpacing: 1.5, fontSize: 9))),
-                           const SizedBox(height: 8),
-                           Center(child: Text('VISUAL ASSET REGISTRY', style: JaxText.h2)),
-                           const SizedBox(height: 48),
-                           Center(
-                             child: GestureDetector(
-                               onTap: () async {
-                                 FilePickerResult? result = await FilePicker.pickFiles(
-                                    allowMultiple: true,
-                                    type: FileType.custom,
-                                    allowedExtensions: ['jpg', 'png', 'jpeg', 'mp4', 'pdf'],
-                                  );
-                                  if (result != null) {
-                                    setState(() {
-                                      for (var f in result.files) {
-                                        _mediaItems.add(ListingMediaItem(file: f));
-                                      }
-                                    });
-                                  }
-                               },
-                               child: CustomPaint(
-                                 painter: DashedRectPainter(color: JaxColors.outlineVariant, strokeWidth: 1.5, gap: 6.0, borderRadius: 24),
-                                 child: Container(
-                                   width: 160,
-                                   height: 160,
-                                   decoration: BoxDecoration(
-                                     color: JaxColors.surface,
-                                     borderRadius: BorderRadius.circular(24),
-                                   ),
-                                   child: Column(
-                                     mainAxisAlignment: MainAxisAlignment.center,
-                                     children: [
-                                       Container(
-                                         padding: const EdgeInsets.all(12),
-                                         decoration: BoxDecoration(
-                                           color: JaxColors.outlineVariant.withValues(alpha: .2),
-                                           shape: BoxShape.circle,
-                                         ),
-                                         child: const Icon(Icons.cloud_upload_rounded, color: JaxColors.outline, size: 24),
-                                       ),
-                                       const SizedBox(height: 16),
-                                       Text('ADD VISUAL ASSET', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.primaryContainer)),
-                                       const SizedBox(height: 6),
-                                       Text('MAX 5MB PER FILE', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.onSurfaceVariant)),
-                                     ],
-                                   ),
-                                 ),
-                               ),
-                             ),
-                           ),
-                           if (_mediaItems.isNotEmpty) ...[
-                              const SizedBox(height: 24),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  childAspectRatio: 1,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _StepNavPill(
+                            title: 'CLASSIFICATION',
+                            icon: Icons.category_rounded,
+                            active: _step == 1,
+                            completed: _step > 1),
+                        const SizedBox(width: 8),
+                        _StepNavPill(
+                            title: 'TECHNICAL SPECS',
+                            icon: Icons.description_rounded,
+                            active: _step == 2,
+                            completed: _step > 2),
+                        const SizedBox(width: 8),
+                        _StepNavPill(
+                            title: 'COMMERCIAL TERMS',
+                            icon: Icons.currency_rupee_rounded,
+                            active: _step == 3,
+                            completed: _step > 3),
+                        const SizedBox(width: 8),
+                        _StepNavPill(
+                            title: 'MEDIA INDEX',
+                            icon: Icons.cloud_upload_rounded,
+                            active: _step == 4,
+                            completed: _step > 4),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  JaxCard(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        if (_step == 1) ...[
+                          Text('STEP 01 / REGISTRY TYPE',
+                              style: JaxText.label.copyWith(
+                                  color: JaxColors.secondary,
+                                  letterSpacing: 1.5)),
+                          const SizedBox(height: 16),
+                          Text('HOW IS THIS ASSET CLASSIFIED?',
+                              style: JaxText.h2, textAlign: TextAlign.center),
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _AssetTypeCard(
+                                  title: 'INDUSTRIAL GOOD',
+                                  subtitle:
+                                      'MOVABLE ASSETS, MACHINERY, SPARE PARTS OR RAW MATERIALS',
+                                  icon: Icons.inventory_2_rounded,
+                                  selected: _type == 'PRODUCT',
+                                  onTap: () =>
+                                      setState(() => _type = 'PRODUCT'),
                                 ),
-                                itemCount: _mediaItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = _mediaItems[index];
-                                  Widget imageWidget;
-                                  if (item.isLocal) {
-                                    final path = item.file!.path;
-                                    if (path != null && (path.toLowerCase().endsWith('.jpg') || path.toLowerCase().endsWith('.jpeg') || path.toLowerCase().endsWith('.png'))) {
-                                      imageWidget = Image.file(
-                                        File(path),
-                                        fit: BoxFit.cover,
-                                      );
-                                    } else {
-                                      imageWidget = Container(
-                                        color: JaxColors.surfaceContainer,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(Icons.insert_drive_file_rounded, size: 32, color: JaxColors.outline),
-                                            const SizedBox(height: 4),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                                              child: Text(
-                                                item.name,
-                                                style: JaxText.bodySmall.copyWith(fontSize: 8),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  } else {
-                                    imageWidget = CachedNetworkImage(
-                                      imageUrl: item.url!,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => const Center(
-                                        child: SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) => const Center(
-                                        child: Icon(Icons.error_outline_rounded, color: JaxColors.error),
-                                      ),
-                                    );
-                                  }
-
-                                  return Stack(
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _AssetTypeCard(
+                                  title: 'TECHNICAL SERVICE',
+                                  subtitle:
+                                      'CONSULTING, INSTALLATION, MAINTENANCE OR SPECIALIZED LABOR',
+                                  icon: Icons.bolt_rounded,
+                                  selected: _type == 'SERVICE',
+                                  onTap: () =>
+                                      setState(() => _type = 'SERVICE'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isMobile = constraints.maxWidth < 600;
+                              final children = [
+                                Expanded(
+                                  flex: isMobile ? 0 : 1,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Positioned.fill(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: imageWidget,
-                                        ),
-                                      ),
-                                      if (index == 0)
-                                        Positioned(
-                                          top: 6,
-                                          left: 6,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                            decoration: BoxDecoration(
-                                              color: JaxColors.secondary,
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              'PRIMARY',
-                                              style: JaxText.label.copyWith(fontSize: 8, color: Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              _mediaItems.removeAt(index);
-                                            });
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.black54,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.close_rounded,
-                                              size: 14,
-                                              color: Colors.white,
-                                            ),
-                                          ),
+                                      Text('TECHNICAL INDUSTRY VERTICAL',
+                                          style: JaxText.label.copyWith(
+                                              color: JaxColors.outline)),
+                                      const SizedBox(height: 8),
+                                      BlocBuilder<CategoriesCubit,
+                                          ResourceState>(
+                                        builder: (context, cats) =>
+                                            DropdownButtonFormField<String>(
+                                          value: _category.isEmpty
+                                              ? null
+                                              : _category,
+                                          hint: const Text(
+                                              'SELECT VERTICAL REGISTRY...'),
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12)),
+                                          items: cats.items
+                                              .map((cat) => DropdownMenuItem(
+                                                  value: textOf(cat['id']),
+                                                  child: Text(
+                                                      textOf(cat['name']))))
+                                              .toList(),
+                                          onChanged: (v) => setState(
+                                              () => _category = v ?? ''),
                                         ),
                                       ),
                                     ],
-                                  );
+                                  ),
+                                ),
+                                if (isMobile)
+                                  const SizedBox(height: 24)
+                                else
+                                  const SizedBox(width: 24),
+                                Expanded(
+                                  flex: isMobile ? 0 : 1,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('SEARCH TAGS (COMMA SEPARATED)',
+                                          style: JaxText.label.copyWith(
+                                              color: JaxColors.outline)),
+                                      const SizedBox(height: 8),
+                                      TextField(
+                                        controller: _tags,
+                                        decoration: const InputDecoration(
+                                          hintText:
+                                              'e.g. steel, high-tensile, construction',
+                                          border: OutlineInputBorder(),
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 12),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ];
+                              return isMobile
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: children)
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: children);
+                            },
+                          ),
+                        ] else if (_step == 2) ...[
+                          Text('STEP 02 / SPEC SHEET',
+                              style: JaxText.label.copyWith(
+                                  color: JaxColors.secondary,
+                                  letterSpacing: 1.5)),
+                          const SizedBox(height: 16),
+                          Text('CORE MARKETPLACE IDENTIFICATION',
+                              style: JaxText.h2, textAlign: TextAlign.center),
+                          const SizedBox(height: 32),
+                          _buildLabeledField('REGISTRY TITLE', _title,
+                              hint:
+                                  'e.g. Industrial Grade High-Torque AC Motor 5HP'),
+                          const SizedBox(height: 24),
+                          Row(children: [
+                            Expanded(
+                                child: _buildLabeledField(
+                                    'BRAND / MANUFACTURER', _brand,
+                                    hint: 'Organization name')),
+                            const SizedBox(width: 16),
+                            Expanded(
+                                child: _buildLabeledField(
+                                    'PART NUMBER / SKU', _sku,
+                                    hint: 'Internal registry ID')),
+                          ]),
+                          const SizedBox(height: 24),
+                          Row(children: [
+                            Expanded(
+                                child: _buildLabeledField(
+                                    'SOURCING UNIT', _unit,
+                                    hint: 'Pieces')),
+                            const SizedBox(width: 16),
+                            Expanded(
+                                child: _buildLabeledField(
+                                    'GLOBAL LEAD TIME (DAYS)', _leadTime,
+                                    hint: '7',
+                                    keyboardType: TextInputType.number,
+                                    suffixIcon: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            int val =
+                                                int.tryParse(_leadTime.text) ??
+                                                    0;
+                                            _leadTime.text =
+                                                (val + 1).toString();
+                                          },
+                                          child: const Icon(
+                                              Icons.arrow_drop_up_rounded,
+                                              size: 20,
+                                              color: JaxColors.outline),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            int val =
+                                                int.tryParse(_leadTime.text) ??
+                                                    0;
+                                            if (val > 0)
+                                              _leadTime.text =
+                                                  (val - 1).toString();
+                                          },
+                                          child: const Icon(
+                                              Icons.arrow_drop_down_rounded,
+                                              size: 20,
+                                              color: JaxColors.outline),
+                                        ),
+                                      ],
+                                    ))),
+                          ]),
+                          const SizedBox(height: 24),
+                          Row(children: [
+                            Expanded(
+                                child: _buildLabeledField(
+                                    'COUNTRY OF ORIGIN', _country,
+                                    hint: 'India')),
+                            const SizedBox(width: 16),
+                            Expanded(
+                                child: _buildLabeledField('HSN CODE', _hsn,
+                                    hint: 'Harmonized System Nomenclature')),
+                          ]),
+                          const SizedBox(height: 24),
+                          Row(children: [
+                            Expanded(
+                                child: _buildLabeledField('GST RATE (%)', _gst,
+                                    hint: '18',
+                                    keyboardType: TextInputType.number,
+                                    suffixIcon: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            int val =
+                                                int.tryParse(_gst.text) ?? 0;
+                                            _gst.text = (val + 1).toString();
+                                          },
+                                          child: const Icon(
+                                              Icons.arrow_drop_up_rounded,
+                                              size: 20,
+                                              color: JaxColors.outline),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            int val =
+                                                int.tryParse(_gst.text) ?? 0;
+                                            if (val > 0)
+                                              _gst.text = (val - 1).toString();
+                                          },
+                                          child: const Icon(
+                                              Icons.arrow_drop_down_rounded,
+                                              size: 20,
+                                              color: JaxColors.outline),
+                                        ),
+                                      ],
+                                    ))),
+                            const SizedBox(width: 16),
+                            Expanded(
+                                child: _buildLabeledField('FOB PORT', _fobPort,
+                                    hint: 'e.g. Port of Mumbai')),
+                          ]),
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                      'KEY PRODUCT SPECIFICATIONS (CUSTOM ATTRIBUTES)',
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 10,
+                                          color: JaxColors.onSurfaceVariant))),
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _customSpecs.add({
+                                      'key': TextEditingController(),
+                                      'value': TextEditingController()
+                                    });
+                                  });
                                 },
+                                icon: const Icon(Icons.add_rounded, size: 14),
+                                label: const Text('ADD CUSTOM SPEC'),
+                                style: TextButton.styleFrom(
+                                    textStyle: JaxText.label.copyWith(
+                                        fontSize: 10, letterSpacing: 1),
+                                    foregroundColor: JaxColors.primary),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          if (_customSpecs.isNotEmpty) ...[
+                            ..._customSpecs.asMap().entries.map((e) {
+                              final i = e.key;
+                              final item = e.value;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: item['key'],
+                                        style: JaxText.bodyMedium
+                                            .copyWith(fontSize: 13),
+                                        decoration: InputDecoration(
+                                          hintText: 'Spec (e.g. Material)',
+                                          hintStyle: JaxText.bodyMedium
+                                              .copyWith(
+                                                  color: JaxColors.outline,
+                                                  fontSize: 12),
+                                          border: const OutlineInputBorder(),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 12, vertical: 12),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: item['value'],
+                                        style: JaxText.bodyMedium
+                                            .copyWith(fontSize: 13),
+                                        decoration: InputDecoration(
+                                          hintText: 'Value (e.g. Steel)',
+                                          hintStyle: JaxText.bodyMedium
+                                              .copyWith(
+                                                  color: JaxColors.outline,
+                                                  fontSize: 12),
+                                          border: const OutlineInputBorder(),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 12, vertical: 12),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.close_rounded,
+                                          color: JaxColors.error, size: 20),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () => setState(
+                                          () => _customSpecs.removeAt(i)),
+                                    )
+                                  ],
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 16),
+                          ],
+                          const Divider(height: 32),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: _hasVariants,
+                                  onChanged: (v) {
+                                    setState(() {
+                                      _hasVariants = v ?? false;
+                                      if (_hasVariants && _variants.isEmpty) {
+                                        _variants.add({
+                                          'name': TextEditingController(),
+                                          'sku': TextEditingController(),
+                                          'price': TextEditingController(),
+                                          'stock': TextEditingController(
+                                              text: '100'),
+                                        });
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text(
+                                      'THIS PRODUCT HAS VARIANTS (E.G. SIZE, COLOR, CONFIGURATION OVERRIDES)',
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 11,
+                                          color: JaxColors.primaryContainer))),
+                            ],
+                          ),
+                          if (_hasVariants) ...[
+                            const SizedBox(height: 24),
+                            ..._variants.asMap().entries.map((e) {
+                              final i = e.key;
+                              final variant = e.value;
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                    color: JaxColors.surfaceLow,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: JaxColors.outlineVariant)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('VARIANT ${i + 1}',
+                                            style: JaxText.label.copyWith(
+                                                fontSize: 10,
+                                                color: JaxColors.secondary)),
+                                        if (_variants.length > 1)
+                                          IconButton(
+                                            icon: const Icon(
+                                                Icons.delete_outline_rounded,
+                                                size: 16,
+                                                color: JaxColors.error),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            onPressed: () => setState(
+                                                () => _variants.removeAt(i)),
+                                          )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: _buildLabeledField(
+                                                'VARIANT NAME',
+                                                variant['name']!,
+                                                hint: 'e.g. Red, XL')),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                            child: _buildLabeledField(
+                                                'SKU OVERRIDE', variant['sku']!,
+                                                hint: 'Unique ID')),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: _buildLabeledField(
+                                                'PRICE OVERRIDE',
+                                                variant['price']!,
+                                                hint: 'Leave blank to use base',
+                                                keyboardType:
+                                                    TextInputType.number)),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                            child: _buildLabeledField(
+                                                'STOCK', variant['stock']!,
+                                                hint: 'Quantity',
+                                                keyboardType:
+                                                    TextInputType.number)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            JaxButton(
+                              label: 'ADD ANOTHER VARIANT',
+                              icon: Icons.add_rounded,
+                              variant: JaxButtonVariant.outline,
+                              fullWidth: true,
+                              onPressed: () {
+                                setState(() {
+                                  _variants.add({
+                                    'name': TextEditingController(),
+                                    'sku': TextEditingController(),
+                                    'price': TextEditingController(),
+                                    'stock': TextEditingController(text: '100'),
+                                  });
+                                });
+                              },
+                            ),
+                          ],
+                          const SizedBox(height: 32),
+                          _buildLabeledField(
+                              'MARKET PROSPECTUS (DESCRIPTION)', _description,
+                              hint:
+                                  'Provide detailed technical specifications, certifications, and capabilities...',
+                              maxLines: 6),
+                        ] else if (_step == 3) ...[
+                          Center(
+                              child: Text('STEP 03 / COMMERCIAL OPS',
+                                  style: JaxText.label.copyWith(
+                                      color: JaxColors.secondary,
+                                      letterSpacing: 1.5,
+                                      fontSize: 9))),
+                          const SizedBox(height: 8),
+                          Center(
+                              child: Text('SUPPLY CHAIN TERMS & PRICING',
+                                  style: JaxText.h2)),
+                          const SizedBox(height: 32),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('PRICING OPERATIONAL MODEL',
+                                        style: JaxText.label.copyWith(
+                                            fontSize: 10,
+                                            color: JaxColors.onSurfaceVariant)),
+                                    const SizedBox(height: 8),
+                                    DropdownButtonFormField<String>(
+                                      value: _pricingModel,
+                                      isExpanded: true,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 12),
+                                      ),
+                                      items: [
+                                        'FIXED UNIT PRICE',
+                                        'VARIABLE PRICE RANGE',
+                                        'NEGOTIABLE',
+                                        'RFQ MODE'
+                                      ]
+                                          .map((m) => DropdownMenuItem(
+                                              value: m,
+                                              child: Text(m,
+                                                  style: JaxText.bodyMedium
+                                                      .copyWith(
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight
+                                                              .w600))))
+                                          .toList(),
+                                      onChanged: (v) => setState(() =>
+                                          _pricingModel =
+                                              v ?? 'FIXED UNIT PRICE'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildLabeledField(
+                                    'UNIT PRICE (INR)', _price,
+                                    hint: '0',
+                                    keyboardType: TextInputType.number),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildLabeledField(
+                                    'MINIMUM ORDER QTY', _moq,
+                                    hint: '1',
+                                    keyboardType: TextInputType.number),
                               ),
                             ],
-                           const SizedBox(height: 48),
-                           Container(
-                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                             decoration: BoxDecoration(
-                               color: JaxColors.success.withValues(alpha: .12),
-                               borderRadius: BorderRadius.circular(12),
-                             ),
-                             child: Row(
-                               children: [
-                                 Container(
-                                   padding: const EdgeInsets.all(4),
-                                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                                   child: const Icon(Icons.check_rounded, color: JaxColors.success, size: 16),
-                                 ),
-                                 const SizedBox(width: 16),
-                                 Expanded(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Text('READY FOR MARKET INJECTION', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.success)),
-                                       const SizedBox(height: 4),
-                                       Text('REGISTRY DATA IS COHERENT AND READY FOR SYNCHRONIZATION.', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.success.withValues(alpha: .8))),
-                                     ],
-                                   ),
-                                 ),
-                               ],
-                             ),
-                           ),
-                         ],
-                         
-                         const SizedBox(height: 48),
-                         FittedBox(
-                           fit: BoxFit.scaleDown,
-                           alignment: Alignment.center,
-                           child: Row(
-                             children: [
-                               TextButton.icon(
-                                 onPressed: _step > 1 ? () => setState(() => _step--) : null,
-                                 icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                                 label: const Text('PREVIOUS PROTOCOL'),
-                                 style: TextButton.styleFrom(
-                                   foregroundColor: JaxColors.outline,
-                                   textStyle: JaxText.label.copyWith(letterSpacing: 1.0, fontSize: 11),
-                                 ),
-                               ),
-                               const SizedBox(width: 48),
-                               if (_step < 4)
-                                 JaxButton(
-                                   label: _step == 1 ? 'PROCEED TO TECHNICAL SPECS' : _step == 2 ? 'PROCEED TO COMMERCIAL TERMS' : 'PROCEED TO MEDIA INDEX',
-                                   icon: Icons.arrow_forward_rounded,
-                                   onPressed: () => setState(() => _step++),
-                                 )
-                               else
-                                 JaxButton(
-                                   label: widget.listingId != null ? 'SAVE CHANGES' : 'INJECT INTO MARKETPLACE',
-                                   icon: Icons.check_rounded,
-                                   loading: state.status == ResourceStatus.submitting,
-                                   onPressed: () => context.read<FormSubmitCubit>().submit(() async {
-                                      final tagsList = _tags.text
-                                          .split(',')
-                                          .map((t) => t.trim())
-                                          .where((t) => t.isNotEmpty)
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('TIERED WHOLESALE/BULK PRICING SLABS',
+                                        style: JaxText.label.copyWith(
+                                            fontSize: 10,
+                                            color: JaxColors.primaryContainer)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                        'SPECIFY CUSTOM UNIT PRICE BASED ON LARGER VOLUME SIZES.',
+                                        style: JaxText.label.copyWith(
+                                            fontSize: 8,
+                                            color: JaxColors.onSurfaceVariant)),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _pricingSlabs.add({
+                                      'minQty': TextEditingController(),
+                                      'maxQty': TextEditingController(),
+                                      'unitPrice': TextEditingController()
+                                    });
+                                  });
+                                },
+                                icon: const Icon(Icons.add_rounded, size: 14),
+                                label: const Text('ADD PRICING SLAB'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: JaxColors.primaryContainer,
+                                  textStyle: JaxText.label.copyWith(
+                                      letterSpacing: 1.0, fontSize: 10),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_pricingSlabs.isNotEmpty)
+                            const SizedBox(height: 16),
+                          ...List.generate(_pricingSlabs.length, (i) {
+                            final slab = _pricingSlabs[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                      child: _buildLabeledField(
+                                          'MIN ORDER VOLUME', slab['minQty']!,
+                                          hint: '1',
+                                          keyboardType: TextInputType.number)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                      child: _buildLabeledField(
+                                          'MAX ORDER VOLUME', slab['maxQty']!,
+                                          hint: '10',
+                                          keyboardType: TextInputType.number)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                      child: _buildLabeledField(
+                                          'SLAB UNIT PRICE (INR)',
+                                          slab['unitPrice']!,
+                                          hint: '0',
+                                          keyboardType: TextInputType.number)),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: JaxColors.error
+                                          .withValues(alpha: .08),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    height: 48,
+                                    width: 48,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close_rounded,
+                                          size: 20, color: JaxColors.error),
+                                      onPressed: () => setState(
+                                          () => _pricingSlabs.removeAt(i)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'SUPPLY ABILITY', _supplyAbility,
+                                      hint: 'e.g. 5000 Metric Tons/Month')),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'LOGISTICS DELIVERY TIME', _deliveryTime,
+                                      hint:
+                                          'e.g. 10-15 Days after confirmation')),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'PACKAGING & CARTON SPECIFICATIONS',
+                                      _packaging,
+                                      hint:
+                                          'e.g. Industrial Palletized, Shrink-wrapped')),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'STANDARD PAYMENT TERMS', _paymentTerms,
+                                      hint:
+                                          'e.g. 30% Advance, 70% Letter of Credit')),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'WARRANTY DURATION', _warranty,
+                                      hint:
+                                          'e.g. 1 Year Manufacturer Warranty')),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  child: _buildLabeledField(
+                                      'INDUSTRIAL RETURN POLICY', _returnPolicy,
+                                      hint:
+                                          'e.g. 15-day return on defective goods')),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
+                                        value: _sampleAvailable,
+                                        onChanged: (v) => setState(() =>
+                                            _sampleAvailable = v ?? false),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4)),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: Text(
+                                            'EVALUATION SAMPLE AVAILABLE',
+                                            style: JaxText.label.copyWith(
+                                                fontSize: 10,
+                                                color: JaxColors
+                                                    .primaryContainer))),
+                                  ],
+                                ),
+                              ),
+                              if (_sampleAvailable) ...[
+                                const SizedBox(width: 16),
+                                Expanded(
+                                    child: _buildLabeledField(
+                                        'EVALUATION SAMPLE COST (INR)',
+                                        _sampleCost,
+                                        hint: 'e.g. 500',
+                                        keyboardType: TextInputType.number)),
+                              ] else
+                                const Expanded(child: SizedBox()),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          Text('REGULATORY COMPLIANCE & CERTIFICATIONS',
+                              style: JaxText.label.copyWith(
+                                  fontSize: 10,
+                                  color: JaxColors.onSurfaceVariant)),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 12,
+                            children: [
+                              ..._presetCerts.map((cert) {
+                                final isSelected =
+                                    _certifications.contains(cert);
+                                return ChoiceChip(
+                                  label: Text(cert,
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 10,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : JaxColors.primaryContainer)),
+                                  selected: isSelected,
+                                  selectedColor: JaxColors.primaryContainer,
+                                  backgroundColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: BorderSide(
+                                        color: isSelected
+                                            ? JaxColors.primaryContainer
+                                            : JaxColors.outlineVariant),
+                                  ),
+                                  onSelected: (v) {
+                                    setState(() {
+                                      if (v)
+                                        _certifications.add(cert);
+                                      else
+                                        _certifications.remove(cert);
+                                    });
+                                  },
+                                );
+                              }),
+                              ..._certifications
+                                  .where((c) => !_presetCerts.contains(c))
+                                  .map((cert) {
+                                return Chip(
+                                  label: Text(cert,
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 10, color: Colors.white)),
+                                  backgroundColor: JaxColors.primaryContainer,
+                                  deleteIconColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      side: const BorderSide(
+                                          color: JaxColors.primaryContainer)),
+                                  onDeleted: () => setState(
+                                      () => _certifications.remove(cert)),
+                                );
+                              }),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _customCert,
+                                  style:
+                                      JaxText.bodyMedium.copyWith(fontSize: 13),
+                                  decoration: InputDecoration(
+                                    hintText: 'Add Custom Certification...',
+                                    hintStyle: JaxText.bodyMedium.copyWith(
+                                        color: JaxColors.outline, fontSize: 12),
+                                    filled: true,
+                                    fillColor: JaxColors.surfaceContainer,
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: BorderSide.none),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (_customCert.text.trim().isNotEmpty) {
+                                    setState(() {
+                                      _certifications
+                                          .add(_customCert.text.trim());
+                                      _customCert.clear();
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: JaxColors.primaryContainer,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
+                                ),
+                                child: Text('ADD',
+                                    style: JaxText.label.copyWith(
+                                        fontSize: 11, color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          Center(
+                              child: Text('STEP 04 / CORE MEDIA',
+                                  style: JaxText.label.copyWith(
+                                      color: JaxColors.secondary,
+                                      letterSpacing: 1.5,
+                                      fontSize: 9))),
+                          const SizedBox(height: 8),
+                          Center(
+                              child: Text('VISUAL ASSET REGISTRY',
+                                  style: JaxText.h2)),
+                          const SizedBox(height: 48),
+                          Center(
+                            child: GestureDetector(
+                              onTap: () async {
+                                FilePickerResult? result =
+                                    await FilePicker.pickFiles(
+                                  allowMultiple: true,
+                                  type: FileType.custom,
+                                  allowedExtensions: [
+                                    'jpg',
+                                    'png',
+                                    'jpeg',
+                                    'mp4',
+                                    'pdf'
+                                  ],
+                                );
+                                if (result != null) {
+                                  setState(() {
+                                    for (var f in result.files) {
+                                      _mediaItems
+                                          .add(ListingMediaItem(file: f));
+                                    }
+                                  });
+                                }
+                              },
+                              child: CustomPaint(
+                                painter: DashedRectPainter(
+                                    color: JaxColors.outlineVariant,
+                                    strokeWidth: 1.5,
+                                    gap: 6.0,
+                                    borderRadius: 24),
+                                child: Container(
+                                  width: 160,
+                                  height: 160,
+                                  decoration: BoxDecoration(
+                                    color: JaxColors.surface,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: JaxColors.outlineVariant
+                                              .withValues(alpha: .2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                            Icons.cloud_upload_rounded,
+                                            color: JaxColors.outline,
+                                            size: 24),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text('ADD VISUAL ASSET',
+                                          style: JaxText.label.copyWith(
+                                              fontSize: 9,
+                                              color:
+                                                  JaxColors.primaryContainer)),
+                                      const SizedBox(height: 6),
+                                      Text('MAX 5MB PER FILE',
+                                          style: JaxText.label.copyWith(
+                                              fontSize: 8,
+                                              color:
+                                                  JaxColors.onSurfaceVariant)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_mediaItems.isNotEmpty) ...[
+                            const SizedBox(height: 24),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1,
+                              ),
+                              itemCount: _mediaItems.length,
+                              itemBuilder: (context, index) {
+                                final item = _mediaItems[index];
+                                Widget imageWidget;
+                                if (item.isLocal) {
+                                  final path = item.file!.path;
+                                  if (path != null &&
+                                      (path.toLowerCase().endsWith('.jpg') ||
+                                          path
+                                              .toLowerCase()
+                                              .endsWith('.jpeg') ||
+                                          path
+                                              .toLowerCase()
+                                              .endsWith('.png'))) {
+                                    imageWidget = Image.file(
+                                      File(path),
+                                      fit: BoxFit.cover,
+                                    );
+                                  } else {
+                                    imageWidget = Container(
+                                      color: JaxColors.surfaceContainer,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                              Icons.insert_drive_file_rounded,
+                                              size: 32,
+                                              color: JaxColors.outline),
+                                          const SizedBox(height: 4),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4),
+                                            child: Text(
+                                              item.name,
+                                              style: JaxText.bodySmall
+                                                  .copyWith(fontSize: 8),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  imageWidget = CachedNetworkImage(
+                                    imageUrl: item.url!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        const Center(
+                                      child: Icon(Icons.error_outline_rounded,
+                                          color: JaxColors.error),
+                                    ),
+                                  );
+                                }
+
+                                return Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: imageWidget,
+                                      ),
+                                    ),
+                                    if (index == 0)
+                                      Positioned(
+                                        top: 6,
+                                        left: 6,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: JaxColors.secondary,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'PRIMARY',
+                                            style: JaxText.label.copyWith(
+                                                fontSize: 8,
+                                                color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _mediaItems.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close_rounded,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                          const SizedBox(height: 48),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: JaxColors.success.withValues(alpha: .12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle),
+                                  child: const Icon(Icons.check_rounded,
+                                      color: JaxColors.success, size: 16),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('READY FOR MARKET INJECTION',
+                                          style: JaxText.label.copyWith(
+                                              fontSize: 10,
+                                              color: JaxColors.success)),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                          'REGISTRY DATA IS COHERENT AND READY FOR SYNCHRONIZATION.',
+                                          style: JaxText.label.copyWith(
+                                              fontSize: 8,
+                                              color: JaxColors.success
+                                                  .withValues(alpha: .8))),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 48),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: Row(
+                            children: [
+                              TextButton.icon(
+                                onPressed: _step > 1
+                                    ? () => setState(() => _step--)
+                                    : null,
+                                icon: const Icon(Icons.arrow_back_rounded,
+                                    size: 16),
+                                label: const Text('PREVIOUS PROTOCOL'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: JaxColors.outline,
+                                  textStyle: JaxText.label.copyWith(
+                                      letterSpacing: 1.0, fontSize: 11),
+                                ),
+                              ),
+                              const SizedBox(width: 48),
+                              if (_step < 4)
+                                JaxButton(
+                                  label: _step == 1
+                                      ? 'PROCEED TO TECHNICAL SPECS'
+                                      : _step == 2
+                                          ? 'PROCEED TO COMMERCIAL TERMS'
+                                          : 'PROCEED TO MEDIA INDEX',
+                                  icon: Icons.arrow_forward_rounded,
+                                  onPressed: () => setState(() => _step++),
+                                )
+                              else
+                                JaxButton(
+                                  label: widget.listingId != null
+                                      ? 'SAVE CHANGES'
+                                      : 'INJECT INTO MARKETPLACE',
+                                  icon: Icons.check_rounded,
+                                  loading:
+                                      state.status == ResourceStatus.submitting,
+                                  onPressed: () => context
+                                      .read<FormSubmitCubit>()
+                                      .submit(() async {
+                                    final tagsList = _tags.text
+                                        .split(',')
+                                        .map((t) => t.trim())
+                                        .where((t) => t.isNotEmpty)
+                                        .toList();
+                                    final api = apiOf(context);
+
+                                    // 1. Upload any local files first
+                                    final localItems = _mediaItems
+                                        .where((i) => i.isLocal)
+                                        .toList();
+                                    final List<String> uploadedUrls = [];
+                                    if (localItems.isNotEmpty) {
+                                      final paths = localItems
+                                          .map((i) => i.file!.path)
+                                          .whereType<String>()
                                           .toList();
-                                      final api = apiOf(context);
+                                      final urls =
+                                          await api.uploadImages(paths);
+                                      uploadedUrls.addAll(urls);
+                                    }
 
-                                      // 1. Upload any local files first
-                                      final localItems = _mediaItems.where((i) => i.isLocal).toList();
-                                      final List<String> uploadedUrls = [];
-                                      if (localItems.isNotEmpty) {
-                                        final paths = localItems.map((i) => i.file!.path).whereType<String>().toList();
-                                        final urls = await api.uploadImages(paths);
-                                        uploadedUrls.addAll(urls);
-                                      }
-
-                                      // 2. Build final images array
-                                      final List<Map<String, dynamic>> imagesPayload = [];
-                                      int uploadedIdx = 0;
-                                      for (final item in _mediaItems) {
-                                        if (item.isLocal) {
-                                          if (uploadedIdx < uploadedUrls.length) {
-                                            imagesPayload.add({
-                                              'url': uploadedUrls[uploadedIdx],
-                                              'isPrimary': imagesPayload.isEmpty,
-                                            });
-                                            uploadedIdx++;
-                                          }
-                                        } else {
+                                    // 2. Build final images array
+                                    final List<Map<String, dynamic>>
+                                        imagesPayload = [];
+                                    int uploadedIdx = 0;
+                                    for (final item in _mediaItems) {
+                                      if (item.isLocal) {
+                                        if (uploadedIdx < uploadedUrls.length) {
                                           imagesPayload.add({
-                                            'url': item.url!,
+                                            'url': uploadedUrls[uploadedIdx],
                                             'isPrimary': imagesPayload.isEmpty,
                                           });
+                                          uploadedIdx++;
                                         }
+                                      } else {
+                                        imagesPayload.add({
+                                          'url': item.url!,
+                                          'isPrimary': imagesPayload.isEmpty,
+                                        });
                                       }
+                                    }
 
-                                      if (widget.listingId != null) {
-                                        final updatePayload = {
-                                          'title': _title.text,
-                                          'description': _description.text,
-                                          'tags': tagsList,
-                                          'images': imagesPayload,
-                                          if (_type == 'PRODUCT') ...{
-                                           'productDetail': {
-                                             'brand': _brand.text,
-                                             'sku': _sku.text,
-                                             'unitOfMeasure': _unit.text,
-                                             'minOrderQty': num.tryParse(_moq.text) ?? 1,
-                                             'pricePerUnit': num.tryParse(_price.text),
-                                             'priceType': _pricingModel == 'VARIABLE PRICE RANGE'
-                                                 ? 'RANGE'
-                                                 : _pricingModel == 'NEGOTIABLE'
-                                                     ? 'NEGOTIABLE'
-                                                     : _pricingModel == 'RFQ MODE'
-                                                         ? 'ON_REQUEST'
-                                                         : 'FIXED',
-                                             'priceRangeMin': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
-                                             'priceRangeMax': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
-                                             'bulkPriceSlabs': _pricingSlabs
-                                                 .map((slab) => {
-                                                       'minQty': num.tryParse(slab['minQty']!.text) ?? 1,
-                                                       'maxQty': slab['maxQty']!.text.isEmpty ? null : num.tryParse(slab['maxQty']!.text),
-                                                       'price': num.tryParse(slab['unitPrice']!.text) ?? 0,
-                                                     })
-                                                 .toList(),
-                                             'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
-                                             'hsnCode': _hsn.text,
-                                             'gstRate': int.tryParse(_gst.text) ?? 18,
-                                             'countryOfOrigin': _country.text,
-                                             'fobPort': _fobPort.text,
-                                             'supplyAbility': _supplyAbility.text,
-                                             'deliveryTime': _deliveryTime.text,
-                                             'packagingDetails': _packaging.text,
-                                             'paymentTerms': _paymentTerms.text,
-                                             'sampleAvailable': _sampleAvailable,
-                                             'samplePrice': num.tryParse(_sampleCost.text),
-                                             'warranty': _warranty.text,
-                                             'returnPolicy': _returnPolicy.text,
-                                             'certifications': _certifications,
-                                             'specifications': _customSpecs.fold<Map<String, String>>({}, (map, spec) {
-                                               if (spec['key']!.text.isNotEmpty) {
-                                                 map[spec['key']!.text] = spec['value']!.text;
-                                               }
-                                               return map;
-                                              }),
-                                           }
-                                         }
-                                       };
-                                       return api.updateListing(widget.listingId!, updatePayload);
-                                     } else {
-                                        final createPayload = {
-                                          'listingType': _type,
-                                          'title': _title.text,
-                                          'description': _description.text,
-                                          'tags': tagsList,
-                                          'images': imagesPayload,
-                                          if (_category.isNotEmpty) 'categoryId': _category,
-                                          if (_type == 'PRODUCT') ...{
-                                           'brand': _brand.text,
-                                           'sku': _sku.text,
-                                           'unitOfMeasure': _unit.text,
-                                           'minOrderQty': num.tryParse(_moq.text) ?? 1,
-                                           'pricePerUnit': num.tryParse(_price.text),
-                                             'priceType': _pricingModel == 'VARIABLE PRICE RANGE'
-                                                 ? 'RANGE'
-                                                 : _pricingModel == 'NEGOTIABLE'
-                                                     ? 'NEGOTIABLE'
-                                                     : _pricingModel == 'RFQ MODE'
-                                                         ? 'ON_REQUEST'
-                                                         : 'FIXED',
-                                             'priceRangeMin': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
-                                             'priceRangeMax': _pricingModel == 'VARIABLE PRICE RANGE' ? (num.tryParse(_price.text) ?? 0) : null,
-                                             'bulkPriceSlabs': _pricingSlabs
-                                                 .map((slab) => {
-                                                       'minQty': num.tryParse(slab['minQty']!.text) ?? 1,
-                                                       'maxQty': slab['maxQty']!.text.isEmpty ? null : num.tryParse(slab['maxQty']!.text),
-                                                       'price': num.tryParse(slab['unitPrice']!.text) ?? 0,
-                                                     })
-                                                 .toList(),
-                                           'leadTimeDays': int.tryParse(_leadTime.text) ?? 7,
-                                           'hsnCode': _hsn.text,
-                                           'gstRate': int.tryParse(_gst.text) ?? 18,
-                                           'countryOfOrigin': _country.text,
-                                           'fobPort': _fobPort.text,
-                                           'supplyAbility': _supplyAbility.text,
-                                           'deliveryTime': _deliveryTime.text,
-                                           'packagingDetails': _packaging.text,
-                                           'paymentTerms': _paymentTerms.text,
-                                           'sampleAvailable': _sampleAvailable,
-                                           'samplePrice': num.tryParse(_sampleCost.text),
-                                           'warranty': _warranty.text,
-                                           'returnPolicy': _returnPolicy.text,
-                                           'certifications': _certifications,
-                                           'specifications': _customSpecs.fold<Map<String, String>>({}, (map, spec) {
-                                             if (spec['key']!.text.isNotEmpty) {
-                                               map[spec['key']!.text] = spec['value']!.text;
-                                             }
-                                             return map;
-                                           }),
-                                         } else ...{
-                                           'basePrice': num.tryParse(_price.text),
-                                           'priceUnit': _unit.text,
-                                         }
-                                       };
-                                       return api.createListing(createPayload);
-                                     }
-                                   }),
-                                 ),
-                             ],
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
+                                    if (widget.listingId != null) {
+                                      final updatePayload = {
+                                        'title': _title.text,
+                                        'description': _description.text,
+                                        'tags': tagsList,
+                                        'images': imagesPayload,
+                                        if (_type == 'PRODUCT') ...{
+                                          'productDetail': {
+                                            'brand': _brand.text,
+                                            'sku': _sku.text,
+                                            'unitOfMeasure': _unit.text,
+                                            'minOrderQty':
+                                                num.tryParse(_moq.text) ?? 1,
+                                            'pricePerUnit':
+                                                num.tryParse(_price.text),
+                                            'priceType': _pricingModel ==
+                                                    'VARIABLE PRICE RANGE'
+                                                ? 'RANGE'
+                                                : _pricingModel == 'NEGOTIABLE'
+                                                    ? 'NEGOTIABLE'
+                                                    : _pricingModel ==
+                                                            'RFQ MODE'
+                                                        ? 'ON_REQUEST'
+                                                        : 'FIXED',
+                                            'priceRangeMin': _pricingModel ==
+                                                    'VARIABLE PRICE RANGE'
+                                                ? (num.tryParse(_price.text) ??
+                                                    0)
+                                                : null,
+                                            'priceRangeMax': _pricingModel ==
+                                                    'VARIABLE PRICE RANGE'
+                                                ? (num.tryParse(_price.text) ??
+                                                    0)
+                                                : null,
+                                            'bulkPriceSlabs': _pricingSlabs
+                                                .map((slab) => {
+                                                      'minQty': num.tryParse(
+                                                              slab['minQty']!
+                                                                  .text) ??
+                                                          1,
+                                                      'maxQty': slab['maxQty']!
+                                                              .text
+                                                              .isEmpty
+                                                          ? null
+                                                          : num.tryParse(
+                                                              slab['maxQty']!
+                                                                  .text),
+                                                      'price': num.tryParse(
+                                                              slab['unitPrice']!
+                                                                  .text) ??
+                                                          0,
+                                                    })
+                                                .toList(),
+                                            'leadTimeDays':
+                                                int.tryParse(_leadTime.text) ??
+                                                    7,
+                                            'hsnCode': _hsn.text,
+                                            'gstRate':
+                                                int.tryParse(_gst.text) ?? 18,
+                                            'countryOfOrigin': _country.text,
+                                            'fobPort': _fobPort.text,
+                                            'supplyAbility':
+                                                _supplyAbility.text,
+                                            'deliveryTime': _deliveryTime.text,
+                                            'packagingDetails': _packaging.text,
+                                            'paymentTerms': _paymentTerms.text,
+                                            'sampleAvailable': _sampleAvailable,
+                                            'samplePrice':
+                                                num.tryParse(_sampleCost.text),
+                                            'warranty': _warranty.text,
+                                            'returnPolicy': _returnPolicy.text,
+                                            'certifications': _certifications,
+                                            'specifications': _customSpecs
+                                                .fold<Map<String, String>>({},
+                                                    (map, spec) {
+                                              if (spec['key']!
+                                                  .text
+                                                  .isNotEmpty) {
+                                                map[spec['key']!.text] =
+                                                    spec['value']!.text;
+                                              }
+                                              return map;
+                                            }),
+                                          }
+                                        }
+                                      };
+                                      return api.updateListing(
+                                          widget.listingId!, updatePayload);
+                                    } else {
+                                      final createPayload = {
+                                        'listingType': _type,
+                                        'title': _title.text,
+                                        'description': _description.text,
+                                        'tags': tagsList,
+                                        'images': imagesPayload,
+                                        if (_category.isNotEmpty)
+                                          'categoryId': _category,
+                                        if (_type == 'PRODUCT') ...{
+                                          'brand': _brand.text,
+                                          'sku': _sku.text,
+                                          'unitOfMeasure': _unit.text,
+                                          'minOrderQty':
+                                              num.tryParse(_moq.text) ?? 1,
+                                          'pricePerUnit':
+                                              num.tryParse(_price.text),
+                                          'priceType': _pricingModel ==
+                                                  'VARIABLE PRICE RANGE'
+                                              ? 'RANGE'
+                                              : _pricingModel == 'NEGOTIABLE'
+                                                  ? 'NEGOTIABLE'
+                                                  : _pricingModel == 'RFQ MODE'
+                                                      ? 'ON_REQUEST'
+                                                      : 'FIXED',
+                                          'priceRangeMin': _pricingModel ==
+                                                  'VARIABLE PRICE RANGE'
+                                              ? (num.tryParse(_price.text) ?? 0)
+                                              : null,
+                                          'priceRangeMax': _pricingModel ==
+                                                  'VARIABLE PRICE RANGE'
+                                              ? (num.tryParse(_price.text) ?? 0)
+                                              : null,
+                                          'bulkPriceSlabs': _pricingSlabs
+                                              .map((slab) => {
+                                                    'minQty': num.tryParse(
+                                                            slab['minQty']!
+                                                                .text) ??
+                                                        1,
+                                                    'maxQty': slab['maxQty']!
+                                                            .text
+                                                            .isEmpty
+                                                        ? null
+                                                        : num.tryParse(
+                                                            slab['maxQty']!
+                                                                .text),
+                                                    'price': num.tryParse(
+                                                            slab['unitPrice']!
+                                                                .text) ??
+                                                        0,
+                                                  })
+                                              .toList(),
+                                          'leadTimeDays':
+                                              int.tryParse(_leadTime.text) ?? 7,
+                                          'hsnCode': _hsn.text,
+                                          'gstRate':
+                                              int.tryParse(_gst.text) ?? 18,
+                                          'countryOfOrigin': _country.text,
+                                          'fobPort': _fobPort.text,
+                                          'supplyAbility': _supplyAbility.text,
+                                          'deliveryTime': _deliveryTime.text,
+                                          'packagingDetails': _packaging.text,
+                                          'paymentTerms': _paymentTerms.text,
+                                          'sampleAvailable': _sampleAvailable,
+                                          'samplePrice':
+                                              num.tryParse(_sampleCost.text),
+                                          'warranty': _warranty.text,
+                                          'returnPolicy': _returnPolicy.text,
+                                          'certifications': _certifications,
+                                          'specifications': _customSpecs
+                                              .fold<Map<String, String>>({},
+                                                  (map, spec) {
+                                            if (spec['key']!.text.isNotEmpty) {
+                                              map[spec['key']!.text] =
+                                                  spec['value']!.text;
+                                            }
+                                            return map;
+                                          }),
+                                        } else ...{
+                                          'basePrice':
+                                              num.tryParse(_price.text),
+                                          'priceUnit': _unit.text,
+                                        }
+                                      };
+                                      return api.createListing(createPayload);
+                                    }
+                                  }),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
@@ -6022,7 +7585,11 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
 }
 
 class _StepNavPill extends StatelessWidget {
-  const _StepNavPill({required this.title, required this.icon, required this.active, required this.completed});
+  const _StepNavPill(
+      {required this.title,
+      required this.icon,
+      required this.active,
+      required this.completed});
   final String title;
   final IconData icon;
   final bool active;
@@ -6039,12 +7606,18 @@ class _StepNavPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: active ? Colors.white : JaxColors.outline),
+          Icon(icon,
+              size: 14, color: active ? Colors.white : JaxColors.outline),
           const SizedBox(width: 8),
-          Text(title, style: JaxText.label.copyWith(fontSize: 10, color: active ? Colors.white : JaxColors.outline, letterSpacing: 1.0)),
+          Text(title,
+              style: JaxText.label.copyWith(
+                  fontSize: 10,
+                  color: active ? Colors.white : JaxColors.outline,
+                  letterSpacing: 1.0)),
           if (completed) ...[
             const SizedBox(width: 6),
-            const Icon(Icons.check_circle_rounded, size: 13, color: JaxColors.success),
+            const Icon(Icons.check_circle_rounded,
+                size: 13, color: JaxColors.success),
           ],
         ],
       ),
@@ -6053,7 +7626,12 @@ class _StepNavPill extends StatelessWidget {
 }
 
 class _AssetTypeCard extends StatelessWidget {
-  const _AssetTypeCard({required this.title, required this.subtitle, required this.icon, required this.selected, required this.onTap});
+  const _AssetTypeCard(
+      {required this.title,
+      required this.subtitle,
+      required this.icon,
+      required this.selected,
+      required this.onTap});
   final String title;
   final String subtitle;
   final IconData icon;
@@ -6068,7 +7646,10 @@ class _AssetTypeCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: selected ? JaxColors.secondaryDark : JaxColors.outlineVariant, width: selected ? 2 : 1),
+          border: Border.all(
+              color:
+                  selected ? JaxColors.secondaryDark : JaxColors.outlineVariant,
+              width: selected ? 2 : 1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -6076,18 +7657,29 @@ class _AssetTypeCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: selected ? JaxColors.secondaryDark : JaxColors.surfaceLow,
+                color:
+                    selected ? JaxColors.secondaryDark : JaxColors.surfaceLow,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: selected ? Colors.white : JaxColors.outline, size: 32),
+              child: Icon(icon,
+                  color: selected ? Colors.white : JaxColors.outline, size: 32),
             ),
             const SizedBox(height: 24),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(title, style: JaxText.h3.copyWith(color: selected ? JaxColors.primary : JaxColors.onSurface)),
+              child: Text(title,
+                  style: JaxText.h3.copyWith(
+                      color:
+                          selected ? JaxColors.primary : JaxColors.onSurface)),
             ),
             const SizedBox(height: 12),
-            Text(subtitle, textAlign: TextAlign.center, style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.outline, letterSpacing: 1.0, height: 1.5)),
+            Text(subtitle,
+                textAlign: TextAlign.center,
+                style: JaxText.label.copyWith(
+                    fontSize: 9,
+                    color: JaxColors.outline,
+                    letterSpacing: 1.0,
+                    height: 1.5)),
           ],
         ),
       ),
@@ -6116,28 +7708,39 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       key: ValueKey(_role),
-      create: (_) => ResourceCubit()..load(() => apiOf(context).orders({'role': _role, 'limit': 30}), listKeys: const ['orders']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).orders({'role': _role, 'limit': 30}),
+            listKeys: const ['orders']),
       child: JaxPage(
         title: 'My Orders',
         topWidget: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+            Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                    color: JaxColors.secondary, shape: BoxShape.circle)),
             const SizedBox(width: 6),
-            Text('MY ORDERS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1)),
+            Text('MY ORDERS',
+                style: JaxText.label.copyWith(
+                    color: JaxColors.secondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    letterSpacing: 1)),
           ],
         ),
         subtitle: 'Manage your orders, progress, and secure payments.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) {
             final allItems = state.items;
-            
+
             // Calculate stats
             final activeCount = allItems.where((i) {
               final s = textOf(i['status']).toUpperCase();
               return s == 'OPEN' || s == 'IN_PROGRESS' || s == 'SHIPPED';
             }).length;
-            
+
             final totalValue = allItems.fold<double>(0, (sum, i) {
               final amt = i['totalAmount'];
               return sum + (amt is num ? amt.toDouble() : 0.0);
@@ -6166,7 +7769,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _buildStats(totalValue, activeCount),
                     ],
                   ),
-                
+
                 const SizedBox(height: 24),
 
                 // ── Results / Empty state ─────────────────────────────────
@@ -6219,17 +7822,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
         decoration: BoxDecoration(
           color: selected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: selected ? [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 4, offset: const Offset(0, 2))] : [],
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: .05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2))
+                ]
+              : [],
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14, color: selected ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant),
+            Icon(icon,
+                size: 14,
+                color: selected
+                    ? JaxColors.primaryContainer
+                    : JaxColors.onSurfaceVariant),
             const SizedBox(width: 6),
             Text(
               label,
               style: JaxText.label.copyWith(
                 fontSize: 12,
-                color: selected ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant,
+                color: selected
+                    ? JaxColors.primaryContainer
+                    : JaxColors.onSurfaceVariant,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
               ),
             ),
@@ -6252,9 +7868,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('TOTAL VALUE', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+              Text('TOTAL VALUE',
+                  style: JaxText.label.copyWith(
+                      fontSize: 10, color: JaxColors.onSurfaceVariant)),
               const SizedBox(height: 2),
-              Text('₹${totalValue.toStringAsFixed(0)}', style: JaxText.h2.copyWith(fontSize: 18)),
+              Text('₹${totalValue.toStringAsFixed(0)}',
+                  style: JaxText.h2.copyWith(fontSize: 18)),
             ],
           ),
           Container(
@@ -6266,9 +7885,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ACTIVE ORDERS', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+              Text('ACTIVE ORDERS',
+                  style: JaxText.label.copyWith(
+                      fontSize: 10, color: JaxColors.onSurfaceVariant)),
               const SizedBox(height: 2),
-              Text('$activeCount', style: JaxText.h2.copyWith(fontSize: 18, color: JaxColors.success)),
+              Text('$activeCount',
+                  style: JaxText.h2
+                      .copyWith(fontSize: 18, color: JaxColors.success)),
             ],
           ),
         ],
@@ -6290,14 +7913,17 @@ class _EmptyOrders extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inventory_2_rounded, size: 64, color: Colors.grey.shade300),
+            Icon(Icons.inventory_2_rounded,
+                size: 64, color: Colors.grey.shade300),
             const SizedBox(height: 16),
-            Text('No orders yet', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 18)),
+            Text('No orders yet',
+                style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 18)),
             const SizedBox(height: 8),
             Text(
               'Start by browsing products or posting a request.',
               textAlign: TextAlign.center,
-              style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+              style: JaxText.bodySmall
+                  .copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -6305,11 +7931,17 @@ class _EmptyOrders extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: JaxColors.primaryContainer,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 elevation: 0,
               ),
-              child: Text('Browse Products', style: JaxText.label.copyWith(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+              child: Text('Browse Products',
+                  style: JaxText.label.copyWith(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -6317,7 +7949,6 @@ class _EmptyOrders extends StatelessWidget {
     );
   }
 }
-
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({required this.id, super.key});
@@ -6333,7 +7964,9 @@ class OrderDetailScreen extends StatelessWidget {
           subtitle: statusOf(state.data, 'ORDER'),
           child: AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).order(id)),
+            onRetry: () => context
+                .read<ResourceCubit>()
+                .load(() => apiOf(context).order(id)),
             builder: (_) {
               final milestones = asList(state.data['milestones']);
               return Column(
@@ -6342,9 +7975,18 @@ class OrderDetailScreen extends StatelessWidget {
                   OrderTile(item: state.data),
                   const SizedBox(height: 16),
                   Row(children: [
-                    Expanded(child: JaxButton(label: 'Sign', icon: Icons.draw_rounded, onPressed: () => apiOf(context).signOrder(id))),
+                    Expanded(
+                        child: JaxButton(
+                            label: 'Sign',
+                            icon: Icons.draw_rounded,
+                            onPressed: () => apiOf(context).signOrder(id))),
                     const SizedBox(width: 10),
-                    Expanded(child: JaxButton(label: 'Reject', variant: JaxButtonVariant.danger, icon: Icons.close_rounded, onPressed: () => apiOf(context).rejectOrder(id))),
+                    Expanded(
+                        child: JaxButton(
+                            label: 'Reject',
+                            variant: JaxButtonVariant.danger,
+                            icon: Icons.close_rounded,
+                            onPressed: () => apiOf(context).rejectOrder(id))),
                   ]),
                   const SizedBox(height: 20),
                   const Text('Milestones', style: JaxText.h3),
@@ -6357,7 +7999,16 @@ class OrderDetailScreen extends StatelessWidget {
                           child: JaxCard(
                             child: Row(
                               children: [
-                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(textOf(m['title'], 'Milestone'), style: JaxText.title), Text(money(m['amount']), style: JaxText.bodySmall)])),
+                                Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text(textOf(m['title'], 'Milestone'),
+                                          style: JaxText.title),
+                                      Text(money(m['amount']),
+                                          style: JaxText.bodySmall)
+                                    ])),
                                 StatusPill(label: statusOf(m, 'PENDING')),
                               ],
                             ),
@@ -6384,7 +8035,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
   String _query = '';
 
   @override
-  void dispose() { _searchCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   String _timeLabel(String? sentAt) {
     if (sentAt == null || sentAt.isEmpty) return '';
@@ -6392,16 +8046,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
       final dt = DateTime.parse(sentAt).toLocal();
       final now = DateTime.now();
       if (dt.day == now.day && dt.month == now.month) {
-        return '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       }
       return '${dt.day}/${dt.month}';
-    } catch (_) { return ''; }
+    } catch (_) {
+      return '';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).conversations(), listKeys: const ['conversations']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).conversations(),
+            listKeys: const ['conversations']),
       child: Scaffold(
         backgroundColor: JaxColors.surface,
         body: SafeArea(
@@ -6420,9 +8078,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('NEGOTIATION CENTER', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                              Text('NEGOTIATION CENTER',
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.5)),
                               SizedBox(height: 2),
-                              Text('Messages', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                              Text('Messages',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800)),
                             ],
                           ),
                         ),
@@ -6430,7 +8097,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           builder: (ctx, state) {
                             final active = state.items.length;
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: .18),
                                 borderRadius: BorderRadius.circular(20),
@@ -6439,9 +8107,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFFFB800), shape: BoxShape.circle)),
+                                  Container(
+                                      width: 7,
+                                      height: 7,
+                                      decoration: const BoxDecoration(
+                                          color: Color(0xFFFFB800),
+                                          shape: BoxShape.circle)),
                                   const SizedBox(width: 5),
-                                  Text('$active Active', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                                  Text('$active Active',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700)),
                                 ],
                               ),
                             );
@@ -6452,15 +8129,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     const SizedBox(height: 12),
                     Container(
                       height: 40,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10)),
                       child: TextField(
                         controller: _searchCtrl,
                         onChanged: (v) => setState(() => _query = v),
                         style: const TextStyle(fontSize: 13),
                         decoration: const InputDecoration(
                           hintText: 'Search partner or company...',
-                          hintStyle: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-                          prefixIcon: Icon(Icons.search_rounded, size: 18, color: Color(0xFF9CA3AF)),
+                          hintStyle:
+                              TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              size: 18, color: Color(0xFF9CA3AF)),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 10),
                         ),
@@ -6473,12 +8154,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
               Expanded(
                 child: BlocBuilder<ResourceCubit, ResourceState>(
                   builder: (context, state) {
-                    if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
+                    if (state.status == ResourceStatus.loading &&
+                        !state.hasData) return const PageLoader();
                     final items = _query.isEmpty
                         ? state.items
                         : state.items.where((c) {
                             final r = asMap(c['recipient']);
-                            final n = '${textOf(r['fullName'])} ${textOf(r['businessName'])}'.toLowerCase();
+                            final n =
+                                '${textOf(r['fullName'])} ${textOf(r['businessName'])}'
+                                    .toLowerCase();
                             return n.contains(_query.toLowerCase());
                           }).toList();
                     if (items.isEmpty) {
@@ -6495,10 +8179,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFFF3F4F6)),
+                                    border: Border.all(
+                                        color: const Color(0xFFF3F4F6)),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.06),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.06),
                                         blurRadius: 20,
                                         offset: const Offset(0, 8),
                                       ),
@@ -6524,7 +8210,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24),
                                   child: Text(
                                     'Select a supplier or buyer conversation to start negotiating prices, sharing files, and finalising transaction contracts under secure escrow.',
                                     textAlign: TextAlign.center,
@@ -6585,35 +8272,59 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         final latest = asMap(conv['latestMessage']);
                         final name = textOf(r['fullName'], 'Contact');
                         final company = textOf(r['businessName']);
-                        final lastMsg = textOf(latest['content'], 'No messages yet');
+                        final lastMsg =
+                            textOf(latest['content'], 'No messages yet');
                         final isOnline = r['isOnline'] == true;
                         final isVerified = r['isVerified'] == true;
-                        final unread = (conv['unreadCount'] is num) ? (conv['unreadCount'] as num).toInt() : 0;
+                        final unread = (conv['unreadCount'] is num)
+                            ? (conv['unreadCount'] as num).toInt()
+                            : 0;
                         final timeStr = _timeLabel(textOf(latest['sentAt']));
                         return InkWell(
-                          onTap: () => context.push('/messages/${textOf(conv['id'])}'),
+                          onTap: () =>
+                              context.push('/messages/${textOf(conv['id'])}'),
                           child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border(
-                                left: BorderSide(color: unread > 0 ? JaxColors.primary : Colors.transparent, width: 3),
+                                left: BorderSide(
+                                    color: unread > 0
+                                        ? JaxColors.primary
+                                        : Colors.transparent,
+                                    width: 3),
                               ),
-                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .04), blurRadius: 6, offset: const Offset(0, 2))],
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: .04),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2))
+                              ],
                             ),
                             child: Row(
                               children: [
                                 Stack(
                                   children: [
-                                    JaxAvatar(name: name, url: textOf(r['avatarUrl']), size: 44),
+                                    JaxAvatar(
+                                        name: name,
+                                        url: textOf(r['avatarUrl']),
+                                        size: 44),
                                     if (isOnline)
                                       Positioned(
-                                        right: 0, bottom: 0,
+                                        right: 0,
+                                        bottom: 0,
                                         child: Container(
-                                          width: 12, height: 12,
-                                          decoration: BoxDecoration(color: JaxColors.success, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                              color: JaxColors.success,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 2)),
                                         ),
                                       ),
                                   ],
@@ -6621,32 +8332,61 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
                                           Expanded(
                                             child: Row(
                                               children: [
-                                                Flexible(child: Text(name.toUpperCase(), style: JaxText.title.copyWith(fontSize: 12, letterSpacing: 0.3), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                                Flexible(
+                                                    child: Text(
+                                                        name.toUpperCase(),
+                                                        style: JaxText.title
+                                                            .copyWith(
+                                                                fontSize: 12,
+                                                                letterSpacing:
+                                                                    0.3),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis)),
                                                 if (isVerified) ...[
                                                   const SizedBox(width: 4),
-                                                  const Icon(Icons.verified_rounded, size: 13, color: JaxColors.success),
+                                                  const Icon(
+                                                      Icons.verified_rounded,
+                                                      size: 13,
+                                                      color: JaxColors.success),
                                                 ],
                                               ],
                                             ),
                                           ),
                                           if (timeStr.isNotEmpty)
-                                            Text(timeStr, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant)),
+                                            Text(timeStr,
+                                                style: JaxText.label.copyWith(
+                                                    fontSize: 10,
+                                                    color: JaxColors
+                                                        .onSurfaceVariant)),
                                         ],
                                       ),
                                       if (company.isNotEmpty) ...[
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
-                                            const Icon(Icons.business_rounded, size: 11, color: JaxColors.onSurfaceVariant),
+                                            const Icon(Icons.business_rounded,
+                                                size: 11,
+                                                color:
+                                                    JaxColors.onSurfaceVariant),
                                             const SizedBox(width: 3),
-                                            Expanded(child: Text(company, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                            Expanded(
+                                                child: Text(company,
+                                                    style: JaxText.label.copyWith(
+                                                        fontSize: 10,
+                                                        color: JaxColors
+                                                            .onSurfaceVariant),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis)),
                                           ],
                                         ),
                                       ],
@@ -6657,17 +8397,35 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                             child: Text(
                                               lastMsg,
                                               style: JaxText.bodySmall.copyWith(
-                                                color: unread > 0 ? JaxColors.primaryContainer : JaxColors.onSurfaceVariant,
-                                                fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                                                color: unread > 0
+                                                    ? JaxColors.primaryContainer
+                                                    : JaxColors
+                                                        .onSurfaceVariant,
+                                                fontWeight: unread > 0
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
                                               ),
-                                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           if (unread > 0)
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(color: JaxColors.primary, borderRadius: BorderRadius.circular(10)),
-                                              child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                  color: JaxColors.primary,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10)),
+                                              child: Text('$unread',
+                                                  style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w700)),
                                             ),
                                         ],
                                       ),
@@ -6724,7 +8482,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
     try {
       final api = apiOf(context);
       final convs = await api.conversations();
-      final conv = convs.firstWhere((c) => textOf(c['id']) == widget.id, orElse: () => <String, dynamic>{});
+      final conv = convs.firstWhere((c) => textOf(c['id']) == widget.id,
+          orElse: () => <String, dynamic>{});
       JsonMap? listing;
       if (conv.isNotEmpty && textOf(conv['listingId']).isNotEmpty) {
         listing = await api.conversationListing(widget.id);
@@ -6746,27 +8505,30 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _sendMessage(BuildContext scaffoldContext) async {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty || _conversation == null) return;
-    
+
     _msgCtrl.clear();
-    
+
     final cubit = scaffoldContext.read<ResourceCubit>();
     final messenger = ScaffoldMessenger.of(scaffoldContext);
     final api = apiOf(scaffoldContext);
-    
+
     try {
       final recipientId = textOf(asMap(_conversation!['recipient'])['id']);
       if (recipientId.isEmpty) return;
-      
+
       await api.startConversation({
         'recipientId': recipientId,
         'initialMessage': text,
-        if (textOf(_conversation!['listingId']).isNotEmpty) 'listingId': _conversation!['listingId'],
+        if (textOf(_conversation!['listingId']).isNotEmpty)
+          'listingId': _conversation!['listingId'],
       });
-      
+
       cubit.load(() => api.messages(widget.id), listKeys: const ['messages']);
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to send message: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(
+            content: Text(
+                'Failed to send message: ${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
   }
@@ -6786,12 +8548,20 @@ class _ConversationScreenState extends State<ConversationScreen> {
       );
     }
 
-    final recipientName = _conversation != null ? textOf(asMap(_conversation!['recipient'])['fullName']) : '';
-    final avatarUrl = _conversation != null ? textOf(asMap(_conversation!['recipient'])['avatarUrl']) : '';
-    final businessName = _conversation != null ? textOf(asMap(_conversation!['recipient'])['businessName']) : '';
+    final recipientName = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['fullName'])
+        : '';
+    final avatarUrl = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['avatarUrl'])
+        : '';
+    final businessName = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['businessName'])
+        : '';
 
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).messages(widget.id), listKeys: const ['messages']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).messages(widget.id),
+            listKeys: const ['messages']),
       child: Scaffold(
         backgroundColor: JaxColors.surface,
         appBar: AppBar(
@@ -6800,7 +8570,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
             children: [
               Stack(
                 children: [
-                  JaxAvatar(name: recipientName.isNotEmpty ? recipientName : 'Contact', size: 36, url: avatarUrl),
+                  JaxAvatar(
+                      name:
+                          recipientName.isNotEmpty ? recipientName : 'Contact',
+                      size: 36,
+                      url: avatarUrl),
                   Positioned(
                     right: 0,
                     bottom: 0,
@@ -6822,12 +8596,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      recipientName.isNotEmpty ? recipientName.toUpperCase() : 'CONTACT',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                      recipientName.isNotEmpty
+                          ? recipientName.toUpperCase()
+                          : 'CONTACT',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w800),
                     ),
                     Text(
-                      businessName.isNotEmpty ? businessName : 'Independent Partner',
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280)),
+                      businessName.isNotEmpty
+                          ? businessName
+                          : 'Independent Partner',
+                      style: const TextStyle(
+                          fontSize: 10, color: Color(0xFF6B7280)),
                     ),
                   ],
                 ),
@@ -6840,15 +8620,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: JaxColors.primary,
-                  side: BorderSide(color: JaxColors.primary.withValues(alpha: .4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  side: BorderSide(
+                      color: JaxColors.primary.withValues(alpha: .4)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: () {},
                 icon: const Icon(Icons.person_outline_rounded, size: 13),
-                label: const Text('HIDE PROFILE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                label: const Text('HIDE PROFILE',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -6859,10 +8643,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
               children: [
                 if (_listing != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+                      border:
+                          Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -6891,7 +8677,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 color: Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(Icons.shopping_bag_outlined, size: 18, color: Colors.grey),
+                              child: const Icon(Icons.shopping_bag_outlined,
+                                  size: 18, color: Colors.grey),
                             ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -6902,27 +8689,45 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   textOf(_listing!['title']).toUpperCase(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.primaryContainer),
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: JaxColors.primaryContainer),
                                 ),
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
                                     (() {
-                                      final pd = asMap(_listing!['productDetail']);
-                                      final priceVal = numOf(pd['pricePerUnit']) ?? numOf(_listing!['pricePerUnit']) ?? 0;
-                                      final unit = textOf(pd['unitOfMeasure'], 'Unit');
+                                      final pd =
+                                          asMap(_listing!['productDetail']);
+                                      final priceVal = numOf(
+                                              pd['pricePerUnit']) ??
+                                          numOf(_listing!['pricePerUnit']) ??
+                                          0;
+                                      final unit =
+                                          textOf(pd['unitOfMeasure'], 'Unit');
                                       if (priceVal > 0) {
                                         return Text(
                                           '₹${priceVal.toStringAsFixed(0)}/$unit',
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.secondary),
+                                          style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              color: JaxColors.secondary),
                                         );
                                       }
-                                      return const Text('Ask Price', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: JaxColors.secondary));
+                                      return const Text('Ask Price',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              color: JaxColors.secondary));
                                     })(),
                                     const SizedBox(width: 8),
                                     Text(
                                       'MOQ: ${textOf(asMap(_listing!['productDetail'])['minOrderQty'], '1')}',
-                                      style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280), fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                          fontSize: 9,
+                                          color: Color(0xFF6B7280),
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ],
                                 ),
@@ -6933,14 +8738,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: JaxColors.primary,
-                              side: BorderSide(color: JaxColors.primary.withValues(alpha: .3)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              side: BorderSide(
+                                  color:
+                                      JaxColors.primary.withValues(alpha: .3)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            onPressed: () => context.push('/listings/${_listing!['id']}'),
-                            child: const Text('VIEW PRODUCT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                            onPressed: () =>
+                                context.push('/listings/${_listing!['id']}'),
+                            child: const Text('VIEW PRODUCT',
+                                style: TextStyle(
+                                    fontSize: 9, fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ),
@@ -6949,20 +8761,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 Expanded(
                   child: BlocBuilder<ResourceCubit, ResourceState>(
                     builder: (context, state) {
-                      if (state.status == ResourceStatus.loading && !state.hasData) return const PageLoader();
+                      if (state.status == ResourceStatus.loading &&
+                          !state.hasData) return const PageLoader();
                       if (!state.hasData || state.items.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey.shade300),
+                              Icon(Icons.chat_bubble_outline_rounded,
+                                  size: 64, color: Colors.grey.shade300),
                               const SizedBox(height: 16),
-                              Text('NO MESSAGES YET', style: JaxText.h3.copyWith(letterSpacing: 0.5, fontSize: 16)),
+                              Text('NO MESSAGES YET',
+                                  style: JaxText.h3.copyWith(
+                                      letterSpacing: 0.5, fontSize: 16)),
                               const SizedBox(height: 8),
                               Text(
                                 'Initiate conversation below using quick\ntemplates or custom text.',
                                 textAlign: TextAlign.center,
-                                style: JaxText.bodySmall.copyWith(color: JaxColors.onSurfaceVariant),
+                                style: JaxText.bodySmall.copyWith(
+                                    color: JaxColors.onSurfaceVariant),
                               ),
                             ],
                           ),
@@ -6973,9 +8790,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         itemCount: state.items.length,
                         itemBuilder: (context, index) {
                           final msg = state.items[index];
-                          final mine = textOf(msg['senderId']) == textOf(context.read<AuthCubit>().state.user['id']);
+                          final mine = textOf(msg['senderId']) ==
+                              textOf(
+                                  context.read<AuthCubit>().state.user['id']);
                           return Align(
-                            alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: mine
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
                             child: Container(
                               constraints: const BoxConstraints(maxWidth: 280),
                               margin: const EdgeInsets.only(bottom: 10),
@@ -6983,9 +8804,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
                               decoration: BoxDecoration(
                                 color: mine ? JaxColors.primary : Colors.white,
                                 borderRadius: BorderRadius.circular(14),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 6, offset: const Offset(0, 2))],
+                                boxShadow: [
+                                  BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: .05),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2))
+                                ],
                               ),
-                              child: Text(textOf(msg['content']), style: JaxText.bodyMedium.copyWith(color: mine ? Colors.white : JaxColors.onSurface)),
+                              child: Text(textOf(msg['content']),
+                                  style: JaxText.bodyMedium.copyWith(
+                                      color: mine
+                                          ? Colors.white
+                                          : JaxColors.onSurface)),
                             ),
                           );
                         },
@@ -7003,13 +8834,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                            Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                    color: JaxColors.secondary,
+                                    shape: BoxShape.circle)),
                             const SizedBox(width: 5),
-                            Text('B2B QUICK REPLIES', style: JaxText.label.copyWith(fontSize: 9, color: JaxColors.onSurfaceVariant, letterSpacing: 1)),
+                            Text('B2B QUICK REPLIES',
+                                style: JaxText.label.copyWith(
+                                    fontSize: 9,
+                                    color: JaxColors.onSurfaceVariant,
+                                    letterSpacing: 1)),
                             const Spacer(),
                             GestureDetector(
-                              onTap: () => setState(() => _showQuickReplies = false),
-                              child: Text('Dismiss', style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primary)),
+                              onTap: () =>
+                                  setState(() => _showQuickReplies = false),
+                              child: Text('Dismiss',
+                                  style: JaxText.label.copyWith(
+                                      fontSize: 10, color: JaxColors.primary)),
                             ),
                           ],
                         ),
@@ -7019,23 +8862,31 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _quickReplies.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, i) {
                               final label = _quickReplies[i];
-                              final short = label.length > 32 ? '${label.substring(0, 32)}...' : label;
+                              final short = label.length > 32
+                                  ? '${label.substring(0, 32)}...'
+                                  : label;
                               return GestureDetector(
                                 onTap: () {
                                   _msgCtrl.text = label;
                                   _sendMessage(scaffoldContext);
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
                                     color: JaxColors.surfaceLow,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: JaxColors.outlineVariant),
+                                    border: Border.all(
+                                        color: JaxColors.outlineVariant),
                                   ),
-                                  child: Text(short, style: JaxText.label.copyWith(fontSize: 10, color: JaxColors.primaryContainer)),
+                                  child: Text(short,
+                                      style: JaxText.label.copyWith(
+                                          fontSize: 10,
+                                          color: JaxColors.primaryContainer)),
                                 ),
                               );
                             },
@@ -7048,7 +8899,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 SafeArea(
                   top: false,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
@@ -7059,14 +8911,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           style: OutlinedButton.styleFrom(
                             foregroundColor: JaxColors.secondary,
                             side: const BorderSide(color: JaxColors.secondary),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 8),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           onPressed: () {},
                           icon: const Icon(Icons.handshake_rounded, size: 14),
-                          label: const Text('MAKE A DEAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                          label: const Text('MAKE A DEAL',
+                              style: TextStyle(
+                                  fontSize: 9, fontWeight: FontWeight.w700)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -7076,11 +8932,23 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             style: const TextStyle(fontSize: 13),
                             decoration: InputDecoration(
                               hintText: 'Type your message...',
-                              hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: JaxColors.primary.withValues(alpha: .5))),
+                              hintStyle: const TextStyle(
+                                  fontSize: 13, color: Color(0xFF9CA3AF)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB))),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: JaxColors.primary
+                                          .withValues(alpha: .5))),
                               filled: true,
                               fillColor: JaxColors.surfaceLow,
                               isDense: true,
@@ -7090,13 +8958,15 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         const SizedBox(width: 6),
                         IconButton(
                           onPressed: () {},
-                          icon: const Icon(Icons.attach_file_rounded, color: Color(0xFF9CA3AF)),
+                          icon: const Icon(Icons.attach_file_rounded,
+                              color: Color(0xFF9CA3AF)),
                           iconSize: 20,
                           visualDensity: VisualDensity.compact,
                         ),
                         IconButton(
                           onPressed: () => _sendMessage(scaffoldContext),
-                          icon: const Icon(Icons.send_rounded, color: JaxColors.primary),
+                          icon: const Icon(Icons.send_rounded,
+                              color: JaxColors.primary),
                           iconSize: 20,
                           visualDensity: VisualDensity.compact,
                         ),
@@ -7119,13 +8989,20 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ResourceCubit()..load(() => apiOf(context).notifications(), listKeys: const ['notifications']),
+      create: (_) => ResourceCubit()
+        ..load(() => apiOf(context).notifications(),
+            listKeys: const ['notifications']),
       child: JaxPage(
         topWidget: Row(
           children: [
-            const Icon(Icons.notifications_rounded, color: JaxColors.secondary, size: 14),
+            const Icon(Icons.notifications_rounded,
+                color: JaxColors.secondary, size: 14),
             const SizedBox(width: 8),
-            Text('NOTIFICATIONS', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 10, letterSpacing: 2.0)),
+            Text('NOTIFICATIONS',
+                style: JaxText.label.copyWith(
+                    color: JaxColors.secondary,
+                    fontSize: 10,
+                    letterSpacing: 2.0)),
           ],
         ),
         title: 'Notifications',
@@ -7139,7 +9016,9 @@ class NotificationsScreen extends StatelessWidget {
               onPressed: () async {
                 await apiOf(ctx).markAllNotificationsRead();
                 if (ctx.mounted) {
-                  ctx.read<ResourceCubit>().load(() => apiOf(ctx).notifications(), listKeys: const ['notifications']);
+                  ctx.read<ResourceCubit>().load(
+                      () => apiOf(ctx).notifications(),
+                      listKeys: const ['notifications']);
                 }
               },
             ),
@@ -7149,9 +9028,12 @@ class NotificationsScreen extends StatelessWidget {
           builder: (context, state) => AsyncContent(
             state: state,
             emptyTitle: 'No notifications yet',
-            emptyDescription: 'You have no active alerts. New notifications from partners will appear here.',
+            emptyDescription:
+                'You have no active alerts. New notifications from partners will appear here.',
             emptyIcon: Icons.notifications_none_rounded,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).notifications(), listKeys: const ['notifications']),
+            onRetry: () => context.read<ResourceCubit>().load(
+                () => apiOf(context).notifications(),
+                listKeys: const ['notifications']),
             builder: (_) => Column(
               children: state.items.map((item) {
                 final read = item['isRead'] == true;
@@ -7161,9 +9043,12 @@ class NotificationsScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     onTap: () async {
                       if (!read) {
-                        await apiOf(context).markNotificationRead(textOf(item['id']));
+                        await apiOf(context)
+                            .markNotificationRead(textOf(item['id']));
                         if (context.mounted) {
-                          context.read<ResourceCubit>().load(() => apiOf(context).notifications(), listKeys: const ['notifications']);
+                          context.read<ResourceCubit>().load(
+                              () => apiOf(context).notifications(),
+                              listKeys: const ['notifications']);
                         }
                       }
                       if (context.mounted) {
@@ -7184,11 +9069,16 @@ class NotificationsScreen extends StatelessWidget {
                           height: 48,
                           width: 48,
                           decoration: BoxDecoration(
-                            color: read ? JaxColors.surfaceLow : JaxColors.primary.withValues(alpha: .1),
+                            color: read
+                                ? JaxColors.surfaceLow
+                                : JaxColors.primary.withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           alignment: Alignment.center,
-                          child: Icon(Icons.notifications_active_rounded, color: read ? JaxColors.outline : JaxColors.primary, size: 20),
+                          child: Icon(Icons.notifications_active_rounded,
+                              color:
+                                  read ? JaxColors.outline : JaxColors.primary,
+                              size: 20),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -7203,7 +9093,9 @@ class NotificationsScreen extends StatelessWidget {
                                       textOf(item['title']).toUpperCase(),
                                       style: JaxText.title.copyWith(
                                         fontSize: 13,
-                                        color: read ? JaxColors.onSurfaceVariant : JaxColors.primaryContainer,
+                                        color: read
+                                            ? JaxColors.onSurfaceVariant
+                                            : JaxColors.primaryContainer,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 0.5,
                                       ),
@@ -7212,7 +9104,8 @@ class NotificationsScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     shortDate(item['createdAt']),
-                                    style: JaxText.label.copyWith(color: JaxColors.outline, fontSize: 10),
+                                    style: JaxText.label.copyWith(
+                                        color: JaxColors.outline, fontSize: 10),
                                   ),
                                 ],
                               ),
@@ -7220,8 +9113,11 @@ class NotificationsScreen extends StatelessWidget {
                               Text(
                                 textOf(item['body']),
                                 style: JaxText.bodySmall.copyWith(
-                                  color: read ? JaxColors.onSurfaceVariant : JaxColors.onSurface,
-                                  fontWeight: read ? FontWeight.w400 : FontWeight.w500,
+                                  color: read
+                                      ? JaxColors.onSurfaceVariant
+                                      : JaxColors.onSurface,
+                                  fontWeight:
+                                      read ? FontWeight.w400 : FontWeight.w500,
                                   height: 1.5,
                                 ),
                               ),
@@ -7229,9 +9125,19 @@ class NotificationsScreen extends StatelessWidget {
                                 const SizedBox(height: 12),
                                 Row(
                                   children: [
-                                    Container(height: 6, width: 6, decoration: const BoxDecoration(color: JaxColors.secondary, shape: BoxShape.circle)),
+                                    Container(
+                                        height: 6,
+                                        width: 6,
+                                        decoration: const BoxDecoration(
+                                            color: JaxColors.secondary,
+                                            shape: BoxShape.circle)),
                                     const SizedBox(width: 6),
-                                    Text('NEW', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 9, letterSpacing: 1.5, fontWeight: FontWeight.w900)),
+                                    Text('NEW',
+                                        style: JaxText.label.copyWith(
+                                            color: JaxColors.secondary,
+                                            fontSize: 9,
+                                            letterSpacing: 1.5,
+                                            fontWeight: FontWeight.w900)),
                                   ],
                                 ),
                               ],
@@ -7339,9 +9245,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Header
               Row(
                 children: [
-                  const Icon(Icons.shield_rounded, color: JaxColors.secondaryDark, size: 14),
+                  const Icon(Icons.shield_rounded,
+                      color: JaxColors.secondaryDark, size: 14),
                   const SizedBox(width: 8),
-                  Text('COMPLIANCE COMMAND CONSOLE', style: JaxText.label.copyWith(color: JaxColors.secondaryDark)),
+                  Text('COMPLIANCE COMMAND CONSOLE',
+                      style: JaxText.label
+                          .copyWith(color: JaxColors.secondaryDark)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -7350,11 +9259,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final isWide = constraints.maxWidth > 600;
                   return Flex(
                     direction: isWide ? Axis.horizontal : Axis.vertical,
-                    crossAxisAlignment: isWide ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    crossAxisAlignment: isWide
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         flex: isWide ? 1 : 0,
-                        child: Text('IDENTITY & TRUST', style: JaxText.h1.copyWith(color: JaxColors.primaryContainer)),
+                        child: Text('IDENTITY & TRUST',
+                            style: JaxText.h1
+                                .copyWith(color: JaxColors.primaryContainer)),
                       ),
                       if (!isWide) const SizedBox(height: 16),
                       OutlinedButton.icon(
@@ -7364,20 +9277,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           } else {
                             setState(() {
                               _nameController.text = state.name;
-                              _emailController.text = textOf(state.user['email']);
-                              _accountType = textOf(state.user['accountType'], 'INDIVIDUAL');
-                              _userType = textOf(state.user['userType'], 'BUYER');
+                              _emailController.text =
+                                  textOf(state.user['email']);
+                              _accountType = textOf(
+                                  state.user['accountType'], 'INDIVIDUAL');
+                              _userType =
+                                  textOf(state.user['userType'], 'BUYER');
                               _isEditing = true;
                             });
                           }
                         },
-                        icon: Icon(_isEditing ? Icons.close_rounded : Icons.edit_note_rounded, size: 16),
-                        label: Text(_isEditing ? 'Cancel Edit' : 'Modify Registry', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
+                        icon: Icon(
+                            _isEditing
+                                ? Icons.close_rounded
+                                : Icons.edit_note_rounded,
+                            size: 16),
+                        label: Text(
+                            _isEditing ? 'Cancel Edit' : 'Modify Registry',
+                            style: JaxText.label
+                                .copyWith(color: JaxColors.primaryContainer)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: JaxColors.primaryContainer,
-                          side: const BorderSide(color: JaxColors.outlineVariant),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          side:
+                              const BorderSide(color: JaxColors.outlineVariant),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                     ],
@@ -7414,10 +9340,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 emailController: _emailController,
                                 accountType: _accountType,
                                 userType: _userType,
-                                onAccountTypeChanged: (val) => setState(() => _accountType = val ?? 'INDIVIDUAL'),
-                                onUserTypeChanged: (val) => setState(() => _userType = val ?? 'BUYER'),
+                                onAccountTypeChanged: (val) => setState(
+                                    () => _accountType = val ?? 'INDIVIDUAL'),
+                                onUserTypeChanged: (val) =>
+                                    setState(() => _userType = val ?? 'BUYER'),
                                 onCommit: _commitChanges,
-                                onDiscard: () => setState(() => _isEditing = false),
+                                onDiscard: () =>
+                                    setState(() => _isEditing = false),
                                 submitting: _submitting,
                               ),
                               const SizedBox(height: 24),
@@ -7442,8 +9371,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           emailController: _emailController,
                           accountType: _accountType,
                           userType: _userType,
-                          onAccountTypeChanged: (val) => setState(() => _accountType = val ?? 'INDIVIDUAL'),
-                          onUserTypeChanged: (val) => setState(() => _userType = val ?? 'BUYER'),
+                          onAccountTypeChanged: (val) => setState(
+                              () => _accountType = val ?? 'INDIVIDUAL'),
+                          onUserTypeChanged: (val) =>
+                              setState(() => _userType = val ?? 'BUYER'),
                           onCommit: _commitChanges,
                           onDiscard: () => setState(() => _isEditing = false),
                           submitting: _submitting,
@@ -7473,17 +9404,25 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = state.name.isNotEmpty ? (state.name.length > 1 ? state.name.substring(0, 2).toUpperCase() : state.name.substring(0, 1).toUpperCase()) : 'US';
+    final initials = state.name.isNotEmpty
+        ? (state.name.length > 1
+            ? state.name.substring(0, 2).toUpperCase()
+            : state.name.substring(0, 1).toUpperCase())
+        : 'US';
     final trustScore = textOf(state.user['trustScore'], '0');
     final orderRate = textOf(state.user['orderRate'], '100%');
-    final accountType = textOf(state.user['accountType'], 'INDIVIDUAL').toUpperCase();
-    
+    final accountType =
+        textOf(state.user['accountType'], 'INDIVIDUAL').toUpperCase();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(JaxRadius.xl),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -7508,33 +9447,48 @@ class _ProfileCard extends StatelessWidget {
                     border: Border.all(color: Colors.white, width: 4),
                   ),
                   alignment: Alignment.center,
-                  child: Text(initials, style: JaxText.h2.copyWith(color: Colors.white)),
+                  child: Text(initials,
+                      style: JaxText.h2.copyWith(color: Colors.white)),
                 ),
                 const SizedBox(height: 12),
-                Text(state.name.toUpperCase(), style: JaxText.h3.copyWith(color: JaxColors.primaryContainer)),
-                Text(textOf(state.user['email'], 'email@domain.com').toLowerCase(), style: JaxText.bodySmall),
+                Text(state.name.toUpperCase(),
+                    style:
+                        JaxText.h3.copyWith(color: JaxColors.primaryContainer)),
+                Text(
+                    textOf(state.user['email'], 'email@domain.com')
+                        .toLowerCase(),
+                    style: JaxText.bodySmall),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: JaxColors.surfaceContainer,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: .3)),
+                        border: Border.all(
+                            color:
+                                JaxColors.outlineVariant.withValues(alpha: .3)),
                       ),
-                      child: Text(state.userType.toUpperCase(), style: JaxText.label.copyWith(color: JaxColors.primaryContainer, fontSize: 9)),
+                      child: Text(state.userType.toUpperCase(),
+                          style: JaxText.label.copyWith(
+                              color: JaxColors.primaryContainer, fontSize: 9)),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: JaxColors.secondary.withValues(alpha: .1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: JaxColors.secondary.withValues(alpha: .2)),
+                        border: Border.all(
+                            color: JaxColors.secondary.withValues(alpha: .2)),
                       ),
-                      child: Text(accountType, style: JaxText.label.copyWith(color: JaxColors.secondaryDark, fontSize: 9)),
+                      child: Text(accountType,
+                          style: JaxText.label.copyWith(
+                              color: JaxColors.secondaryDark, fontSize: 9)),
                     ),
                   ],
                 ),
@@ -7555,14 +9509,18 @@ class _ProfileCard extends StatelessWidget {
                   children: [
                     Text('TRUST SCORE', style: JaxText.label),
                     const SizedBox(height: 4),
-                    Text(trustScore, style: JaxText.h2.copyWith(color: JaxColors.primaryContainer)),
+                    Text(trustScore,
+                        style: JaxText.h2
+                            .copyWith(color: JaxColors.primaryContainer)),
                   ],
                 ),
                 Column(
                   children: [
                     Text('ORDER RATE', style: JaxText.label),
                     const SizedBox(height: 4),
-                    Text(orderRate, style: JaxText.h2.copyWith(color: JaxColors.primaryContainer)),
+                    Text(orderRate,
+                        style: JaxText.h2
+                            .copyWith(color: JaxColors.primaryContainer)),
                   ],
                 ),
               ],
@@ -7581,13 +9539,16 @@ class _SecurityBadgeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isVerified = textOf(state.user['kycStatus']) == 'VERIFIED';
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(JaxRadius.xl),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       padding: const EdgeInsets.all(20),
@@ -7596,16 +9557,20 @@ class _SecurityBadgeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.shield_rounded, color: JaxColors.secondaryDark, size: 16),
+              const Icon(Icons.shield_rounded,
+                  color: JaxColors.secondaryDark, size: 16),
               const SizedBox(width: 8),
-              Text('SECURITY BADGE', style: JaxText.label.copyWith(color: JaxColors.primaryContainer)),
+              Text('SECURITY BADGE',
+                  style: JaxText.label
+                      .copyWith(color: JaxColors.primaryContainer)),
             ],
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: JaxColors.outlineVariant.withValues(alpha: .5)),
+              border: Border.all(
+                  color: JaxColors.outlineVariant.withValues(alpha: .5)),
               borderRadius: BorderRadius.circular(JaxRadius.lg),
             ),
             child: Column(
@@ -7613,16 +9578,25 @@ class _SecurityBadgeCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(isVerified ? Icons.check_circle_rounded : Icons.pending_rounded, color: isVerified ? JaxColors.secondary : JaxColors.warning, size: 20),
+                    Icon(
+                        isVerified
+                            ? Icons.check_circle_rounded
+                            : Icons.pending_rounded,
+                        color: isVerified
+                            ? JaxColors.secondary
+                            : JaxColors.warning,
+                        size: 20),
                     const SizedBox(width: 8),
-                    Text(isVerified ? 'VERIFIED' : 'PENDING', style: JaxText.title.copyWith(color: JaxColors.primaryContainer)),
+                    Text(isVerified ? 'VERIFIED' : 'PENDING',
+                        style: JaxText.title
+                            .copyWith(color: JaxColors.primaryContainer)),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  isVerified 
-                    ? 'Authenticated Global Partner. Your credentials are fully validated for high-limit B2B trade.'
-                    : 'Your account is under review. Complete KYC to unlock high-limit B2B trade.',
+                  isVerified
+                      ? 'Authenticated Global Partner. Your credentials are fully validated for high-limit B2B trade.'
+                      : 'Your account is under review. Complete KYC to unlock high-limit B2B trade.',
                   style: JaxText.bodySmall.copyWith(height: 1.5),
                 ),
               ],
@@ -7720,14 +9694,19 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(JaxRadius.xl),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Core Identity Schema', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
+          Text('Core Identity Schema',
+              style: JaxText.h2
+                  .copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
           const SizedBox(height: 24),
           if (isEditing) ...[
             TextField(
@@ -7745,10 +9724,16 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
             DropdownButtonFormField<String>(
               value: accountType,
               decoration: _fieldDecoration('ACCOUNT ARCHITECTURE'),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: JaxColors.primaryContainer),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: JaxColors.primaryContainer),
               items: const [
-                DropdownMenuItem(value: 'INDIVIDUAL', child: Text('INDIVIDUAL PROFESSIONAL')),
-                DropdownMenuItem(value: 'BUSINESS', child: Text('BUSINESS ORGANIZATIONAL')),
+                DropdownMenuItem(
+                    value: 'INDIVIDUAL',
+                    child: Text('INDIVIDUAL PROFESSIONAL')),
+                DropdownMenuItem(
+                    value: 'BUSINESS', child: Text('BUSINESS ORGANIZATIONAL')),
               ],
               onChanged: onAccountTypeChanged,
             ),
@@ -7756,11 +9741,17 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
             DropdownButtonFormField<String>(
               value: userType,
               decoration: _fieldDecoration('MARKET PERMISSIONS'),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: JaxColors.primaryContainer),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: JaxColors.primaryContainer),
               items: const [
-                DropdownMenuItem(value: 'BUYER', child: Text('PROCUREMENT (BUYER)')),
-                DropdownMenuItem(value: 'SELLER', child: Text('FULL SUPPLY (SELLER)')),
-                DropdownMenuItem(value: 'BOTH', child: Text('OMNICHANNEL (BOTH)')),
+                DropdownMenuItem(
+                    value: 'BUYER', child: Text('PROCUREMENT (BUYER)')),
+                DropdownMenuItem(
+                    value: 'SELLER', child: Text('FULL SUPPLY (SELLER)')),
+                DropdownMenuItem(
+                    value: 'BOTH', child: Text('OMNICHANNEL (BOTH)')),
               ],
               onChanged: onUserTypeChanged,
             ),
@@ -7772,19 +9763,25 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E1B4B),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
                     elevation: 0,
                   ),
                   child: submitting
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
                         )
                       : const Text(
                           'COMMIT CHANGES',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8),
                         ),
                 ),
                 const SizedBox(width: 12),
@@ -7807,14 +9804,15 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _SchemaField(
-                    label: 'REGISTRY NAME', 
+                    label: 'REGISTRY NAME',
                     value: state.name.toUpperCase(),
                   ),
                 ),
                 Expanded(
                   child: _SchemaField(
-                    label: 'CONTACT EMAIL', 
-                    value: textOf(state.user['email'], 'no-email@provided.com').toUpperCase(),
+                    label: 'CONTACT EMAIL',
+                    value: textOf(state.user['email'], 'no-email@provided.com')
+                        .toUpperCase(),
                   ),
                 ),
               ],
@@ -7824,13 +9822,14 @@ class _CoreIdentitySchemaCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _SchemaField(
-                    label: 'ACCOUNT ARCHITECTURE', 
-                    value: getAccountTypeLabel(textOf(state.user['accountType'], 'INDIVIDUAL')),
+                    label: 'ACCOUNT ARCHITECTURE',
+                    value: getAccountTypeLabel(
+                        textOf(state.user['accountType'], 'INDIVIDUAL')),
                   ),
                 ),
                 Expanded(
                   child: _SchemaField(
-                    label: 'MARKET PERMISSIONS', 
+                    label: 'MARKET PERMISSIONS',
                     value: getUserTypeLabel(state.userType),
                   ),
                 ),
@@ -7851,14 +9850,19 @@ class _BusinessIntelligenceCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(JaxRadius.xl),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Business Intelligence Profile', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
+          Text('Business Intelligence Profile',
+              style: JaxText.h2
+                  .copyWith(color: JaxColors.primaryContainer, fontSize: 20)),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -7876,7 +9880,8 @@ class _BusinessIntelligenceCard extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.business_rounded, color: Color(0xFF0F766E), size: 20),
+                  child: const Icon(Icons.business_rounded,
+                      color: Color(0xFF0F766E), size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -7904,7 +9909,11 @@ class _BusinessIntelligenceCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
+                          Container(
+                              width: 4,
+                              height: 4,
+                              decoration: const BoxDecoration(
+                                  color: Colors.grey, shape: BoxShape.circle)),
                           const SizedBox(width: 6),
                           Text(
                             'SETUP REQUIRED',
@@ -7941,7 +9950,9 @@ class _SchemaField extends StatelessWidget {
       children: [
         Text(label, style: JaxText.label),
         const SizedBox(height: 8),
-        Text(value, style: JaxText.title.copyWith(color: JaxColors.primaryContainer, fontSize: 13)),
+        Text(value,
+            style: JaxText.title
+                .copyWith(color: JaxColors.primaryContainer, fontSize: 13)),
       ],
     );
   }
@@ -7955,7 +9966,10 @@ class _ComplianceVaultCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(JaxRadius.xl),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       padding: const EdgeInsets.all(24),
@@ -7965,10 +9979,17 @@ class _ComplianceVaultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text('Compliance Document Vault', style: JaxText.h2.copyWith(color: JaxColors.primaryContainer, fontSize: 20))),
+              Expanded(
+                  child: Text('Compliance Document Vault',
+                      style: JaxText.h2.copyWith(
+                          color: JaxColors.primaryContainer, fontSize: 20))),
               TextButton(
                 onPressed: () {},
-                child: Text('+ APPEND REGISTRY', style: JaxText.label.copyWith(color: JaxColors.primaryContainer, letterSpacing: 1, fontWeight: FontWeight.bold)),
+                child: Text('+ APPEND REGISTRY',
+                    style: JaxText.label.copyWith(
+                        color: JaxColors.primaryContainer,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -7985,13 +10006,18 @@ class _ComplianceVaultCard extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  child: const Icon(Icons.upload_rounded, color: JaxColors.outlineVariant, size: 24),
+                  decoration: const BoxDecoration(
+                      color: Colors.white, shape: BoxShape.circle),
+                  child: const Icon(Icons.upload_rounded,
+                      color: JaxColors.outlineVariant, size: 24),
                 ),
                 const SizedBox(height: 16),
-                Text('VAULT REGISTRY EMPTY', style: JaxText.title.copyWith(color: JaxColors.primaryContainer, fontSize: 12)),
+                Text('VAULT REGISTRY EMPTY',
+                    style: JaxText.title.copyWith(
+                        color: JaxColors.primaryContainer, fontSize: 12)),
                 const SizedBox(height: 4),
-                Text('ATTACH CORPORATE PAN OR TRADE LICENSE', style: JaxText.label.copyWith(color: JaxColors.outline)),
+                Text('ATTACH CORPORATE PAN OR TRADE LICENSE',
+                    style: JaxText.label.copyWith(color: JaxColors.outline)),
               ],
             ),
           ),
@@ -8035,7 +10061,9 @@ class AdminScreen extends StatelessWidget {
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) => AsyncContent(
             state: state,
-            onRetry: () => context.read<ResourceCubit>().load(() => apiOf(context).adminStats()),
+            onRetry: () => context
+                .read<ResourceCubit>()
+                .load(() => apiOf(context).adminStats()),
             builder: (_) => Column(
               children: state.data.entries
                   .map((e) => Padding(
@@ -8057,7 +10085,11 @@ class DashedRectPainter extends CustomPainter {
   final double gap;
   final double borderRadius;
 
-  DashedRectPainter({required this.color, required this.strokeWidth, required this.gap, required this.borderRadius});
+  DashedRectPainter(
+      {required this.color,
+      required this.strokeWidth,
+      required this.gap,
+      required this.borderRadius});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -8067,13 +10099,16 @@ class DashedRectPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(borderRadius)));
+      ..addRRect(RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Radius.circular(borderRadius)));
 
     final dashPath = Path();
     double distance = 0.0;
     for (PathMetric pathMetric in path.computeMetrics()) {
       while (distance < pathMetric.length) {
-        dashPath.addPath(pathMetric.extractPath(distance, distance + gap), Offset.zero);
+        dashPath.addPath(
+            pathMetric.extractPath(distance, distance + gap), Offset.zero);
         distance += gap * 2;
       }
     }
@@ -8108,27 +10143,37 @@ class _BulkImportDialogState extends State<_BulkImportDialog> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.description_rounded, color: JaxColors.success, size: 28),
+                const Icon(Icons.description_rounded,
+                    color: JaxColors.success, size: 28),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('BULK INVENTORY SYNCHRONIZATION', style: JaxText.h3.copyWith(fontSize: 16)),
+                      Text('BULK INVENTORY SYNCHRONIZATION',
+                          style: JaxText.h3.copyWith(fontSize: 16)),
                       const SizedBox(height: 4),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
                         spacing: 8,
                         children: [
-                          Text('FORMAT: TITLE, DESCRIPTION, CATEGORYID, PRICE, SKU', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.outline)),
-                          Text('DOWNLOAD SAMPLE TEMPLATE', style: JaxText.label.copyWith(fontSize: 8, color: JaxColors.primaryContainer, decoration: TextDecoration.underline)),
+                          Text(
+                              'FORMAT: TITLE, DESCRIPTION, CATEGORYID, PRICE, SKU',
+                              style: JaxText.label.copyWith(
+                                  fontSize: 8, color: JaxColors.outline)),
+                          Text('DOWNLOAD SAMPLE TEMPLATE',
+                              style: JaxText.label.copyWith(
+                                  fontSize: 8,
+                                  color: JaxColors.primaryContainer,
+                                  decoration: TextDecoration.underline)),
                         ],
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20, color: JaxColors.outline),
+                  icon: const Icon(Icons.close_rounded,
+                      size: 20, color: JaxColors.outline),
                   onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -8139,10 +10184,15 @@ class _BulkImportDialogState extends State<_BulkImportDialog> {
             const Divider(color: JaxColors.outlineVariant, height: 1),
             const SizedBox(height: 24),
             CustomPaint(
-              painter: DashedRectPainter(color: JaxColors.outlineVariant, strokeWidth: 1.5, gap: 6.0, borderRadius: 16),
+              painter: DashedRectPainter(
+                  color: JaxColors.outlineVariant,
+                  strokeWidth: 1.5,
+                  gap: 6.0,
+                  borderRadius: 16),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
                 decoration: BoxDecoration(
                   color: JaxColors.surface,
                   borderRadius: BorderRadius.circular(16),
@@ -8156,12 +10206,18 @@ class _BulkImportDialogState extends State<_BulkImportDialog> {
                         color: JaxColors.outlineVariant.withValues(alpha: .2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.cloud_upload_rounded, color: JaxColors.outline, size: 32),
+                      child: const Icon(Icons.cloud_upload_rounded,
+                          color: JaxColors.outline, size: 32),
                     ),
                     const SizedBox(height: 24),
-                    Text('INITIALIZE DATA STREAM', style: JaxText.h3.copyWith(fontSize: 14)),
+                    Text('INITIALIZE DATA STREAM',
+                        style: JaxText.h3.copyWith(fontSize: 14)),
                     const SizedBox(height: 8),
-                    Text('Drag your product CSV here or click to browse. Ensure Category\nIDs match the global registry.', textAlign: TextAlign.center, style: JaxText.bodyMedium.copyWith(color: JaxColors.outline, fontSize: 12)),
+                    Text(
+                        'Drag your product CSV here or click to browse. Ensure Category\nIDs match the global registry.',
+                        textAlign: TextAlign.center,
+                        style: JaxText.bodyMedium
+                            .copyWith(color: JaxColors.outline, fontSize: 12)),
                     const SizedBox(height: 24),
                     if (_selectedCsv == null)
                       OutlinedButton(
@@ -8176,16 +10232,21 @@ class _BulkImportDialogState extends State<_BulkImportDialog> {
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: JaxColors.primaryContainer,
-                          side: const BorderSide(color: JaxColors.outlineVariant),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          textStyle: JaxText.label.copyWith(fontSize: 12, letterSpacing: 0),
+                          side:
+                              const BorderSide(color: JaxColors.outlineVariant),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          textStyle: JaxText.label
+                              .copyWith(fontSize: 12, letterSpacing: 0),
                         ),
                         child: const Text('Select CSV File'),
                       )
                     else
                       Chip(
-                        label: Text(_selectedCsv!.name, style: JaxText.bodySmall.copyWith(fontSize: 12)),
+                        label: Text(_selectedCsv!.name,
+                            style: JaxText.bodySmall.copyWith(fontSize: 12)),
                         onDeleted: () => setState(() => _selectedCsv = null),
                         deleteIcon: const Icon(Icons.close_rounded, size: 16),
                         backgroundColor: JaxColors.surfaceContainer,
@@ -8253,4 +10314,3 @@ class CertificationChip extends StatelessWidget {
     );
   }
 }
-

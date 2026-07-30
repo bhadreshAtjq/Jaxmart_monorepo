@@ -225,6 +225,96 @@ async function main() {
   }
   console.log('✅ Mock RFQs seeded');
 
+  // 6. Seed Subscription Plans
+  console.log('🌱 Seeding Subscription Plans...');
+  const plans = [
+    {
+      name: 'Basic',
+      slug: 'basic',
+      description: 'Essential plan for new sellers to list basic products and receive RFQs.',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      currency: 'INR',
+      maxProducts: 10,
+      maxImagesPerProduct: 5,
+      maxVideosPerProduct: 0,
+      allowBulkUpload: false,
+      allowApiAccess: false,
+      verificationBadge: 'NONE',
+      featuredProductSlots: 0,
+      hasAdvancedAnalytics: false,
+      hasCompetitorBenchmarking: false,
+      supportLevel: 'EMAIL_ONLY',
+      displayOrder: 1,
+    },
+    {
+      name: 'Verified',
+      slug: 'verified',
+      description: 'For growing suppliers seeking verified business badge and bulk upload capabilities.',
+      monthlyPrice: 7999,
+      yearlyPrice: 79990,
+      currency: 'INR',
+      maxProducts: 100,
+      maxImagesPerProduct: 10,
+      maxVideosPerProduct: 1,
+      allowBulkUpload: true,
+      allowApiAccess: false,
+      verificationBadge: 'VERIFIED',
+      featuredProductSlots: 1,
+      hasAdvancedAnalytics: false,
+      hasCompetitorBenchmarking: false,
+      supportLevel: 'EMAIL_CHAT',
+      displayOrder: 2,
+    },
+    {
+      name: 'Gold',
+      slug: 'gold',
+      description: 'Gold badge tier with priority search placement, advanced analytics, and API access.',
+      monthlyPrice: 24999,
+      yearlyPrice: 249990,
+      currency: 'INR',
+      maxProducts: 500,
+      maxImagesPerProduct: 20,
+      maxVideosPerProduct: 3,
+      allowBulkUpload: true,
+      allowApiAccess: true,
+      verificationBadge: 'GOLD',
+      featuredProductSlots: 5,
+      hasAdvancedAnalytics: true,
+      hasCompetitorBenchmarking: true,
+      supportLevel: 'PRIORITY',
+      displayOrder: 3,
+    },
+    {
+      name: 'Assessed',
+      slug: 'assessed',
+      description: 'Top-tier enterprise plan with unlimited product listings, maximum visibility, and dedicated support.',
+      monthlyPrice: 84999,
+      yearlyPrice: 849990,
+      currency: 'INR',
+      maxProducts: -1, // Unlimited
+      maxImagesPerProduct: 30,
+      maxVideosPerProduct: 5,
+      allowBulkUpload: true,
+      allowApiAccess: true,
+      verificationBadge: 'ASSESSED',
+      featuredProductSlots: 20,
+      hasAdvancedAnalytics: true,
+      hasCompetitorBenchmarking: true,
+      supportLevel: 'DEDICATED',
+      displayOrder: 4,
+    },
+  ];
+
+  for (const planData of plans) {
+    await prisma.subscriptionPlan.upsert({
+      where: { slug: planData.slug },
+      update: planData,
+      create: planData,
+    });
+  }
+  console.log('✅ Subscription plans seeded');
+
   console.log('🏁 Seeding finished successfully!');
 }
 

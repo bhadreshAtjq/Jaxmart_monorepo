@@ -16,6 +16,18 @@ const {
   updateEvent,
   deleteEvent
 } = require('../controllers/eventController');
+const {
+  getAllPlans,
+  createPlan,
+  updatePlan,
+  deletePlan,
+  getSubscribers,
+  overrideUserSubscription,
+  getPendingDepositReceipts,
+  verifyDepositReceipt,
+  rejectDepositReceipt,
+  getFinancialAnalytics,
+} = require('../controllers/adminSubscriptionController');
 
 // All admin routes are protected
 router.use(authenticate, requireAdmin);
@@ -36,6 +48,18 @@ router.get('/events', adminGetEvents);
 router.post('/events', createEvent);
 router.put('/events/:id', updateEvent);
 router.delete('/events/:id', deleteEvent);
+
+// Admin Subscription & Billing Management
+router.get('/subscriptions/plans', getAllPlans);
+router.post('/subscriptions/plans', createPlan);
+router.put('/subscriptions/plans/:id', updatePlan);
+router.delete('/subscriptions/plans/:id', deletePlan);
+router.get('/subscriptions/subscribers', getSubscribers);
+router.post('/subscriptions/subscribers/:userId/override', overrideUserSubscription);
+router.get('/subscriptions/deposit-receipts', getPendingDepositReceipts);
+router.post('/subscriptions/deposit-receipts/:id/verify', verifyDepositReceipt);
+router.post('/subscriptions/deposit-receipts/:id/reject', rejectDepositReceipt);
+router.get('/subscriptions/financial-report', getFinancialAnalytics);
 
 module.exports = router;
 

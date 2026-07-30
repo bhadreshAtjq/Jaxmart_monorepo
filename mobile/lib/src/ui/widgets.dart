@@ -126,29 +126,55 @@ class _AppShellState extends State<AppShell> {
             ? auth.name.substring(0, 2).toUpperCase()
             : auth.name.substring(0, 1).toUpperCase())
         : 'US';
+    final bool isActive = auth.isLoggedIn;
     return GestureDetector(
       onTap: () {
         setState(() {
           _isProfileDropdownOpen = !_isProfileDropdownOpen;
         });
       },
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: JaxColors.primary,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade200, width: 1.5),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          initials,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: JaxColors.primary,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade200, width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            bottom: -1,
+            right: -1,
+            child: Container(
+              width: 11,
+              height: 11,
+              decoration: BoxDecoration(
+                color: isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

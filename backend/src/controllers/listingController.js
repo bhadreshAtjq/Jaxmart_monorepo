@@ -18,12 +18,14 @@ const searchListings = async (req, res) => {
     const where = {
       status: 'ACTIVE',
       ...(type && { listingType: type.toUpperCase() }),
-      ...(categoryId && {
-        OR: [
-          { categoryId },
-          { category: { parentId: categoryId } },
-          { category: { parent: { parentId: categoryId } } }
-        ]
+      ...(categoryId && { 
+        category: {
+          OR: [
+            { id: categoryId },
+            { parentId: categoryId },
+            { parent: { parentId: categoryId } }
+          ]
+        }
       }),
       ...(minRating && { avgRating: { gte: parseFloat(minRating) } }),
       ...(q && {

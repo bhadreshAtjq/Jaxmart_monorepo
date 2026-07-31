@@ -239,6 +239,10 @@ model User {
   savedListings   SavedListing[]
   savedRfqs       SavedRfq[]
 
+  subscription    Subscription?
+  invoices        SubscriptionInvoice[]
+  depositReceipts DepositReceipt[]
+
   @@index([kycStatus])
   @@index([userType])
   @@index([createdAt])
@@ -322,17 +326,21 @@ model Address {
 }
 
 model KycDocument {
-  id           String    @id @default(uuid())
-  userId       String
-  documentType String    // "AADHAAR", "PAN", "GST_CERTIFICATE", "TRADE_LICENSE"
-  documentUrl  String
-  backSideUrl  String?
-  status       KycStatus @default(PENDING)
-  reviewNote   String?
-  reviewedBy   String?   // admin user id
-  reviewedAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  userId             String
+  documentType       String    // "AADHAAR", "PAN", "GSTIN", "GST_CERTIFICATE", "DRIVING_LICENSE", "UDYAM_MSME"
+  documentNumber     String?   // PAN/GSTIN/Aadhaar/DL/Udyam number
+  documentUrl        String
+  backSideUrl        String?
+  status             KycStatus @default(PENDING)
+  verificationMethod String?   @default("API_SETU") // "API_SETU", "SIGNZY", "MANUAL"
+  txnId              String?   // API Setu / Provider transaction ID
+  metadata           Json?     // Government API response data
+  reviewNote         String?
+  reviewedBy         String?   // admin user id
+  reviewedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1192,4 +1200,153 @@ model AnalyticsEvent {
   @@index([userId])
   @@index([createdAt])
   @@map("analytics_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBSCRIPTIONS & BILLING MODULE
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum SubscriptionTier {
+  BASIC
+  VERIFIED
+  GOLD
+  ASSESSED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  PAUSED
+  EXPIRED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum DepositStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model SubscriptionPlan {
+  id                        String             @id @default(uuid())
+  name                      String             @unique
+  slug                      String             @unique
+  description               String
+  monthlyPrice              Float
+  yearlyPrice               Float
+  currency                  String             @default("INR")
+  maxProducts               Int                @default(10) // -1 for unlimited
+  maxImagesPerProduct       Int                @default(5)
+  maxVideosPerProduct       Int                @default(0)
+  allowBulkUpload           Boolean            @default(false)
+  allowApiAccess            Boolean            @default(false)
+  verificationBadge         String             @default("NONE") // NONE, VERIFIED, GOLD, ASSESSED
+  featuredProductSlots      Int                @default(0)
+  hasAdvancedAnalytics      Boolean            @default(false)
+  hasCompetitorBenchmarking Boolean            @default(false)
+  supportLevel              String             @default("EMAIL_ONLY") // EMAIL_ONLY, EMAIL_CHAT, PRIORITY, DEDICATED
+  isActive                  Boolean            @default(true)
+  displayOrder              Int                @default(0)
+  razorpayPlanIdMonthly     String?
+  razorpayPlanIdYearly      String?
+  stripePriceIdMonthly      String?
+  stripePriceIdYearly       String?
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+
+  subscriptions             Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  userId                 String             @unique
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                 String
+  plan                   SubscriptionPlan   @relation(fields: [planId], references: [id])
+  billingCycle           BillingCycle       @default(MONTHLY)
+  status                 SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart     DateTime           @default(now())
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean            @default(false)
+  canceledAt             DateTime?
+  endedAt                DateTime?
+  razorpayCustomerId     String?
+  razorpaySubscriptionId String?
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  invoices               SubscriptionInvoice[]
+  depositReceipts        DepositReceipt[]
+
+  @@index([status])
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+model SubscriptionInvoice {
+  id                    String        @id @default(uuid())
+  invoiceNumber         String        @unique
+  subscriptionId        String?
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount                Float
+  currency              String        @default("INR")
+  status                InvoiceStatus @default(DRAFT)
+  billingPeriodStart    DateTime
+  billingPeriodEnd      DateTime
+  paymentMethod         String?       // RAZORPAY, STRIPE, BANK_TRANSFER
+  razorpayPaymentId     String?
+  stripePaymentIntentId String?
+  pdfUrl                String?
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscription_invoices")
+}
+
+model DepositReceipt {
+  id                   String        @id @default(uuid())
+  userId               String
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId       String?
+  subscription         Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  amount               Float
+  currency             String        @default("INR")
+  transactionReference String
+  transferDate         DateTime
+  receiptUrl           String
+  notes                String?
+  status               DepositStatus @default(PENDING)
+  rejectionReason      String?
+  verifiedByUserId     String?
+  verifiedAt           DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("deposit_receipts")
 }

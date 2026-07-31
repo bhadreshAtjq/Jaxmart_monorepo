@@ -1,0 +1,10 @@
+{"DOB":"1990-01-01","FullName":"TEST USER","PAN":"ABCDE1234F","level":"info","message":"[API SETU MOCK MODE] Invoking /income-tax/pan with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:10:34"}
+{"GSTIN":"27AAAAA0000A1Z5","LegalName":"TEST ENTERPRISES","level":"info","message":"[API SETU MOCK MODE] Invoking /gstn/gstin with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:10:34"}
+{"DOB":"1990-01-01","FullName":"TEST USER","UID":"123456789012","level":"info","message":"[API SETU MOCK MODE] Invoking /uidai/aadhaar with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:10:34"}
+{"DLNO":"DL-1420110012345","DOB":"1990-01-01","level":"info","message":"[API SETU MOCK MODE] Invoking /morth/dl with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:10:34"}
+{"UdyamRegistrationNumber":"UDYAM-MH-01-0012345","level":"info","message":"[API SETU MOCK MODE] Invoking /msme/udyam with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:10:34"}
+{"DOB":"1990-01-01","FullName":"TEST USER","PAN":"ABCDE1234F","level":"info","message":"[API SETU MOCK MODE] Invoking /income-tax/pan with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:16:01"}
+{"GSTIN":"27AAAAA0000A1Z5","LegalName":"TEST ENTERPRISES","level":"info","message":"[API SETU MOCK MODE] Invoking /gstn/gstin with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:16:01"}
+{"DOB":"1990-01-01","FullName":"TEST USER","UID":"123456789012","level":"info","message":"[API SETU MOCK MODE] Invoking /uidai/aadhaar with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:16:01"}
+{"DLNO":"DL-1420110012345","DOB":"1990-01-01","level":"info","message":"[API SETU MOCK MODE] Invoking /morth/dl with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:16:01"}
+{"UdyamRegistrationNumber":"UDYAM-MH-01-0012345","level":"info","message":"[API SETU MOCK MODE] Invoking /msme/udyam with params:","service":"b2b-platform-backend","timestamp":"2026-07-27 12:16:01"}

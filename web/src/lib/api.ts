@@ -55,16 +55,16 @@ api.interceptors.response.use(
         const { data } = await axios.post(`${api.defaults.baseURL}/auth/refresh`, { refreshToken: refresh });
         localStorage.setItem('access_token', data.accessToken);
         localStorage.setItem('refresh_token', data.refreshToken);
-        
+
         processQueue(null, data.accessToken);
         isRefreshing = false;
-        
+
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
         isRefreshing = false;
-        
+
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined') {
           const path = window.location.pathname;

@@ -62,6 +62,14 @@ export function useFeaturedListings() {
   );
 }
 
+export function useNewProducts() {
+  return useSWR(
+    '/listings/new-products',
+    fetcher,
+    { refreshInterval: 5000, revalidateOnFocus: true }
+  );
+}
+
 export function useListingSearch(params: Record<string, any>) {
   return useSWR(
     ['/listings/search', params],

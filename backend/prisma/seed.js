@@ -217,7 +217,7 @@ async function main() {
         description: r.description,
         budgetMin: r.budgetMin,
         budgetMax: r.budgetMax,
-        isPublic: r.isPublic,
+        visibility: 'PUBLIC',
         status: 'OPEN',
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       }

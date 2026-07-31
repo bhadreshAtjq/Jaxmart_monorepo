@@ -7,18 +7,24 @@ const { signListingMedia, cleanS3Url } = require('../utils/s3');
 const searchListings = async (req, res) => {
   try {
     const {
-      q, type, categoryId, city, state, minTrust, isVerified,
+      q, tag, type, categoryId, city, state, minTrust, isVerified,
       minRating, page = 1, limit = 20, sortBy = 'relevance',
       providerType, serviceMode,
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = Math.min(parseInt(limit), 50);
+    const take = Math.min(parseInt(limit), 100);
 
     const where = {
       status: 'ACTIVE',
       ...(type && { listingType: type.toUpperCase() }),
-      ...(categoryId && { categoryId }),
+      ...(categoryId && {
+        OR: [
+          { categoryId },
+          { category: { parentId: categoryId } },
+          { category: { parent: { parentId: categoryId } } }
+        ]
+      }),
       ...(minRating && { avgRating: { gte: parseFloat(minRating) } }),
       ...(q && {
         OR: [
@@ -26,6 +32,9 @@ const searchListings = async (req, res) => {
           { description: { contains: q, mode: 'insensitive' } },
           { tags: { has: q.toLowerCase() } },
         ],
+      }),
+      ...(tag && {
+        tags: { has: tag.toLowerCase() }
       }),
       seller: {
         isActive: true,
@@ -37,20 +46,27 @@ const searchListings = async (req, res) => {
       }),
     };
 
-    let orderBy = {};
+    let orderBy = [];
     switch (sortBy) {
-      case 'rating': orderBy = { avgRating: 'desc' }; break;
-      case 'newest': orderBy = { createdAt: 'desc' }; break;
-      case 'featured': orderBy = { isFeatured: 'desc' }; break;
-      default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }];
+      case 'rating': orderBy = [{ avgRating: 'desc' }, { id: 'asc' }]; break;
+      case 'newest': orderBy = [{ createdAt: 'desc' }, { id: 'asc' }]; break;
+      case 'featured': orderBy = [{ isFeatured: 'desc' }, { id: 'asc' }]; break;
+      case 'popular': orderBy = [{ viewCount: 'desc' }, { quoteCount: 'desc' }, { reviewCount: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }]; break;
+      default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }];
     }
 
-    const [listings, total] = await Promise.all([
+    let finalTake = take;
+    if (sortBy === 'popular') {
+      if (skip >= 100) finalTake = 0;
+      else if (skip + take > 100) finalTake = 100 - skip;
+    }
+
+    const [listings, rawTotal] = await Promise.all([
       prisma.listing.findMany({
         where,
         orderBy,
         skip,
-        take,
+        take: finalTake,
         include: {
           seller: {
             select: {
@@ -58,7 +74,19 @@ const searchListings = async (req, res) => {
               businessProfile: { select: { businessName: true } },
             },
           },
-          category: { select: { id: true, name: true, slug: true } },
+          category: {
+            select: {
+              id: true, name: true, slug: true,
+              parent: {
+                select: {
+                  id: true, name: true,
+                  parent: {
+                    select: { id: true, name: true }
+                  }
+                }
+              }
+            }
+          },
           location: { select: { city: true, state: true } },
           media: { where: { isPrimary: true }, take: 1 },
           productDetail: {
@@ -72,6 +100,8 @@ const searchListings = async (req, res) => {
       prisma.listing.count({ where }),
     ]);
 
+    const finalTotal = sortBy === 'popular' ? Math.min(rawTotal, 100) : rawTotal;
+
     const signedListings = await Promise.all(listings.map(l => signListingMedia(l)));
 
     res.json({
@@ -79,13 +109,56 @@ const searchListings = async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: take,
-        total,
-        pages: Math.ceil(total / take),
+        total: finalTotal,
+        pages: Math.ceil(finalTotal / take),
       },
     });
   } catch (err) {
     logger.error('searchListings error:', err);
     res.status(500).json({ error: 'Search failed' });
+  }
+};
+
+// GET /api/listings/new-products
+const getNewProducts = async (req, res) => {
+  try {
+    const listings = await prisma.listing.findMany({
+      where: {
+        status: 'ACTIVE',
+        listingType: 'PRODUCT'
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 100,
+      include: {
+        seller: {
+          select: {
+            id: true, fullName: true, trustScore: true, sellerRating: true,
+            totalOrdersFulfilled: true, responseRatePercent: true,
+            kycStatus: true, createdAt: true, avatarUrl: true,
+          }
+        },
+        media: { orderBy: { sortOrder: 'asc' } },
+        productDetail: true,
+        variants: {
+          take: 1,
+          where: { isActive: true },
+        },
+      }
+    });
+
+    const signedListings = await Promise.all(
+      listings.map(listing => signListingMedia(listing))
+    );
+
+    res.json({
+      success: true,
+      data: signedListings
+    });
+  } catch (error) {
+    logger.error(`Get New Products Error: ${error.message}`);
+    res.status(500).json({ success: false, error: 'Failed to fetch new products' });
   }
 };
 
@@ -146,7 +219,7 @@ const getListing = async (req, res) => {
     prisma.listing.update({
       where: { id },
       data: { viewCount: { increment: 1 } },
-    }).catch(() => {});
+    }).catch(() => { });
 
     await cacheSet(cacheKey, listing, CACHE_TTL.MEDIUM);
     const signedListing = await signListingMedia(listing);
@@ -662,8 +735,13 @@ const bulkCreateListings = async (req, res) => {
   }
 };
 
-module.exports = { 
-  searchListings, getListing, createListing, 
-  updateListing, getMyListings, publishListing, 
-  bulkCreateListings 
+module.exports = {
+  searchListings,
+  getNewProducts,
+  getListing,
+  createListing,
+  updateListing,
+  getMyListings,
+  publishListing,
+  bulkCreateListings,
 };

@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FaFileLines, FaPlus, FaClock, FaCircleCheck, 
+import {
+  FaFileLines, FaPlus, FaClock, FaCircleCheck,
   FaChevronRight, FaMagnifyingGlass,
   FaBolt, FaChartLine, FaBoxOpen, FaShieldHalved
 } from 'react-icons/fa6';
@@ -17,14 +17,14 @@ import { motion } from 'framer-motion';
 export default function RfqListPage() {
   const [tab, setTab] = useState<'OPEN' | 'AWARDED' | 'CLOSED'>('OPEN');
   const [search, setSearch] = useState('');
-  
+
   const { data, isLoading } = useMyRfqs(tab);
 
-  const rfqs = (data?.rfqs ?? []).filter((r: any) => 
-    r.title.toLowerCase().includes(search.toLowerCase()) || 
+  const rfqs = (data?.rfqs ?? []).filter((r: any) =>
+    r.title.toLowerCase().includes(search.toLowerCase()) ||
     r.id.toLowerCase().includes(search.toLowerCase())
   );
-  
+
   const stats = {
     total: (data?.rfqs ?? []).length,
     quotes: (data?.rfqs ?? []).reduce((acc: number, r: any) => acc + (r._count?.quotes || 0), 0),
@@ -139,15 +139,38 @@ export default function RfqListPage() {
                               <h3 className="text-xl font-black text-gray-900 group-hover:text-jax-accent transition-colors mb-3 tracking-tight leading-tight">
                                  {rfq.title}
                               </h3>
-                              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                                 <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
-                                    <FaClock className="h-3 w-3 text-gray-400" />
-                                    Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
-                                 </div>
-                                 <div className="flex items-center gap-2 text-[10px] font-bold text-jax-accent uppercase tracking-wider bg-jax-accent/5 px-2.5 py-1.5 rounded-md border border-jax-accent/10">
-                                    <FaBolt className="h-3 w-3" />
-                                    {rfq.category?.name || 'General Sourcing'}
-                                 </div>
+                              <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                                   <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
+                                      <FaClock className="h-3 w-3 text-gray-400" />
+                                      Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
+                                   </div>
+                                   <div className="flex items-center gap-2 text-[10px] font-bold text-jax-accent uppercase tracking-wider bg-jax-accent/5 px-2.5 py-1.5 rounded-md border border-jax-accent/10">
+                                      <FaBolt className="h-3 w-3" />
+                                      {rfq.category?.name || 'General Sourcing'}
+                                   </div>
+                                </div>
+
+                                {rfq.leadsSentTo !== undefined && (
+                                  <div className="pt-4 border-t border-gray-100/80">
+                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Lead Sent To Suppliers:</p>
+                                    {rfq.leadsSentTo.length > 0 ? (
+                                      <div className="flex flex-wrap gap-2">
+                                        {rfq.leadsSentTo.map((lead: any, idx: number) => (
+                                          <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/80 border border-gray-200/60 rounded-lg">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-jax-accent" />
+                                            <span className="text-xs font-bold text-jax-dark">{lead.business}</span>
+                                            <span className="text-[10px] font-medium text-gray-500 hidden sm:inline-block">({lead.name})</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-[10px] font-bold text-gray-400 bg-gray-50/50 px-3 py-2 rounded-lg inline-block">
+                                        No suppliers found matching this request.
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                            </div>
                            

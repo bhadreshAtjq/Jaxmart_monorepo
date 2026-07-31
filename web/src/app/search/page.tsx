@@ -2,8 +2,8 @@
 import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { 
-  FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot, 
+import {
+  FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot,
   FaShieldHalved, FaCubes, FaXmark, FaBolt, FaBoxesStacked,
   FaIndustry, FaGlobe, FaChevronRight, FaList, FaTableCells,
   FaCheck, FaShip, FaClock, FaBoxOpen, FaCreditCard,
@@ -24,7 +24,7 @@ const CATEGORY_ICONS: Record<string, any> = {
   services: FaWrench,
 };
 
-type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
+type SortOption = 'relevance' | 'rating' | 'newest' | 'featured' | 'popular';
 
 export default function SearchPage() {
   return (
@@ -40,9 +40,10 @@ function SearchPageContent() {
 
   // Search parameters
   const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const [tag, setTag] = useState(searchParams.get('tag') ?? '');
   const [type, setType] = useState(searchParams.get('type') ?? '');
   const [categoryId, setCategoryId] = useState(searchParams.get('category') ?? '');
-  const [sortBy, setSortBy] = useState<SortOption>('relevance');
+  const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) ?? 'relevance');
   const [page, setPage] = useState(1);
 
   // Filters
@@ -71,16 +72,21 @@ function SearchPageContent() {
   // Synchronize category or query from URL if changed
   useEffect(() => {
     setQ(searchParams.get('q') ?? '');
+    setTag(searchParams.get('tag') ?? '');
     setType(searchParams.get('type') ?? '');
     setCategoryId(searchParams.get('category') ?? '');
     if (searchParams.get('verified') === 'true') {
       setFilters(f => ({ ...f, isVerified: true }));
+    }
+    if (searchParams.get('sort')) {
+      setSortBy(searchParams.get('sort') as SortOption);
     }
   }, [searchParams]);
 
   // Construct API params
   const apiParams = {
     q,
+    tag,
     limit: 12,
     page,
     ...(type && { type }),
@@ -121,10 +127,10 @@ function SearchPageContent() {
   });
 
   const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
-  const activeFilterCount = 
-    (filters.isVerified ? 1 : 0) + 
-    (filters.minTrust ? 1 : 0) + 
-    (filters.minRating ? 1 : 0) + 
+  const activeFilterCount =
+    (filters.isVerified ? 1 : 0) +
+    (filters.minTrust ? 1 : 0) +
+    (filters.minRating ? 1 : 0) +
     (filters.city ? 1 : 0) +
     (minPrice || maxPrice ? 1 : 0) +
     (minQty ? 1 : 0) +
@@ -390,11 +396,11 @@ function SearchPageContent() {
                   )}
                 </div>
               </div>
-              
-              <button 
-                onClick={() => setShowFilters(!showFilters)} 
+
+              <button
+                onClick={() => setShowFilters(!showFilters)}
                 className={clsx(
-                  'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors', 
+                  'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors',
                   activeFilterCount > 0 ? 'bg-jungle-green-500 text-white' : 'bg-gray-900 text-white shadow'
                 )}
               >
@@ -449,7 +455,7 @@ function SearchPageContent() {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 bg-white p-2.5 px-5 rounded-[1.25rem] border border-gray-100 shadow-[0_4px_24px_rgb(0,0,0,0.02)]">
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] text-[#8fa1b4] font-bold uppercase tracking-[0.15em] mr-2">Sort By:</span>
-                {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
+                {(['relevance', 'newest', 'rating', 'featured', 'popular'] as SortOption[]).map(s => (
                   <button
                     key={s}
                     onClick={() => setSortBy(s)}
@@ -568,10 +574,10 @@ function SearchPageContent() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-4 mt-12 bg-white py-2 px-4 rounded-xl border border-gray-200 max-w-xs mx-auto shadow-sm text-xs">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.max(1, p - 1))} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="text-jungle-green-600 font-bold"
                 >
@@ -580,10 +586,10 @@ function SearchPageContent() {
                 <span className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">
                   PAGE {page} / {totalPages}
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="text-jungle-green-600 font-bold"
                 >
@@ -607,18 +613,18 @@ function SearchListingRow({ listing }: { listing: any }) {
   const pd = listing.productDetail;
 
   return (
-    <div 
+    <div
       onClick={() => router.push(`/listings/${listing.id}`)}
       className="bg-white border border-gray-200 rounded-xl hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer p-4 flex flex-col md:flex-row gap-5"
     >
-      
+
       {/* Listing Image */}
       <div className="w-full md:w-48 h-48 bg-gray-50 rounded-lg overflow-hidden shrink-0 relative border border-gray-100 flex items-center justify-center">
         {listing.media?.[0] ? (
-          <img 
-            src={listing.media[0].url} 
-            alt={listing.title} 
-            className="w-full h-full object-cover" 
+          <img
+            src={listing.media[0].url}
+            alt={listing.title}
+            className="w-full h-full object-cover"
           />
         ) : (
           <FaIndustry className="h-10 w-10 text-gray-200" />
@@ -684,7 +690,7 @@ function SearchListingRow({ listing }: { listing: any }) {
 
       {/* Supplier & Trust Widget Column */}
       <div className="w-full md:w-56 border-t md:border-t-0 md:border-l border-gray-150 pt-4 md:pt-0 md:pl-5 flex flex-col justify-between shrink-0">
-        
+
         {/* Verification Status */}
         <div className="space-y-3.5">
           <div className="flex items-start gap-2">
@@ -712,18 +718,18 @@ function SearchListingRow({ listing }: { listing: any }) {
 
         {/* Call to action */}
         <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
-          <Button 
-            fullWidth 
-            size="sm" 
-            variant="outline" 
+          <Button
+            fullWidth
+            size="sm"
+            variant="outline"
             className="text-[11px] h-9 rounded-lg"
             onClick={() => router.push(`/listings/${listing.id}`)}
           >
             Details
           </Button>
-          <Button 
-            fullWidth 
-            size="sm" 
+          <Button
+            fullWidth
+            size="sm"
             className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[11px] h-9 rounded-lg"
             onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
           >
@@ -808,18 +814,18 @@ function SearchListingGridCard({ listing }: { listing: any }) {
           </div>
 
           <div className="flex gap-2 pt-2.5 mt-1 border-t border-gray-50" onClick={(e) => e.stopPropagation()}>
-            <Button 
-              fullWidth 
-              size="sm" 
-              variant="outline" 
+            <Button
+              fullWidth
+              size="sm"
+              variant="outline"
               className="text-[10px] h-8 rounded-lg"
               onClick={() => router.push(`/listings/${listing.id}`)}
             >
               Details
             </Button>
-            <Button 
-              fullWidth 
-              size="sm" 
+            <Button
+              fullWidth
+              size="sm"
               className="bg-jungle-green-500 hover:bg-jungle-green-600 border-none text-white text-[10px] h-8 rounded-lg"
               onClick={() => router.push(`/inbox?recipientId=${listing.sellerId}`)}
             >

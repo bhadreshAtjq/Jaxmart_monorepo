@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   FaMagnifyingGlass, FaStar, FaShieldHalved, FaBolt, FaBoxesStacked,
   FaArrowRight, FaIndustry, FaLaptop, FaWrench, FaCubes,
   FaGlobe, FaHandshake, FaTruckFast, FaCircleCheck, FaFire,
   FaChevronRight, FaUserCheck, FaFileContract, FaBuildingShield,
-  FaEnvelope, FaCalendarDays, FaLocationDot, FaChevronLeft
+  FaEnvelope, FaCalendarDays, FaLocationDot, FaChevronLeft, FaPaperclip, FaCamera, FaXmark, FaUpload
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button, Card, Badge, Avatar, Container, Skeleton, TrustScore } from '@/components/ui';
@@ -14,6 +14,10 @@ import { useCategories, useFeaturedListings, useRfqInbox, useEvents } from '@/li
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import { clsx } from 'clsx';
+import { MdVerified } from 'react-icons/md';
+import { ShoppingBag, MessageCircleQuestion, MonitorSmartphone, ClipboardCheck, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FeedbackModal } from '@/components/common/FeedbackModal';
 
 const CATEGORY_ICONS: Record<string, any> = {
   'industrial-supplies': FaIndustry,
@@ -44,6 +48,7 @@ export default function HomePage() {
   const [heroSearch, setHeroSearch] = useState('');
   const [feedIndex, setFeedIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -92,6 +97,23 @@ export default function HomePage() {
     router.push(`/rfq/create?title=${encodeURIComponent(rfqProduct)}&qty=${rfqQuantity}&unit=${rfqUnit}`);
   };
 
+  const [aiQuery, setAiQuery] = useState('');
+  const [showImagePopover, setShowImagePopover] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAiSubmit = () => {
+    if (!aiQuery.trim()) return;
+    router.push(`/search?q=${encodeURIComponent(aiQuery.trim())}&ai=true`);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const fileName = e.target.files[0].name;
+      setAiQuery(prev => prev ? `${prev} [Image: ${fileName}]` : `[Image: ${fileName}] `);
+      setShowImagePopover(false);
+    }
+  };
+
   return (
     <PublicLayout>
       {/* Live Activity Marquee */}
@@ -112,14 +134,17 @@ export default function HomePage() {
       <section className="bg-gray-50 py-8 border-b border-gray-200/80">
         <Container size="xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
-            {/* 1. Category Sidebar Menu (Alibaba-style) */}
-            <div className="hidden lg:block lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden lg:h-[380px] flex flex-col">
-              <div className="bg-gray-900 text-white px-4 py-3.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2.5 shrink-0">
-                <FaBoxesStacked className="h-4 w-4 text-jungle-green-500" />
-                All Markets & Industries
+
+            {/* Left Column: Categories + RFQ */}
+            <div className="hidden lg:flex flex-col lg:col-span-3 gap-6">
+              {/* 1. Category Sidebar Menu (Alibaba-style) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col group flex-1 min-h-[400px]">
+              <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 shrink-0 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+                <FaBoxesStacked className="h-4 w-4 text-jungle-green-400" />
+                <span className="relative z-10">Markets & Industries</span>
               </div>
-              <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+              <div className="flex-1 overflow-y-auto divide-y divide-gray-50/50 py-2 custom-scrollbar">
                 {catsLoading ? (
                   Array(5).fill(0).map((_, i) => (
                     <div key={i} className="p-4"><Skeleton className="h-4 w-3/4" /></div>
@@ -131,13 +156,15 @@ export default function HomePage() {
                       <Link
                         key={cat.id}
                         href={`/search?category=${cat.id}`}
-                        className="group flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-jungle-green-50 hover:text-jungle-green-600 transition-colors font-semibold"
+                        className="group/item flex items-center justify-between px-5 py-3 text-sm text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700 transition-all duration-300 font-bold"
                       >
-                        <span className="flex items-center gap-3">
-                          <Icon className="h-4 w-4 text-gray-400 group-hover:text-jungle-green-500 transition-colors" />
+                        <span className="flex items-center gap-3.5 transform group-hover/item:translate-x-1 transition-transform duration-300">
+                          <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center group-hover/item:bg-jungle-green-100/50 group-hover/item:text-jungle-green-600 transition-colors border border-gray-100/50 group-hover/item:border-transparent">
+                            <Icon className="h-3.5 w-3.5 opacity-60 group-hover/item:opacity-100" />
+                          </div>
                           {cat.name}
                         </span>
-                        <FaChevronRight className="h-3 w-3 text-gray-300 group-hover:text-jungle-green-500 transition-transform group-hover:translate-x-1" />
+                        <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300" />
                       </Link>
                     );
                   })
@@ -145,17 +172,95 @@ export default function HomePage() {
               </div>
             </div>
 
+              {/* 3. Fast RFQ Form Block (Moved below Markets & Industries) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col justify-between relative overflow-hidden shrink-0">
+                {/* Decorative top gradient */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-jungle-green-400 to-[#36ADA3]" />
+                
+                <div className="flex flex-col flex-1 relative z-10">
+                  <div className="flex items-center gap-3 mb-6 shrink-0">
+                    <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-jungle-green-50 to-teal-50 border border-jungle-green-100/50 flex items-center justify-center text-jungle-green-600 shrink-0 shadow-sm">
+                      <FaFileContract className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest leading-none">Instant RFQ</h3>
+                      <p className="text-[10px] text-gray-500 font-medium mt-1">Get multiple quotes in 24 hours</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleQuickRFQ} className="flex flex-col gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">What product do you need?</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Cotton Yarn 30s, CNC inserts"
+                        value={rfqProduct}
+                        onChange={(e) => setRfqProduct(e.target.value)}
+                        className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="100"
+                          value={rfqQuantity}
+                          onChange={(e) => setRfqQuantity(e.target.value)}
+                          className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3.5 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit</label>
+                        <select
+                          value={rfqUnit}
+                          onChange={(e) => setRfqUnit(e.target.value)}
+                          className="w-full h-11 bg-gray-50/50 border border-gray-200 rounded-xl px-3 text-xs font-medium outline-none focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 focus:bg-white transition-all duration-300 cursor-pointer text-gray-700"
+                        >
+                          <option value="Pieces">Pieces</option>
+                          <option value="Metric Tons">Metric Tons</option>
+                          <option value="Kilograms">Kilograms</option>
+                          <option value="Boxes">Boxes</option>
+                          <option value="Rolls">Rolls</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full h-12 bg-[#232F72] hover:bg-[#1C265B] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-lg shadow-[#232F72]/20 hover:shadow-xl hover:shadow-[#232F72]/30 active:scale-95 flex items-center justify-center gap-2 mt-2 shrink-0 group/btn border border-[#232F72]"
+                    >
+                      Post Request Free 
+                      <FaArrowRight className="h-3 w-3 transform group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </form>
+                </div>
+
+                <div className="mt-5 bg-jungle-green-50/50 border border-jungle-green-100/50 p-3.5 rounded-xl flex items-start gap-3.5 shrink-0">
+                  <div className="h-7 w-7 rounded-full bg-jungle-green-100 flex items-center justify-center shrink-0 mt-0.5 border border-jungle-green-200/50">
+                    <FaBuildingShield className="h-3.5 w-3.5 text-jungle-green-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-jungle-green-900 uppercase tracking-widest">Secure Trade</p>
+                    <p className="text-[9px] text-jungle-green-700/80 leading-relaxed font-bold mt-0.5">Escrow payments protected, 100% money back guarantee.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 2. Central B2B Slider & Tabbed Search Panel */}
-            <div className="lg:col-span-6 flex flex-col gap-4 lg:h-[380px]">
-              
+            <div className="lg:col-span-9 flex flex-col gap-5 min-h-[500px]">
+
               {/* Tabbed B2B Search Container */}
-              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between h-[136px] shrink-0">
-                <div className="flex gap-2 border-b border-gray-100 pb-1.5">
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between shrink-0">
+                <div className="flex gap-1 bg-gray-50/80 p-1 rounded-xl w-fit mb-4 border border-gray-100/50">
                   <button
                     onClick={() => setSearchTab('products')}
                     className={clsx(
-                      "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
-                      searchTab === 'products' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
+                      "px-5 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all duration-300",
+                      searchTab === 'products' ? "bg-white text-[#232F72] shadow-sm ring-1 ring-gray-900/5" : "text-gray-400 hover:text-gray-600"
                     )}
                   >
                     Products
@@ -163,15 +268,18 @@ export default function HomePage() {
                   <button
                     onClick={() => setSearchTab('suppliers')}
                     className={clsx(
-                      "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
-                      searchTab === 'suppliers' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
+                      "px-5 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all duration-300",
+                      searchTab === 'suppliers' ? "bg-white text-[#232F72] shadow-sm ring-1 ring-gray-900/5" : "text-gray-400 hover:text-gray-600"
                     )}
                   >
                     Suppliers
                   </button>
                 </div>
 
-                <div className="flex border-2 border-jungle-green-500 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-jungle-green-500/20 mt-2 shrink-0">
+                <div className="flex items-center bg-white border-2 border-gray-100 rounded-xl overflow-hidden focus-within:border-jungle-green-500 focus-within:ring-4 focus-within:ring-jungle-green-500/10 transition-all duration-300 group/search">
+                  <div className="pl-4 text-gray-400 group-focus-within/search:text-jungle-green-500 transition-colors">
+                    <FaMagnifyingGlass className="h-4 w-4" />
+                  </div>
                   <input
                     type="text"
                     value={heroSearch}
@@ -182,26 +290,25 @@ export default function HomePage() {
                         ? "Enter keywords, HSN codes, or brands..."
                         : "Search verified factories, suppliers by name or GSTIN..."
                     }
-                    className="flex-1 h-9 px-3 text-xs text-gray-800 placeholder-gray-400 outline-none"
+                    className="flex-1 h-12 px-3 text-sm font-medium text-gray-800 placeholder-gray-400 outline-none bg-transparent"
                   />
                   <button
                     onClick={handleHeroSearch}
-                    className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-bold text-xs px-4 flex items-center gap-1.5 transition-all duration-300 shrink-0"
+                    className="h-10 mx-1 px-6 rounded-lg bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-bold text-sm tracking-wide transition-all duration-300 shadow-md shadow-[#232F72]/20 hover:shadow-lg hover:shadow-[#232F72]/30 active:scale-95 shrink-0"
                   >
-                    <FaMagnifyingGlass className="h-3.5 w-3.5" />
-                    <span>Search</span>
+                    Search
                   </button>
                 </div>
 
-                <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-[10px] text-gray-400">
-                  <span className="font-semibold text-gray-500">Hot Searches:</span>
-                  <Link href="/search?q=Solar%20Panel" className="hover:text-jungle-green-600 hover:underline">Solar Panels</Link>
-                  <span>•</span>
-                  <Link href="/search?q=Steel" className="hover:text-jungle-green-600 hover:underline">TMT Steel</Link>
-                  <span>•</span>
-                  <Link href="/search?q=Yarn" className="hover:text-jungle-green-600 hover:underline">Cotton Yarn</Link>
-                  <span>•</span>
-                  <Link href="/search?q=Pump" className="hover:text-jungle-green-600 hover:underline">Hydraulic Pumps</Link>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-4 text-[11px] text-gray-400 font-medium">
+                  <span className="font-bold text-gray-500">Popular:</span>
+                  <Link href="/search?q=Solar%20Panel" className="hover:text-jungle-green-600 hover:underline transition-colors">Solar Panels</Link>
+                  <span className="opacity-30">•</span>
+                  <Link href="/search?q=Steel" className="hover:text-jungle-green-600 hover:underline transition-colors">TMT Steel</Link>
+                  <span className="opacity-30">•</span>
+                  <Link href="/search?q=Yarn" className="hover:text-jungle-green-600 hover:underline transition-colors">Cotton Yarn</Link>
+                  <span className="opacity-30">•</span>
+                  <Link href="/search?q=Pump" className="hover:text-jungle-green-600 hover:underline transition-colors">Hydraulic Pumps</Link>
                 </div>
               </div>
 
@@ -228,162 +335,215 @@ export default function HomePage() {
                 ) : (
                   <>
                     {/* Background slide with image + gradient overlay */}
-                    <div className="absolute inset-0 z-0 transition-all duration-700 ease-in-out">
-                      <img
-                        src={events[eventIndex].mediaUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800"}
-                        alt={events[eventIndex].title}
-                        className="w-full h-full object-cover opacity-75 group-hover/carousel:scale-[1.03] transition-transform duration-[6000ms]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#090b11] via-[#090b11]/50 to-transparent" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b11]/40 to-transparent" />
+                    <div className="absolute inset-0 z-0 bg-[#090b11] overflow-hidden">
+                      <AnimatePresence>
+                        <motion.img
+                          key={eventIndex}
+                          initial={{ opacity: 0, scale: 1.05 }}
+                          animate={{ opacity: 0.75, scale: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.8, ease: "easeInOut" }}
+                          src={events[eventIndex].mediaUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800"}
+                          alt={events[eventIndex].title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover/carousel:scale-[1.03] transition-transform duration-[6000ms]"
+                        />
+                      </AnimatePresence>
+                      {/* Gradient to ensure text readability on the left */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b11] via-[#090b11]/80 to-transparent w-full md:w-[70%] pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#090b11]/60 via-transparent to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Content */}
-                    <div className="relative z-10 p-5 flex flex-col justify-between h-full">
-                      {/* Top Bar: Badge & Date */}
-                      <div className="flex justify-between items-start">
-                        <span className="bg-[#36ADA3]/10 border border-[#36ADA3]/30 text-[#36ADA3] font-extrabold uppercase text-[8px] px-2.5 py-1 rounded-lg tracking-widest shadow-sm animate-pulse">
-                          ✨ Upcoming B2B Event
-                        </span>
-                        
-                        <span className="text-[9px] font-bold text-gray-300 bg-white/[0.04] border border-white/[0.06] backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-mono shadow-sm">
-                          <FaCalendarDays className="h-3 w-3 text-[#36ADA3]" />
-                          {new Date(events[eventIndex].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
+                    {/* Content Container (Left Aligned) */}
+                    <div className="relative z-10 flex h-full items-center px-12 md:px-20 w-full md:w-3/4 group/content">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={eventIndex}
+                          initial={{ opacity: 0, x: -30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 30 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          className="flex flex-col w-full text-left"
+                        >
+                          {/* Top Info (Logo/Name + Date) */}
+                          <div className="flex items-center gap-5 mb-6">
+                            <div className="flex flex-col items-end">
+                              <span className="text-white font-bold text-sm md:text-base leading-tight tracking-wide flex items-center gap-1.5">
+                                <FaIndustry className="h-4 w-4 opacity-80"/> Jaxmart
+                              </span>
+                              <span className="text-white font-semibold text-xs md:text-sm tracking-widest mt-0.5">Exhibitions</span>
+                            </div>
+                            <div className="w-[1.5px] h-10 bg-white/40" />
+                            <div className="flex flex-col text-white font-semibold text-sm md:text-base">
+                              <span>{new Date(events[eventIndex].date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                              <span className="flex items-center gap-1.5 text-white/90 text-xs md:text-sm mt-0.5">
+                                <FaLocationDot className="h-3 w-3 text-red-400" /> {events[eventIndex].location || "Online"}
+                              </span>
+                            </div>
+                          </div>
 
-                      {/* Info & Details Glass Plate */}
-                      <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-md p-4 rounded-xl flex flex-col gap-2 shadow-xl mt-auto">
-                        <h2 className="text-xs md:text-sm font-black text-white leading-snug uppercase tracking-tight line-clamp-1 bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">
-                          {events[eventIndex].title}
-                        </h2>
-                        
-                        <p className="text-[10.5px] text-gray-400 leading-normal line-clamp-2 font-medium">
-                          {events[eventIndex].description}
-                        </p>
-                        
-                        {/* Location and Info Row */}
-                        <div className="flex items-center justify-between mt-1 text-[10px] text-gray-400 font-semibold border-t border-white/[0.05] pt-2">
-                          <span className="flex items-center gap-1 truncate max-w-[140px]">
-                            <FaLocationDot className="text-[#36ADA3] h-3 w-3 shrink-0" />
-                            {events[eventIndex].location || "Online"}
-                          </span>
+                          {/* Main Title */}
+                          <h2 className="text-3xl md:text-[2.75rem] font-black text-white leading-tight uppercase tracking-tight mb-5 max-w-3xl drop-shadow-lg">
+                            {events[eventIndex].title}
+                          </h2>
+                          
+                          {/* Description */}
+                          <p className="text-sm md:text-lg text-white/90 leading-relaxed font-medium max-w-xl mb-8 drop-shadow-md">
+                            {events[eventIndex].description}
+                          </p>
 
-                          <button className="h-7 px-3 bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-all duration-300 hover:shadow-jax-blue/20 hover:shadow-lg flex items-center gap-1 hover:scale-[1.03] active:scale-95 border-none cursor-pointer">
-                            Register Free <FaArrowRight className="h-2.5 w-2.5" />
-                          </button>
-                        </div>
-                      </div>
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-4">
+                            <button className="h-12 px-10 bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-sm md:text-base rounded transition-all duration-300 shadow-[0_4px_14px_0_rgba(239,68,68,0.39)] hover:shadow-[0_6px_20px_rgba(239,68,68,0.23)] hover:-translate-y-0.5">
+                              Register Now
+                            </button>
+                            <button className="h-12 px-10 bg-white hover:bg-gray-100 text-gray-900 font-bold text-sm md:text-base rounded transition-all duration-300 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-0.5">
+                              Show Info
+                            </button>
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
 
-                      {/* Footer Dot Indicators */}
-                      <div className="flex items-center justify-start gap-1.5 mt-3 shrink-0">
-                        {events.map((_, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setEventIndex(idx)}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              idx === eventIndex 
-                                ? 'w-4 bg-[#36ADA3] shadow-[0_0_8px_rgba(54,173,163,0.5)]' 
-                                : 'w-1 bg-white/20 hover:bg-white/40'
-                            }`}
-                            aria-label={`Go to slide ${idx + 1}`}
-                          />
-                        ))}
-                      </div>
+                    {/* Coming Soon Badge (Top Right) */}
+                    <div className="absolute top-0 right-10 z-20 bg-[#111111]/90 backdrop-blur-md px-6 py-2.5 rounded-b-xl shadow-2xl">
+                      <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide">Show Coming Soon</span>
                     </div>
 
                     {/* Prev/Next Navigation Controls */}
                     <button
                       onClick={() => setEventIndex((prev) => (prev - 1 + events.length) % events.length)}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/[0.02] border border-white/[0.08] backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 hover:bg-[#232F72] hover:border-transparent hover:text-white transition-all duration-200"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/20 backdrop-blur-md text-white/70 flex items-center justify-center hover:bg-black/40 hover:text-white transition-all duration-300 hover:scale-110"
                       aria-label="Previous event"
                     >
-                      <FaChevronLeft className="h-3 w-3" />
+                      <FaChevronLeft className="h-5 w-5 ml-0.5" />
                     </button>
                     <button
                       onClick={() => setEventIndex((prev) => (prev + 1) % events.length)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/[0.02] border border-white/[0.08] backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 hover:bg-[#232F72] hover:border-transparent hover:text-white transition-all duration-200"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/20 backdrop-blur-md text-white/70 flex items-center justify-center hover:bg-black/40 hover:text-white transition-all duration-300 hover:scale-110"
                       aria-label="Next event"
                     >
-                      <FaChevronRight className="h-3 w-3" />
+                      <FaChevronRight className="h-5 w-5 mr-0.5" />
                     </button>
+
+                    {/* Footer Dot Indicators */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                      {events.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setEventIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${idx === eventIndex
+                              ? 'w-4 bg-[#36ADA3]'
+                              : 'w-1.5 bg-[#2a3835] hover:bg-[#36ADA3]/50'
+                            }`}
+                          aria-label={`Go to slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
                   </>
                 )}
               </div>
 
             </div>
 
-            {/* 3. Fast RFQ Form Block (Global Sources style) */}
-            <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col justify-between lg:h-[380px] overflow-hidden">
-              <div className="flex flex-col flex-1 justify-between">
-                <div className="flex items-center gap-2 mb-2.5 shrink-0">
-                  <div className="h-7 w-7 rounded-lg bg-jungle-green-100 flex items-center justify-center text-jungle-green-600 shrink-0">
-                    <FaFileContract className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xs text-gray-900 uppercase tracking-wider leading-none">Instant RFQ</h3>
-                    <p className="text-[9px] text-gray-400 font-medium mt-0.5">Get multiple quotes in 24 hours</p>
-                  </div>
+            {/* Removed Fast RFQ Form Block from here (Moved to left column) */}
+
+          </div>
+        </Container>
+      </section>
+
+      {/* AI Smart Sourcing Banner */}
+      <section className="bg-white py-16 border-b border-gray-100 relative z-20">
+        {/* Abstract background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#36ADA3]/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-96 h-96 bg-[#232F72]/5 rounded-full blur-3xl" />
+        </div>
+
+        <Container size="xl" className="relative z-10">
+          <div className="max-w-4xl mx-auto flex flex-col items-center">
+            <h2 className="text-[28px] md:text-4xl font-black text-gray-900 mb-8 text-center tracking-tight leading-tight">
+              All tasks in one ask, <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#36ADA3] to-[#232F72]">smart sourcing with AI</span>
+            </h2>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleAiSubmit(); }} className="w-full relative group">
+              {/* Outer border container with glowing effect */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#36ADA3] to-[#232F72] rounded-[28px] blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+              <div className="relative bg-white rounded-[24px] border border-gray-200/50 shadow-2xl flex flex-col w-full min-h-[160px] overflow-hidden focus-within:ring-4 focus-within:ring-[#36ADA3]/10 transition-all duration-300">
+                
+                {/* Subtle top inner shadow */}
+                <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-gray-50/50 to-transparent pointer-events-none" />
+
+                <textarea
+                  value={aiQuery}
+                  onChange={(e) => setAiQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAiSubmit();
+                    }
+                  }}
+                  placeholder="Describe your sourcing needs in detail (e.g. 'Find verified suppliers of high-grade aluminum in Pune')..."
+                  className="flex-1 w-full bg-transparent border-none outline-none text-lg text-gray-700 placeholder-gray-400 font-medium resize-none p-6 pb-20 leading-relaxed"
+                />
+
+                <div className="absolute bottom-5 left-6 flex items-center gap-2">
+                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                  <button type="button" onClick={() => setShowImagePopover(!showImagePopover)} className="h-10 w-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#36ADA3] hover:border-[#36ADA3]/30 hover:bg-[#36ADA3]/5 transition-all duration-300 shadow-sm" title="Search by Image">
+                    <FaCamera className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <form onSubmit={handleQuickRFQ} className="flex-1 flex flex-col justify-between gap-2.5">
-                  <div className="space-y-1">
-                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider">What product do you need?</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Cotton Yarn 30s, CNC inserts"
-                      value={rfqProduct}
-                      onChange={(e) => setRfqProduct(e.target.value)}
-                      className="w-full h-8 bg-gray-50 border border-gray-200 rounded-lg px-2.5 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider">Quantity</label>
-                      <input
-                        type="number"
-                        placeholder="100"
-                        value={rfqQuantity}
-                        onChange={(e) => setRfqQuantity(e.target.value)}
-                        className="w-full h-8 bg-gray-50 border border-gray-200 rounded-lg px-2.5 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider">Unit</label>
-                      <select
-                        value={rfqUnit}
-                        onChange={(e) => setRfqUnit(e.target.value)}
-                        className="w-full h-8 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors cursor-pointer"
-                      >
-                        <option value="Pieces">Pieces</option>
-                        <option value="Metric Tons">Metric Tons</option>
-                        <option value="Kilograms">Kilograms</option>
-                        <option value="Boxes">Boxes</option>
-                        <option value="Rolls">Rolls</option>
-                      </select>
-                    </div>
-                  </div>
-
+                <div className="absolute bottom-5 right-6 flex items-center">
                   <button
                     type="submit"
-                    className="w-full h-9 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-1 mt-1 shrink-0"
-                  >
-                    Post Request Free <FaArrowRight className="h-3 w-3" />
+                    className="h-12 w-12 rounded-full bg-gradient-to-r from-[#232F72] to-[#2F578A] flex items-center justify-center text-white hover:shadow-lg hover:shadow-[#232F72]/30 active:scale-95 transition-all duration-300 group/submit">
+                    <FaArrowRight className="h-5 w-5 transform group-hover/submit:translate-x-0.5 transition-transform" />
                   </button>
-                </form>
-              </div>
-
-              <div className="border-t border-gray-100 pt-3 mt-3 bg-jungle-green-50/40 p-2.5 rounded-lg flex items-center gap-2.5 shrink-0">
-                <FaBuildingShield className="h-7 w-7 text-jungle-green-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-jungle-green-950 uppercase tracking-wider">Secure Trade</p>
-                  <p className="text-[8px] text-jungle-green-850 leading-tight">Escrow payments protected, 100% money back guarantee.</p>
                 </div>
-              </div>
-            </div>
 
+              </div>
+
+              {/* Image Search Popover */}
+              {showImagePopover && (
+                <div className="absolute top-[calc(100%+16px)] left-0 right-0 bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gray-200 z-50 p-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[15px] font-black text-gray-800 tracking-tight">Find product inspiration with Image Search</h3>
+                    <button type="button" onClick={() => setShowImagePopover(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+                      <FaXmark className="h-5 w-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 hover:border-[#36ADA3]/50 transition-colors group/upload cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <FaUpload className="h-8 w-8 text-gray-400 group-hover/upload:text-[#36ADA3] mb-4 transition-colors" />
+                    <p className="text-[13px] text-gray-600 mb-2 font-medium text-center flex items-center gap-1.5">
+                      Paste an image you copied with 
+                      <kbd className="px-1.5 py-0.5 border border-gray-300 bg-white rounded text-[11px] font-mono shadow-sm font-bold text-gray-600">Ctrl</kbd> 
+                      <kbd className="px-1.5 py-0.5 border border-gray-300 bg-white rounded text-[11px] font-mono shadow-sm font-bold text-gray-600">V</kbd>
+                    </p>
+                    <p className="text-[13px] text-gray-500 mb-6 font-medium text-center">Drag and drop an image here or upload a file</p>
+                    
+                    <button type="button" className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-bold px-8 py-2.5 rounded-full shadow-lg shadow-[#232F72]/20 hover:shadow-[#232F72]/30 transition-all active:scale-95">
+                      Upload
+                    </button>
+                  </div>
+
+                  <div className="mt-4 bg-gradient-to-r from-[#ff6a00]/5 to-transparent rounded-xl p-4 flex items-center justify-between border border-[#ff6a00]/10">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <FaCamera className="h-4 w-4 text-[#ff6a00]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-gray-900 mb-0.5">JaxMart Lens</p>
+                        <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Screenshot an image to search for similar items with lower prices and flexible customization</p>
+                      </div>
+                    </div>
+                    <button type="button" className="text-xs font-bold text-gray-800 underline hover:text-[#ff6a00] transition-colors shrink-0">
+                      Add to Chrome
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
           </div>
         </Container>
       </section>
@@ -391,87 +551,106 @@ export default function HomePage() {
       {/* Main Home Content */}
       <Container size="xl" className="py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Main Content Area */}
-          <div className="lg:col-span-9 space-y-12">
-            
-            {/* 1. Hot Products Section (Alibaba Grid Layout) */}
+          <div className="lg:col-span-9 space-y-12 order-1">
+
+            {/* 1. Hot Products Section */}
             <section>
-              <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-3">
+              <div className="flex items-end justify-between mb-8">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <FaFire className="text-jungle-green-500 h-5 w-5" />
-                    Premium Bulk Listings
-                  </h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Top trending manufactured products ready for wholesale orders</p>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaFire className="h-4 w-4" />
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                      Premium Bulk Listings
+                    </h2>
+                  </div>
+                  <p className="text-sm text-gray-500 font-medium">Top trending manufactured products ready for wholesale orders</p>
                 </div>
-                <Link href="/search" className="text-xs font-bold text-jungle-green-600 hover:underline flex items-center gap-1">
-                  Browse All Products <FaArrowRight className="h-3 w-3" />
+                <Link href="/search" className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-700 bg-gray-50 rounded-full hover:bg-gray-100 hover:text-gray-900 transition-all group">
+                  Browse All
+                  <span className="bg-white rounded-full p-1 shadow-sm group-hover:shadow flex items-center justify-center group-hover:bg-jungle-green-500 group-hover:text-white transition-colors">
+                    <FaArrowRight className="h-3 w-3" />
+                  </span>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
                 {featuredLoading ? (
-                  Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-80 rounded-lg" />)
+                  Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)
                 ) : (
                   featured?.listings?.slice(0, 12).map((item: any) => (
-                    <Link key={item.id} href={`/listings/${item.id}`} className="group">
-                      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg hover:border-jungle-green-200 transition-all h-full flex flex-col">
-                        <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-100">
+                    <Link key={item.id} href={`/listings/${item.id}`} className="group block h-full outline-none">
+                      <div className="bg-white rounded-2xl border border-gray-100/80 overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:border-jungle-green-200/60 transition-all duration-500 h-full flex flex-col group-focus-visible:ring-2 group-focus-visible:ring-jungle-green-500 relative">
+                        
+                        {/* Image Container with smooth zoom */}
+                        <div className="aspect-square bg-gray-50 overflow-hidden relative">
                           {item.media?.[0] ? (
                             <img
                               src={item.media[0].url}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
                               alt={item.title}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-200">
+                            <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100/50">
                               <FaIndustry className="h-12 w-12" />
                             </div>
                           )}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                            <span className="bg-jungle-green-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
-                              <FaCircleCheck className="h-2.5 w-2.5 shrink-0" />
+                          
+                          {/* Soft inner shadow overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                          {/* Top Badges */}
+                          <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                            <span className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg shadow-blue-500/30 flex items-center gap-1.5">
+                              <MdVerified className="h-3 w-3 shrink-0" />
                               Verified
                             </span>
                             {item.isFeatured && (
-                              <span className="bg-gray-900 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1">
-                                <FaFire className="h-2.5 w-2.5 text-amber-400 shrink-0" />
+                              <span className="bg-gradient-to-r from-gray-900 to-gray-800 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg shadow-black/20 flex items-center gap-1.5">
+                                <FaFire className="h-3 w-3 text-amber-400 shrink-0" />
                                 Hot
                               </span>
                             )}
                           </div>
+                          
+                          {/* Trust Score Glassmorphism */}
                           {item.seller?.trustScore && (
-                            <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-800 shadow">
-                              Trust: {item.seller.trustScore}%
+                            <div className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-md border border-white/50 px-2 py-1 rounded-lg text-[10px] font-black text-gray-800 shadow-lg z-10">
+                              Trust: <span className="text-jungle-green-600">{item.seller.trustScore}%</span>
                             </div>
                           )}
                         </div>
 
-                        <div className="p-3 flex-1 flex flex-col">
-                          <span className="text-[10px] font-bold text-jungle-green-600 uppercase tracking-widest block mb-1">
+                        {/* Content Area */}
+                        <div className="p-4 flex-1 flex flex-col relative bg-white">
+                          <span className="text-[10px] font-extrabold text-jungle-green-600 uppercase tracking-widest block mb-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                             {item.category?.name}
                           </span>
-                          <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-2 group-hover:text-jungle-green-600 transition-colors min-h-[2.5rem]">
+                          <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug mb-3 group-hover:text-jungle-green-600 transition-colors">
                             {item.title}
                           </h3>
 
                           <div className="mt-auto">
-                            <div className="text-base font-bold text-gray-900">
-                              {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                            <div className="flex items-end gap-1">
+                              <span className="text-lg font-black text-gray-900 tracking-tight">
+                                {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                              </span>
                               {item.productDetail?.pricePerUnit && (
-                                <span className="text-[10px] text-gray-400 font-normal"> /{item.productDetail?.unitOfMeasure || 'Pc'}</span>
+                                <span className="text-[11px] text-gray-400 font-medium mb-1">/{item.productDetail?.unitOfMeasure || 'Pc'}</span>
                               )}
                             </div>
-                            <p className="text-[10px] text-gray-500 mt-0.5">
-                              Min. Order: <strong>{item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pcs'}</strong>
-                            </p>
                             
-                            <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center gap-1.5">
-                              <FaCircleCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                              <span className="text-[10px] text-gray-500 truncate font-semibold">
-                                {item.seller?.businessProfile?.businessName || item.seller?.fullName}
-                              </span>
+                            <div className="mt-3 flex items-center justify-between border-t border-gray-50 pt-3">
+                               <p className="text-[11px] text-gray-500 font-medium">
+                                Min: <strong className="text-gray-700">{item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pcs'}</strong>
+                              </p>
+                              <div className="flex items-center gap-1 bg-blue-50/50 px-1.5 py-0.5 rounded text-[10px] text-blue-700 font-bold max-w-[50%] truncate">
+                                <MdVerified className="h-3 w-3 shrink-0" />
+                                <span className="truncate">{item.seller?.businessProfile?.businessName || item.seller?.fullName}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -481,29 +660,59 @@ export default function HomePage() {
                 )}
               </div>
             </section>
+          </div>
+
+          {/* Full Width Content Area */}
+          <div className="lg:col-span-12 space-y-12 order-3">
 
             {/* 2. Industry Showcase (Categories Display) */}
-            <section className="bg-gray-50 rounded-2xl border border-gray-200/80 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-5">Browse Markets & Industries</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <section className="relative bg-white rounded-3xl p-8 border border-gray-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#232F72] via-jungle-green-400 to-[#232F72] opacity-20" />
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-jungle-green-100/50 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="flex items-end justify-between mb-8 relative z-10">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                    Browse Markets & Industries
+                    <div className="h-2 w-2 rounded-full bg-jungle-green-500 animate-pulse" />
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-2 font-medium">Discover millions of products from trusted global suppliers</p>
+                </div>
+                <Link href="/categories" className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-700 bg-gray-50 rounded-full hover:bg-gray-100 hover:text-gray-900 transition-all group">
+                  View All
+                  <span className="bg-white rounded-full p-1 shadow-sm group-hover:shadow flex items-center justify-center group-hover:bg-jungle-green-500 group-hover:text-white transition-colors">
+                    <FaArrowRight className="h-3 w-3" />
+                  </span>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 relative z-10">
                 {catsLoading ? (
-                  Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
+                  Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
                 ) : (
                   categories.map((cat: any) => {
                     const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
                     return (
-                      <Link key={cat.id} href={`/search?category=${cat.id}`}>
-                        <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-jungle-green-200 transition-all group flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-jungle-green-50 text-jungle-green-500 flex items-center justify-center group-hover:bg-jungle-green-500 group-hover:text-white transition-colors shrink-0">
-                            <Icon className="h-5 w-5" />
+                      <Link key={cat.id} href={`/search?category=${cat.id}`} className="group block outline-none">
+                        <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-5 hover:border-jungle-green-200/60 hover:shadow-[0_12px_40px_-12px_rgba(54,173,163,0.2)] transition-all duration-400 ease-out relative overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-jungle-green-500">
+                          
+                          {/* Soft hover gradient background */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-jungle-green-50/0 to-jungle-green-50/0 group-hover:from-jungle-green-50/40 group-hover:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out" />
+                          
+                          <div className="relative h-14 w-14 rounded-2xl bg-gray-50/80 border border-gray-100/50 flex items-center justify-center text-gray-500 group-hover:bg-gradient-to-br group-hover:from-jungle-green-500 group-hover:to-jungle-green-600 group-hover:text-white group-hover:shadow-[0_8px_16px_-4px_rgba(54,173,163,0.4)] group-hover:border-transparent transition-all duration-400 ease-out transform group-hover:scale-[1.03] shrink-0">
+                            <Icon className="h-6 w-6 transition-transform duration-400 group-hover:-rotate-3" />
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-sm text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">
+                          
+                          <div className="min-w-0 flex-1 relative">
+                            <p className="font-extrabold text-[15px] text-gray-800 group-hover:text-gray-900 transition-colors truncate mb-1">
                               {cat.name}
                             </p>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">
-                              Source Now →
-                            </p>
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-jungle-green-600 transition-colors">
+                              <span>Source Now</span>
+                              <FaArrowRight className="h-2.5 w-2.5 transform -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-400 ease-out" />
+                            </div>
                           </div>
                         </div>
                       </Link>
@@ -528,12 +737,12 @@ export default function HomePage() {
                     View Sourcing Board <FaArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {rfqsLoading ? (
                     Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
                   ) : liveRfqs.length === 0 ? (
-                    <div className="col-span-2 bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center text-sm text-gray-400">
+                    <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center text-sm text-gray-400">
                       No active requests right now. Be the first to post!
                     </div>
                   ) : (
@@ -576,33 +785,53 @@ export default function HomePage() {
           </div>
 
           {/* Right Sidebar Widgets */}
-          <div className="lg:col-span-3 space-y-6">
-            
+          <div className="lg:col-span-3 space-y-6 order-2">
+
             {/* Trust and Safety Banner */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-bold text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                <FaShieldHalved className="text-emerald-500 h-4.5 w-4.5" /> JaxMart Escrow
-              </h3>
-              <div className="space-y-4">
+            <div className="bg-white rounded-3xl border border-gray-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-6 relative overflow-hidden group/banner transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-blue-100">
+              {/* Decorative Background Glows */}
+              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover/banner:bg-blue-500/20 transition-colors duration-700 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex items-center gap-3 mb-6 relative z-10">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100/50 text-blue-600 flex items-center justify-center shadow-inner group-hover/banner:scale-110 transition-transform duration-500">
+                  <FaBuildingShield className="h-5 w-5" />
+                </div>
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                  JaxMart Escrow
+                </h3>
+              </div>
+              
+              <div className="space-y-6 relative z-10">
                 {[
                   {
-                    title: '1. Secure Payments',
-                    desc: 'JaxMart holds your funds in escrow, protecting you from fraud.'
+                    title: 'Secure Payments',
+                    desc: 'Funds held in escrow, protecting you from fraud.',
+                    icon: <FaShieldHalved className="h-3.5 w-3.5" />
                   },
                   {
-                    title: '2. Verified Shipping',
-                    desc: 'We verify GSTIN, HSN, and carrier logistics before releasing funds.'
+                    title: 'Verified Shipping',
+                    desc: 'GSTIN & carrier logistics verified before release.',
+                    icon: <FaTruckFast className="h-3.5 w-3.5" />
                   },
                   {
-                    title: '3. Inspection Guarantee',
-                    desc: 'Release payments to suppliers only after verifying cargo quality.'
+                    title: 'Inspection Guarantee',
+                    desc: 'Payments released only after cargo quality check.',
+                    icon: <FaCircleCheck className="h-3.5 w-3.5" />
                   },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-2.5">
-                    <FaCircleCheck className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold text-gray-800">{item.title}</p>
-                      <p className="text-[11px] text-gray-500 leading-normal mt-0.5">{item.desc}</p>
+                  <div key={i} className="flex items-start gap-4 group">
+                    <div className="relative mt-0.5 shrink-0">
+                      <div className="h-7 w-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
+                        {item.icon}
+                      </div>
+                      {i !== 2 && (
+                        <div className="absolute top-7 left-1/2 -translate-x-1/2 w-px h-6 bg-gray-100 group-hover:bg-blue-100 transition-colors" />
+                      )}
+                    </div>
+                    <div className="min-w-0 pb-1">
+                      <p className="text-xs font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{item.title}</p>
+                      <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5 font-medium">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -610,34 +839,46 @@ export default function HomePage() {
             </div>
 
             {/* Featured Factories Showcase */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-2">
-                <FaHandshake className="text-jungle-green-500 h-4 w-4" />
-                Featured Factories
-              </h3>
-              
-              <div className="space-y-4">
+            <div className="bg-white rounded-3xl border border-gray-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-2xl bg-jungle-green-50 border border-jungle-green-100/50 text-jungle-green-600 flex items-center justify-center shadow-inner">
+                  <FaHandshake className="h-5 w-5" />
+                </div>
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+                  Top Factories
+                </h3>
+              </div>
+
+              <div className="space-y-5">
                 {[
-                  { name: "Vardhman Textiles Ltd", city: "Ludhiana", category: "Textiles", year: 1998 },
-                  { name: "Apex Industries", city: "Mumbai", category: "Industrial", year: 2004 },
-                  { name: "Swastik Chemicals", city: "Ahmedabad", category: "Chemicals", year: 2011 }
-                ].map((fac, idx) => (
-                  <div key={idx} className="border-b border-gray-100 last:border-none pb-3 last:pb-0 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-200 font-black text-xs text-jungle-green-600">
-                      {fac.name.substring(0,2)}
+                  { name: "Vardhman Textiles Ltd", city: "Ludhiana", category: "Textiles", year: 1998, icon: FaBoxesStacked },
+                  { name: "Apex Industries", city: "Mumbai", category: "Industrial", year: 2004, icon: FaIndustry },
+                  { name: "Swastik Chemicals", city: "Ahmedabad", category: "Chemicals", year: 2011, icon: FaFire }
+                ].map((fac, idx) => {
+                  const Icon = fac.icon;
+                  return (
+                  <div key={idx} className="group flex items-center gap-4 cursor-pointer">
+                    <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100/80 text-gray-400 group-hover:bg-jungle-green-500 group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-jungle-green-500/30 transition-all duration-300 shrink-0 transform group-hover:scale-105">
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-gray-800 truncate">{fac.name}</p>
-                      <p className="text-[10px] text-gray-500 font-medium">
-                        {fac.city} • Est. {fac.year}
-                      </p>
-                      <span className="inline-block mt-1 text-[9px] bg-jungle-green-50 text-jungle-green-600 px-1.5 py-0.5 rounded font-bold uppercase">
-                        {fac.category}
-                      </span>
+                    <div className="min-w-0 flex-1 border-b border-gray-50 pb-4 group-last:border-0 group-last:pb-0">
+                      <p className="text-sm font-extrabold text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">{fac.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="inline-block text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider group-hover:bg-jungle-green-50 group-hover:text-jungle-green-600 transition-colors">
+                          {fac.category}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium truncate">
+                          {fac.city} • Est. {fac.year}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
+              
+              <button className="w-full mt-5 py-2.5 rounded-xl border-2 border-gray-100 text-xs font-bold text-gray-600 hover:border-jungle-green-500 hover:text-jungle-green-600 transition-colors flex items-center justify-center gap-2">
+                View Factory Directory <FaArrowRight className="h-3 w-3" />
+              </button>
             </div>
 
             {/* Direct Manufacturer Link Button */}
@@ -657,6 +898,55 @@ export default function HomePage() {
 
         </div>
       </Container>
+
+      {/* Floating Side Menu */}
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.06)] rounded-l-lg py-5 px-3 flex flex-col gap-5 items-center border border-gray-100 border-r-0">
+        
+        <div className="relative group">
+          <button onClick={() => window.open('/exhibit', '_blank')} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Booth Application">
+            <ShoppingBag className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Booth Application
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button onClick={() => setIsFeedbackOpen(true)} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Help & Support">
+            <MessageCircleQuestion className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Leave us Feedback
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="App">
+            <MonitorSmartphone className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none text-left flex flex-col gap-0.5">
+            <span className="font-bold text-[14px] text-gray-800">Download App</span>
+            <span className="text-[12px] text-gray-500 font-medium">Scan the QR code to download...</span>
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+        <div className="relative group">
+          <button onClick={() => window.open('/survey', '_blank')} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Requirements">
+            <ClipboardCheck className="w-[22px] h-[22px] stroke-[2]" />
+          </button>
+          <div className="absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3.5 py-2 bg-white text-gray-700 text-[13px] rounded shadow-[0_2px_15px_rgba(0,0,0,0.08)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            Take Our Survey
+            <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-2.5 h-2.5 bg-white border-t border-r border-gray-100 rotate-45"></div>
+          </div>
+        </div>
+
+
+
+      </div>
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </PublicLayout>
   );
 }

@@ -6,14 +6,23 @@ import {
   FaMagnifyingGlass, FaSliders, FaStar, FaLocationDot, 
   FaShieldHalved, FaCubes, FaXmark, FaBolt, FaBoxesStacked,
   FaIndustry, FaGlobe, FaChevronRight, FaList, FaTableCells,
-  FaCheck, FaShip, FaClock, FaBoxOpen, FaCreditCard
+  FaCheck, FaShip, FaClock, FaBoxOpen, FaCreditCard,
+  FaChevronDown, FaChevronUp, FaLaptop, FaWrench
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore } from '@/components/ui';
+import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore, Select } from '@/components/ui';
 import { clsx } from 'clsx';
 import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+
+const CATEGORY_ICONS: Record<string, any> = {
+  'industrial-supplies': FaIndustry,
+  electronics: FaLaptop,
+  construction: FaCubes,
+  textiles: FaBoxesStacked,
+  services: FaWrench,
+};
 
 type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
 
@@ -53,7 +62,8 @@ function SearchPageContent() {
 
   // UI States
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Defaulting to grid as per image
+  const [showThoughtProcess, setShowThoughtProcess] = useState(false);
 
   // Categories list
   const { data: categories = [], isLoading: catsLoading } = useCategories();
@@ -134,215 +144,251 @@ function SearchPageContent() {
 
   return (
     <PublicLayout>
-      {/* Upper B2B Search Info Header */}
-      <div className="bg-white border-b border-gray-200">
-        <Container size="xl" className="py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                <Link href="/home" className="hover:text-jungle-green-500">Home</Link>
-                <span>›</span>
-                <span className="text-gray-800 font-semibold">Search Results</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-baseline gap-2">
-                {q ? `Search results for "${q}"` : 'Wholesale Market Directory'}
-                <span className="text-xs text-gray-500 font-normal">({total} items found)</span>
-              </h1>
-            </div>
+      <div className="flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto min-h-[calc(100vh-64px)] items-stretch">
+        
+        {/* 1. Left B2B Sidebar Filters (Full Height Connected) */}
+        <aside className={clsx(
+          'lg:w-[280px] shrink-0 border-r border-gray-200 bg-gray-50 lg:sticky lg:top-[64px] lg:h-[calc(100vh-64px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-40', 
+          !showFilters && 'hidden lg:block'
+        )}>
+          <div className="p-5 space-y-6">
             
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500 font-semibold">View Mode:</span>
-              <div className="inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-50">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={clsx(
-                    "p-1.5 rounded-md text-gray-500 transition-all",
-                    viewMode === 'list' ? "bg-white text-jungle-green-500 shadow-sm" : "hover:text-gray-850"
-                  )}
-                  title="List View"
-                >
-                  <FaList className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={clsx(
-                    "p-1.5 rounded-md text-gray-500 transition-all",
-                    viewMode === 'grid' ? "bg-white text-jungle-green-500 shadow-sm" : "hover:text-gray-850"
-                  )}
-                  title="Grid View"
-                >
-                  <FaTableCells className="h-4 w-4" />
-                </button>
+            {/* Markets & Industries Card (Matches Image 2) */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col">
+              <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 relative">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+                <FaBoxesStacked className="h-4 w-4 text-jungle-green-400 relative z-10" />
+                <span className="relative z-10">Markets & Industries</span>
               </div>
-            </div>
-          </div>
-        </Container>
-      </div>
-
-      {/* Main Container */}
-      <Container size="xl" className="py-8 pb-20">
-        <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* 1. Left B2B Sidebar Filters (Alibaba Style) */}
-          <aside className={clsx('lg:w-68 shrink-0 space-y-6', !showFilters && 'hidden lg:block')}>
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-6 sticky top-24">
-              
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="font-bold text-xs text-gray-900 uppercase tracking-wider">Filters</h3>
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={resetAllFilters}
-                    className="text-[10px] text-jungle-green-600 font-bold uppercase tracking-wider hover:underline"
-                  >
-                    Reset All
-                  </button>
-                )}
-              </div>
-
-              {/* Category Tree */}
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Category</p>
-                <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
-                  <button
-                    onClick={() => setCategoryId('')}
-                    className={clsx(
-                      "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
-                      categoryId === '' ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
-                    )}
-                  >
-                    <span>All Categories</span>
-                  </button>
-                  {categories.map((cat: any) => (
+              <div className="divide-y divide-gray-50/50 py-2">
+                <button
+                  onClick={() => setCategoryId('')}
+                  className={clsx(
+                    "w-full flex items-center justify-between px-5 py-3 text-sm transition-all duration-300 font-bold group",
+                    categoryId === '' ? "text-jungle-green-600 bg-jungle-green-50/50" : "text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700"
+                  )}
+                >
+                  <span className="flex items-center gap-3.5 transform group-hover:translate-x-1 transition-transform duration-300">
+                    <div className={clsx(
+                      "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
+                      categoryId === '' ? "bg-jungle-green-100/50 text-jungle-green-600 border-transparent" : "bg-gray-50 border-gray-100/50 group-hover:bg-jungle-green-100/50 group-hover:text-jungle-green-600 group-hover:border-transparent"
+                    )}>
+                      <FaGlobe className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    All Categories
+                  </span>
+                  <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                </button>
+                {categories.map((cat: any) => {
+                  const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
+                  return (
                     <button
                       key={cat.id}
                       onClick={() => setCategoryId(cat.id)}
                       className={clsx(
-                        "w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between",
-                        categoryId === cat.id ? "bg-jungle-green-50 text-jungle-green-600 font-bold" : "text-gray-600 hover:bg-gray-50"
+                        "w-full flex items-center justify-between px-5 py-3 text-sm transition-all duration-300 font-bold group",
+                        categoryId === cat.id ? "text-jungle-green-600 bg-jungle-green-50/50" : "text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700"
                       )}
                     >
-                      <span className="truncate">{cat.name}</span>
+                      <span className="flex items-center gap-3.5 transform group-hover:translate-x-1 transition-transform duration-300">
+                        <div className={clsx(
+                          "h-7 w-7 rounded-lg flex items-center justify-center transition-colors border",
+                          categoryId === cat.id ? "bg-jungle-green-100/50 text-jungle-green-600 border-transparent" : "bg-gray-50 border-gray-100/50 group-hover:bg-jungle-green-100/50 group-hover:text-jungle-green-600 group-hover:border-transparent"
+                        )}>
+                          <Icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                        </div>
+                        {cat.name}
+                      </span>
+                      <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Verification & Trust */}
-              <div className="space-y-3 pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Supplier Verification</p>
-                <label className="flex items-center gap-2.5 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={filters.isVerified}
-                    onChange={(e) => setFilters(f => ({ ...f, isVerified: e.target.checked }))}
-                    className="accent-jungle-green-500 w-4 h-4 rounded border-gray-300"
-                  />
-                  <div>
-                    <span className="block text-xs font-bold text-gray-700 group-hover:text-jungle-green-600 transition-colors">
-                      Verified Supplier
-                    </span>
-                    <span className="block text-[9px] text-gray-400 font-medium">GSTIN & PAN Audited</span>
-                  </div>
-                </label>
+            {/* Other Filters Header */}
+            <div className="flex items-center justify-between pb-2">
+              <h3 className="font-black text-xs text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                <FaSliders className="h-3.5 w-3.5 text-jungle-green-500" />
+                Refine Search
+              </h3>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={resetAllFilters}
+                  className="text-[10px] text-jungle-green-600 font-bold uppercase tracking-wider hover:underline"
+                >
+                  Reset All
+                </button>
+              )}
+            </div>
 
-                <div className="pt-2">
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Min Trust Score</label>
-                  <select
-                    value={filters.minTrust}
-                    onChange={(e) => setFilters(f => ({ ...f, minTrust: e.target.value }))}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 transition-colors cursor-pointer"
-                  >
-                    <option value="">Any Trust Level</option>
-                    <option value="90">90% + Trust (Top tier)</option>
-                    <option value="80">80% + Trust (Verified)</option>
-                  </select>
+            {/* Verification & Trust */}
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-jungle-green-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={filters.isVerified}
+                  onChange={(e) => setFilters(f => ({ ...f, isVerified: e.target.checked }))}
+                  className="accent-jungle-green-500 w-4 h-4 rounded"
+                />
+                <div>
+                  <span className="block text-xs font-bold text-gray-800 group-hover:text-jungle-green-600 transition-colors">
+                    Verified Supplier
+                  </span>
+                  <span className="block text-[10px] text-gray-400 font-medium mt-0.5">GSTIN & PAN Audited</span>
                 </div>
-              </div>
+              </label>
 
-              {/* B2B Price Range Filter */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Price (INR)</p>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 focus:bg-white text-center"
-                  />
-                  <span className="text-gray-300 text-xs">-</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 focus:bg-white text-center"
-                  />
-                </div>
-              </div>
+              <Select
+                label="Min Trust Score"
+                value={filters.minTrust || 'ALL'}
+                onChange={(e) => setFilters(f => ({ ...f, minTrust: e.target.value === 'ALL' ? '' : e.target.value }))}
+                options={[
+                  { value: 'ALL', label: 'Any Trust Level', description: 'Show all suppliers' },
+                  { value: '90', label: '90% + Trust (Top tier)', description: 'Premium verified suppliers with highest trust' },
+                  { value: '80', label: '80% + Trust (Verified)', description: 'Standard verified suppliers' }
+                ]}
+              />
+            </div>
 
-              {/* Min Order Qty */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Max Min. Order Qty</p>
+            {/* B2B Price Range Filter */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">Price (INR)</p>
+              <div className="flex gap-2 items-center">
                 <input
                   type="number"
-                  placeholder="e.g. 50"
-                  value={minQty}
-                  onChange={(e) => setMinQty(e.target.value)}
-                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-3 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 text-center placeholder:text-gray-300 shadow-sm"
+                />
+                <span className="text-gray-400 text-xs font-bold">-</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 text-center placeholder:text-gray-300 shadow-sm"
                 />
               </div>
+            </div>
 
-              {/* Loading FOB Ports Selector */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">FOB Loading Port</p>
-                <select
-                  value={selectedPort}
-                  onChange={(e) => setSelectedPort(e.target.value)}
-                  className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-2 text-xs outline-none focus:border-jungle-green-500 transition-colors cursor-pointer"
-                >
-                  <option value="">All Ports</option>
-                  <option value="Mundra">Mundra Port (Gujarat)</option>
-                  <option value="Nhava Sheva">Nhava Sheva Port (JNPT)</option>
-                </select>
+            {/* Min Order Qty */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Max Min. Order Qty</p>
+              <input
+                type="number"
+                placeholder="e.g. 50"
+                value={minQty}
+                onChange={(e) => setMinQty(e.target.value)}
+                className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl px-3 text-xs outline-none focus:border-jungle-green-400 transition-colors placeholder:text-gray-300 shadow-sm"
+              />
+            </div>
+
+            {/* Loading FOB Ports Selector */}
+            <div className="pt-4 border-t border-gray-200/60">
+              <Select
+                label="FOB Loading Port"
+                value={selectedPort || 'ALL'}
+                onChange={(e) => setSelectedPort(e.target.value === 'ALL' ? '' : e.target.value)}
+                options={[
+                  { value: 'ALL', label: 'All Ports', description: 'Any available loading port' },
+                  { value: 'Mundra', label: 'Mundra Port', description: 'Gujarat' },
+                  { value: 'Nhava Sheva', label: 'Nhava Sheva Port', description: 'JNPT, Maharashtra' }
+                ]}
+              />
+            </div>
+
+            {/* Location City */}
+            <div className="pt-4 border-t border-gray-200/60 pb-6">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Supplier Location</p>
+              <div className="relative">
+                <FaLocationDot className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                <input
+                  value={filters.city}
+                  onChange={(e) => setFilters(f => ({ ...f, city: e.target.value }))}
+                  placeholder="Search supplier city"
+                  className="w-full h-10 bg-white border border-gray-200 text-gray-800 rounded-xl pl-9 pr-3 text-xs outline-none focus:border-jungle-green-400 transition-colors placeholder:text-gray-300 shadow-sm"
+                />
               </div>
+            </div>
 
-              {/* Location City */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Supplier Location</p>
-                <div className="relative">
-                  <FaLocationDot className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
-                  <input
-                    value={filters.city}
-                    onChange={(e) => setFilters(f => ({ ...f, city: e.target.value }))}
-                    placeholder="Search supplier city"
-                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 text-xs outline-none focus:border-jungle-green-500 focus:bg-white transition-colors"
-                  />
+          </div>
+        </aside>
+
+          {/* 2. Main Content Right Side */}
+          <main className="flex-1 min-w-0 flex flex-col bg-gray-50/30">
+            
+            {/* Upper B2B Search Info Header */}
+            <div className="bg-gradient-to-b from-gray-50/50 to-white border-b border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.01)] relative overflow-hidden z-10">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none" />
+              <div className="px-6 lg:px-10 py-8 relative z-10 w-full">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 max-w-6xl mx-auto">
+                  <div>
+                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">
+                      <Link href="/home" className="hover:text-jungle-green-500 transition-colors">Home</Link>
+                      <span className="text-gray-300">/</span>
+                      <span className="text-jungle-green-600">Search Results</span>
+                    </div>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-baseline gap-3">
+                      {q ? `Search results for "${q}"` : 'Wholesale Market Directory'}
+                      <span className="text-xs text-gray-400 font-bold uppercase tracking-widest px-2 py-1 bg-gray-100 rounded-lg">
+                        {total} items
+                      </span>
+                    </h1>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-xl border border-gray-200/60 shadow-sm backdrop-blur-sm">
+                    <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest pl-2">View Mode:</span>
+                    <div className="inline-flex rounded-lg p-0.5 bg-gray-100/80 border border-gray-200/50 shadow-inner">
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={clsx(
+                          "p-1.5 rounded-md transition-all",
+                          viewMode === 'list' ? "bg-white text-jungle-green-600 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
+                        )}
+                        title="List View"
+                      >
+                        <FaList className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={clsx(
+                          "p-1.5 rounded-md text-gray-500 transition-all",
+                          viewMode === 'grid' ? "bg-white text-jungle-green-500 shadow-sm" : "hover:text-gray-850"
+                        )}
+                        title="Grid View"
+                      >
+                        <FaTableCells className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-
             </div>
-          </aside>
 
-          {/* 2. Search Results Grid & List View (Alibaba/Global Sources Layout) */}
-          <div className="flex-1 min-w-0">
+            {/* Main Content Area */}
+            <div className="p-6 lg:p-10 flex-1 w-full max-w-6xl mx-auto">
             
             {/* Top Search bar inside grid */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input 
-                  value={q} 
-                  onChange={e => setQ(e.target.value)} 
-                  onKeyDown={e => e.key === 'Enter' && setPage(1)} 
-                  placeholder="Enter keywords to search wholesale products..." 
-                  className="w-full h-11 bg-white border border-gray-300 rounded-lg pl-10 pr-6 text-sm text-gray-800 focus:border-jungle-green-500 outline-none transition-colors shadow-sm" 
-                />
-                {isFetching && !isLoading && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="h-4 w-4 border-2 border-jungle-green-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="flex-1 relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-jungle-green-400 to-blue-500 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500"></div>
+                <div className="relative">
+                  <FaMagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-jungle-green-500 transition-colors" />
+                  <input 
+                    value={q} 
+                    onChange={e => setQ(e.target.value)} 
+                    onKeyDown={e => e.key === 'Enter' && setPage(1)} 
+                    placeholder="Enter keywords to search wholesale products..." 
+                    className="w-full h-14 bg-white border border-gray-200 rounded-2xl pl-12 pr-6 text-sm font-medium text-gray-800 focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 outline-none transition-all shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_-3px_rgba(0,0,0,0.08)] hover:border-gray-300" 
+                  />
+                  {isFetching && !isLoading && (
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                      <div className="h-4 w-4 border-2 border-jungle-green-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
               
               <button 
@@ -357,69 +403,117 @@ function SearchPageContent() {
               </button>
             </div>
 
-            {/* Quick Filter Tags (Alibaba Style) */}
-            <div className="flex flex-wrap gap-2 items-center mb-6">
-              <span className="text-xs text-gray-500 font-semibold">Quick Filters:</span>
+            {/* Quick Filter Tags (Premium Style) */}
+            <div className="flex flex-wrap gap-2.5 items-center mb-8 bg-white p-3 px-5 rounded-[1.25rem] border border-gray-100 shadow-[0_4px_24px_rgb(0,0,0,0.02)]">
+              <span className="text-[11px] text-[#8fa1b4] font-bold uppercase tracking-[0.15em] mr-2">Quick Filters:</span>
               <button
                 onClick={() => setFilters(f => ({ ...f, isVerified: !f.isVerified }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.isVerified
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
-                <FaShieldHalved className="h-3.5 w-3.5" />
+                <FaShieldHalved className={filters.isVerified ? "text-blue-500" : "text-[#5c738f] h-3.5 w-3.5"} />
                 Verified Supplier
               </button>
 
               <button
                 onClick={() => setFilters(f => ({ ...f, minTrust: f.minTrust === '90' ? '' : '90' }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.minTrust === '90'
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
-                <FaStar className="h-3.5 w-3.5" />
+                <FaStar className={filters.minTrust === '90' ? "text-blue-500" : "text-[#5c738f] h-3.5 w-3.5"} />
                 90%+ Trust
               </button>
 
               <button
                 onClick={() => setFilters(f => ({ ...f, minRating: f.minRating === '4.5' ? '' : '4.5' }))}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors",
+                  "px-3.5 py-1.5 rounded-xl border text-[13px] font-medium flex items-center gap-2 transition-all duration-300",
                   filters.minRating === '4.5'
-                    ? "bg-jungle-green-50 border-jungle-green-200 text-jungle-green-600 font-bold"
-                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-blue-50/80 border-blue-200 text-blue-700 shadow-sm"
+                    : "bg-white border-gray-200 text-[#425b76] hover:border-gray-300 hover:shadow-sm hover:-translate-y-[1px]"
                 )}
               >
                 Top Rated (4.5★+)
               </button>
             </div>
 
-            {/* Sort Bar */}
-            <div className="flex items-center justify-between mb-6 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-semibold px-2">Sort By:</span>
+            {/* Sort Bar (Premium Style) */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 bg-white p-2.5 px-5 rounded-[1.25rem] border border-gray-100 shadow-[0_4px_24px_rgb(0,0,0,0.02)]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-[#8fa1b4] font-bold uppercase tracking-[0.15em] mr-2">Sort By:</span>
                 {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
                   <button
                     key={s}
                     onClick={() => setSortBy(s)}
                     className={clsx(
-                      'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-colors',
-                      sortBy === s ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      'px-4 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-300',
+                      sortBy === s 
+                        ? 'bg-white border border-gray-200 text-teal-600 shadow-[0_2px_8px_rgb(0,0,0,0.04)]' 
+                        : 'text-[#6b7b8f] hover:text-[#425b76] border border-transparent'
                     )}
                   >
                     {s}
                   </button>
                 ))}
               </div>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold px-2">
+              <span className="text-[11px] text-[#8fa1b4] uppercase tracking-wider font-semibold">
                 Showing {listings.length} of {total} items
               </span>
             </div>
+
+            {/* AI Summary Block */}
+            {q && (
+              <div className="mb-8">
+                <div className="flex justify-end mb-6">
+                  <div className="bg-[#fff3eb] text-gray-800 px-5 py-2.5 rounded-2xl rounded-tr-sm text-[15px] shadow-sm border border-[#ffe4d1]">
+                    {q}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={() => setShowThoughtProcess(!showThoughtProcess)}
+                    className="flex items-center gap-2 text-[15px] text-gray-500 hover:text-gray-800 transition-colors self-start"
+                  >
+                    <span className="text-[#ff5e00] font-black text-xl leading-none">✦</span>
+                    <span>Show thought process</span>
+                    {showThoughtProcess ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
+                  </button>
+
+                  {showThoughtProcess && (
+                    <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-2">
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Analyzing search intent for "{q}"</li>
+                        <li>Scanning B2B wholesale directories for exact and partial matches</li>
+                        <li>Extracting and comparing pricing tiers and MOQ requirements</li>
+                        <li>Compiling final supplier list and product specifications</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="text-[15px] text-gray-800 leading-relaxed space-y-4">
+                    <p>
+                      I have found a variety of <strong>{q}</strong> items including related equipment and accessories. The search results include options for multiple use-cases, with prices starting from approximately <strong>₹1,500 per set</strong> for entry-level products to <strong>₹5,000+</strong> for premium adjustable variants.
+                    </p>
+                    <p>
+                      The catalog below contains <strong>{total} {q}-related products</strong> with detailed specifications, pricing, and verified supplier information.
+                    </p>
+                  </div>
+                </div>
+                
+                <h2 className="text-[22px] font-bold text-gray-900 mt-10 mb-4 capitalize">
+                  {q}
+                </h2>
+              </div>
+            )}
 
             {/* Grid vs List View Rendering */}
             {isLoading ? (
@@ -498,10 +592,9 @@ function SearchPageContent() {
               </div>
             )}
 
-          </div>
-
-        </div>
-      </Container>
+            </div>
+          </main>
+      </div>
     </PublicLayout>
   );
 }
@@ -655,14 +748,14 @@ function SearchListingGridCard({ listing }: { listing: any }) {
     <Card 
       onClick={() => router.push(`/listings/${listing.id}`)} 
       padding={false} 
-      className="group overflow-hidden border border-gray-200 hover:border-jungle-green-300 hover:shadow-lg transition-all duration-300 bg-white cursor-pointer h-full flex flex-col justify-between"
+      className="group overflow-hidden border border-gray-100 hover:border-jungle-green-300/60 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 bg-white cursor-pointer h-full flex flex-col justify-between rounded-2xl"
     >
-      <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-150 flex items-center justify-center shrink-0">
+      <div className="aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-100/80 flex items-center justify-center shrink-0">
         {listing.media?.[0] ? (
           <img 
             src={listing.media[0].url} 
             alt={listing.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" 
           />
         ) : (
           <FaIndustry className="h-10 w-10 text-gray-200" />
@@ -679,22 +772,22 @@ function SearchListingGridCard({ listing }: { listing: any }) {
         )}
       </div>
 
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col justify-between relative bg-white">
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black text-jungle-green-655 uppercase tracking-widest">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[9px] font-black text-jungle-green-600 uppercase tracking-widest bg-jungle-green-50 px-2 py-0.5 rounded-md">
               {listing.category?.name}
             </span>
-            <span className="text-[10px] text-gray-500 font-semibold">
-              Trust: {seller?.trustScore || 85}%
+            <span className="text-[10px] text-gray-500 font-bold bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+              Trust: <span className="text-jungle-green-600">{seller?.trustScore || 85}%</span>
             </span>
           </div>
-          <h3 className="font-bold text-xs text-gray-900 group-hover:text-jungle-green-655 transition-colors line-clamp-2 min-h-[2rem] leading-snug uppercase tracking-tight mb-3">
+          <h3 className="font-bold text-sm text-gray-900 group-hover:text-jungle-green-600 transition-colors line-clamp-2 min-h-[2.5rem] leading-snug mb-4">
             {listing.title}
           </h3>
         </div>
 
-        <div className="space-y-2 pt-3 border-t border-gray-100">
+        <div className="space-y-3 pt-4 border-t border-gray-100/80">
           <div className="flex items-baseline justify-between">
             <p className="text-sm font-black text-gray-900 tracking-tight">
               {pd?.priceOnRequest ? 'Ask Price' : `₹${pd?.pricePerUnit?.toLocaleString() || '---'}`}

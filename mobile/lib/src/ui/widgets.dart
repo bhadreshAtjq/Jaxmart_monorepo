@@ -1502,6 +1502,10 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
   Widget build(BuildContext context) {
     final auth = context.watch<AuthCubit>().state;
     final isSeller = auth.isSeller;
+    final String currentPath = GoRouterState.of(context).uri.path;
+    final bool isRfqPage = currentPath == '/rfq';
+    final bool isOrdersPage = currentPath == '/orders';
+    final bool isFilteredPage = isRfqPage || isOrdersPage;
 
     final List<Map<String, dynamic>> items = widget.isSellerView
         ? [
@@ -1512,16 +1516,23 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
             {'label': 'Home (Buying)', 'path': '/home', 'icon': Icons.home_rounded},
           ]
-        : [
-            {'label': 'Home', 'path': '/home', 'icon': Icons.home_rounded},
-            {'label': 'Products', 'path': '/search', 'icon': Icons.search_rounded},
-            {'label': 'Buyer Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
-            {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
-            {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
-            {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
-            if (isSeller)
-              {'label': 'Dashboard', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
-          ];
+        : (isFilteredPage
+            ? [
+                {'label': 'Home', 'path': '/home', 'icon': Icons.home_rounded},
+                {'label': 'Products', 'path': '/search', 'icon': Icons.search_rounded},
+                {'label': 'My Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
+                {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
+              ]
+            : [
+                {'label': 'Home', 'path': '/home', 'icon': Icons.home_rounded},
+                {'label': 'Products', 'path': '/search', 'icon': Icons.search_rounded},
+                {'label': 'Buyer Requests', 'path': '/rfq', 'icon': Icons.description_rounded},
+                {'label': 'Messages', 'path': '/messages', 'icon': Icons.chat_bubble_rounded},
+                {'label': 'My Orders', 'path': '/orders', 'icon': Icons.shopping_bag_rounded},
+                {'label': 'POST RFQ', 'path': '/rfq/create', 'icon': Icons.add_rounded, 'isAction': true},
+                if (isSeller)
+                  {'label': 'Dashboard', 'path': '/seller/dashboard', 'icon': Icons.dashboard_rounded},
+              ]);
 
     return Stack(
       children: [

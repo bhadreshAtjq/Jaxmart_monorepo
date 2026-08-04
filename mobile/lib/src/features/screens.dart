@@ -3929,47 +3929,21 @@ class _RfqListScreenState extends State<RfqListScreen> {
         topWidget: sellerMode
             ? null
             : Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                              color: JaxColors.secondary,
-                              shape: BoxShape.circle)),
-                      const SizedBox(width: 6),
-                      Text('MY REQUESTS',
-                          style: JaxText.label.copyWith(
-                              color: JaxColors.secondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                              letterSpacing: 1)),
-                    ],
-                  ),
-                  const SizedBox(width: 24),
-                  GestureDetector(
-                    onTap: () => context.go('/orders'),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                                color: Colors.transparent,
-                                shape: BoxShape.circle)),
-                        const SizedBox(width: 6),
-                        Text('MY ORDERS',
-                            style: JaxText.label.copyWith(
-                                color: JaxColors.outlineVariant,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                                letterSpacing: 1)),
-                      ],
-                    ),
-                  ),
+                  Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                          color: JaxColors.secondary,
+                          shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  Text('MY REQUESTS',
+                      style: JaxText.label.copyWith(
+                          color: JaxColors.secondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          letterSpacing: 1)),
                 ],
               ),
         subtitle: sellerMode

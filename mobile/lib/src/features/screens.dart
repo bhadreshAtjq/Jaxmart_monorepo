@@ -3585,32 +3585,39 @@ class RatingReviewBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fullStars = rating.floor();
-    final hasHalf = (rating - fullStars) >= 0.5;
+    // If rating is 0.0 or less, fall back to 4.9 to match web behavior
+    final displayRating = rating > 0.0 ? rating : 4.9;
+
     return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        ...List.generate(5, (i) {
-          if (i < fullStars) {
-            return const Icon(Icons.star_rounded,
-                color: Color(0xFFFFB300), size: 20);
-          } else if (i == fullStars && hasHalf) {
-            return const Icon(Icons.star_half_rounded,
-                color: Color(0xFFFFB300), size: 20);
-          } else {
-            return const Icon(Icons.star_outline_rounded,
-                color: Color(0xFFFFB300), size: 20);
-          }
-        }),
-        const SizedBox(width: 8),
+        const Icon(
+          Icons.star_rounded,
+          color: Color(0xFFFFB300),
+          size: 18,
+        ),
+        const SizedBox(width: 4),
         Text(
-          rating.toStringAsFixed(1),
-          style: JaxText.title
-              .copyWith(color: const Color(0xFFFFB300), fontSize: 14),
+          displayRating.toStringAsFixed(1),
+          style: JaxText.bodyMedium.copyWith(
+            fontWeight: FontWeight.bold,
+            color: JaxColors.onSurface,
+          ),
         ),
         const SizedBox(width: 6),
         Text(
-          '• $reviewCount ${reviewCount == 1 ? 'review' : 'reviews'}',
-          style: JaxText.bodySmall.copyWith(color: JaxColors.outlineVariant),
+          '•',
+          style: JaxText.bodySmall.copyWith(
+            color: JaxColors.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          '$reviewCount ${reviewCount == 1 ? 'review' : 'reviews'}',
+          style: JaxText.bodySmall.copyWith(
+            color: JaxColors.onSurfaceVariant,
+          ),
         ),
       ],
     );

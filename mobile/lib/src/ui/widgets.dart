@@ -825,7 +825,7 @@ class ListingTile extends StatelessWidget {
               ],
             ),
           ),
-          if (!isSellerMode && !hideTrustScore) TrustScore(score: numOf(seller['trustScore']) ?? 85),
+          if (!isSellerMode && !hideTrustScore) TrustScore(score: (numOf(seller['trustScore']) ?? 0) > 0 ? numOf(seller['trustScore'])! : 85),
         ],
       ),
       if (!isSellerMode) ...[

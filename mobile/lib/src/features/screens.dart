@@ -2978,7 +2978,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                               child:
                                   Text(sellerName(item), style: JaxText.title)),
                           if (!isOwner)
-                            TrustScore(score: numOf(seller['trustScore']) ?? 85)
+                            TrustScore(
+                                score: (numOf(seller['trustScore']) ?? 0) > 0
+                                    ? numOf(seller['trustScore'])!
+                                    : 90)
                         ]),
                       ],
                     ),
@@ -3219,7 +3222,8 @@ class SupplierProfileDialog extends StatelessWidget {
     final name = textOf(
         business['businessName'], textOf(seller['fullName'], 'Supplier'));
     final kycStatus = textOf(seller['kycStatus'], 'VERIFIED');
-    final trust = (numOf(seller['trustScore']) ?? 85).toInt();
+    final rawTrust = numOf(seller['trustScore']);
+    final trust = (rawTrust != null && rawTrust > 0) ? rawTrust.toInt() : 90;
     final trustValue = (trust.clamp(0, 100) / 100.0);
     final registryProfile =
         textOf(business['businessType'], 'MANUFACTURER / SUPPLIER');

@@ -465,3 +465,5 @@ export function PageLoader() {
     </div>
   );
 }
+
+export { SearchAutocomplete } from './SearchAutocomplete';

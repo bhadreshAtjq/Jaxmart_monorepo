@@ -15,6 +15,34 @@ const searchListings = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = Math.min(parseInt(limit), 100);
 
+    let searchConditions = [];
+    if (q && q.trim()) {
+      const cleanQ = q.trim();
+      const words = cleanQ.split(/\s+/).filter(w => w.length > 1);
+
+      searchConditions = [
+        { title: { contains: cleanQ, mode: 'insensitive' } },
+        { description: { contains: cleanQ, mode: 'insensitive' } },
+        { category: { name: { contains: cleanQ, mode: 'insensitive' } } },
+        { category: { parent: { name: { contains: cleanQ, mode: 'insensitive' } } } },
+        { productDetail: { brand: { contains: cleanQ, mode: 'insensitive' } } },
+        { seller: { businessProfile: { businessName: { contains: cleanQ, mode: 'insensitive' } } } },
+        { seller: { fullName: { contains: cleanQ, mode: 'insensitive' } } },
+        { tags: { has: cleanQ.toLowerCase() } },
+      ];
+
+      for (const word of words) {
+        const lowerWord = word.toLowerCase();
+        searchConditions.push(
+          { title: { contains: word, mode: 'insensitive' } },
+          { category: { name: { contains: word, mode: 'insensitive' } } },
+          { category: { parent: { name: { contains: word, mode: 'insensitive' } } } },
+          { productDetail: { brand: { contains: word, mode: 'insensitive' } } },
+          { tags: { has: lowerWord } }
+        );
+      }
+    }
+
     const where = {
       status: 'ACTIVE',
       ...(type && { listingType: type.toUpperCase() }),
@@ -28,13 +56,7 @@ const searchListings = async (req, res) => {
         }
       }),
       ...(minRating && { avgRating: { gte: parseFloat(minRating) } }),
-      ...(q && {
-        OR: [
-          { title: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } },
-          { tags: { has: q.toLowerCase() } },
-        ],
-      }),
+      ...(searchConditions.length > 0 && { OR: searchConditions }),
       ...(tag && {
         tags: { has: tag.toLowerCase() }
       }),
@@ -737,8 +759,124 @@ const bulkCreateListings = async (req, res) => {
   }
 };
 
+// GET /api/listings/suggestions?q=...
+const getSearchSuggestions = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || !q.trim()) {
+      const defaultCategories = await prisma.category.findMany({
+        take: 5,
+        orderBy: { listings: { _count: 'desc' } },
+        select: { id: true, name: true, slug: true }
+      });
+      return res.json({
+        categories: defaultCategories,
+        listings: [],
+        brands: [],
+        recent: ['Cotton Shirts', 'Industrial Lubricants', 'Textiles', 'Gear Oil', 'Safety Equipment']
+      });
+    }
+
+    const cleanQ = q.trim();
+    const cacheKey = `suggestions:${cleanQ.toLowerCase()}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const words = cleanQ.split(/\s+/).filter(w => w.length > 1);
+
+    const [categories, listings, brandsData] = await Promise.all([
+      prisma.category.findMany({
+        where: {
+          OR: [
+            { name: { contains: cleanQ, mode: 'insensitive' } },
+            { metaDescription: { contains: cleanQ, mode: 'insensitive' } },
+            { slug: { contains: cleanQ, mode: 'insensitive' } },
+          ]
+        },
+        take: 4,
+        select: { id: true, name: true, slug: true, parent: { select: { name: true } } }
+      }),
+
+      prisma.listing.findMany({
+        where: {
+          status: 'ACTIVE',
+          seller: { isActive: true },
+          OR: [
+            { title: { contains: cleanQ, mode: 'insensitive' } },
+            { tags: { has: cleanQ.toLowerCase() } },
+            { category: { name: { contains: cleanQ, mode: 'insensitive' } } },
+            ...words.map(w => ({ title: { contains: w, mode: 'insensitive' } })),
+          ]
+        },
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          listingType: true,
+          media: { select: { url: true, isPrimary: true } },
+          category: { select: { name: true } },
+          productDetail: {
+            select: {
+              pricePerUnit: true,
+              unitOfMeasure: true,
+              minOrderQty: true,
+              brand: true
+            }
+          },
+          seller: {
+            select: {
+              businessProfile: { select: { businessName: true } }
+            }
+          }
+        }
+      }),
+
+      prisma.productDetail.findMany({
+        where: {
+          brand: { contains: cleanQ, mode: 'insensitive' }
+        },
+        take: 3,
+        distinct: ['brand'],
+        select: { brand: true }
+      })
+    ]);
+
+    const result = {
+      categories: categories.map(c => ({
+        id: c.id,
+        name: c.name,
+        parentName: c.parent?.name || null
+      })),
+      listings: listings.map(l => {
+        const primaryMedia = l.media?.find(m => m.isPrimary) || l.media?.[0];
+        return {
+          id: l.id,
+          title: l.title,
+          listingType: l.listingType,
+          image: primaryMedia?.url || null,
+          categoryName: l.category?.name || 'General',
+          pricePerUnit: l.productDetail?.pricePerUnit || null,
+          unitOfMeasure: l.productDetail?.unitOfMeasure || 'Unit',
+          brand: l.productDetail?.brand || null,
+          sellerName: l.seller?.businessProfile?.businessName || null
+        };
+      }),
+      brands: brandsData.map(b => b.brand).filter(Boolean),
+    };
+
+    await cacheSet(cacheKey, result, 60);
+    return res.json(result);
+  } catch (err) {
+    logger.error('Error fetching search suggestions:', err);
+    return res.status(500).json({ error: 'Failed to fetch suggestions' });
+  }
+};
+
 module.exports = {
   searchListings,
+  getSearchSuggestions,
   getNewProducts,
   getListing,
   createListing,

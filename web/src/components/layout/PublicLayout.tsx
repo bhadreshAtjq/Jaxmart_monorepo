@@ -8,7 +8,7 @@ import {
   FaShieldHalved, FaCircleCheck, FaArrowRight, FaChevronRight
 } from 'react-icons/fa6';
 import { useAuthStore } from '@/lib/store';
-import { Avatar, PageLoader } from '@/components/ui';
+import { Avatar, PageLoader, SearchAutocomplete } from '@/components/ui';
 import { userApi } from '@/lib/api';
 import { useLocationCurrency } from '@/components/providers/LocationCurrencyProvider';
 
@@ -126,26 +126,16 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               <Image
                 src="/JaxMart_bg.png"
                 alt="JaxMart"
-                width={108}
-                height={42}
+                width={150}
+                height={50}
                 priority
-                className="h-9 w-auto object-contain"
+                className="h-11 sm:h-12 w-auto object-contain"
               />
             </Link>
 
-            {/* Search Bar */}
+            {/* Search Bar with Autocomplete Suggestions */}
             <div className="flex-1 max-w-2xl">
-              <div className="flex border border-gray-300 rounded-lg overflow-hidden hover:border-jungle-green-400 focus-within:border-jungle-green-500 focus-within:ring-1 focus-within:ring-jungle-green-200 transition-all">
-                <input
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  placeholder="Search products, suppliers, categories..."
-                  className="flex-1 h-10 px-4 text-sm outline-none"
-                />
-                <button onClick={handleSearch} className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white px-5 transition-all duration-300">
-                  <FaMagnifyingGlass className="h-4 w-4" />
-                </button>
-              </div>
+              <SearchAutocomplete compact placeholder="Search products, suppliers, categories..." />
             </div>
 
             {/* Nav Links */}
@@ -234,9 +224,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   <Image
                     src="/JaxMart_bg.png"
                     alt="JaxMart"
-                    width={108}
-                    height={42}
-                    className="h-9 w-auto object-contain"
+                    width={150}
+                    height={50}
+                    className="h-11 w-auto object-contain"
                   />
                 </Link>
                 <p className="text-sm text-gray-400 leading-relaxed font-medium max-w-sm">

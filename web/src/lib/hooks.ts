@@ -78,6 +78,19 @@ export function useListingSearch(params: Record<string, any>) {
   );
 }
 
+export function useSearchSuggestions(query: string) {
+  const trimmed = query.trim();
+  return useSWR(
+    ['/listings/suggestions', { q: trimmed }],
+    fetcherWithParams,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      keepPreviousData: true
+    }
+  );
+}
+
 export function useListing(id: string | undefined) {
   return useSWR(id ? `/listings/${id}` : null, fetcher);
 }

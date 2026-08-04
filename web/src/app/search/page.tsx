@@ -10,7 +10,7 @@ import {
   FaChevronDown, FaChevronUp, FaLaptop, FaWrench
 } from 'react-icons/fa6';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore, Select } from '@/components/ui';
+import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton, TrustScore, Select, SearchAutocomplete } from '@/components/ui';
 import { clsx } from 'clsx';
 import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
@@ -127,6 +127,22 @@ function SearchPageContent() {
   });
 
   const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
+
+  // Dynamic AI Summary price extraction
+  const validPrices = listings
+    .map((l: any) => l.productDetail?.pricePerUnit)
+    .filter((p: any) => typeof p === 'number' && p > 0);
+  const minPriceFound = validPrices.length ? Math.min(...validPrices) : null;
+  const maxPriceFound = validPrices.length ? Math.max(...validPrices) : null;
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setPage(1);
+    if (q.trim()) {
+      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+  };
+
   const activeFilterCount =
     (filters.isVerified ? 1 : 0) +
     (filters.minTrust ? 1 : 0) +
@@ -377,30 +393,19 @@ function SearchPageContent() {
             <div className="p-6 lg:p-10 flex-1 w-full max-w-6xl mx-auto">
             
             {/* Top Search bar inside grid */}
-            <div className="flex flex-col md:flex-row gap-4 mb-8">
-              <div className="flex-1 relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-jungle-green-400 to-blue-500 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500"></div>
-                <div className="relative">
-                  <FaMagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-jungle-green-500 transition-colors" />
-                  <input 
-                    value={q} 
-                    onChange={e => setQ(e.target.value)} 
-                    onKeyDown={e => e.key === 'Enter' && setPage(1)} 
-                    placeholder="Enter keywords to search wholesale products..." 
-                    className="w-full h-14 bg-white border border-gray-200 rounded-2xl pl-12 pr-6 text-sm font-medium text-gray-800 focus:border-jungle-green-500 focus:ring-4 focus:ring-jungle-green-500/10 outline-none transition-all shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_-3px_rgba(0,0,0,0.08)] hover:border-gray-300" 
-                  />
-                  {isFetching && !isLoading && (
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
-                      <div className="h-4 w-4 border-2 border-jungle-green-500 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
-                </div>
+            <div className="flex flex-col md:flex-row gap-3 mb-8">
+              <div className="flex-1">
+                <SearchAutocomplete
+                  initialValue={q}
+                  placeholder="Enter keywords to search wholesale products..."
+                />
               </div>
 
               <button
+                type="button"
                 onClick={() => setShowFilters(!showFilters)}
                 className={clsx(
-                  'lg:hidden h-11 flex items-center justify-center gap-2 px-5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors',
+                  'lg:hidden h-12 flex items-center justify-center gap-2 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors',
                   activeFilterCount > 0 ? 'bg-jungle-green-500 text-white' : 'bg-gray-900 text-white shadow'
                 )}
               >
@@ -477,47 +482,50 @@ function SearchPageContent() {
 
             {/* AI Summary Block */}
             {q && (
-              <div className="mb-8">
-                <div className="flex justify-end mb-6">
-                  <div className="bg-[#fff3eb] text-gray-800 px-5 py-2.5 rounded-2xl rounded-tr-sm text-[15px] shadow-sm border border-[#ffe4d1]">
-                    {q}
+              <div className="mb-8 bg-gradient-to-br from-amber-50/40 via-white to-emerald-50/30 p-6 rounded-2xl border border-amber-100 shadow-sm">
+                <div className="flex justify-end mb-3">
+                  <div className="bg-[#fff3eb] text-gray-800 px-4 py-1.5 rounded-xl text-xs font-bold shadow-sm border border-[#ffe4d1]">
+                    "{q}"
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
                   <button 
                     onClick={() => setShowThoughtProcess(!showThoughtProcess)}
-                    className="flex items-center gap-2 text-[15px] text-gray-500 hover:text-gray-800 transition-colors self-start"
+                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 hover:text-amber-900 transition-colors self-start"
                   >
-                    <span className="text-[#ff5e00] font-black text-xl leading-none">✦</span>
-                    <span>Show thought process</span>
+                    <span className="text-[#ff5e00] font-black text-base leading-none">✦</span>
+                    <span>AI Reasoning & Insight</span>
                     {showThoughtProcess ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
                   </button>
 
                   {showThoughtProcess && (
-                    <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-2">
-                      <ul className="list-disc pl-5 space-y-1">
-                        <li>Analyzing search intent for "{q}"</li>
-                        <li>Scanning B2B wholesale directories for exact and partial matches</li>
-                        <li>Extracting and comparing pricing tiers and MOQ requirements</li>
-                        <li>Compiling final supplier list and product specifications</li>
+                    <div className="text-xs text-gray-600 bg-white/80 p-4 rounded-xl border border-amber-100/60 shadow-inner space-y-1">
+                      <p className="font-bold text-gray-700">✦ Intent Analysis Steps:</p>
+                      <ul className="list-disc pl-5 space-y-0.5">
+                        <li>Analyzed search keywords for "{q}" across catalog categories, brands, and tags</li>
+                        <li>Evaluated verified manufacturers with GSTIN/PAN compliance</li>
+                        <li>Extracted pricing tiers and minimum order quantity (MOQ) requirements</li>
+                        <li>Synthesized real-time wholesale directory listings</li>
                       </ul>
                     </div>
                   )}
 
-                  <div className="text-[15px] text-gray-800 leading-relaxed space-y-4">
-                    <p>
-                      I have found a variety of <strong>{q}</strong> items including related equipment and accessories. The search results include options for multiple use-cases, with prices starting from approximately <strong>₹1,500 per set</strong> for entry-level products to <strong>₹5,000+</strong> for premium adjustable variants.
-                    </p>
-                    <p>
-                      The catalog below contains <strong>{total} {q}-related products</strong> with detailed specifications, pricing, and verified supplier information.
-                    </p>
+                  <div className="text-sm text-gray-800 leading-relaxed space-y-2">
+                    {total > 0 ? (
+                      <p>
+                        Found <strong>{total} verified product{total > 1 ? 's' : ''}</strong> matching <strong>"{q}"</strong>
+                        {minPriceFound !== null && maxPriceFound !== null && (
+                          <span> with pricing ranging from <strong>₹{minPriceFound.toLocaleString('en-IN')}</strong> to <strong>₹{maxPriceFound.toLocaleString('en-IN')}</strong> per unit.</span>
+                        )}
+                      </p>
+                    ) : (
+                      <p>
+                        No active catalog items matched <strong>"{q}"</strong>. You can post a custom Sourcing Request (RFQ) to receive direct quotations from verified suppliers.
+                      </p>
+                    )}
                   </div>
                 </div>
-                
-                <h2 className="text-[22px] font-bold text-gray-900 mt-10 mb-4 capitalize">
-                  {q}
-                </h2>
               </div>
             )}
 

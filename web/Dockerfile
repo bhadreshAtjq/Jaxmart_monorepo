@@ -2,11 +2,11 @@
 # 1. Base Dependencies Stage
 # ==========================================
 FROM node:20-alpine AS deps
-RUN apk add --no-libc6-compat
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci || npm install --legacy-peer-deps
 
 # ==========================================
 # 2. Builder Stage

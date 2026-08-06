@@ -2,13 +2,27 @@
 import axios from 'axios';
 import { useAuthStore } from './store';
 
+const getBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('yourdomain')) {
+    return envUrl;
+  }
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:4000/api';
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+  baseURL: getBaseUrl(),
   withCredentials: false,
 });
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
+    if (!config.baseURL || config.baseURL.includes('localhost') || config.baseURL.includes('yourdomain')) {
+      config.baseURL = `${window.location.origin}/api`;
+    }
     const token = localStorage.getItem('access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }

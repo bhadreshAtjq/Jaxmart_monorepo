@@ -2,6 +2,7 @@
 # 1. Build Stage
 # ==========================================
 FROM node:20-alpine AS builder
+RUN apk add --no-cache openssl openssl1.1-compat
 
 WORKDIR /app
 
@@ -25,6 +26,7 @@ RUN npm prune --production
 # 2. Production Stage
 # ==========================================
 FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl openssl1.1-compat
 
 WORKDIR /app
 

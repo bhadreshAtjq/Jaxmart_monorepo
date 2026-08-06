@@ -13,6 +13,10 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/dummy_db?schema=public"
+      JWT_SECRET: "dummy_jwt_secret_for_ci_build_validation_32chars"
+      JWT_REFRESH_SECRET: "dummy_refresh_secret_for_ci_build_validation_32chars"
 
     steps:
       - name: Checkout Code
@@ -25,18 +29,19 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: Create Temporary CI .env
+        run: |
+          echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/dummy_db?schema=public"' > .env
+          echo 'JWT_SECRET="dummy_jwt_secret_for_ci_build_validation_32chars"' >> .env
+
       - name: Install Dependencies
         run: npm ci || npm install --legacy-peer-deps
 
       - name: Validate Prisma Schema
         run: npx prisma validate
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/dummy"
 
       - name: Generate Prisma Client
         run: npx prisma generate
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/dummy"
 
       - name: Run Backend Tests
         run: npm test

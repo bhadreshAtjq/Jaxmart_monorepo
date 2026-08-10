@@ -807,12 +807,27 @@ class ListingTile extends StatelessWidget {
     final sellerDisplay = sellerName(item);
     final price = product['priceOnRequest'] == true ? 'Ask Price' : money(product['pricePerUnit']);
     final content = grid
-        ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: _listingBody(context, image, product, seller, sellerDisplay, price, true))
-        : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _ListingImage(image: image, size: 112),
-            const SizedBox(width: 14),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _listingBody(context, image, product, seller, sellerDisplay, price, false))),
-          ]);
+        ? SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: _listingBody(context, image, product, seller, sellerDisplay, price, true),
+            ),
+          )
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ListingImage(image: image, size: 112),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _listingBody(context, image, product, seller, sellerDisplay, price, false),
+                ),
+              ),
+            ],
+          );
     return JaxCard(
       padding: const EdgeInsets.all(12),
       onTap: () => context.push('/listings/${item['id']}'),
@@ -823,8 +838,8 @@ class ListingTile extends StatelessWidget {
   List<Widget> _listingBody(BuildContext context, String image, JsonMap product, JsonMap seller, String sellerDisplay, String price, bool fullImage) {
     return [
       if (fullImage) ...[
-        _ListingImage(image: image, size: double.infinity, aspectRatio: 1),
-        const SizedBox(height: 12),
+        _ListingImage(image: image, size: double.infinity, aspectRatio: 1.2),
+        const SizedBox(height: 6),
       ],
       Row(
         children: [
@@ -832,9 +847,9 @@ class ListingTile extends StatelessWidget {
           StatusPill(label: statusOf(item, 'PRODUCT'), dense: true),
         ],
       ),
-      const SizedBox(height: 7),
-      Text(textOf(item['title'], 'Untitled listing'), maxLines: 2, overflow: TextOverflow.ellipsis, style: JaxText.title),
-      const SizedBox(height: 10),
+      const SizedBox(height: 4),
+      Text(textOf(item['title'], 'Untitled listing'), maxLines: 2, overflow: TextOverflow.ellipsis, style: JaxText.title.copyWith(fontSize: 12)),
+      const SizedBox(height: 6),
       Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -842,8 +857,8 @@ class ListingTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(price, style: JaxText.h3.copyWith(fontSize: 17)),
-                Text('MOQ: ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}', style: JaxText.bodySmall),
+                Text(price, style: JaxText.h3.copyWith(fontSize: 15)),
+                Text('MOQ: ${textOf(product['minOrderQty'], '1')} ${textOf(product['unitOfMeasure'], 'Pcs')}', style: JaxText.bodySmall.copyWith(fontSize: 10)),
               ],
             ),
           ),
@@ -851,47 +866,82 @@ class ListingTile extends StatelessWidget {
         ],
       ),
       if (!isSellerMode) ...[
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(8)),
           child: Row(
             children: [
-              JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 26),
-              const SizedBox(width: 8),
-              Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              JaxAvatar(name: sellerDisplay, url: textOf(seller['avatarUrl']), size: 22),
+              const SizedBox(width: 6),
+              Expanded(child: Text(sellerDisplay, style: JaxText.bodySmall.copyWith(fontWeight: FontWeight.w700, fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis)),
               if (textOf(seller['kycStatus']) == 'VERIFIED')
-                const Icon(Icons.verified_user_rounded, size: 15, color: JaxColors.success),
+                const Icon(Icons.verified_user_rounded, size: 13, color: JaxColors.success),
             ],
           ),
         ),
       ],
       if (showChat) ...[
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          height: 38,
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: JaxColors.secondary,
-              side: const BorderSide(color: JaxColors.secondary, width: 1.2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 36,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: JaxColors.primaryContainer,
+                    side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: const Text(
+                    'Details',
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: () => context.push('/listings/${item['id']}'),
+                ),
+              ),
             ),
-            icon: const Icon(Icons.chat_rounded, size: 16),
-            label: Text('Chat Now', style: JaxText.label.copyWith(color: JaxColors.secondary, fontSize: 12)),
-            onPressed: () {
-              final sellerId = textOf(seller['id']);
-              final listingId = textOf(item['id']);
-              if (sellerId.isNotEmpty) {
-                if (listingId.isNotEmpty) {
-                  context.push('/messages/$sellerId?listingId=$listingId');
-                } else {
-                  context.push('/messages/$sellerId');
-                }
-              }
-            },
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 36,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF36ADA3),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: const Text(
+                    'Chat Now',
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: () {
+                    final sellerId = textOf(seller['id']);
+                    final listingId = textOf(item['id']);
+                    if (sellerId.isNotEmpty) {
+                      if (listingId.isNotEmpty) {
+                        context.push('/messages/$sellerId?listingId=$listingId');
+                      } else {
+                        context.push('/messages/$sellerId');
+                      }
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ],
       if (isSellerMode && showActions) ...[

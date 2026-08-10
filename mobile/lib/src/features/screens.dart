@@ -3075,6 +3075,11 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   late final _q = TextEditingController(text: widget.query ?? '');
+  final _minPriceController = TextEditingController();
+  final _maxPriceController = TextEditingController();
+  final _moqController = TextEditingController();
+  final _cityController = TextEditingController();
+
   String _category = '';
   String _sort = 'relevance';
   bool _verified = false;
@@ -3082,11 +3087,22 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _topRated = false;
   bool _grid = false;
   int _page = 1;
+  String _fobPort = '';
+  String _minTrustScore = '';
 
   @override
   void initState() {
     super.initState();
     _category = widget.category ?? '';
+  }
+
+  @override
+  void dispose() {
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
+    _moqController.dispose();
+    _cityController.dispose();
+    super.dispose();
   }
 
   Map<String, dynamic> get _params => {
@@ -3097,9 +3113,217 @@ class _SearchScreenState extends State<SearchScreen> {
         if (_category.isNotEmpty) 'categoryId': _category,
         if (_sort != 'relevance') 'sortBy': _sort,
         if (_verified) 'isVerified': 'true',
-        if (_trust) 'minTrust': '90',
+        if (_trust || _minTrustScore == '90') 'minTrust': '90',
+        if (_minTrustScore == '80') 'minTrust': '80',
         if (_topRated) 'minRating': '4.5',
+        if (_cityController.text.trim().isNotEmpty) 'city': _cityController.text.trim(),
       };
+
+  int get _activeFilterCount =>
+      (_verified ? 1 : 0) +
+      (_trust || _minTrustScore.isNotEmpty ? 1 : 0) +
+      (_topRated ? 1 : 0) +
+      (_category.isNotEmpty ? 1 : 0) +
+      (_minPriceController.text.isNotEmpty || _maxPriceController.text.isNotEmpty ? 1 : 0) +
+      (_moqController.text.isNotEmpty ? 1 : 0) +
+      (_fobPort.isNotEmpty ? 1 : 0) +
+      (_cityController.text.isNotEmpty ? 1 : 0);
+
+  void _resetFilters(BuildContext context) {
+    setState(() {
+      _verified = false;
+      _trust = false;
+      _topRated = false;
+      _category = '';
+      _minTrustScore = '';
+      _fobPort = '';
+      _minPriceController.clear();
+      _maxPriceController.clear();
+      _moqController.clear();
+      _cityController.clear();
+      _page = 1;
+    });
+    _reload(context);
+  }
+
+  void _showFilterBottomSheet(BuildContext outerContext) {
+    showModalBottomSheet(
+      context: outerContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.75,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'B2B SEARCH FILTERS',
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: JaxColors.primaryContainer,
+                          ),
+                        ),
+                        if (_activeFilterCount > 0)
+                          TextButton(
+                            onPressed: () {
+                              _resetFilters(outerContext);
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text('Reset All', style: TextStyle(color: Colors.red, fontSize: 12)),
+                          ),
+                      ],
+                    ),
+                    const Divider(),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          // Supplier Verification Checkbox
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Verified Supplier', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            subtitle: const Text('GSTIN & PAN Audited Manufacturers', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                            value: _verified,
+                            activeColor: JaxColors.secondary,
+                            onChanged: (v) {
+                              setModalState(() => _verified = v ?? false);
+                              setState(() => _verified = v ?? false);
+                            },
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Min Trust Score
+                          const Text('MIN TRUST SCORE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: _minTrustScore,
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: '', child: Text('Any Trust Level')),
+                              DropdownMenuItem(value: '90', child: Text('90%+ Trust (Top tier)')),
+                              DropdownMenuItem(value: '80', child: Text('80%+ Trust (Verified)')),
+                            ],
+                            onChanged: (v) {
+                              setModalState(() => _minTrustScore = v ?? '');
+                              setState(() => _minTrustScore = v ?? '');
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Price Range (INR)
+                          const Text('PRICE RANGE (INR)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _minPriceController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(hintText: 'Min', contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                                ),
+                              ),
+                              const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('-')),
+                              Expanded(
+                                child: TextField(
+                                  controller: _maxPriceController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(hintText: 'Max', contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Max MOQ
+                          const Text('MAX MIN. ORDER QTY (MOQ)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _moqController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(hintText: 'e.g. 50', contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // FOB Port
+                          const Text('FOB LOADING PORT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: _fobPort,
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: '', child: Text('All Ports')),
+                              DropdownMenuItem(value: 'Mundra', child: Text('Mundra Port (Gujarat)')),
+                              DropdownMenuItem(value: 'Nhava Sheva', child: Text('Nhava Sheva Port (JNPT)')),
+                            ],
+                            onChanged: (v) {
+                              setModalState(() => _fobPort = v ?? '');
+                              setState(() => _fobPort = v ?? '');
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // City
+                          const Text('SUPPLIER CITY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _cityController,
+                            decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.location_on_rounded, size: 16),
+                              hintText: 'Search city e.g. Mumbai, Delhi',
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: JaxColors.primaryContainer,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _reload(outerContext);
+                        },
+                        child: const Text('APPLY FILTERS', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3121,127 +3345,189 @@ class _SearchScreenState extends State<SearchScreen> {
               final pagination = asMap(state.data['pagination']);
               final total = (numOf(pagination['total']) ?? 0).toInt();
               final titleText =
-                  _q.text.isEmpty ? 'Wholesale Directory' : 'Search Results';
+                  _q.text.isEmpty ? 'Wholesale Market Directory' : 'Search Results';
 
-              final titleWidget = Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(text: titleText, style: JaxText.h2),
-                    if (state.status == ResourceStatus.success) ...[
-                      const TextSpan(text: '  '),
-                      TextSpan(
-                        text: '($total items found)',
-                        style: JaxText.bodySmall.copyWith(
-                          color:
-                              JaxColors.onSurfaceVariant.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w400,
-                          fontSize: 13,
+              final titleWidget = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => context.go('/home'),
+                        child: const Text('Home', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                      ),
+                      const Text(' › ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      const Text('Wholesale Directory', style: TextStyle(fontSize: 10, color: JaxColors.secondary, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: titleText, style: JaxText.h3.copyWith(fontSize: 16)),
+                              if (state.status == ResourceStatus.success) ...[
+                                const TextSpan(text: ' '),
+                                TextSpan(
+                                  text: '($total items found)',
+                                  style: JaxText.bodySmall.copyWith(
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
+                      IconButton(
+                        icon: Icon(_grid ? Icons.list_rounded : Icons.grid_view_rounded, color: JaxColors.primaryContainer),
+                        onPressed: () => setState(() => _grid = !_grid),
+                        tooltip: _grid ? 'List View' : 'Grid View',
+                      ),
                     ],
-                  ],
-                ),
+                  ),
+                ],
               );
 
               return JaxPage(
                 title: titleText,
                 titleWidget: titleWidget,
-                subtitle: _q.text.isEmpty
-                    ? 'Find verified products and suppliers'
-                    : _q.text,
+                subtitle: null,
                 child: Column(
                   children: [
                     Builder(
                       builder: (context) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Search bar ──────────────────────────────────────────
-                          TextField(
-                            controller: _q,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search_rounded),
-                              hintText: 'Enter keywords to search...',
-                              suffixIcon: IconButton(
-                                icon: Icon(_grid
-                                    ? Icons.list_rounded
-                                    : Icons.grid_view_rounded),
-                                onPressed: () => setState(() => _grid = !_grid),
-                              ),
-                            ),
-                            onSubmitted: (_) => _reload(context),
-                          ),
-                          const SizedBox(height: 14),
-
-                          // ── Quick Filters ────────────────────────────────────────
+                          // Search Bar + Filter Button
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('Quick Filters:',
-                                  style: JaxText.label.copyWith(
-                                      fontSize: 13,
-                                      color: JaxColors.onSurfaceVariant)),
-                              const SizedBox(width: 10),
                               Expanded(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
+                                child: Container(
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  ),
                                   child: Row(
                                     children: [
-                                      _FilterChip(
-                                        label: 'Verified Supplier',
-                                        icon: Icons.verified_user_rounded,
-                                        selected: _verified,
-                                        onTap: () {
-                                          setState(
-                                              () => _verified = !_verified);
-                                          _reload(context);
-                                        },
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _q,
+                                          style: const TextStyle(fontSize: 13),
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            prefixIcon: Icon(Icons.search_rounded, size: 18, color: Colors.grey),
+                                            hintText: 'Enter keywords to search wholesale products...',
+                                            hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                                            isDense: true,
+                                          ),
+                                          onSubmitted: (_) => _reload(context),
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      _FilterChip(
-                                        label: '90%+ Trust',
-                                        icon: Icons.star_rounded,
-                                        selected: _trust,
-                                        onTap: () {
-                                          setState(() => _trust = !_trust);
-                                          _reload(context);
-                                        },
+                                      GestureDetector(
+                                        onTap: () => _reload(context),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          height: double.infinity,
+                                          decoration: const BoxDecoration(
+                                            gradient: JaxGradients.primary,
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(7),
+                                              bottomRight: Radius.circular(7),
+                                            ),
+                                          ),
+                                          child: const Icon(Icons.search_rounded, color: Colors.white, size: 16),
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      _FilterChip(
-                                        label: 'Top Rated (4.5★+)',
-                                        icon: null,
-                                        selected: _topRated,
-                                        onTap: () {
-                                          setState(
-                                              () => _topRated = !_topRated);
-                                          _reload(context);
-                                        },
-                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _showFilterBottomSheet(context),
+                                child: Container(
+                                  height: 42,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: _activeFilterCount > 0 ? JaxColors.secondary : const Color(0xFF0F172A),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.tune_rounded, color: Colors.white, size: 16),
+                                      if (_activeFilterCount > 0) ...[
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '($_activeFilterCount)',
+                                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 12),
 
-                          // ── Sort By ──────────────────────────────────────────────
+                          // Quick Filter Chips
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _FilterChip(
+                                  label: 'Verified Supplier',
+                                  icon: Icons.verified_user_rounded,
+                                  selected: _verified,
+                                  onTap: () {
+                                    setState(() => _verified = !_verified);
+                                    _reload(context);
+                                  },
+                                ),
+                                const SizedBox(width: 6),
+                                _FilterChip(
+                                  label: '90%+ Trust',
+                                  icon: Icons.star_rounded,
+                                  selected: _trust,
+                                  onTap: () {
+                                    setState(() => _trust = !_trust);
+                                    _reload(context);
+                                  },
+                                ),
+                                const SizedBox(width: 6),
+                                _FilterChip(
+                                  label: 'Top Rated (4.5★+)',
+                                  icon: null,
+                                  selected: _topRated,
+                                  onTap: () {
+                                    setState(() => _topRated = !_topRated);
+                                    _reload(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Sort Bar
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             decoration: BoxDecoration(
-                              color: JaxColors.surface,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: JaxColors.outlineVariant, width: 1),
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
                             ),
                             child: Row(
                               children: [
-                                Text('Sort By:',
-                                    style: JaxText.label.copyWith(
-                                        fontSize: 13,
-                                        color: JaxColors.onSurfaceVariant)),
-                                const SizedBox(width: 10),
+                                const Text('Sort By: ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
                                 Expanded(
                                   child: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
@@ -3286,29 +3572,42 @@ class _SearchScreenState extends State<SearchScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 12),
 
-                          // ── Categories ────────────────────────────────────────────
+                          // Categories Horizontal Scroll Bar
                           BlocBuilder<CategoriesCubit, ResourceState>(
                             builder: (context, cats) => SizedBox(
-                              height: 42,
+                              height: 36,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: [
                                   ChoiceChip(
-                                      label: const Text('All'),
-                                      selected: _category.isEmpty,
-                                      onSelected: (_) =>
-                                          _setCategory(context, '')),
-                                  const SizedBox(width: 8),
+                                    label: const Text('All Categories'),
+                                    labelStyle: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: _category.isEmpty ? FontWeight.bold : FontWeight.normal,
+                                      color: _category.isEmpty ? Colors.white : Colors.grey.shade700,
+                                    ),
+                                    selected: _category.isEmpty,
+                                    selectedColor: JaxColors.primaryContainer,
+                                    backgroundColor: Colors.grey.shade100,
+                                    onSelected: (_) => _setCategory(context, ''),
+                                  ),
+                                  const SizedBox(width: 6),
                                   ...cats.items.map((cat) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.only(right: 6),
                                         child: ChoiceChip(
-                                            label: Text(textOf(cat['name'])),
-                                            selected: _category == cat['id'],
-                                            onSelected: (_) => _setCategory(
-                                                context, textOf(cat['id']))),
+                                          label: Text(textOf(cat['name'])),
+                                          labelStyle: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: _category == cat['id'] ? FontWeight.bold : FontWeight.normal,
+                                            color: _category == cat['id'] ? Colors.white : Colors.grey.shade700,
+                                          ),
+                                          selected: _category == cat['id'],
+                                          selectedColor: JaxColors.primaryContainer,
+                                          backgroundColor: Colors.grey.shade100,
+                                          onSelected: (_) => _setCategory(context, textOf(cat['id'])),
+                                        ),
                                       )),
                                 ],
                               ),
@@ -3317,40 +3616,88 @@ class _SearchScreenState extends State<SearchScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
+
+                    // Products Listings (Grid / List View)
                     BlocBuilder<ResourceCubit, ResourceState>(
                       builder: (context, state) => AsyncContent(
                         state: state,
                         emptyTitle: 'No products match these filters',
                         onRetry: () => _reload(context),
-                        builder: (_) => Column(
-                          children: [
-                            ...state.items.map((item) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: ListingTile(
-                                      item: item, grid: _grid, showChat: true),
-                                )),
-                            if (state.totalPages > 1)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  TextButton(
-                                      onPressed: _page > 1
-                                          ? () => _pageTo(context, _page - 1)
-                                          : null,
-                                      child: const Text('PREV')),
-                                  Text(
-                                      'PAGE ${state.page} / ${state.totalPages}',
-                                      style: JaxText.label),
-                                  TextButton(
-                                      onPressed: _page < state.totalPages
-                                          ? () => _pageTo(context, _page + 1)
-                                          : null,
-                                      child: const Text('NEXT')),
-                                ],
-                              ),
-                          ],
-                        ),
+                        builder: (_) {
+                          final items = state.items;
+                          if (items.isEmpty) {
+                            return const EmptyState(title: 'No wholesale listings found');
+                          }
+
+                          return Column(
+                            children: [
+                              if (_grid)
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 0.38,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                  ),
+                                  itemCount: items.length,
+                                  itemBuilder: (context, idx) {
+                                    return ListingTile(
+                                      item: items[idx],
+                                      grid: true,
+                                      showChat: true,
+                                    );
+                                  },
+                                )
+                              else
+                                Column(
+                                  children: items.map((item) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: ListingTile(
+                                      item: item,
+                                      grid: false,
+                                      showChat: true,
+                                    ),
+                                  )).toList(),
+                                ),
+
+                              if (state.totalPages > 1) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: _page > 1 ? () => _pageTo(context, _page - 1) : null,
+                                        child: const Text('PREV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: JaxColors.secondary)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Text(
+                                          'PAGE ${state.page} / ${state.totalPages}',
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: JaxColors.primaryContainer),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: _page < state.totalPages ? () => _pageTo(context, _page + 1) : null,
+                                        child: const Text('NEXT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: JaxColors.secondary)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],

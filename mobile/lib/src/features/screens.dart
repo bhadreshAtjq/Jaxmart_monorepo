@@ -4950,30 +4950,30 @@ class _RfqListScreenState extends State<RfqListScreen> {
           listKeys: const ['rfqs'],
         ),
       child: JaxPage(
-        title: sellerMode ? 'BUYER REQUESTS' : 'My Requests',
+        title: sellerMode ? 'BUYER REQUESTS' : 'Sourcing Dashboard',
         topWidget: sellerMode
             ? null
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                      width: 6,
-                      height: 6,
+                      width: 7,
+                      height: 7,
                       decoration: const BoxDecoration(
-                          color: JaxColors.secondary,
+                          color: Color(0xFF36ADA3),
                           shape: BoxShape.circle)),
                   const SizedBox(width: 6),
-                  Text('MY REQUESTS',
-                      style: JaxText.label.copyWith(
-                          color: JaxColors.secondary,
-                          fontWeight: FontWeight.bold,
+                  const Text('MY REQUESTS',
+                      style: TextStyle(
+                          color: Color(0xFF36ADA3),
+                          fontWeight: FontWeight.w900,
                           fontSize: 10,
-                          letterSpacing: 1)),
+                          letterSpacing: 1.2)),
                 ],
               ),
         subtitle: sellerMode
             ? 'Active buyer requests awaiting quotes.'
-            : 'Manage your sourcing requests and get quotes from sellers.',
+            : 'Manage your requests, compare quotes, and source products efficiently.',
         child: BlocBuilder<ResourceCubit, ResourceState>(
           builder: (context, state) {
             final allItems = state.items;
@@ -4997,7 +4997,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: JaxColors.outlineVariant),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           child: Row(
                             children: [
@@ -5005,21 +5005,26 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('YOUR REQUESTS',
-                                        style: JaxText.label.copyWith(
-                                            fontSize: 10,
-                                            color: JaxColors.onSurfaceVariant)),
+                                    const Text('YOUR REQUESTS',
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                            letterSpacing: 0.5)),
                                     const SizedBox(height: 4),
                                     Text('${allItems.length}',
-                                        style:
-                                            JaxText.h2.copyWith(fontSize: 22)),
+                                        style: const TextStyle(
+                                            fontFamily: JaxText.heading,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFF0F172A))),
                                   ],
                                 ),
                               ),
                               Container(
                                   width: 1,
-                                  height: 36,
-                                  color: JaxColors.outlineVariant),
+                                  height: 32,
+                                  color: const Color(0xFFE2E8F0)),
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.only(left: 14),
@@ -5027,15 +5032,19 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('QUOTES RECEIVED',
-                                          style: JaxText.label.copyWith(
-                                              fontSize: 10,
-                                              color:
-                                                  JaxColors.onSurfaceVariant)),
+                                      const Text('QUOTES RECEIVED',
+                                          style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              letterSpacing: 0.5)),
                                       const SizedBox(height: 4),
                                       Text('$quotesCount',
-                                          style: JaxText.h2
-                                              .copyWith(fontSize: 22)),
+                                          style: const TextStyle(
+                                              fontFamily: JaxText.heading,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w900,
+                                              color: Color(0xFF2563EB))),
                                     ],
                                   ),
                                 ),
@@ -5044,21 +5053,29 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: JaxColors.primaryContainer,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 14),
-                          elevation: 0,
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.hovered) ||
+                                states.contains(WidgetState.pressed)) {
+                              return const Color(0xFF232F72); // Blue / Navy on hover or tap
+                            }
+                            return const Color(0xFF10B981); // Emerald Teal green base
+                          }),
+                          foregroundColor: WidgetStateProperty.all(Colors.white),
+                          elevation: WidgetStateProperty.all(0),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          ),
                         ),
                         icon: const Icon(Icons.add_rounded, size: 18),
                         label: const Text('New Request',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600)),
+                                fontSize: 12, fontWeight: FontWeight.bold)),
                         onPressed: () => context.push('/rfq/create'),
                       ),
                     ],
@@ -5067,7 +5084,6 @@ class _RfqListScreenState extends State<RfqListScreen> {
 
                 // ── Tabs + Search ─────────────────────────────────────────
                 if (sellerMode)
-                  // For seller mode, try to fit search and tabs in a wrap to match the requested layout
                   Wrap(
                     spacing: 12,
                     runSpacing: 12,
@@ -5092,7 +5108,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _search = v),
                           decoration: InputDecoration(
-                            hintText: 'Search keywords...',
+                            hintText: 'Search requests...',
                             hintStyle: JaxText.bodySmall
                                 .copyWith(color: JaxColors.onSurfaceVariant),
                             prefixIcon:
@@ -5101,12 +5117,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 const EdgeInsets.symmetric(vertical: 8),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                     color: JaxColors.outlineVariant,
                                     width: 0.5)),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                     color: JaxColors.outlineVariant,
                                     width: 0.5)),
                           ),
@@ -5148,20 +5164,18 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                     horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
                                   color: selected
-                                      ? const Color(0xFF1E1B4B)
-                                      : Colors
-                                          .transparent, // Primary dark indigo
+                                      ? const Color(0xFF0F172A)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   tab,
-                                  style: JaxText.label.copyWith(
+                                  style: TextStyle(
                                     fontSize: 10,
                                     letterSpacing: 0.5,
                                     color: selected
                                         ? Colors.white
-                                        : JaxColors.onSurfaceVariant
-                                            .withValues(alpha: .6),
+                                        : Colors.grey.shade600,
                                     fontWeight: selected
                                         ? FontWeight.w800
                                         : FontWeight.w700,
@@ -5178,75 +5192,80 @@ class _RfqListScreenState extends State<RfqListScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Tabs
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: JaxColors.surfaceLow,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: JaxColors.outlineVariant),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: _currentTabs.map((tab) {
-                              final selected = _tab == tab;
-                              return GestureDetector(
-                                onTap: () => setState(() => _tab = tab),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 180),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 7),
-                                  decoration: BoxDecoration(
-                                    color: selected
-                                        ? JaxColors.primaryContainer
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    tab,
-                                    style: JaxText.label.copyWith(
-                                      fontSize: 12,
+                      Row(
+                        children: [
+                          // Status Tabs
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: _currentTabs.map((tab) {
+                                final selected = _tab == tab;
+                                return GestureDetector(
+                                  onTap: () => setState(() => _tab = tab),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 7),
+                                    decoration: BoxDecoration(
                                       color: selected
-                                          ? Colors.white
-                                          : JaxColors.onSurfaceVariant,
-                                      fontWeight: selected
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
+                                          ? const Color(0xFF0F172A)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      tab,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: selected
+                                            ? Colors.white
+                                            : Colors.grey.shade600,
+                                        fontWeight: selected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      // Search
+                      const SizedBox(height: 10),
+                      // Search Bar
                       SizedBox(
                         height: 42,
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _search = v),
+                          style: const TextStyle(fontSize: 13),
                           decoration: InputDecoration(
                             hintText: 'Search requests...',
-                            hintStyle: JaxText.bodySmall
-                                .copyWith(color: JaxColors.onSurfaceVariant),
-                            prefixIcon:
-                                const Icon(Icons.search_rounded, size: 18),
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 8),
+                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                            prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.grey),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            filled: true,
+                            fillColor: Colors.white,
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                    color: JaxColors.outlineVariant)),
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
 
                 // ── Results / Empty state ─────────────────────────────────
                 if (state.status == ResourceStatus.loading && !state.hasData)
@@ -5293,121 +5312,213 @@ class _RfqListScreenState extends State<RfqListScreen> {
 
                 const SizedBox(height: 20),
 
-                // ── Tips card ─────────────────────────────────────────────
-                if (!sellerMode)
-                  JaxCard(
+                // ── Pro Tips & Trust Safety Cards ─────────────────────────
+                if (!sellerMode) ...[
+                  // Pro Tips Dark Navy Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color:
-                                    JaxColors.secondary.withValues(alpha: .15),
-                                borderRadius: BorderRadius.circular(6),
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
                               ),
-                              child: Text('TIPS',
-                                  style: JaxText.label.copyWith(
-                                      fontSize: 10,
-                                      color: JaxColors.secondaryDark)),
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'PRO TIPS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF10B981),
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          'Detailed requests with quantities and budgets get up to 40% more quotes.',
-                          style: JaxText.bodyMedium.copyWith(
-                              color: JaxColors.onSurfaceVariant, height: 1.5),
+                        const Text(
+                          'Detailed requests with specific quantities and target budgets receive up to 40% more quotes.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFE2E8F0),
+                            height: 1.5,
+                          ),
                         ),
                         const SizedBox(height: 14),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: JaxColors.primaryContainer,
-                            borderRadius: BorderRadius.circular(10),
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFF334155)),
                           ),
                           child: Row(
                             children: [
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('SELLERS ONLINE',
-                                      style: JaxText.label.copyWith(
-                                          fontSize: 10, color: Colors.white70)),
-                                  const SizedBox(height: 3),
-                                  Text('8,204 Suppliers',
-                                      style: JaxText.title.copyWith(
-                                          color: Colors.white, fontSize: 15)),
+                                children: const [
+                                  Text(
+                                    'LIVE NETWORK',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF94A3B8),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    '8,204 Suppliers',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const Spacer(),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                    color:
-                                        JaxColors.success.withValues(alpha: .2),
-                                    borderRadius: BorderRadius.circular(20)),
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                                 child: Row(
                                   children: [
                                     Container(
-                                        width: 7,
-                                        height: 7,
-                                        decoration: const BoxDecoration(
-                                            color: JaxColors.success,
-                                            shape: BoxShape.circle)),
-                                    const SizedBox(width: 5),
-                                    Text('Online',
-                                        style: JaxText.label.copyWith(
-                                            color: JaxColors.success,
-                                            fontSize: 11)),
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF10B981),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Text(
+                                      'Online',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 14),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Trust & Safety White Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
-                          children: [
-                            const Icon(Icons.verified_user_rounded,
-                                color: JaxColors.secondary, size: 18),
-                            const SizedBox(width: 8),
-                            Text('TRUST & SAFETY',
-                                style: JaxText.label.copyWith(
-                                    fontSize: 12,
-                                    color: JaxColors.primaryContainer)),
+                          children: const [
+                            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 16),
+                            SizedBox(width: 6),
+                            Text(
+                              'TRUST & SAFETY',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0F172A),
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Quotes come from verified suppliers with full profiles.',
-                          style: JaxText.bodySmall
-                              .copyWith(color: JaxColors.onSurfaceVariant),
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.shield_outlined, color: Color(0xFF0F172A), size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Quotes only come from verified suppliers with audited business profiles.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                        OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: JaxColors.primaryContainer,
-                            side: const BorderSide(
-                                color: JaxColors.outlineVariant),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                            minimumSize: const Size(double.infinity, 38),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 40,
+                          child: OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF0F172A),
+                              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'HOW ESCROW WORKS',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
-                          child: Text('HOW ESCROW WORKS',
-                              style: JaxText.label.copyWith(
-                                  fontSize: 12,
-                                  color: JaxColors.primaryContainer)),
                         ),
                       ],
                     ),
                   ),
+                ],
               ],
             );
           },
@@ -5424,41 +5535,87 @@ class _EmptyRequests extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return JaxCard(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_rounded, size: 56, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text('NO REQUESTS YET',
-                style: JaxText.h3.copyWith(letterSpacing: 0.5)),
-            const SizedBox(height: 8),
-            Text(
-              'Post a new request to start getting quotes from verified sellers.',
-              textAlign: TextAlign.center,
-              style: JaxText.bodySmall
-                  .copyWith(color: JaxColors.onSurfaceVariant, height: 1.5),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 64,
+            width: 64,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            OutlinedButton(
+            child: const Icon(Icons.inbox_outlined, size: 30, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'NO REQUESTS FOUND',
+            style: TextStyle(
+              fontFamily: JaxText.heading,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F172A),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'You haven\'t posted any sourcing requests in this category yet.\nStart getting quotes from verified sellers today.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              color: Color(0xFF64748B),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 42,
+            child: ElevatedButton(
               onPressed: onPost,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: JaxColors.primaryContainer,
-                side: const BorderSide(
-                    color: JaxColors.primaryContainer, width: 1.2),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.hovered) ||
+                      states.contains(WidgetState.pressed)) {
+                    return const Color(0xFF10B981); // Green on hover/tap
+                  }
+                  return const Color(0xFF232F72); // Dark Navy Blue base
+                }),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
+                elevation: WidgetStateProperty.all(2),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(horizontal: 28),
+                ),
               ),
-              child: Text('Post a Request',
-                  style: JaxText.label.copyWith(
-                      color: JaxColors.primaryContainer, fontSize: 13)),
+              child: const Text(
+                'POST A REQUEST',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

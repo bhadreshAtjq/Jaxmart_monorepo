@@ -9,6 +9,8 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname || 'localhost';
+    config.baseURL = `http://${hostname}:4000/api`;
     const token = localStorage.getItem('access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }

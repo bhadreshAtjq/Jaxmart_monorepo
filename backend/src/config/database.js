@@ -1,9 +1,13 @@
 const { PrismaClient } = require('@prisma/client');
 const { logger } = require('../utils/logger');
 
+const rawUrl = process.env.DATABASE_URL || '';
+// Seamlessly map '@postgres:' hostname to '@localhost:' on Windows host machine
+const activeDbUrl = rawUrl.replace('@postgres:', '@localhost:');
+
 const basePrisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  datasources: { db: { url: process.env.DATABASE_URL } },
+  datasources: { db: { url: activeDbUrl } },
 });
 
 // Advanced Resiliency Extension: Automatically retries transient cloud proxy errors
@@ -20,7 +24,7 @@ const prisma = basePrisma.$extends({
           lastError = error;
           // Retry on P1001 (Can't reach DB), P2024 (Pool Timeout), or P2028 (Transaction Expired)
           const isTransient = ['P1001', 'P2024', 'P2028'].includes(error.code);
-          
+
           if (isTransient && attempt < MAX_RETRIES) {
             const delay = attempt * 500; // Fast retry: 500ms, 1000ms
             logger.warn(`Data Layer: Transient ${error.code} detected during ${operation}. Retrying in ${delay}ms... (Attempt ${attempt}/${MAX_RETRIES})`);

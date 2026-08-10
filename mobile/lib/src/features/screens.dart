@@ -1476,11 +1476,7 @@ class HomeScreen extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Live B2B Feed Marquee Banner
-                  const LiveB2bFeedBanner(),
-                  const SizedBox(height: 14),
-
-                  // 2. Category Filter Bar (Markets & Industries)
+                  // 1. Category Filter Bar (Markets & Industries)
                   CategoryFilterBar(categories: categoriesList),
                   const SizedBox(height: 14),
 
@@ -2215,73 +2211,51 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
         children: [
           Row(
             children: [
-              Image.asset(
-                'assets/images/JaxMart_bg.png',
-                height: 30,
-                width: 88,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Text(
-                  'JaxMart',
-                  style: TextStyle(
-                    fontFamily: 'SourceSans3',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: JaxColors.primary,
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _tab = 'products'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: _tab == 'products' ? JaxGradients.primary : null,
+                      color: _tab == 'products' ? null : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'PRODUCTS',
+                      style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: _tab == 'products' ? Colors.white : Colors.grey.shade700,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _tab = 'products'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: _tab == 'products' ? JaxGradients.primary : null,
-                            color: _tab == 'products' ? null : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'PRODUCTS',
-                            style: TextStyle(
-                              fontFamily: JaxText.heading,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: _tab == 'products' ? Colors.white : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
+                child: GestureDetector(
+                  onTap: () => setState(() => _tab = 'suppliers'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: _tab == 'suppliers' ? JaxGradients.primary : null,
+                      color: _tab == 'suppliers' ? null : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'SUPPLIERS',
+                      style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: _tab == 'suppliers' ? Colors.white : Colors.grey.shade700,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _tab = 'suppliers'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: _tab == 'suppliers' ? JaxGradients.primary : null,
-                            color: _tab == 'suppliers' ? null : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'SUPPLIERS',
-                            style: TextStyle(
-                              fontFamily: JaxText.heading,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: _tab == 'suppliers' ? Colors.white : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],

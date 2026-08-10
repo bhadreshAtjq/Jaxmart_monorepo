@@ -131,11 +131,14 @@ enum PriceType {
   RANGE
 }
 enum PaymentStatus {
+  CREATED
   PENDING
+  SUCCESS
   PAID
   PARTIALLY_PAID
   FAILED
   REFUNDED
+  CANCELLED
 }enum NotificationType {
   RFQ_MATCH
   RFQ_INVITED
@@ -242,6 +245,7 @@ model User {
   subscription    Subscription?
   invoices        SubscriptionInvoice[]
   depositReceipts DepositReceipt[]
+  payments        Payment[]
 
   @@index([kycStatus])
   @@index([userType])
@@ -894,24 +898,31 @@ model OrderItem {
 
 // NEW: Payment records (supports partial payments, installments)
 model Payment {
-  id               String        @id @default(uuid())
-  orderId          String
-  milestoneId      String?
-  amount           Float
-  currency         String        @default("INR")
-  status           PaymentStatus @default(PENDING)
-  razorpayPaymentId String?
-  razorpayOrderId   String?
-  method           String?       // "upi", "netbanking", "card"
-  gatewayResponse  Json?
-  paidAt           DateTime?
-  failedAt         DateTime?
-  failureReason    String?
-  createdAt        DateTime      @default(now())
+  id                String        @id @default(uuid())
+  userId            String?
+  orderId           String?
+  milestoneId       String?
+  amount            Float
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?       @unique
+  signature         String?
+  paymentMethod     String?       // "upi", "netbanking", "card"
+  failureReason     String?
+  metadata          Json?
+  gatewayResponse   Json?
+  paidAt            DateTime?
+  failedAt          DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt @default(now())
 
-  order     Order      @relation(fields: [orderId], references: [id])
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order             Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
   @@index([orderId])
+  @@index([status])
   @@map("payments")
 }
 

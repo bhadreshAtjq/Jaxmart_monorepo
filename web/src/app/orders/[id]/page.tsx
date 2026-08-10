@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   FaArrowLeft, FaFileLines, FaBox, FaUser, 
-  FaCircleCheck, FaLandmark, FaTruck, FaTriangleExclamation
+  FaCircleCheck, FaLandmark, FaTruck, FaTriangleExclamation, FaCreditCard
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { RazorpayCheckoutModal } from '@/components/payments/RazorpayCheckoutModal';
 import { useOrder, useSignContract, useSubmitMilestone, useApproveMilestone, revalidate } from '@/lib/hooks';
 import { Card, Badge, Avatar, Button, SectionHeader, Container, OrderDetailSkeleton } from '@/components/ui';
 import { useAuthStore } from '@/lib/store';
@@ -24,6 +25,7 @@ export default function OrderDetailPage() {
   const { trigger: submitMilestone } = useSubmitMilestone(id as string, '');
   const { trigger: approveMilestone } = useApproveMilestone(id as string, '');
   const [showInvoice, setShowInvoice] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const isBuyer = user?.id === order?.buyerId;
   const isSeller = user?.id === order?.sellerId;
@@ -67,6 +69,20 @@ export default function OrderDetailPage() {
   return (
     <AppLayout>
       {showInvoice && <InvoiceModal order={order} onClose={() => setShowInvoice(false)} />}
+      <RazorpayCheckoutModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        orderId={order.id}
+        amount={order.totalAmount}
+        currency={order.currency || 'INR'}
+        title={`Order Payment #${order.id.slice(0, 8)}`}
+        description="Escrow payment secured via Razorpay Test Mode"
+        onSuccess={() => {
+          mutate();
+          revalidate.orders();
+          setShowPaymentModal(false);
+        }}
+      />
       <div className="max-w-5xl mx-auto pb-20">
         <button onClick={() => router.push('/orders')} className="flex items-center gap-2 text-sm text-gray-400 hover:text-jax-dark mb-6 transition-colors font-heading font-medium">
           <FaArrowLeft className="h-3.5 w-3.5" /> Back to Orders
@@ -192,6 +208,12 @@ export default function OrderDetailPage() {
               ) : (
                  <Button fullWidth variant="outline" className="h-12 border-gray-200 text-gray-400 font-black text-[10px] uppercase tracking-widest cursor-default">
                     <FaCircleCheck className="mr-2 text-emerald-500" /> Contract Executed
+                 </Button>
+              )}
+
+              {isBuyer && order.paymentStatus !== 'PAID' && (
+                 <Button fullWidth onClick={() => setShowPaymentModal(true)} className="mt-3 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                    <FaCreditCard className="h-4 w-4" /> Pay ₹{order.totalAmount?.toLocaleString('en-IN')} via Razorpay
                  </Button>
               )}
               

@@ -143,7 +143,10 @@ export const orderApi = {
 // ── Payments ──────────────────────────────────────────────────────────────────
 export const paymentApi = {
   createOrder: (orderId: string) => api.post('/payments/create-order', { orderId }),
-  verify: (data: any) => api.post('/payments/verify', data),
+  createRazorpayOrder: (data: { amount: number; currency?: string; description?: string; notes?: any; orderId?: string }) =>
+    api.post('/payments/razorpay/order', data),
+  verify: (data: any) => api.post('/payments/razorpay/verify', data),
+  getHistory: () => api.get('/payments/history'),
   getBalance: () => api.get('/payments/seller/balance'),
 };
 

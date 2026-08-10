@@ -10,6 +10,7 @@ const { logger } = require('./utils/logger');
 const { prisma } = require('./config/database');
 const { redis } = require('./config/redis');
 const socketHandler = require('./services/socketService');
+const { validateRazorpayConfig } = require('./services/razorpayService');
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -95,8 +96,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
+// Body parsing with rawBody capture for webhook signature verification
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Basic process health check
@@ -167,6 +173,9 @@ const { setupGraphQL } = require('./graphql');
 
 const startServer = async () => {
   try {
+    // Validate Razorpay configuration
+    validateRazorpayConfig();
+
     // Set up GraphQL endpoint before the 404 handler
     await setupGraphQL(app);
 

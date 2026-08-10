@@ -307,7 +307,28 @@ class _AppShellState extends State<AppShell> {
                           ),
                           _buildProfileAvatarButton(context, auth),
                         ]
-                        else
+                        else ...[
+                          GestureDetector(
+                            onTap: () => context.go('/home'),
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Image.asset(
+                                'assets/images/JaxMart_bg.png',
+                                height: 28,
+                                width: 80,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Text(
+                                  'JaxMart',
+                                  style: TextStyle(
+                                    fontFamily: 'SourceSans3',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: JaxColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           Expanded(
                             child: Container(
                               height: 40,
@@ -354,6 +375,7 @@ class _AppShellState extends State<AppShell> {
                               ),
                             ),
                           ),
+                        ],
                         if (isSeller && !isSellerView && MediaQuery.of(context).size.width > 600) ...[
                           const SizedBox(width: 8),
                           ModeSwitcher(isSellerView: isSellerView),

@@ -1467,68 +1467,649 @@ class HomeScreen extends StatelessWidget {
             onRetry: () => context
                 .read<ResourceCubit>()
                 .load(() => apiOf(context).searchListings({'limit': 12})),
-            builder: (_) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const HeroSearchCard(),
-                const SizedBox(height: 18),
-                EventCarousel(events: asList(state.data['events'])),
-                const SizedBox(height: 18),
-                const InstantRfqCard(),
-                const SizedBox(height: 22),
-                SectionTitle(
-                    title: 'Premium Bulk Listings',
-                    actionText: 'Browse All Products',
-                    action: () => context.push('/search')),
-                const SizedBox(height: 12),
-                ...asList(state.data['featured']).take(6).map((item) {
-                  final catName = categoryName(item).toLowerCase();
-                  final title = textOf(item['title']).toLowerCase();
-                  final hideTrust = const [
-                        'industrial registration',
-                        'electronics',
-                        'industrial textiles',
-                      ].contains(catName) ||
-                      const [
-                        'industrial registration',
-                        'electronics',
-                        'industrial textiles',
-                      ].contains(title);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ListingTile(
-                      item: item,
-                      hideTrustScore: hideTrust,
-                    ),
-                  );
-                }),
-                const SizedBox(height: 18),
-                const SectionTitle(title: 'Browse Markets & Industries'),
-                const SizedBox(height: 12),
-                CategoryGrid(categories: asList(state.data['categories'])),
-                if (asList(state.data['rfqs']).isNotEmpty) ...[
+            builder: (_) {
+              final featuredListings = asList(state.data['featured']);
+              final categoriesList = asList(state.data['categories']);
+              final eventsList = asList(state.data['events']);
+              final rfqsList = asList(state.data['rfqs']);
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Live B2B Feed Marquee Banner
+                  const LiveB2bFeedBanner(),
+                  const SizedBox(height: 14),
+
+                  // 2. Category Filter Bar (Markets & Industries)
+                  CategoryFilterBar(categories: categoriesList),
+                  const SizedBox(height: 14),
+
+                  // 3. Hero Tabbed Search Card with Logo
+                  const HeroSearchCard(),
+                  const SizedBox(height: 18),
+
+                  // 4. Global Events Carousel
+                  EventCarousel(events: eventsList),
+                  const SizedBox(height: 18),
+
+                  // 5. Instant RFQ Card
+                  const InstantRfqCard(),
+                  const SizedBox(height: 22),
+
+                  // 6. AI Sourcing Banner ("All tasks in one ask, smart sourcing with AI")
+                  const AiSmartSourcingCard(),
                   const SizedBox(height: 24),
+
+                  // 7. Premium Bulk Listings Grid
                   SectionTitle(
-                      title: 'Active RFQ Requests',
-                      action: () => context.push('/rfq')),
+                      title: '🔥 Premium Bulk Listings',
+                      actionText: 'Browse All',
+                      action: () => context.push('/search')),
                   const SizedBox(height: 12),
-                  ...asList(state.data['rfqs']).take(4).map((item) => Padding(
+                  ...featuredListings.take(6).map((item) {
+                    final catName = categoryName(item).toLowerCase();
+                    final title = textOf(item['title']).toLowerCase();
+                    final hideTrust = const [
+                          'industrial registration',
+                          'electronics',
+                          'industrial textiles',
+                        ].contains(catName) ||
+                        const [
+                          'industrial registration',
+                          'electronics',
+                          'industrial textiles',
+                        ].contains(title);
+                    return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: RfqTile(
-                          item: item,
-                          sellerMode: true,
-                          showMaxBudgetOnly: true))),
+                      child: ListingTile(
+                        item: item,
+                        hideTrustScore: hideTrust,
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 18),
+
+                  // 8. Account Records & Top Factories Card
+                  AccountRecordsAndFactoriesCard(listings: featuredListings),
+                  const SizedBox(height: 22),
+
+                  // 9. Product Collections (New Products, Most Popular, Amazon's Choice, Low MOQ, OEM)
+                  ProductCollectionsCard(listings: featuredListings),
+                  const SizedBox(height: 22),
+
+                  // 10. Browse Markets & Industries Grid
+                  const SectionTitle(title: 'Browse Markets & Industries'),
+                  const SizedBox(height: 12),
+                  CategoryGrid(categories: categoriesList),
+
+                  // 11. Active RFQ Requests
+                  if (rfqsList.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    SectionTitle(
+                        title: 'Active RFQ Requests',
+                        actionText: 'View All',
+                        action: () => context.push('/rfq')),
+                    const SizedBox(height: 12),
+                    ...rfqsList.take(4).map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: RfqTile(
+                            item: item,
+                            sellerMode: true,
+                            showMaxBudgetOnly: true))),
+                  ],
+                  const SizedBox(height: 24),
+
+                  // 12. Escrow Info & Trade Safety
+                  const EscrowInfoCard(),
+                  const SizedBox(height: 24),
+                  const SupplierJoinCard(),
+                  const SizedBox(height: 24),
+                  const TradeSafetyFooter(),
                 ],
-                const SizedBox(height: 24),
-                const EscrowInfoCard(),
-                const SizedBox(height: 24),
-                FeaturedFactoriesCard(listings: asList(state.data['featured'])),
-                const SizedBox(height: 24),
-                const SupplierJoinCard(),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LiveB2bFeedBanner extends StatefulWidget {
+  const LiveB2bFeedBanner({super.key});
+
+  @override
+  State<LiveB2bFeedBanner> createState() => _LiveB2bFeedBannerState();
+}
+
+class _LiveB2bFeedBannerState extends State<LiveB2bFeedBanner> {
+  static const _feeds = [
+    "Buyer from Delhi placed bulk order of Monocrystalline Solar Panels",
+    "RFQ posted: Need 10,000 meters Organic Combed Cotton Yarn - Chennai",
+    "Supplier Swastik Industries Pvt Ltd got verified under GSTIN & PAN",
+    "Order Shipped: 5 Metric Tons TMT Steel Rebar to Mumbai Construction site",
+    "RFQ posted: Heavy Duty Centrifugal Water Pumps (25 units) - Hyderabad",
+    "Buyer from Pune verified transaction via JaxMart Escrow Protection",
+  ];
+
+  int _feedIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted) {
+        setState(() => _feedIndex = (_feedIndex + 1) % _feeds.length);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFDCFCE7)),
+      ),
+      child: Row(
+        children: [
+          const Text('🔥', style: TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFBBF7D0),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Text(
+              'LIVE B2B FEED',
+              style: TextStyle(
+                fontFamily: JaxText.heading,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF166534),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              child: Text(
+                _feeds[_feedIndex],
+                key: ValueKey<int>(_feedIndex),
+                style: const TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF14532D),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => context.push('/rfq'),
+            child: const Icon(
+              Icons.arrow_forward_rounded,
+              size: 14,
+              color: Color(0xFF166534),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CategoryFilterBar extends StatelessWidget {
+  const CategoryFilterBar({required this.categories, super.key});
+  final List<JsonMap> categories;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.apps_rounded, size: 16, color: JaxColors.primary),
+            const SizedBox(width: 6),
+            Text(
+              'MARKETS & INDUSTRIES',
+              style: JaxText.label.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: JaxColors.primaryContainer,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: categories.map((cat) {
+              final name = textOf(cat['name']);
+              final id = textOf(cat['id']);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(name),
+                  labelStyle: const TextStyle(
+                    fontFamily: JaxText.body,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: JaxColors.primaryContainer,
+                  ),
+                  backgroundColor: const Color(0xFFF8FAFC),
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  onSelected: (_) {
+                    context.push('/search?category=$id');
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class AiSmartSourcingCard extends StatefulWidget {
+  const AiSmartSourcingCard({super.key});
+
+  @override
+  State<AiSmartSourcingCard> createState() => _AiSmartSourcingCardState();
+}
+
+class _AiSmartSourcingCardState extends State<AiSmartSourcingCard> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF0FDFA), Color(0xFFEFF6FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFCCFBF1)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D9488).withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: RichText(
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                    ),
+                    children: [
+                      TextSpan(text: 'All tasks in one ask, '),
+                      TextSpan(
+                        text: 'smart sourcing with AI',
+                        style: TextStyle(color: Color(0xFF0D9488)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF99F6E4), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      hintText: "Describe your sourcing needs e.g. 'I need 500 meters stainless steel pipe...'",
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 11),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    final txt = _controller.text.trim();
+                    if (txt.isNotEmpty) {
+                      context.push('/rfq/create?title=${Uri.encodeComponent(txt)}');
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 16),
+                  ),
+                ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class AccountRecordsAndFactoriesCard extends StatelessWidget {
+  const AccountRecordsAndFactoriesCard({required this.listings, super.key});
+  final List<JsonMap> listings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFDBEAFE)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ACCOUNT RECORDS',
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1E40AF),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _recordItem(Icons.verified_user_rounded, 'Verified', '100% Audit'),
+                  _recordItem(Icons.local_shipping_rounded, 'Fast Delivery', 'Global Ship'),
+                  _recordItem(Icons.security_rounded, 'Escrow Safe', 'Protected'),
+                ],
+              ),
+            ],
+          ),
         ),
+        const SizedBox(height: 14),
+        FeaturedFactoriesCard(listings: listings),
+      ],
+    );
+  }
+
+  Widget _recordItem(IconData icon, String title, String subtitle) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF2563EB)),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontFamily: JaxText.heading,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontFamily: JaxText.body,
+                fontSize: 9,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class ProductCollectionsCard extends StatefulWidget {
+  const ProductCollectionsCard({required this.listings, super.key});
+  final List<JsonMap> listings;
+
+  @override
+  State<ProductCollectionsCard> createState() => _ProductCollectionsCardState();
+}
+
+class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
+  String _activeTab = 'New Products';
+  static const _tabs = [
+    'New Products',
+    'Most Popular',
+    'Amazon\'s Choice',
+    'Low MOQ',
+    'OEM Products',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.listings.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _tabs.map((tab) {
+              final isSel = tab == _activeTab;
+              return GestureDetector(
+                onTap: () => setState(() => _activeTab = tab),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSel ? JaxColors.primaryContainer : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    tab,
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isSel ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.listings.length,
+            itemBuilder: (context, idx) {
+              final item = widget.listings[idx];
+              final img = textOf(item['images'] != null && asList(item['images']).isNotEmpty
+                  ? asList(item['images'])[0]
+                  : null);
+              return GestureDetector(
+                onTap: () => context.push('/listings/${item['id']}'),
+                child: Container(
+                  width: 140,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          height: 90,
+                          width: double.infinity,
+                          color: Colors.grey.shade100,
+                          child: img.isNotEmpty
+                              ? Image.network(img, fit: BoxFit.cover)
+                              : const Icon(Icons.image_rounded, color: Colors.grey),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        textOf(item['title']),
+                        style: const TextStyle(
+                          fontFamily: JaxText.heading,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: JaxColors.onSurface,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      Text(
+                        '₹${item['price'] ?? 'POA'}',
+                        style: const TextStyle(
+                          fontFamily: JaxText.heading,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: JaxColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class TradeSafetyFooter extends StatelessWidget {
+  const TradeSafetyFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Image.asset(
+                'assets/images/JaxMart_bg.png',
+                height: 24,
+                width: 70,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Text(
+                  'JaxMart',
+                  style: TextStyle(
+                    fontFamily: 'SourceSans3',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              const Text(
+                'Global B2B Sourcing Platform',
+                style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 10,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Connecting verified manufacturers, suppliers, and bulk buyers across India & international markets with Escrow protection.',
+            style: TextStyle(
+              fontFamily: JaxText.body,
+              fontSize: 11,
+              color: Colors.grey.shade400,
+              height: 1.4,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1632,42 +2213,165 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SegmentedButton<String>(
-            style: SegmentedButton.styleFrom(
-              backgroundColor: Colors.white,
-              selectedBackgroundColor: JaxColors.primary,
-              foregroundColor: JaxColors.onSurfaceVariant,
-              selectedForegroundColor: Colors.white,
-              side: const BorderSide(color: Color(0xFFE5E7EB)),
-              textStyle:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-            segments: const [
-              ButtonSegment(
-                  value: 'products',
-                  label: Text('Products'),
-                  icon: Icon(Icons.category_rounded)),
-              ButtonSegment(
-                  value: 'suppliers',
-                  label: Text('Suppliers'),
-                  icon: Icon(Icons.factory_rounded)),
+          Row(
+            children: [
+              Image.asset(
+                'assets/images/JaxMart_bg.png',
+                height: 26,
+                width: 75,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Text(
+                  'JaxMart',
+                  style: TextStyle(
+                    fontFamily: 'SourceSans3',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: JaxColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _tab = 'products'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: _tab == 'products' ? JaxGradients.primary : null,
+                            color: _tab == 'products' ? null : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'PRODUCTS',
+                            style: TextStyle(
+                              fontFamily: JaxText.heading,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: _tab == 'products' ? Colors.white : Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _tab = 'suppliers'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: _tab == 'suppliers' ? JaxGradients.primary : null,
+                            color: _tab == 'suppliers' ? null : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'SUPPLIERS',
+                            style: TextStyle(
+                              fontFamily: JaxText.heading,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: _tab == 'suppliers' ? Colors.white : Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-            selected: {_tab},
-            onSelectionChanged: (value) => setState(() => _tab = value.first),
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: _query,
-            decoration: InputDecoration(
-              hintText: _tab == 'products'
-                  ? 'Search products, HSN codes, brands...'
-                  : 'Search factories, suppliers, GSTIN...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: IconButton(
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                  onPressed: _go),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: JaxColors.secondary, width: 1.5),
             ),
-            onSubmitted: (_) => _go(),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _query,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: _tab == 'products'
+                          ? 'Enter keywords, HSN codes, or brands...'
+                          : 'Search verified factories, GSTIN...',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => _go(),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _go,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: const BoxDecoration(
+                      gradient: JaxGradients.primary,
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(6),
+                        bottomRight: Radius.circular(6),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.search_rounded, color: Colors.white, size: 16),
+                        SizedBox(width: 4),
+                        Text(
+                          'SEARCH',
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Hot Searches:',
+                style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              ...['Solar Panels', 'TMT Steel', 'Cotton Yarn', 'Hydraulic Pumps'].map(
+                (term) => GestureDetector(
+                  onTap: () => context.push('/search?q=${Uri.encodeComponent(term)}'),
+                  child: Text(
+                    term,
+                    style: const TextStyle(
+                      fontFamily: JaxText.body,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: JaxColors.secondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -150,25 +150,34 @@ export default function HomePage() {
 
               {/* Tabbed B2B Search Container */}
               <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between h-[136px] shrink-0">
-                <div className="flex gap-2 border-b border-gray-100 pb-1.5">
-                  <button
-                    onClick={() => setSearchTab('products')}
-                    className={clsx(
-                      "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
-                      searchTab === 'products' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
-                    )}
-                  >
-                    Products
-                  </button>
-                  <button
-                    onClick={() => setSearchTab('suppliers')}
-                    className={clsx(
-                      "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
-                      searchTab === 'suppliers' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
-                    )}
-                  >
-                    Suppliers
-                  </button>
+                <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/JaxMart_bg.png"
+                      alt="JaxMart"
+                      className="h-6 w-auto object-contain shrink-0"
+                    />
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => setSearchTab('products')}
+                        className={clsx(
+                          "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
+                          searchTab === 'products' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
+                        )}
+                      >
+                        Products
+                      </button>
+                      <button
+                        onClick={() => setSearchTab('suppliers')}
+                        className={clsx(
+                          "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300",
+                          searchTab === 'suppliers' ? "bg-gradient-to-r from-[#232F72] to-[#2F578A] text-white" : "text-gray-500 hover:text-gray-900"
+                        )}
+                      >
+                        Suppliers
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex border-2 border-jungle-green-500 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-jungle-green-500/20 mt-2 shrink-0">

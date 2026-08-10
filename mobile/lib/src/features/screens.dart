@@ -2217,8 +2217,8 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
             children: [
               Image.asset(
                 'assets/images/JaxMart_bg.png',
-                height: 26,
-                width: 75,
+                height: 30,
+                width: 88,
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const Text(
                   'JaxMart',

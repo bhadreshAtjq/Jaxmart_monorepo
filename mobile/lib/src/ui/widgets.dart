@@ -314,8 +314,8 @@ class _AppShellState extends State<AppShell> {
                               padding: const EdgeInsets.only(right: 8),
                               child: Image.asset(
                                 'assets/images/JaxMart_bg.png',
-                                height: 28,
-                                width: 80,
+                                height: 32,
+                                width: 90,
                                 fit: BoxFit.contain,
                                 errorBuilder: (_, __, ___) => const Text(
                                   'JaxMart',

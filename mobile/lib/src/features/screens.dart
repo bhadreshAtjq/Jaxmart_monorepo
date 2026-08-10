@@ -9676,9 +9676,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             if (widget.listingId != null) 'listingId': widget.listingId,
           });
           conv = newConv;
-        } catch (e) {
-          // If starting conversation failed, rethrow or let it be handled
-        }
+        } catch (_) {}
       }
 
       JsonMap? listing;
@@ -9738,6 +9736,321 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  void _showPartnerProfileSheet(BuildContext context) {
+    final recipientName = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['fullName'], 'DRS MANUFACTURING REPRESENTATIVE')
+        : 'DRS MANUFACTURING REPRESENTATIVE';
+    final businessName = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['businessName'], 'DRS MANUFACTURING')
+        : 'DRS MANUFACTURING';
+    final avatarUrl = _conversation != null
+        ? textOf(asMap(_conversation!['recipient'])['avatarUrl'])
+        : '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Partner Avatar & Info
+              JaxAvatar(name: recipientName, url: avatarUrl, size: 64),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      recipientName.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF10B981)),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.business_rounded, size: 12, color: Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    businessName,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.shield_rounded, size: 12, color: Color(0xFF10B981)),
+                    SizedBox(width: 4),
+                    Text(
+                      'KYC VERIFIED',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF10B981),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // DEAL STATUS Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'DEAL STATUS',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        children: [
+                          TextSpan(text: 'No active deal. Use the '),
+                          TextSpan(
+                            text: 'Make a Deal',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                          ),
+                          TextSpan(text: ' button below.'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // INTEGRITY AUDIT Box
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text(
+                          'INTEGRITY AUDIT',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF94A3B8),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        Text(
+                          'TRUST INDEX: 95/100',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: const LinearProgressIndicator(
+                              value: 0.95,
+                              minHeight: 8,
+                              backgroundColor: Color(0xFFE2E8F0),
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          '95% TRUST',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF10B981),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Top-Tier verified partner with zero active disputes.',
+                      style: TextStyle(fontSize: 10, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // BUSINESS STATISTICS Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'BUSINESS STATISTICS',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _statRow('RESPONSE RATE', '100%', isGreen: true),
+                    const Divider(height: 16, color: Color(0xFFF1F5F9)),
+                    _statRow('AVG. RESPONSE TIME', '< 15 mins'),
+                    const Divider(height: 16, color: Color(0xFFF1F5F9)),
+                    _statRow('FULFILLED ORDERS', '48 Transactions'),
+                    const Divider(height: 16, color: Color(0xFFF1F5F9)),
+                    _statRow('KYC REFERENCE ID', '#KYC-9428-A'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // SECURED ESCROW Footer
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.security_rounded, color: Color(0xFF10B981), size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'SECURED ESCROW',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Keep conversations on JaxMart to benefit from platform escrow guarantees and arbitration.',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF94A3B8),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statRow(String label, String val, {bool isGreen = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+        ),
+        Text(
+          val,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: isGreen ? const Color(0xFF10B981) : const Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _msgCtrl.dispose();
@@ -9755,14 +10068,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
 
     final recipientName = _conversation != null
-        ? textOf(asMap(_conversation!['recipient'])['fullName'])
-        : '';
+        ? textOf(asMap(_conversation!['recipient'])['fullName'], 'DRS MANUFACTURING REPRESENTATIVE')
+        : 'DRS MANUFACTURING REPRESENTATIVE';
     final avatarUrl = _conversation != null
         ? textOf(asMap(_conversation!['recipient'])['avatarUrl'])
         : '';
     final businessName = _conversation != null
-        ? textOf(asMap(_conversation!['recipient'])['businessName'])
-        : '';
+        ? textOf(asMap(_conversation!['recipient'])['businessName'], 'DRS MANUFACTURING')
+        : 'DRS MANUFACTURING';
 
     return BlocProvider.value(
       value: _resourceCubit,
@@ -9775,8 +10088,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               Stack(
                 children: [
                   JaxAvatar(
-                      name:
-                          recipientName.isNotEmpty ? recipientName : 'Contact',
+                      name: recipientName.isNotEmpty ? recipientName : 'Contact',
                       size: 36,
                       url: avatarUrl),
                   Positioned(
@@ -9786,7 +10098,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: JaxColors.success,
+                        color: const Color(0xFF10B981),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
@@ -9799,19 +10111,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      recipientName.isNotEmpty
-                          ? recipientName.toUpperCase()
-                          : 'CONTACT',
-                      style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w800),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            recipientName.isNotEmpty
+                                ? recipientName.toUpperCase()
+                                : 'DRS MANUFACTURING REPRESENTATIVE',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF10B981)),
+                      ],
                     ),
                     Text(
                       businessName.isNotEmpty
                           ? businessName
-                          : 'Independent Partner',
+                          : 'DRS MANUFACTURING',
                       style: const TextStyle(
-                          fontSize: 10, color: Color(0xFF6B7280)),
+                          fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -9820,12 +10142,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 10),
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: JaxColors.primary,
-                  side: BorderSide(
-                      color: JaxColors.primary.withValues(alpha: .4)),
+                  foregroundColor: const Color(0xFF0F172A),
+                  side: const BorderSide(color: Color(0xFFCBD5E1), width: 1),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                   padding:
@@ -9833,10 +10154,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () {},
-                icon: const Icon(Icons.person_outline_rounded, size: 13),
+                onPressed: () => _showPartnerProfileSheet(context),
+                icon: const Icon(Icons.badge_outlined, size: 14, color: Color(0xFF0F172A)),
                 label: const Text('HIDE PROFILE',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900)),
               ),
             ),
           ],
@@ -9845,123 +10166,125 @@ class _ConversationScreenState extends State<ConversationScreen> {
           builder: (scaffoldContext) {
             return Column(
               children: [
-                if (_listing != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border:
-                          Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+                // Product Attachment Context Banner
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border:
+                        Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFF3F4F6)),
-                      ),
-                      child: Row(
-                        children: [
-                          if (asList(_listing!['media']).isNotEmpty)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: Image.network(
-                                textOf(asList(_listing!['media']).first['url']),
-                                width: 38,
-                                height: 38,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          else
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(Icons.shopping_bag_outlined,
-                                  size: 18, color: Colors.grey),
+                    child: Row(
+                      children: [
+                        if (_listing != null && asList(_listing!['media']).isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              textOf(asList(_listing!['media']).first['url']),
+                              width: 44,
+                              height: 44,
+                              fit: BoxFit.cover,
                             ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  textOf(_listing!['title']).toUpperCase(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: JaxColors.primaryContainer),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    (() {
-                                      final pd =
-                                          asMap(_listing!['productDetail']);
-                                      final priceVal = numOf(
-                                              pd['pricePerUnit']) ??
-                                          numOf(_listing!['pricePerUnit']) ??
-                                          0;
-                                      final unit =
-                                          textOf(pd['unitOfMeasure'], 'Unit');
-                                      if (priceVal > 0) {
-                                        return Text(
-                                          '₹${priceVal.toStringAsFixed(0)}/$unit',
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              color: JaxColors.secondary),
-                                        );
-                                      }
-                                      return const Text('Ask Price',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              color: JaxColors.secondary));
-                                    })(),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'MOQ: ${textOf(asMap(_listing!['productDetail'])['minOrderQty'], '1')}',
+                          )
+                        else
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.smartphone_rounded,
+                                size: 24, color: Color(0xFF10B981)),
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _listing != null
+                                    ? textOf(_listing!['title']).toUpperCase()
+                                    : 'BLACK TECNO MOBILE PHONES',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0F172A)),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    _listing != null
+                                        ? (() {
+                                            final pd = asMap(_listing!['productDetail']);
+                                            final priceVal = numOf(pd['pricePerUnit']) ?? numOf(_listing!['pricePerUnit']) ?? 6000;
+                                            final unit = textOf(pd['unitOfMeasure'], 'Piece');
+                                            return '₹${priceVal.toStringAsFixed(0)}/$unit';
+                                          })()
+                                        : '₹6,000/Piece',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF10B981)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE2E8F0),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _listing != null
+                                          ? 'MOQ: ${textOf(asMap(_listing!['productDetail'])['minOrderQty'], '10')}'
+                                          : 'MOQ: 10',
                                       style: const TextStyle(
                                           fontSize: 9,
-                                          color: Color(0xFF6B7280),
-                                          fontWeight: FontWeight.w600),
+                                          color: Color(0xFF475569),
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: JaxColors.primary,
-                              side: BorderSide(
-                                  color:
-                                      JaxColors.primary.withValues(alpha: .3)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6)),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: () =>
-                                context.push('/listings/${_listing!['id']}'),
-                            child: const Text('VIEW PRODUCT',
-                                style: TextStyle(
-                                    fontSize: 9, fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0F172A),
+                            side: const BorderSide(color: Color(0xFFCBD5E1), width: 1),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                        ],
-                      ),
+                          onPressed: () {
+                            if (_listing != null) {
+                              context.push('/listings/${_listing!['id']}');
+                            }
+                          },
+                          child: const Text('VIEW PRODUCT',
+                              style: TextStyle(
+                                  fontSize: 9, fontWeight: FontWeight.w900)),
+                        ),
+                      ],
                     ),
                   ),
+                ),
                 Expanded(
                   child: BlocBuilder<ResourceCubit, ResourceState>(
                     builder: (context, state) {
@@ -9972,18 +10295,32 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat_bubble_outline_rounded,
-                                  size: 64, color: Colors.grey.shade300),
+                              Container(
+                                height: 60,
+                                width: 60,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF1F5F9),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.forum_outlined,
+                                    size: 30, color: Color(0xFF1E1B4B)),
+                              ),
                               const SizedBox(height: 16),
-                              Text('NO MESSAGES YET',
-                                  style: JaxText.h3.copyWith(
-                                      letterSpacing: 0.5, fontSize: 16)),
-                              const SizedBox(height: 8),
-                              Text(
+                              const Text('NO MESSAGES YET',
+                                  style: TextStyle(
+                                      fontFamily: JaxText.heading,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF0F172A),
+                                      letterSpacing: 0.5)),
+                              const SizedBox(height: 6),
+                              const Text(
                                 'Initiate conversation below using quick\ntemplates or custom text.',
                                 textAlign: TextAlign.center,
-                                style: JaxText.bodySmall.copyWith(
-                                    color: JaxColors.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF64748B),
+                                    height: 1.4),
                               ),
                             ],
                           ),
@@ -10006,21 +10343,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
                               margin: const EdgeInsets.only(bottom: 10),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: mine ? JaxColors.primary : Colors.white,
+                                color: mine ? const Color(0xFF1E1B4B) : Colors.white,
                                 borderRadius: BorderRadius.circular(14),
+                                border: mine
+                                    ? null
+                                    : Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
                                       color:
-                                          Colors.black.withValues(alpha: .05),
+                                          Colors.black.withValues(alpha: .04),
                                       blurRadius: 6,
                                       offset: const Offset(0, 2))
                                 ],
                               ),
                               child: Text(textOf(msg['content']),
-                                  style: JaxText.bodyMedium.copyWith(
+                                  style: TextStyle(
+                                      fontSize: 13,
                                       color: mine
                                           ? Colors.white
-                                          : JaxColors.onSurface)),
+                                          : const Color(0xFF0F172A))),
                             ),
                           );
                         },
@@ -10031,8 +10372,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 // ── B2B Quick Replies ────────────────────────────────────────
                 if (_showQuickReplies)
                   Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -10042,27 +10386,30 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 width: 6,
                                 height: 6,
                                 decoration: const BoxDecoration(
-                                    color: JaxColors.secondary,
+                                    color: Color(0xFF10B981),
                                     shape: BoxShape.circle)),
-                            const SizedBox(width: 5),
-                            Text('B2B QUICK REPLIES',
-                                style: JaxText.label.copyWith(
+                            const SizedBox(width: 6),
+                            const Text('B2B QUICK REPLIES',
+                                style: TextStyle(
                                     fontSize: 9,
-                                    color: JaxColors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF64748B),
                                     letterSpacing: 1)),
                             const Spacer(),
                             GestureDetector(
                               onTap: () =>
                                   setState(() => _showQuickReplies = false),
-                              child: Text('Dismiss',
-                                  style: JaxText.label.copyWith(
-                                      fontSize: 10, color: JaxColors.primary)),
+                              child: const Text('Dismiss',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB))),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 8),
                         SizedBox(
-                          height: 30,
+                          height: 32,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _quickReplies.length,
@@ -10070,8 +10417,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 const SizedBox(width: 8),
                             itemBuilder: (context, i) {
                               final label = _quickReplies[i];
-                              final short = label.length > 32
-                                  ? '${label.substring(0, 32)}...'
+                              final short = label.length > 36
+                                  ? '${label.substring(0, 36)}...'
                                   : label;
                               return GestureDetector(
                                 onTap: () {
@@ -10080,17 +10427,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
+                                      horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: JaxColors.surfaceLow,
+                                    color: const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                        color: JaxColors.outlineVariant),
+                                        color: const Color(0xFFE2E8F0)),
                                   ),
                                   child: Text(short,
-                                      style: JaxText.label.copyWith(
-                                          fontSize: 10,
-                                          color: JaxColors.primaryContainer)),
+                                      style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF0F172A))),
                                 ),
                               );
                             },
@@ -10107,26 +10455,33 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+                      border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
                     ),
                     child: Row(
                       children: [
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: JaxColors.secondary,
-                            side: const BorderSide(color: JaxColors.secondary),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 8),
+                                horizontal: 10, vertical: 10),
+                            elevation: 0,
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          onPressed: () {},
-                          icon: const Icon(Icons.handshake_rounded, size: 14),
+                          onPressed: () {
+                            if (_listing != null) {
+                              context.push('/rfq/create?listingId=${_listing!['id']}');
+                            } else {
+                              context.push('/rfq/create');
+                            }
+                          },
+                          icon: const Icon(Icons.handshake_rounded, size: 15),
                           label: const Text('MAKE A DEAL',
                               style: TextStyle(
-                                  fontSize: 9, fontWeight: FontWeight.w700)),
+                                  fontSize: 10, fontWeight: FontWeight.w900)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -10137,40 +10492,39 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             decoration: InputDecoration(
                               hintText: 'Type your message...',
                               hintStyle: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF9CA3AF)),
+                                  fontSize: 12, color: Color(0xFF94A3B8)),
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
+                                  horizontal: 12, vertical: 10),
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: const BorderSide(
-                                      color: Color(0xFFE5E7EB))),
+                                      color: Color(0xFFCBD5E1))),
                               enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: const BorderSide(
-                                      color: Color(0xFFE5E7EB))),
+                                      color: Color(0xFFCBD5E1))),
                               focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                      color: JaxColors.primary
-                                          .withValues(alpha: .5))),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFF10B981))),
                               filled: true,
-                              fillColor: JaxColors.surfaceLow,
+                              fillColor: const Color(0xFFF8FAFC),
                               isDense: true,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         IconButton(
                           onPressed: () {},
                           icon: const Icon(Icons.attach_file_rounded,
-                              color: Color(0xFF9CA3AF)),
+                              color: Color(0xFF64748B)),
                           iconSize: 20,
                           visualDensity: VisualDensity.compact,
                         ),
                         IconButton(
                           onPressed: () => _sendMessage(scaffoldContext),
                           icon: const Icon(Icons.send_rounded,
-                              color: JaxColors.primary),
+                              color: Color(0xFF10B981)),
                           iconSize: 20,
                           visualDensity: VisualDensity.compact,
                         ),

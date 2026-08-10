@@ -1,236 +1,329 @@
+const fs = require('fs');
+const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Starting optimized bulk data seeding (300 products + 15 sellers)...');
+// Helper to calculate a stable hash code for string mapping
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  return hash;
+}
 
-  // 1. Fetch categories to link
-  const categories = await prisma.category.findMany();
-  if (categories.length === 0) {
-    console.error('❌ No categories found. Please run regular seeding first.');
+// Track phone numbers and emails to avoid DB unique constraint failures
+const companyPhoneMap = new Map();
+const sellerPhoneIdMap = new Map(); // Global map of phone -> id
+const companyEmailMap = new Map();
+
+function getUniquePhoneForCompany(companyName, contact) {
+  if (companyPhoneMap.has(companyName)) {
+    return companyPhoneMap.get(companyName);
+  }
+
+  let basePhone = '';
+  if (contact && contact !== 'NA' && contact !== '-' && contact.trim().length > 0) {
+    const digits = contact.replace(/\D/g, '');
+    if (digits.length >= 10) {
+      basePhone = '91' + digits.slice(-10);
+    }
+  }
+
+  if (!basePhone) {
+    const hash = Math.abs(hashCode(companyName)).toString().padEnd(10, '0').slice(0, 10);
+    basePhone = '91' + hash;
+  }
+
+  let finalPhone = basePhone;
+  let attempt = 0;
+  while (sellerPhoneIdMap.has(finalPhone)) {
+    attempt++;
+    const suffix = attempt.toString();
+    finalPhone = basePhone.slice(0, -suffix.length) + suffix;
+  }
+
+  companyPhoneMap.set(companyName, finalPhone);
+  return finalPhone;
+}
+
+function getUniqueEmailForCompany(companyName, emailField, phone) {
+  if (companyEmailMap.has(companyName)) {
+    return companyEmailMap.get(companyName);
+  }
+
+  let baseEmail = '';
+  if (emailField && emailField !== 'NA' && emailField !== '-' && emailField.includes('@')) {
+    baseEmail = emailField.trim().toLowerCase();
+  } else {
+    const cleanComp = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    baseEmail = `contact@${cleanComp || 'unknown'}.com`;
+  }
+
+  const parts = baseEmail.split('@');
+  const cleanPhone = phone.replace(/\D/g, '').slice(-6);
+  const finalEmail = `${parts[0]}_${cleanPhone}@${parts[1]}`;
+
+  companyEmailMap.set(companyName, finalEmail);
+  return finalEmail;
+}
+
+// Robust CSV Line parser to handle fields containing commas in quotes
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// Parse Price string to decimal value
+function parsePrice(priceStr) {
+  if (!priceStr || priceStr.toLowerCase().includes('ask') || priceStr.includes('-') || priceStr.toLowerCase().includes('n/a')) {
+    return { priceType: 'ON_REQUEST', pricePerUnit: null };
+  }
+  const digits = priceStr.replace(/[^0-9.]/g, '');
+  const parsed = parseFloat(digits);
+  if (!isNaN(parsed) && parsed > 0) {
+    return { priceType: 'FIXED', pricePerUnit: parsed };
+  }
+  return { priceType: 'ON_REQUEST', pricePerUnit: null };
+}
+
+// Parse MOQ / Unit of measure
+function parseUnitOfMeasure(moqStr) {
+  if (!moqStr || moqStr === 'N/A' || moqStr === '-') {
+    return 'Piece';
+  }
+  const cleanStr = moqStr.toLowerCase();
+  if (cleanStr.includes('piece')) return 'Piece';
+  if (cleanStr.includes('meter')) return 'Meter';
+  if (cleanStr.includes('box')) return 'Box';
+  if (cleanStr.includes('kg')) return 'Kg';
+  return 'Piece';
+}
+
+async function main() {
+  console.log('🌱 Starting optimized import of Textile CSV products...');
+
+  const csvPath = path.join(__dirname, '..', 'textiles_products (2) - textiles_products (2).csv.csv');
+  if (!fs.existsSync(csvPath)) {
+    console.error(`❌ CSV File not found at path: ${csvPath}`);
     process.exit(1);
   }
 
-  // 2. Define 15 premium mock sellers/companies
-  const companyNames = [
-    'Apex Industrial Solutions',
-    'Bharat Steel & Alloys',
-    'Deccan Textiles Ltd',
-    'Gujarat Polymers & Chemicals',
-    'Indo-Aryan Engineering',
-    'Konkan Agro Processing',
-    'Mundra Logistics & Sourcing',
-    'Narmada Electronics',
-    'Panipat Weavers Coop',
-    'Sahyadri Hardware & Tools',
-    'Vindhya Solar Tech',
-    'Ganges Paper & Packaging',
-    'Malabar Spices & Goods',
-    'Yamuna Metal Castings',
-    'Coromandel Marine Supplies'
-  ];
+  console.log(`📖 Loading CSV from: ${csvPath}`);
+  const content = fs.readFileSync(csvPath, 'utf-8');
+  const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
 
-  const sellers = [];
-  for (let i = 0; i < companyNames.length; i++) {
-    const name = companyNames[i];
-    const phone = `91987654321${i.toString(16)}`; // Unique phone
-    const email = `contact@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+  if (lines.length <= 1) {
+    console.error('❌ Empty CSV file or header only.');
+    process.exit(1);
+  }
 
-    // Clean up existing listings for this seller if any to avoid duplicates
-    const existingUser = await prisma.user.findUnique({
-      where: { phone },
-      include: { listings: true }
-    });
+  const headers = parseCSVLine(lines[0]);
+  console.log(`📊 Found ${lines.length - 1} rows with headers:`, headers.join(', '));
 
-    if (existingUser) {
-      console.log(`🧹 Cleaning old listings for ${name}...`);
-      await prisma.listing.deleteMany({
-        where: { sellerId: existingUser.id }
-      });
-    }
-
-    const seller = await prisma.user.upsert({
-      where: { phone },
-      update: {},
-      create: {
-        phone,
-        fullName: `${name} Representative`,
-        email,
-        userType: 'SELLER',
-        accountType: 'BUSINESS',
-        kycStatus: 'VERIFIED',
-        businessProfile: {
-          create: {
-            businessName: name,
-            gstin: `29${Math.random().toString(36).substring(2, 12).toUpperCase()}1Z5`,
-            description: `Leading supplier of premium B2B products. Specializing in ${name.split(' ')[1]} and bulk export operations across global markets.`,
-          }
-        }
+  // 1. Setup Category root ("Textiles")
+  let rootTextiles = await prisma.category.findUnique({ where: { slug: 'textiles' } });
+  if (!rootTextiles) {
+    rootTextiles = await prisma.category.create({
+      data: {
+        name: 'Textiles',
+        slug: 'textiles',
+        applicableType: 'PRODUCT',
+        depthLevel: 1,
+        isActive: true
       }
     });
-    sellers.push(seller);
   }
-  console.log(`✅ Seeded/Cleaned ${sellers.length} mock sellers/companies`);
 
-  // 3. Define product templates and images by category
-  const unsplashImages = {
-    'industrial-supplies': [
-      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1537462715879-360eeb61a0bc?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800'
-    ],
-    'electronics': [
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1601524909162-be87252be298?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1562408590-e32931084e23?auto=format&fit=crop&q=80&w=800'
-    ],
-    'construction': [
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&q=80&w=800'
-    ],
-    'textiles': [
-      'https://images.unsplash.com/photo-1528476513691-07e6f563d97f?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1545048702-79362596cdc9?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1606744824163-985d376605aa?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1576016770956-debb63d900ce?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1551244072-5d12893278ab?auto=format&fit=crop&q=80&w=800'
-    ],
-    'services': [
-      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1521791136368-1a869372658b?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800'
-    ]
-  };
+  // 2. Pre-load all Categories and Sellers into memory to optimize round-trips
+  console.log('🔍 Pre-loading categories and sellers for in-memory cache...');
 
-  const productNamesByCategory = {
-    'industrial-supplies': [
-      'Hydraulic Control Valve', 'Pneumatic Actuator', 'Industrial Gearbox 5HP',
-      'Stainless Steel Flange', 'Electric Induction Motor', 'High-Pressure Hose Reel',
-      'Laser Alignment System', 'Heavy Duty Caster Wheels', 'CNC Milling Tool Holder',
-      'Precision Pressure Gauge', 'Industrial Ventilation Fan', 'Automatic Lubrication Pump',
-      'Tungsten Carbide Drill Bit', 'Welding Transformer 400A', 'Thermal Imaging Camera'
-    ],
-    'electronics': [
-      'Monocrystalline Solar Panel 400W', 'Lithium LiFePO4 Battery Pack', 'Industrial PCB Controller',
-      'Step-Down Voltage Regulator', 'LED Driver Waterproof 150W', 'Ethernet Switch Gigabit 24-Port',
-      'Digital Signal Processor', 'AC-DC Power Supply 24V', 'Uninterruptible Power Supply (UPS)',
-      'Solid State Relay 40A', 'Brushless DC Motor Controller', 'Modbus Gateway RTU',
-      'Fiber Optic Transceiver', 'Flexible Flat Cable (FFC)', 'High-Frequency Inductor Coils'
-    ],
-    'construction': [
-      'Reinforced Steel Rebar TMT 500D', 'Portland Cement Grade 53', 'Precast Concrete Blocks',
-      'High-Tensile Structural Beams', 'Waterproof Membrane Rolls', 'Scaffolding Couplers Steel',
-      'Acoustic Ceiling Tiles', 'Toughened Safety Glass Sheets', 'Geotextile Drainage Fabric',
-      'Epoxy Floor Coating kit', 'Drywall Gypsum Boards', 'Asphalt Shingle Tiles',
-      'PVC Conduit Pipe Bulk', 'Heavy Duty Expansion Bolts', 'Aluminum Window Extrusions'
-    ],
-    'textiles': [
-      'Organic Combed Cotton Yarn', 'Polyester Spun Sewing Thread', 'Bleached Cotton Canvas Fabric',
-      'Denim Fabric Roll 12oz', 'Rayon Viscose Filament Yarn', 'Nylon Taffeta Fabric',
-      'Knitted Rib Fabric Spandex', 'Jacquard Weave Fabric', 'Recycled Polyester Fiber',
-      'Woolen Felt Sheets', 'Embroidered Lace Border Rolls', 'Elastic Waistband Bands',
-      'Pure Silk Yarn Skeins', 'Microfiber Towel Fabric', 'Linen Blend Fabric Weave'
-    ],
-    'services': [
-      'ISO 9001 Auditing & Certification', 'Custom Software Development', 'Industrial Design & Prototyping',
-      'Supply Chain Logistics Consulting', 'Corporate Tax Advisory Services', 'Environmental Impact Assessment',
-      'B2B Digital Marketing Campaign', 'Translation & Localization Service', 'Warehouse Management Setup',
-      'Patent Drafting & Filing Services', 'UI/UX Design Consultation', 'Corporate Team Building Events',
-      'Customs Brokerage & Clearance', 'Renewable Energy Feasibility Study', 'Cybersecurity Vulnerability Audit'
-    ]
-  };
+  const categoryIdMap = new Map();
+  const allCategories = await prisma.category.findMany({ select: { id: true, slug: true } });
+  for (const c of allCategories) {
+    categoryIdMap.set(c.slug, c.id);
+  }
 
-  // Build the list of all listings to create
-  const listingsToCreate = [];
+  const allUsers = await prisma.user.findMany({
+    where: { userType: 'SELLER' },
+    select: { id: true, phone: true }
+  });
+  for (const u of allUsers) {
+    sellerPhoneIdMap.set(u.phone, u.id);
+  }
 
-  for (let sIndex = 0; sIndex < sellers.length; sIndex++) {
-    const seller = sellers[sIndex];
-
-    for (let pIndex = 0; pIndex < 20; pIndex++) {
-      const category = categories[pIndex % categories.length];
-      const categorySlug = category.slug;
-
-      const nameList = productNamesByCategory[categorySlug] || productNamesByCategory['industrial-supplies'];
-      const baseName = nameList[pIndex % nameList.length];
-
-      const title = `${baseName} - Batch #${sIndex * 20 + pIndex + 1}`;
-      const imageList = unsplashImages[categorySlug] || unsplashImages['industrial-supplies'];
-      const image = imageList[pIndex % imageList.length];
-
-      const minQty = Math.floor(Math.random() * 50) + 10;
-      const price = Math.floor(Math.random() * 1500) + 50;
-
-      const modelNum = `JM-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const description = `### Product Information
-- **Brand Name**: OEM/ODM
-- **Model Number**: ${modelNum}
-- **Place of Origin**: India
-- **Min. Order Quantity**: ${minQty} UNIT
-- **Supply Ability**: 50,000 UNIT per Month
-- **Delivery Time**: 15 days after payment confirmed
-- **Packaging Details**: Standard export carton / Custom packaging available
-- **Payment Terms**: T/T, L/C, Escrow via JaxMart
-- **FOB Port**: Mundra / Nhava Sheva, India
-- **Small Orders**: Accepted
-
-### Key Specifications / Special Features
-- **Material**: 100% Organic Cotton / Polyester blend / Industrial grade alloys
-- **Weight**: 180-240 GSM / Standard Industrial Weight
-- **Customization**: Custom dyeing, printing & labeling / Engineering customization
-- **Packaging**: Standard roll packing / Box packing
-
-### Product Description
-Premium quality ${baseName.toLowerCase()} manufactured in state-of-the-art facilities in India. Perfect for wholesale procurement, factories, and global export buyers.
-
-### Shipping Information
-- **FOB Port**: Mundra / Nhava Sheva
-- **Lead Time**: 15 days
-- **Express**: Air freight available
-- **Packaging**: Export carton + custom branding
-
-### Main Export Markets
-- **South & East Asia**: 65%
-- **Middle East & Africa**: 15%
-- **Western Europe**: 10%
-- **North America**: 7%
-- **Others**: 3%`;
-
-      listingsToCreate.push({
-        title,
-        description,
-        listingType: 'PRODUCT',
-        status: 'ACTIVE',
-        sellerId: seller.id,
-        categoryId: category.id,
-        image,
-        productDetail: {
-          brand: 'OEM/ODM',
-          sku: `${modelNum}-${sIndex}-${pIndex}`,
-          unitOfMeasure: 'UNIT',
-          minOrderQty: minQty,
-          pricePerUnit: price,
-          stockAvailable: true,
-        }
-      });
+  const sellerIdMap = new Map();
+  const sellersWithProfiles = await prisma.user.findMany({
+    where: { userType: 'SELLER' },
+    include: { businessProfile: true }
+  });
+  for (const s of sellersWithProfiles) {
+    if (s.businessProfile) {
+      sellerIdMap.set(s.businessProfile.businessName, s.id);
     }
   }
 
-  // Create listings concurrently in batches of 20 to avoid database connection exhaustion
-  const batchSize = 25;
-  console.log(`🚀 Bulk inserting ${listingsToCreate.length} listings in batches of ${batchSize}...`);
+  const listingsToCreate = [];
+  const uniqueListingKeys = new Set();
+
+  console.log('🔄 Parsing CSV rows & resolving relations in-memory...');
+  for (let idx = 1; idx < lines.length; idx++) {
+    const row = parseCSVLine(lines[idx]);
+    if (row.length < 10) continue;
+
+    const categoryName = row[0];
+    const subcategoryName = row[1];
+    const productName = row[3];
+    const companyName = row[4];
+    const priceStr = row[5];
+    const moqStr = row[6];
+    const contact = row[7];
+    const emailField = row[8];
+    const website = row[9];
+    const location = row[10];
+    const imageUrl = row[13];
+    const productDesc = row[15] || productName;
+
+    if (!productName || !companyName) continue;
+
+    const listingKey = `${productName.toLowerCase()}_${companyName.toLowerCase()}`;
+    if (uniqueListingKeys.has(listingKey)) continue;
+    uniqueListingKeys.add(listingKey);
+
+    // Resolve Category Level 2
+    const subCatSlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    let subCatId = categoryIdMap.get(subCatSlug);
+    if (!subCatId) {
+      const subCat = await prisma.category.create({
+        data: {
+          name: categoryName,
+          slug: subCatSlug,
+          parentId: rootTextiles.id,
+          applicableType: 'PRODUCT',
+          depthLevel: 2,
+          isActive: true
+        }
+      });
+      subCatId = subCat.id;
+      categoryIdMap.set(subCatSlug, subCatId);
+    }
+
+    // Resolve Category Level 3
+    const leafCatSlug = subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    let leafCatId = categoryIdMap.get(leafCatSlug);
+    if (!leafCatId) {
+      const leafCat = await prisma.category.create({
+        data: {
+          name: subcategoryName,
+          slug: leafCatSlug,
+          parentId: subCatId,
+          applicableType: 'PRODUCT',
+          depthLevel: 3,
+          isActive: true
+        }
+      });
+      leafCatId = leafCat.id;
+      categoryIdMap.set(leafCatSlug, leafCatId);
+    }
+
+    // Resolve Seller
+    let sellerId = sellerIdMap.get(companyName);
+    if (!sellerId) {
+      const phone = getUniquePhoneForCompany(companyName, contact);
+      const email = getUniqueEmailForCompany(companyName, emailField, phone);
+
+      if (!sellerPhoneIdMap.has(phone)) {
+        const dbUser = await prisma.user.create({
+          data: {
+            phone,
+            fullName: `${companyName} Representative`,
+            email,
+            userType: 'SELLER',
+            accountType: 'BUSINESS',
+            kycStatus: 'VERIFIED',
+            businessProfile: {
+              create: {
+                businessName: companyName,
+                website: website !== 'NA' ? website : null,
+                description: `Verified wholesale B2B supplier of quality textile and apparel goods based in ${location}.`,
+                gstin: `29${Math.random().toString(36).substring(2, 12).toUpperCase()}1Z5`,
+              }
+            },
+            addresses: {
+              create: {
+                addressType: 'PRIMARY',
+                line1: location || 'India',
+                city: location || 'India',
+                state: 'Gujarat',
+                pincode: '360001',
+                country: 'India',
+                isPrimary: true
+              }
+            }
+          }
+        });
+        sellerId = dbUser.id;
+        sellerPhoneIdMap.set(phone, sellerId);
+      } else {
+        sellerId = sellerPhoneIdMap.get(phone);
+      }
+      sellerIdMap.set(companyName, sellerId);
+    }
+
+    const { priceType, pricePerUnit } = parsePrice(priceStr);
+    const unitOfMeasure = parseUnitOfMeasure(moqStr);
+    const modelNum = `JM-TXT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    listingsToCreate.push({
+      title: productName,
+      description: productDesc,
+      listingType: 'PRODUCT',
+      status: 'ACTIVE',
+      sellerId,
+      categoryId: leafCatId,
+      image: imageUrl && imageUrl !== 'NA' ? imageUrl : 'https://images.unsplash.com/photo-1528476513691-07e6f563d97f?auto=format&fit=crop&q=80&w=800',
+      productDetail: {
+        brand: companyName,
+        sku: `${modelNum}-${idx}`,
+        unitOfMeasure,
+        minOrderQty: 10,
+        priceType,
+        pricePerUnit,
+        stockAvailable: true,
+      }
+    });
+  }
+
+  console.log(`✅ Loaded and parsed ${listingsToCreate.length} unique B2B textile products.`);
+
+  // 3. Batch Create listings
+  const batchSize = 30;
+  console.log(`🚀 Inserting ${listingsToCreate.length} listings in database in batches of ${batchSize}...`);
 
   for (let i = 0; i < listingsToCreate.length; i += batchSize) {
     const batch = listingsToCreate.slice(i, i + batchSize);
-    console.log(`⚡ Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(listingsToCreate.length / batchSize)}...`);
+    console.log(`⚡ Inserting batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(listingsToCreate.length / batchSize)}...`);
 
     await Promise.all(
       batch.map((p) =>
@@ -257,11 +350,11 @@ Premium quality ${baseName.toLowerCase()} manufactured in state-of-the-art facil
     );
   }
 
-  console.log(`\n🎉 Successfully seeded ${listingsToCreate.length} B2B products across 15 bulk companies!`);
+  console.log(`\n🎉 Import completed successfully! Added ${listingsToCreate.length} textile products.`);
   process.exit(0);
 }
 
 main().catch((e) => {
-  console.error('❌ Seeding failed:', e);
+  console.error('❌ Importing failed:', e);
   process.exit(1);
 });

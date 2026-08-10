@@ -9,43 +9,21 @@ const matchProvidersToRfq = async (rfq) => {
       status: 'ACTIVE',
       listingType: rfq.rfqType,
       categoryId: rfq.categoryId,
-      seller: { isActive: true, kycStatus: 'VERIFIED' },
+      seller: { isActive: true },
     };
 
-    if (rfq.preferredProviderType) {
-      where.serviceDetail = { providerType: rfq.preferredProviderType };
-    }
-
-    if (rfq.locationPreference) {
-      where.OR = [
-        { location: { city: { equals: rfq.locationPreference, mode: 'insensitive' } } },
-        { serviceDetail: { serviceArea: { has: rfq.locationPreference } } },
-      ];
-    }
+    // Removed location and provider type filters to match ALL sellers with the same product
 
     const candidates = await prisma.listing.findMany({
       where,
       include: {
         seller: { select: { id: true, trustScore: true } },
         serviceDetail: { select: { capacitySlots: true } },
-      },
-      take: 50,
+      }
     });
 
-    // Score candidates
-    const scored = candidates.map((listing) => {
-      let score = 0;
-      score += (listing.seller.trustScore / 100) * 40;
-      score += listing.avgRating * 10;
-      if (listing.isFeatured) score += 15;
-      if (listing.enquiryCount > 10) score += 5;
-      return { listing, score };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-    const top10 = scored.slice(0, 10);
-
-    const sellerIds = [...new Set(top10.map(s => s.listing.sellerId))];
+    // Extract unique seller IDs from all matching candidates
+    const sellerIds = [...new Set(candidates.map(c => c.sellerId))];
 
     // Notify matched sellers
     await Promise.all(

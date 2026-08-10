@@ -368,23 +368,27 @@ function InboxContent() {
   return (
     <PublicLayout>
       {/* Dynamic Sub-header Navigation */}
-      <div className="hidden md:block bg-white border-b border-gray-100 py-4 shadow-sm">
-        <Container size="xl" className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
-            <span className="hover:text-jax-blue cursor-pointer transition-colors" onClick={() => router.push('/home')}>Home</span>
+      <div className="hidden md:block bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-slate-800 py-5 shadow-lg relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05] pointer-events-none" />
+        <Container size="xl" className="flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-slate-400">
+            <span className="hover:text-emerald-400 cursor-pointer transition-colors" onClick={() => router.push('/home')}>Home</span>
             <span>/</span>
-            <span className="text-jax-dark font-black uppercase tracking-wider">Negotiation Center</span>
+            <span className="text-white bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-700/50">Negotiation Center</span>
           </div>
 
           <div className="flex items-center gap-2">
             {isConnected ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                Live Connection Active
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.1)]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Secure Socket Active
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
                 Reconnecting Server...
               </span>
             )}
@@ -392,40 +396,49 @@ function InboxContent() {
         </Container>
       </div>
 
-      <Container size="xl" className="!p-0 !max-w-full md:!max-w-7xl md:!px-6 md:py-8 h-[calc(100dvh-96px)] md:h-[750px] flex flex-col">
-        <div className="bg-white border-0 md:border border-gray-100 shadow-none md:shadow-2xl shadow-gray-150/40 rounded-none md:rounded-[32px] flex-1 overflow-hidden flex divide-x divide-gray-100">
-          
+      <Container size="xl" className="!p-0 !max-w-full md:!max-w-[1400px] md:!px-6 md:py-8 h-[calc(100dvh-96px)] md:h-[800px] flex flex-col">
+        <div className="bg-white border-0 md:border border-gray-200/80 shadow-none md:shadow-[0_8px_40px_rgb(0,0,0,0.06)] rounded-none md:rounded-[2rem] flex-1 overflow-hidden flex divide-x divide-gray-100">
+
           {/* 1. Left List Panel (Conversations) */}
           <div className={clsx(
-            "w-full md:w-80 shrink-0 flex flex-col bg-gray-50/50 animate-in fade-in slide-in-from-left-4 duration-200",
+            "w-full md:w-[340px] shrink-0 flex flex-col bg-slate-50/50 animate-in fade-in slide-in-from-left-4 duration-200",
             selectedConv ? "hidden md:flex" : "flex animate-in fade-in duration-200"
           )}>
-            <div className="p-6 border-b border-gray-100 bg-white shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xs font-black text-jax-dark uppercase tracking-[0.15em]">Conversations</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black font-mono text-jax-blue bg-jax-blue/5 px-2 py-0.5 rounded-md">
-                    {filteredConversations.length} Active
-                  </span>
-                  <span className={clsx(
-                    "h-2 w-2 rounded-full",
-                    isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-                  )} title={isConnected ? "Live connection active" : "Reconnecting server..."} />
+            <div className="p-6 border-b border-gray-100 bg-white shrink-0 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-[11px] font-black text-slate-800 tracking-[0.15em] uppercase flex items-center gap-2">
+                    <FaComments className="text-jax-blue h-3.5 w-3.5" />
+                    Conversations
+                  </h2>
+                  <div className="flex items-center gap-2 bg-slate-100 px-2.5 py-1 rounded-full">
+                    <span className="text-[10px] font-black text-slate-600">
+                      {filteredConversations.length}
+                    </span>
+                    <span className={clsx(
+                      "h-1.5 w-1.5 rounded-full",
+                      isConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "bg-amber-500"
+                    )} />
+                  </div>
                 </div>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search partner or company..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-11 pl-10 pr-4 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium outline-none focus:border-jax-blue focus:bg-white transition-all shadow-inner"
-                />
-                <FaMagnifyingGlass className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-gray-400" />
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-jax-accent/20 to-jax-blue/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search partner or company..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200/60 rounded-xl text-xs font-bold outline-none focus:border-jax-accent/50 shadow-sm transition-all placeholder-slate-400 text-slate-800"
+                    />
+                    <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 group-focus-within:text-jax-accent transition-colors" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-gray-50 bg-white/50">
+            <div className="flex-1 overflow-y-auto scrollbar-hide bg-white/80">
               {isLoading ? (
                 Array(4).fill(0).map((_, i) => (
                   <div key={i} className="p-6 space-y-3 bg-white">
@@ -457,47 +470,52 @@ function InboxContent() {
                       key={conv.id}
                       onClick={() => setSelectedConv(conv)}
                       className={clsx(
-                        "p-5 cursor-pointer hover:bg-jax-blue/[0.02] transition-all flex gap-3.5 relative border-l-4",
-                        isSelected 
-                          ? "bg-jax-blue/[0.03] border-jax-blue pl-4 shadow-sm" 
-                          : "border-transparent bg-white"
+                        "p-5 cursor-pointer transition-all flex gap-3.5 relative border-b border-slate-50",
+                        isSelected
+                          ? "bg-jax-blue/[0.03] border-l-4 border-l-jax-blue shadow-sm"
+                          : "border-l-4 border-l-transparent bg-white hover:bg-slate-50/80"
                       )}
                     >
                       <div className="relative shrink-0">
-                        <Avatar name={recipient?.fullName || 'B2B Trade'} size="md" className="rounded-2xl shadow-sm border border-gray-100" />
-                        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+                        <Avatar name={recipient?.fullName || 'B2B Trade'} size="md" className="rounded-2xl shadow-sm border border-slate-200/60" />
+                        {isConnected && (
+                          <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+                        )}
                       </div>
-                      
+
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1 mb-1.5">
-                          <p className="text-[11px] font-black text-jax-dark truncate uppercase tracking-tight flex items-center gap-1">
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <p className="text-xs font-black text-slate-900 truncate uppercase tracking-tight flex items-center gap-1.5">
                             {recipient?.fullName || 'Trade Partner'}
-                            <FaCircleCheck className="h-3 w-3 text-jax-teal shrink-0" />
+                            <FaCircleCheck className="h-3 w-3 text-emerald-500 shrink-0" />
                           </p>
                           {conv.latestMessage && (
-                            <span className="text-[9px] text-gray-400 font-bold shrink-0">
+                            <span className={clsx(
+                              "text-[9px] font-bold shrink-0",
+                              isUnread ? "text-jax-blue" : "text-slate-400"
+                            )}>
                               {new Date(conv.latestMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
                         </div>
 
                         {recipient?.businessName && (
-                          <p className="text-[9px] text-gray-500 font-bold truncate flex items-center gap-1.5 mb-2">
-                            <FaBuilding className="h-3 w-3 text-gray-400 shrink-0" /> 
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider truncate flex items-center gap-1.5 mb-2">
+                            <FaBuilding className="h-3 w-3 text-slate-400 shrink-0" />
                             {recipient.businessName}
                           </p>
                         )}
 
                         <p className={clsx(
-                          "text-xs truncate max-w-full italic",
-                          isUnread ? "text-jax-blue font-bold not-italic" : "text-gray-400 font-medium"
+                          "text-xs truncate max-w-full leading-relaxed",
+                          isUnread ? "text-slate-900 font-bold" : "text-slate-500 font-medium"
                         )}>
                           {conv.latestMessage?.content || 'Negotiation started...'}
                         </p>
                       </div>
 
                       {isUnread && (
-                        <span className="absolute top-5 right-5 h-2.5 w-2.5 rounded-full bg-jax-blue shadow-sm animate-pulse" />
+                        <span className="absolute top-1/2 -translate-y-1/2 right-4 h-2 w-2 rounded-full bg-jax-blue shadow-[0_0_8px_rgba(25,118,210,0.6)] animate-pulse" />
                       )}
                     </div>
                   );
@@ -505,15 +523,15 @@ function InboxContent() {
               )}
             </div>
           </div>
- 
+
           {/* 2. Right Panel (Chat Interface) */}
           <div className={clsx(
             "flex-1 flex bg-white min-w-0 relative animate-in fade-in slide-in-from-right-4 duration-200",
             selectedConv ? "flex animate-in fade-in duration-200" : "hidden md:flex"
           )}>
             {selectedConv ? (
-              <div className="flex-1 flex divide-x divide-gray-100">
-                <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex-1 flex divide-x divide-gray-100 min-w-0 w-full">
+                <div className="flex-1 flex flex-col min-w-0 w-full">
                   {/* Chat Header */}
                   <div className="p-5 border-b border-gray-100 bg-white flex items-center justify-between shrink-0 shadow-sm z-10">
                     <div className="flex items-center gap-3">
@@ -522,58 +540,55 @@ function InboxContent() {
                       </button>
                       <div className="relative">
                         <Avatar name={selectedConv.recipient?.fullName} size="md" className="rounded-2xl shadow-sm border border-gray-150" />
-                        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
                       </div>
                       <div>
-                        <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-[#1A1B41] uppercase tracking-wide flex items-center gap-2">
                           {selectedConv.recipient?.fullName || 'Verified Trade Partner'}
-                          <FaCircleCheck className="h-3.5 w-3.5 text-jax-teal shrink-0" />
+                          <FaCircleCheck className="h-4 w-4 text-emerald-500 shrink-0" />
                           <span className={clsx(
-                            "h-2 w-2 rounded-full ml-0.5",
+                            "h-2 w-2 rounded-full ml-1",
                             isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-ping"
                           )} title={isConnected ? "Connected" : "Reconnecting..."} />
                         </h3>
-                        <p className="text-[9px] text-gray-450 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-1">
-                          <FaBuilding className="text-gray-400 shrink-0" /> 
-                          {selectedConv.recipient?.businessName || 'Business Manufacturer'}
-                        </p>
+                        {showProfilePanel && (
+                          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                            <FaBuilding className="text-gray-400 shrink-0" />
+                            {selectedConv.recipient?.businessName || 'Business Manufacturer'}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* Toggle Profile panel button */}
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setShowProfilePanel(!showProfilePanel)}
-                      className={clsx(
-                        "hidden lg:flex text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-xl items-center gap-2 transition-all",
-                        showProfilePanel 
-                          ? "bg-jax-dark text-white border-jax-dark shadow-md" 
-                          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-                      )}
+                      className="hidden lg:flex text-xs font-black uppercase tracking-wide px-4 py-2.5 rounded-xl items-center gap-2 transition-all bg-[#1A1B41] text-white hover:bg-[#2A2B51] shadow-sm"
                     >
-                      <FaAddressCard className="h-3.5 w-3.5" />
-                      {showProfilePanel ? 'Hide Profile' : 'Show Profile'}
+                      <FaAddressCard className="h-4 w-4" />
+                      {showProfilePanel ? 'HIDE PROFILE' : 'SHOW PROFILE'}
                     </button>
                   </div>
 
                   {/* Product Context Card — Always visible when chat has a listing */}
                   {listingData && (
-                    <div className="border-b border-gray-100 p-2 md:p-3 bg-white shrink-0">
-                      <div className="flex items-center gap-2.5 md:gap-3 bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-100">
+                    <div className="p-4 bg-white shrink-0 flex justify-center border-b border-gray-100">
+                      <div className="flex items-center gap-4 bg-slate-50/80 rounded-2xl p-4 border border-slate-100 shadow-sm w-full">
                         {(listingData.imageUrl || listingData.media?.[0]?.url) && (
-                          <img src={listingData.imageUrl || listingData.media?.[0]?.url} alt="" className="h-9 w-9 md:h-12 md:w-12 rounded-lg object-cover border border-gray-200 shrink-0" />
+                          <img src={listingData.imageUrl || listingData.media?.[0]?.url} alt="" className="h-12 w-12 md:h-14 md:w-14 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" />
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="text-[9px] md:text-[10px] font-black text-jax-dark uppercase tracking-tight truncate">{listingData.title}</p>
-                          <div className="flex items-center gap-2 md:gap-3 mt-0.5">
+                          <p className="text-sm md:text-base font-bold text-[#1A1B41] uppercase tracking-wide truncate">{listingData.title}</p>
+                          <div className="flex items-center gap-3 mt-1">
                             {(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit) && (
-                              <span className="text-[10px] md:text-xs font-black text-emerald-600">₹{(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit)?.toLocaleString('en-IN')}<span className="text-[8px] md:text-[9px] text-gray-400 font-medium">/{listingData.unitOfMeasure || listingData.productDetail?.unitOfMeasure || 'Unit'}</span></span>
+                              <span className="text-sm font-bold text-[#3B9285]">₹{(listingData.pricePerUnit || listingData.productDetail?.pricePerUnit)?.toLocaleString('en-IN')}<span className="text-xs text-slate-400 font-medium">/{listingData.unitOfMeasure || listingData.productDetail?.unitOfMeasure || 'Unit'}</span></span>
                             )}
-                            <span className="text-[8px] md:text-[9px] text-gray-400 font-bold">MOQ: {listingData.minOrderQty || listingData.productDetail?.minOrderQty || 1}</span>
+                            <span className="text-xs text-slate-500 font-semibold bg-white px-2 py-0.5 rounded-md border border-slate-200">MOQ: {listingData.minOrderQty || listingData.productDetail?.minOrderQty || 1}</span>
                           </div>
                         </div>
                         {listingData.id && (
                           <Link href={`/listings/${listingData.id}`}>
-                            <button className="text-[8px] font-black text-jax-blue uppercase tracking-wider px-2 md:px-3 py-1.5 bg-jax-blue/5 rounded-lg border border-jax-blue/10 hover:bg-jax-blue/10 transition-colors whitespace-nowrap">View Product</button>
+                            <button className="text-xs font-bold text-[#1A1B41] uppercase tracking-wide px-4 py-2 bg-white rounded-full border border-[#1A1B41]/20 hover:border-[#1A1B41]/50 hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap">VIEW PRODUCT</button>
                           </Link>
                         )}
                       </div>
@@ -592,18 +607,18 @@ function InboxContent() {
                         <div className="flex items-center gap-2">
                           {activeOrder.status === 'CREATED' && activeOrder.proposerId !== user?.id && (
                             <>
-                              <Button 
-                                onClick={handleSignContract} 
-                                loading={signingDeal} 
-                                variant="success" 
+                              <Button
+                                onClick={handleSignContract}
+                                loading={signingDeal}
+                                variant="success"
                                 className="h-8 px-4 text-[9px] font-black uppercase tracking-wider rounded-lg border-none shadow-sm"
                               >
                                 Accept & Sign
                               </Button>
-                              <Button 
-                                onClick={handleRejectContract} 
-                                loading={rejectingDeal} 
-                                variant="danger" 
+                              <Button
+                                onClick={handleRejectContract}
+                                loading={rejectingDeal}
+                                variant="danger"
                                 className="h-8 px-4 text-[9px] font-black uppercase tracking-wider rounded-lg border-none shadow-sm"
                               >
                                 Decline
@@ -641,7 +656,7 @@ function InboxContent() {
                   )}
 
                   {/* Chat Message Logs */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30 min-h-0">
+                  <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-6 bg-gray-50/30 min-h-0">
                     {loadingMessages ? (
                       <div className="space-y-6">
                         <div className="flex gap-3 max-w-[60%]">
@@ -665,7 +680,7 @@ function InboxContent() {
                       messages.map((msg) => {
                         const isMe = msg.senderId === user?.id;
                         const isDealMsg = msg.content?.includes('[DEAL PROPOSAL]');
-                        
+
                         if (isDealMsg) {
                           return (
                             <div key={msg.id} className="mx-auto max-w-[85%]">
@@ -707,19 +722,25 @@ function InboxContent() {
                             </div>
                           );
                         }
-                        
+
                         return (
-                          <div key={msg.id} className={clsx("flex gap-3 max-w-[75%]", isMe ? "ml-auto flex-row-reverse" : "mr-auto")}>
+                          <div
+                            key={msg.id}
+                            className={clsx(
+                              "flex gap-3 max-w-[75%] animate-in fade-in zoom-in-[0.98] duration-300 ease-out fill-mode-both",
+                              isMe ? "ml-auto flex-row-reverse slide-in-from-right-4" : "mr-auto slide-in-from-left-4"
+                            )}
+                          >
                             <div className="shrink-0 self-end">
-                              <Avatar name={isMe ? user?.fullName : selectedConv.recipient?.fullName} size="sm" className="rounded-xl border border-gray-100" />
+                              <Avatar name={isMe ? user?.fullName : selectedConv.recipient?.fullName} size="sm" className="rounded-xl border border-gray-100 shadow-sm" />
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col group">
                               <div
                                 className={clsx(
-                                  "p-4 rounded-3xl text-xs leading-relaxed shadow-sm font-medium",
+                                  "px-5 py-3.5 rounded-[22px] text-[13px] leading-relaxed font-semibold transition-all duration-300 hover:-translate-y-0.5 backdrop-blur-sm",
                                   isMe
-                                    ? "bg-gradient-to-r from-jax-blue to-jax-teal text-white rounded-br-none shadow-jax-blue/10"
-                                    : "bg-white border border-gray-100 text-jax-dark rounded-bl-none"
+                                    ? "bg-gradient-to-br from-[#1E2E5C] via-[#232F72] to-[#2F578A] text-white rounded-br-[6px] shadow-[0_8px_20px_-6px_rgba(35,47,114,0.4)] border border-white/10"
+                                    : "bg-white/95 text-slate-700 rounded-bl-[6px] shadow-[0_4px_20px_-6px_rgba(0,0,0,0.08)] border border-slate-200/60"
                                 )}
                               >
                                 {msg.content}
@@ -727,12 +748,12 @@ function InboxContent() {
                               <div className={clsx("flex items-center gap-1.5 text-[9px] text-gray-400 font-semibold mt-1.5", isMe ? "justify-end" : "justify-start")}>
                                 <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 {isMe && (
-                                  <span className="flex items-center gap-0.5">
+                                  <span className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
                                     {msg.sending ? (
                                       <span className="h-2.5 w-2.5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin mr-1 shrink-0" />
                                     ) : msg.failed ? (
-                                      <span className="flex items-center gap-1 text-red-500 font-bold uppercase tracking-wider text-[8px]">
-                                        ⚠️ Failed • <button onClick={() => handleRetryMessage(msg.content, msg.id)} className="underline hover:text-red-650 cursor-pointer font-black">Retry</button>
+                                      <span className="flex items-center gap-1 text-red-500 font-bold uppercase tracking-wider text-[8px] animate-pulse">
+                                        ⚠️ Failed • <button onClick={() => handleRetryMessage(msg.content, msg.id)} className="underline hover:text-red-650 cursor-pointer font-black transition-colors">Retry</button>
                                       </span>
                                     ) : (
                                       <>
@@ -859,9 +880,9 @@ function InboxContent() {
                         type="button"
                         onClick={() => setShowProposeForm(!showProposeForm)}
                         className={clsx(
-                          "h-12 px-4 rounded-2xl flex items-center gap-2 transition-all shrink-0 font-black text-[9px] uppercase tracking-wider border-2",
+                          "h-12 px-4 rounded-2xl flex items-center gap-2 transition-all shrink-0 font-bold text-xs uppercase tracking-wide border-2",
                           showProposeForm
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
+                            ? "bg-[#3B9285] text-white border-[#3B9285] shadow-lg shadow-[#3B9285]/20"
                             : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300"
                         )}
                       >
@@ -871,7 +892,7 @@ function InboxContent() {
                     )}
                     {activeOrder && (
                       <Link href={`/orders/${activeOrder.id}`} className="shrink-0">
-                        <button type="button" className="h-12 px-4 rounded-2xl flex items-center gap-2 bg-jax-dark text-white font-black text-[9px] uppercase tracking-wider hover:bg-jax-blue transition-all">
+                        <button type="button" className="h-12 px-4 rounded-2xl flex items-center gap-2 bg-[#1A1B41] text-white font-bold text-xs uppercase tracking-wide hover:bg-[#2A2B51] transition-all">
                           <FaFileContract className="h-4 w-4" />
                           <span className="hidden sm:inline">
                             {activeOrder.status === 'CREATED' ? 'View Proposal' : 'View Order'}
@@ -879,7 +900,7 @@ function InboxContent() {
                         </button>
                       </Link>
                     )}
-                    <div className="flex-1 relative flex items-center">
+                    <div className="flex-1 relative flex items-center min-w-0">
                       <textarea
                         placeholder="Type your message..."
                         value={messageText}
@@ -891,9 +912,9 @@ function InboxContent() {
                           }
                         }}
                         rows={1}
-                        className="w-full py-3.5 pl-4 pr-12 bg-gray-50/50 border border-gray-150 rounded-2xl text-xs font-semibold outline-none focus:border-jax-blue focus:bg-white transition-all shadow-inner resize-none min-h-[48px] max-h-24 scrollbar-hide flex items-center"
+                        className="w-full py-3.5 pl-4 pr-12 bg-gray-50/50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:border-[#1A1B41]/30 focus:ring-2 focus:ring-[#1A1B41]/10 focus:bg-white transition-all shadow-inner resize-none min-h-[48px] max-h-24 scrollbar-hide flex items-center"
                       />
-                      <button type="button" className="absolute right-3.5 text-gray-400 hover:text-jax-blue transition-colors">
+                      <button type="button" className="absolute right-3.5 text-slate-400 hover:text-[#1A1B41] transition-colors">
                         <FaPaperclip className="h-4 w-4" />
                       </button>
                     </div>
@@ -901,10 +922,10 @@ function InboxContent() {
                       type="submit"
                       disabled={!messageText.trim()}
                       className={clsx(
-                        "h-12 w-12 rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-lg",
+                        "h-12 w-12 rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm",
                         messageText.trim()
-                          ? "bg-jax-dark text-white hover:bg-jax-blue shadow-jax-blue/20"
-                          : "bg-gray-100 text-gray-300 cursor-not-allowed shadow-none"
+                          ? "bg-[#1A1B41] text-white hover:bg-[#2A2B51] shadow-[#1A1B41]/20"
+                          : "bg-slate-100 text-slate-300 cursor-not-allowed shadow-none"
                       )}
                     >
                       <FaPaperPlane className="h-4 w-4" />
@@ -913,102 +934,111 @@ function InboxContent() {
                 </div>
 
                 {/* Profile Panel Drawer (Right Sidebar) */}
-                {showProfilePanel && (
-                  <div className="hidden lg:flex w-72 bg-white flex-col p-6 overflow-y-auto shrink-0 z-20">
-                    <div className="text-center pb-6 border-b border-gray-50">
-                      <Avatar name={selectedConv.recipient?.fullName} size="lg" className="rounded-[2rem] border-4 border-jax-blue/5 shadow-md mx-auto mb-4" />
-                      <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
-                        {selectedConv.recipient?.fullName}
-                        <FaCircleCheck className="h-3.5 w-3.5 text-jax-teal" />
-                      </h3>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center gap-1">
-                        <FaBuilding className="h-3 w-3" /> {selectedConv.recipient?.businessName || 'Independent Partner'}
-                      </p>
+                <div className={clsx(
+                  "bg-white shrink-0 z-20 transition-all duration-300 hidden lg:flex overflow-hidden",
+                  showProfilePanel ? "w-[288px] min-w-[288px] max-w-[288px] border-l border-gray-100 opacity-100 translate-x-0" : "w-0 min-w-0 border-l-0 opacity-0 translate-x-8"
+                )}>
+                  <div className="w-[288px] flex flex-col p-6 overflow-y-auto scrollbar-hide h-full">
+                  <div className="text-center pb-6 border-b border-gray-50">
+                    <Avatar name={selectedConv.recipient?.fullName} size="lg" className="rounded-[2rem] border-4 border-jax-blue/5 shadow-md mx-auto mb-4" />
+                    <h3 className="text-xs font-black text-jax-dark uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                      {selectedConv.recipient?.fullName}
+                      <FaCircleCheck className="h-3.5 w-3.5 text-jax-teal" />
+                    </h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+                      <FaBuilding className="h-3 w-3" /> {selectedConv.recipient?.businessName || 'Independent Partner'}
+                    </p>
 
-                      <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
-                        <FaShieldHalved className="h-3 w-3" /> KYC Verified
-                      </div>
-                    </div>
-
-                    {/* B2B Deal Status */}
-                    <div className="py-6 border-b border-gray-50">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Deal Status</p>
-                      {activeOrder ? (
-                        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-emerald-800 uppercase">Active Deal</span>
-                            <Badge status={activeOrder.status} className="text-[8px]" />
-                          </div>
-                          <p className="text-lg font-black text-jax-dark">₹{activeOrder.totalAmount?.toLocaleString('en-IN')}</p>
-                          <Link href={`/orders/${activeOrder.id}`}>
-                            <Button className="w-full bg-jax-dark text-white text-[9px] font-black uppercase tracking-wider py-2 rounded-xl border-none mt-1">
-                              Manage Order →
-                            </Button>
-                          </Link>
-                        </div>
-                      ) : (
-                        <div className="bg-gray-50 border border-gray-100 p-3 rounded-2xl text-center">
-                          <p className="text-[10px] text-gray-400 font-medium">No active deal. Use the <span className="font-black text-emerald-600">Make a Deal</span> button below.</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Trust Score Area */}
-                    <div className="py-6 border-b border-gray-50">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Integrity Audit</p>
-                      <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-center gap-3">
-                        <div className="shrink-0">
-                          <TrustScore score={95} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-jax-dark uppercase tracking-tight">Trust Index: 95/100</p>
-                          <p className="text-[9px] text-gray-400 mt-0.5">Top-tier verified partner with zero active disputes.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Stats */}
-                    <div className="py-6 space-y-4">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Business Statistics</p>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-gray-450 uppercase">Response Rate</span>
-                        <span className="text-[10px] font-black text-emerald-600 font-mono">100%</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-gray-455 uppercase">Avg. Response Time</span>
-                        <span className="text-[10px] font-black text-jax-dark font-mono">&lt; 15 mins</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-gray-455 uppercase">Fulfilled Orders</span>
-                        <span className="text-[10px] font-black text-jax-dark font-mono">48 Transactions</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-gray-455 uppercase">KYC Reference ID</span>
-                        <span className="text-[10px] font-black text-gray-400 font-mono">#KYC-9428-A</span>
-                      </div>
-                    </div>
-
-                    {/* Safety Warning */}
-                    <div className="mt-auto p-4 bg-jax-dark rounded-2xl text-white">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaShieldHalved className="text-jax-teal h-3.5 w-3.5" />
-                        <p className="text-[9px] font-black uppercase tracking-widest">Secured Escrow</p>
-                      </div>
-                      <p className="text-[9px] text-white/60 leading-relaxed font-semibold">Keep conversations on JaxMart to benefit from platform escrow guarantees and arbitration.</p>
+                    <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
+                      <FaShieldHalved className="h-3 w-3" /> KYC Verified
                     </div>
                   </div>
-                )}
+
+                  {/* B2B Deal Status */}
+                  <div className="py-6 border-b border-gray-50">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Deal Status</p>
+                    {activeOrder ? (
+                      <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-emerald-800 uppercase">Active Deal</span>
+                          <Badge status={activeOrder.status} className="text-[8px]" />
+                        </div>
+                        <p className="text-lg font-black text-jax-dark">₹{activeOrder.totalAmount?.toLocaleString('en-IN')}</p>
+                        <Link href={`/orders/${activeOrder.id}`}>
+                          <Button className="w-full bg-jax-dark text-white text-[9px] font-black uppercase tracking-wider py-2 rounded-xl border-none mt-1">
+                            Manage Order →
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 border border-gray-100 p-3 rounded-2xl text-center">
+                        <p className="text-[10px] text-gray-400 font-medium">No active deal. Use the <span className="font-black text-emerald-600">Make a Deal</span> button below.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trust Score Area */}
+                  <div className="py-6 border-b border-gray-50">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Integrity Audit</p>
+                    <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-center gap-3">
+                      <div className="shrink-0">
+                        <TrustScore score={95} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-jax-dark uppercase tracking-tight">Trust Index: 95/100</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Top-tier verified partner with zero active disputes.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="py-6 space-y-4">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Business Statistics</p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-450 uppercase">Response Rate</span>
+                      <span className="text-[10px] font-black text-emerald-600 font-mono">100%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-455 uppercase">Avg. Response Time</span>
+                      <span className="text-[10px] font-black text-jax-dark font-mono">&lt; 15 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-455 uppercase">Fulfilled Orders</span>
+                      <span className="text-[10px] font-black text-jax-dark font-mono">48 Transactions</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-455 uppercase">KYC Reference ID</span>
+                      <span className="text-[10px] font-black text-gray-400 font-mono">#KYC-9428-A</span>
+                    </div>
+                  </div>
+
+                  {/* Safety Warning */}
+                  <div className="mt-auto p-4 bg-jax-dark rounded-2xl text-white">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FaShieldHalved className="text-jax-teal h-3.5 w-3.5" />
+                      <p className="text-[9px] font-black uppercase tracking-widest">Secured Escrow</p>
+                    </div>
+                    <p className="text-[9px] text-white/60 leading-relaxed font-semibold">Keep conversations on JaxMart to benefit from platform escrow guarantees and arbitration.</p>
+                  </div>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 bg-gray-50/10">
-                <div className="h-20 w-20 rounded-[2.5rem] bg-white flex items-center justify-center shadow-xl mb-6 border border-gray-100 relative group">
-                  <div className="absolute inset-0 bg-jax-blue/20 blur-xl opacity-30 group-hover:opacity-60 transition-opacity" />
-                  <FaComments className="h-8 w-8 text-jax-blue relative z-10" />
+              <div className="flex-1 flex flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100/50">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-jax-blue/5 rounded-full blur-3xl" />
+                <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
+                
+                <div className="h-28 w-28 rounded-full bg-white flex items-center justify-center shadow-[0_8px_40px_rgb(0,0,0,0.06)] mb-8 border border-white relative group z-10">
+                  <div className="absolute inset-0 rounded-full border border-jax-blue/20 animate-[spin_4s_linear_infinite]" />
+                  <div className="absolute -inset-2 bg-gradient-to-r from-jax-blue/20 to-emerald-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <FaComments className="h-10 w-10 text-transparent bg-clip-text bg-gradient-to-br from-[#1E2E5C] to-jax-blue relative z-10" />
                 </div>
-                <h3 className="font-black text-jax-dark uppercase tracking-wider text-xs">JaxMart Message Center</h3>
-                <p className="text-xs text-gray-400 max-w-sm text-center mt-2 leading-relaxed italic">
-                  Select a supplier or buyer conversation from the left to start negotiating prices, sharing files, and finalising transaction contracts under secure escrow.
+                
+                <h3 className="text-xl font-heading font-black text-slate-900 uppercase tracking-tight mb-3 z-10">Trade Negotiation Center</h3>
+                <p className="text-xs text-slate-500 max-w-md text-center leading-relaxed font-medium z-10 bg-white/50 p-4 rounded-2xl border border-slate-200/50 shadow-sm backdrop-blur-sm">
+                  Select a trade partner from the list to start negotiating prices, securely share documents, and finalize business contracts under <strong>JaxMart Escrow Protection</strong>.
                 </p>
               </div>
             )}

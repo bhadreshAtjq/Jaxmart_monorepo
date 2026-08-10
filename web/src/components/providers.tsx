@@ -2,6 +2,8 @@
 import { SWRConfig } from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import { SocketProvider } from './providers/SocketProvider';
+import { LocationCurrencyProvider } from './providers/LocationCurrencyProvider';
+import { useEffect } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -17,9 +19,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         keepPreviousData: true,
       }}
     >
-      <SocketProvider>
-        {children}
-      </SocketProvider>
+      <LocationCurrencyProvider>
+        <SocketProvider>
+          {children}
+        </SocketProvider>
+      </LocationCurrencyProvider>
     </SWRConfig>
   );
 }

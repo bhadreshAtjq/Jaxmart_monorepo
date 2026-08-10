@@ -3,15 +3,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Input, Textarea, Select, Card, Badge, Avatar } from '@/components/ui';
-import { rfqApi, categoryApi } from '@/lib/api';
+import { rfqApi, categoryApi, listingApi } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 import { 
   FaCubes, 
   FaWrench, 
   FaCircleCheck, 
-  FaLightbulb, 
   FaCircleInfo, 
+  FaLightbulb,
   FaBolt,
   FaShieldHalved
 } from 'react-icons/fa6';
@@ -19,20 +19,25 @@ import { RequirementGate } from '@/components/common/RequirementGate';
 
 const STEPS = ['Category & Type', 'Details', 'Shipping & Budget'];
 
-const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'electronics': ['solar', 'panel', 'battery', 'wiring', 'chip', 'sensor', 'led', 'camera', 'monitor'],
-  'industrial-supplies': ['drill', 'machinery', 'pump', 'valve', 'bearing', 'seal', 'motor', 'compressor'],
-  'construction': ['concrete', 'steel', 'brick', 'rebar', 'cement', 'tile', 'roofing'],
-  'textiles': ['cotton', 'fabric', 'yarn', 'silk', 'polyester', 'denim', 'wool'],
-  'services': ['consulting', 'logistics', 'shipping', 'maintenance', 'installation', 'cleaning'],
-};
-
 export default function RfqPostPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suggestedCategories, setSuggestedCategories] = useState<any[]>([]);
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const getCategoryPath = (cat: any) => {
+    if (!cat) return '';
+    const parts = [];
+    let curr = cat;
+    while (curr) {
+      parts.unshift(curr.name);
+      curr = curr.parent;
+    }
+    return parts.join(' >> ');
+  };
 
   useEffect(() => {
     categoryApi.getAll()
@@ -42,7 +47,7 @@ export default function RfqPostPage() {
 
   const [form, setForm] = useState({
     rfqType: 'PRODUCT', categoryId: '', title: '', description: '',
-    locationPreference: '', deadline: '', preferredProviderType: '',
+    locationPreference: '', deadline: '', preferredProviderType: 'ALL',
     budgetMin: '', budgetMax: '', hasBudget: false,
   });
 
@@ -51,14 +56,13 @@ export default function RfqPostPage() {
   const scoreData = useMemo(() => {
     const checks = [
       { label: 'Product Name', score: 3, met: form.title.length >= 3 },
-      { label: 'Category', score: 5, met: !!form.categoryId },
       { label: 'Product Details', score: 43, met: form.description.length > 50 },
       { label: 'Sourcing Type', score: 3, met: !!form.rfqType },
       { label: 'Delivery Location', score: 3, met: !!form.locationPreference },
       { label: 'Target Price', score: 3, met: form.hasBudget && !!form.budgetMax },
       { label: 'Valid Until', score: 1, met: !!form.deadline },
     ];
-    
+
     const currentScore = checks.filter(c => c.met).reduce((acc, c) => acc + c.score, 0);
     const totalPotential = checks.reduce((acc, c) => acc + c.score, 0);
     const percentage = Math.round((currentScore / totalPotential) * 100);
@@ -69,22 +73,59 @@ export default function RfqPostPage() {
   useEffect(() => {
     if (form.title.length < 3) {
       setSuggestedCategories([]);
+      setSuggestedProducts([]);
+      setIsSearching(false);
       return;
     }
     const titleLower = form.title.toLowerCase();
+
+    // Auto-detect service vs product based on English keywords
+    const serviceKeywords = ['service', 'repair', 'installation', 'support', 'logistics', 'consulting', 'maintenance', 'design', 'agency', 'contractor', 'freelance'];
+    if (serviceKeywords.some(k => titleLower.includes(k))) {
+      setForm(f => ({ ...f, rfqType: 'SERVICE' }));
+    } else {
+      setForm(f => ({ ...f, rfqType: 'PRODUCT' }));
+    }
+
     const keywords = titleLower.split(' ').filter(k => k.length > 2);
-    
-    const nameMatches = categories.filter(c => 
+
+    const nameMatches = categories.filter(c =>
       keywords.some(k => c.name.toLowerCase().includes(k))
     );
 
-    const keywordMatches = categories.filter(c => {
-      const catKeywords = CATEGORY_KEYWORDS[c.slug] || [];
-      return catKeywords.some(kw => titleLower.includes(kw));
-    });
+    setIsSearching(true);
+    // Fetch matching products from the database
+    const timer = setTimeout(() => {
+      listingApi.search({ q: form.title, limit: 5 })
+        .then(res => {
+          const products = res.data?.listings || [];
+          setSuggestedProducts(products);
 
-    const combined = Array.from(new Set([...keywordMatches, ...nameMatches])).slice(0, 5);
-    setSuggestedCategories(combined);
+          // Dynamically extract categories from matched products
+          const dbCategoryIds = new Set();
+          const dbCategories: any[] = [];
+          products.forEach((p: any) => {
+            if (p.category && !dbCategoryIds.has(p.category.id)) {
+              dbCategoryIds.add(p.category.id);
+              dbCategories.push(p.category);
+            }
+          });
+
+          // Combine direct name matches with database-derived categories
+          const combinedCats = [...nameMatches];
+          dbCategories.forEach(dc => {
+            if (!combinedCats.find(c => c.id === dc.id)) {
+              combinedCats.push(dc);
+            }
+          });
+
+          setSuggestedCategories(combinedCats.slice(0, 5));
+        })
+        .catch(err => console.error('Failed to fetch products:', err))
+        .finally(() => setIsSearching(false));
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [form.title, categories]);
 
   const submit = async () => {
@@ -95,7 +136,7 @@ export default function RfqPostPage() {
         categoryId: form.categoryId || undefined,
         locationPreference: form.locationPreference || undefined,
         deadline: form.deadline || undefined,
-        preferredProviderType: form.preferredProviderType || undefined,
+        preferredProviderType: form.preferredProviderType === 'ALL' ? undefined : form.preferredProviderType,
       };
       if (form.hasBudget) {
         payload.budgetMin = parseFloat(form.budgetMin) || 0;
@@ -109,7 +150,7 @@ export default function RfqPostPage() {
   };
 
   const canNext = () => {
-    if (step === 0) return form.title.length >= 3 && !!form.categoryId;
+    if (step === 0) return form.title.length >= 3;
     if (step === 1) return form.description.length >= 20;
     return true;
   };
@@ -119,7 +160,7 @@ export default function RfqPostPage() {
       <RequirementGate>
         <div className="max-w-6xl mx-auto pb-20 pt-8">
           <div className="flex flex-col lg:flex-row gap-8 items-start">
-            
+
             {/* Main Form Area */}
             <div className="flex-1 w-full max-w-3xl">
               <div className="mb-10">
@@ -150,50 +191,56 @@ export default function RfqPostPage() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div>
                       <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">1. What are you looking for?</label>
-                      <Input 
-                        value={form.title} 
-                        onChange={e => set('title', e.target.value)} 
-                        placeholder="e.g. Stainless steel bolts, cotton yarns..."
-                        className="text-lg font-heading font-bold h-16 rounded-2xl border-gray-100 focus:border-jax-blue transition-all"
-                      />
+                      <div className="relative">
+                        <Input
+                          value={form.title}
+                          onChange={e => set('title', e.target.value)}
+                          placeholder="e.g. Stainless steel bolts, cotton yarns..."
+                          className="text-lg font-heading font-bold h-16 rounded-2xl border-gray-100 focus:border-jax-blue transition-all pr-36"
+                        />
+                        {isSearching && (
+                          <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 text-jax-blue animate-pulse pointer-events-none">
+                            <span className="w-4 h-4 border-2 border-jax-blue border-t-transparent rounded-full animate-spin"></span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Searching...</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. Select Category</label>
-                      <Select 
-                        value={form.categoryId} 
-                        onChange={e => set('categoryId', e.target.value)}
-                        options={[{ value: '', label: 'Choose the closest matching category' }, ...categories.map(c => ({ value: c.id, label: c.name }))]} 
-                        className="h-14 rounded-2xl border-gray-100"
-                      />
-                      
-                      {suggestedCategories.length > 0 && !form.categoryId && (
-                        <div className="mt-6 p-6 bg-jax-light/50 rounded-2xl border border-dashed border-jax-blue/20">
-                          <div className="flex items-center gap-2 mb-4">
-                            <FaLightbulb className="text-amber-500 h-3.5 w-3.5" />
-                            <p className="text-[10px] font-black text-jax-blue uppercase tracking-widest">Suggested categories based on title :</p>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {suggestedCategories.map(c => (
-                              <button 
-                                key={c.id} 
-                                onClick={() => set('categoryId', c.id)}
-                                className="text-left px-4 py-3 bg-white border border-gray-100 hover:border-jax-blue hover:shadow-sm rounded-xl transition-all group"
+                    {suggestedProducts.length > 0 && (
+                      <div className="mb-8">
+                        <label className="text-[11px] font-black text-jax-blue uppercase tracking-[0.2em] mb-4 block">Database Matches</label>
+                        <div className="p-4 bg-jax-blue/5 border border-jax-blue/20 rounded-2xl">
+                          <p className="text-xs text-jax-dark mb-4 font-medium">We found these products in the database matching "{form.title}". Select one to auto-fill:</p>
+                          <div className="space-y-2">
+                            {suggestedProducts.map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => {
+                                  set('title', p.title);
+                                  set('categoryId', p.categoryId);
+                                  if (p.listingType) set('rfqType', p.listingType);
+                                  setSuggestedProducts([]); // Hide after selection
+                                }}
+                                className="w-full text-left px-4 py-3 bg-white border border-gray-100 hover:border-jax-blue hover:shadow-md rounded-xl transition-all flex items-center justify-between group"
                               >
-                                <p className="text-xs font-bold text-jax-dark group-hover:text-jax-blue">{c.name}</p>
-                                <p className="text-[9px] text-gray-400 mt-1 uppercase tracking-tight">Marketplace &gt;&gt; Products</p>
+                                <div>
+                                  <p className="text-sm font-bold text-jax-dark group-hover:text-jax-blue">{p.title}</p>
+                                  <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Category: {getCategoryPath(p.category) || p.category?.name || 'Unknown'}</p>
+                                </div>
+                                <FaCubes className="text-gray-300 group-hover:text-jax-blue transition-colors h-4 w-4" />
                               </button>
                             ))}
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     <div>
-                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">3. What do you need?</label>
+                      <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">2. What do you need?</label>
                       <div className="grid grid-cols-2 gap-4">
                         {[{ v: 'PRODUCT', icon: FaCubes, title: 'Products', sub: 'Materials, machinery, parts' },
-                          { v: 'SERVICE', icon: FaWrench, title: 'Services', sub: 'Installation, logistics, support' }].map(({ v, icon: Icon, title, sub }) => (
+                        { v: 'SERVICE', icon: FaWrench, title: 'Services', sub: 'Installation, logistics, support' }].map(({ v, icon: Icon, title, sub }) => (
                           <button key={v} onClick={() => set('rfqType', v)} className={clsx('p-5 rounded-2xl border-2 text-left transition-all duration-300 relative overflow-hidden group', form.rfqType === v ? 'border-jax-blue bg-jax-blue/[0.02]' : 'border-gray-50 hover:border-gray-200')}>
                             <div className={clsx('h-10 w-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110', form.rfqType === v ? 'bg-jax-blue text-white shadow-lg' : 'bg-gray-100 text-gray-400')}>
                               <Icon className="h-4 w-4" />
@@ -212,12 +259,12 @@ export default function RfqPostPage() {
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div>
                       <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em] mb-4 block">Product Details</label>
-                      <Textarea 
-                        value={form.description} 
-                        onChange={e => set('description', e.target.value)} 
-                        placeholder="Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms..." 
+                      <Textarea
+                        value={form.description}
+                        onChange={e => set('description', e.target.value)}
+                        placeholder="Enter detailed requirements including quantity, material specs, quality certifications required, and delivery terms..."
                         className="min-h-[300px] rounded-2xl border-gray-100 focus:border-jax-blue p-6 leading-relaxed italic"
-                        hint={`${form.description.length} chars -- Aim for at least 100 for high quality responses`} 
+                        hint={`${form.description.length} chars -- Aim for at least 100 for high quality responses`}
                       />
                     </div>
                   </div>
@@ -229,9 +276,13 @@ export default function RfqPostPage() {
                       <Input label="Delivery Location" value={form.locationPreference} onChange={e => set('locationPreference', e.target.value)} placeholder="e.g. Mumbai Hub, India" />
                       <Input label="Desired Delivery Date" type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} min={new Date().toISOString().split('T')[0]} />
                     </div>
-                    
+
                     <Select label="Partner Verification Tier" value={form.preferredProviderType} onChange={e => set('preferredProviderType', e.target.value)}
-                      options={[{ value: '', label: 'Global Standard (Open)' }, { value: 'INDIVIDUAL', label: 'Verified Individual Expert' }, { value: 'BUSINESS', label: 'Certified Corporate Entity' }]} />
+                      options={[
+                        { value: 'ALL', label: 'Global Standard (Open)', description: 'Available to all registered and active partners on the platform' }, 
+                        { value: 'INDIVIDUAL', label: 'Verified Individual Expert', description: 'Subject matter experts with verified credentials and track record' }, 
+                        { value: 'BUSINESS', label: 'Certified Corporate Entity', description: 'Registered companies with verified business documents and capacity' }
+                      ]} />
                     
                     <div className="p-6 bg-jax-light rounded-2xl border border-gray-100">
                       <label className="flex items-center gap-3 mb-4 cursor-pointer">
@@ -256,10 +307,10 @@ export default function RfqPostPage() {
                     Back
                   </Button>
                 )}
-                <Button 
-                  onClick={step === 2 ? submit : () => setStep(s => s + 1)} 
-                  disabled={!canNext()} 
-                  loading={loading} 
+                <Button
+                  onClick={step === 2 ? submit : () => setStep(s => s + 1)}
+                  disabled={!canNext()}
+                  loading={loading}
                   className={clsx("flex-1 h-14 rounded-2xl shadow-lg transition-all", step === 2 ? "bg-jax-blue" : "bg-jax-dark")}
                 >
                   {step === 2 ? 'Post Request' : 'Next'}
@@ -270,26 +321,23 @@ export default function RfqPostPage() {
             {/* Scoring & Trust Sidebar */}
             <aside className="w-full lg:w-[320px] sticky top-8">
               <Card className="p-8 border-gray-100 shadow-xl rounded-[32px] overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <FaBolt className="h-20 w-20 text-jax-blue" />
-                </div>
 
                 <div className="relative z-10 text-center mb-10">
                   <p className="text-[10px] font-black text-jax-blue uppercase tracking-[0.2em] mb-6">Request Quality Score</p>
-                  
+
                   <div className="relative inline-flex items-center justify-center">
                     <svg className="w-40 h-40 transform -rotate-90">
-                      <circle 
-                        cx="80" cy="80" r="70" 
-                        fill="transparent" 
-                        stroke="#F1F5F9" 
-                        strokeWidth="12" 
+                      <circle
+                        cx="80" cy="80" r="70"
+                        fill="transparent"
+                        stroke="#F1F5F9"
+                        strokeWidth="12"
                       />
-                      <circle 
-                        cx="80" cy="80" r="70" 
-                        fill="transparent" 
-                        stroke="currentColor" 
-                        strokeWidth="12" 
+                      <circle
+                        cx="80" cy="80" r="70"
+                        fill="transparent"
+                        stroke="currentColor"
+                        strokeWidth="12"
                         strokeDasharray={440}
                         strokeDashoffset={440 - (440 * scoreData.percentage) / 100}
                         className={clsx(

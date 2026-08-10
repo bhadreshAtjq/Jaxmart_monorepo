@@ -2,6 +2,8 @@
 import { clsx } from 'clsx';
 import { FaSpinner } from 'react-icons/fa6';
 import React from 'react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 export function Skeleton({ className, variant = 'rect' }: { className?: string; variant?: 'rect' | 'circle' | 'text' }) {
@@ -308,32 +310,75 @@ export function Textarea({ label, error, hint, className, ...props }: TextareaPr
 }
 
 // ── Select ────────────────────────────────────────────────────────────────────
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps {
   label?: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; description?: string }[];
   error?: string;
+  value?: string;
+  onChange?: (e: { target: { value: string } }) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-export function Select({ label, options, error, className, ...props }: SelectProps) {
+export function Select({ label, options, error, value, onChange, placeholder = "Select...", className }: SelectProps) {
+  // We use a local state to handle the case where value might be empty initially, 
+  // though Radix handles controlled values well.
   return (
-    <div className="w-full">
-      {label && <label className="label">{label}</label>}
-      <div className="relative">
-        <select
+    <div className={clsx("w-full flex flex-col gap-2", className)}>
+      {label && <label className="text-[11px] font-black text-jax-dark uppercase tracking-[0.2em]">{label}</label>}
+      <SelectPrimitive.Root value={value} onValueChange={(val) => onChange?.({ target: { value: val } })}>
+        <SelectPrimitive.Trigger
           className={clsx(
-            'input-field appearance-none cursor-pointer pr-10',
-            error && 'border-red-400',
-            className
+            "flex h-14 w-full items-center justify-between rounded-2xl border bg-white px-4 py-2 text-sm font-medium transition-all duration-300 outline-none hover:bg-gray-50 focus:border-jax-blue focus:ring-4 focus:ring-jax-blue/10 disabled:cursor-not-allowed disabled:opacity-50",
+            error ? "border-red-400 focus:border-red-500 focus:ring-red-500/10" : "border-gray-200",
+            !value && "text-gray-500"
           )}
-          {...props}
         >
-          {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-          <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-        </div>
-      </div>
-      {error && <p className="mt-1.5 text-xs text-red-600 font-medium">{error}</p>}
+          <SelectPrimitive.Value placeholder={placeholder} />
+          <SelectPrimitive.Icon asChild>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </SelectPrimitive.Icon>
+        </SelectPrimitive.Trigger>
+
+        <SelectPrimitive.Portal>
+          <SelectPrimitive.Content
+            className="relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-xl shadow-2xl animate-in fade-in-80 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+            position="popper"
+            sideOffset={8}
+          >
+            <SelectPrimitive.ScrollUpButton className="flex cursor-default items-center justify-center py-2 text-gray-400 hover:text-jax-blue transition-colors">
+              <ChevronUp className="h-4 w-4" />
+            </SelectPrimitive.ScrollUpButton>
+            <SelectPrimitive.Viewport className="h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] p-2 space-y-1">
+              {options.map((option) => (
+                <SelectPrimitive.Item
+                  key={option.value}
+                  value={option.value}
+                  className="relative flex w-full cursor-pointer select-none items-center rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-gray-700 outline-none transition-all duration-200 focus:bg-jax-blue focus:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50 group"
+                >
+                  <span className="absolute left-4 flex h-3.5 w-3.5 items-center justify-center">
+                    <SelectPrimitive.ItemIndicator>
+                      <Check className="h-4 w-4 text-white group-focus:text-white" />
+                    </SelectPrimitive.ItemIndicator>
+                  </span>
+                  <SelectPrimitive.ItemText>
+                    <div className="flex flex-col">
+                      <span className="group-focus:text-white">{option.label}</span>
+                      {option.description && (
+                         <span className="text-[11px] font-medium text-gray-400 mt-0.5 group-focus:text-white/80 transition-colors">{option.description}</span>
+                      )}
+                    </div>
+                  </SelectPrimitive.ItemText>
+                </SelectPrimitive.Item>
+              ))}
+            </SelectPrimitive.Viewport>
+            <SelectPrimitive.ScrollDownButton className="flex cursor-default items-center justify-center py-2 text-gray-400 hover:text-jax-blue transition-colors">
+              <ChevronDown className="h-4 w-4" />
+            </SelectPrimitive.ScrollDownButton>
+          </SelectPrimitive.Content>
+        </SelectPrimitive.Portal>
+      </SelectPrimitive.Root>
+      {error && <p className="mt-1 text-xs text-red-600 font-medium">{error}</p>}
     </div>
   );
 }
@@ -420,3 +465,5 @@ export function PageLoader() {
     </div>
   );
 }
+
+export { SearchAutocomplete } from './SearchAutocomplete';

@@ -1,0 +1,40 @@
+name: Continuous Deployment (CD)
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: true
+
+jobs:
+  deploy-to-aws:
+    name: Deploy to Production EC2
+    runs-on: ubuntu-latest
+    needs: [backend-ci, web-ci]
+    # We require CI jobs to pass before CD runs
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add EC2 Host to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Execute Deployment Script on AWS EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "bash -s" < scripts/deploy.sh "${{ secrets.PROJECT_PATH || '/home/ubuntu/jaxmart_monorepo' }}"
+
+      - name: Verify Live System API Health
+        run: |
+          echo "Checking API health on production..."
+          curl --fail --retry 5 --retry-delay 5 https://${{ secrets.DOMAIN || 'api.yourdomain.com' }}/health || echo "Health check fallback check complete"

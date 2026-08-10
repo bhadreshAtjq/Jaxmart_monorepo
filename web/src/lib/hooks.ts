@@ -62,11 +62,32 @@ export function useFeaturedListings() {
   );
 }
 
+export function useNewProducts() {
+  return useSWR(
+    '/listings/new-products',
+    fetcher,
+    { refreshInterval: 5000, revalidateOnFocus: true }
+  );
+}
+
 export function useListingSearch(params: Record<string, any>) {
   return useSWR(
     ['/listings/search', params],
     fetcherWithParams,
     { keepPreviousData: true }
+  );
+}
+
+export function useSearchSuggestions(query: string) {
+  const trimmed = query.trim();
+  return useSWR(
+    ['/listings/suggestions', { q: trimmed }],
+    fetcherWithParams,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      keepPreviousData: true
+    }
   );
 }
 

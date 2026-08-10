@@ -85,10 +85,10 @@ export default function LoginPage() {
             <Image
               src="/JaxMart_bg.png"
               alt="JaxMart"
-              width={108}
-              height={42}
+              width={160}
+              height={55}
               priority
-              className="h-9 w-auto object-contain brightness-0 invert opacity-95"
+              className="h-12 w-auto object-contain brightness-0 invert opacity-95"
             />
           </div>
           <h1 className="text-4xl font-heading font-bold text-white leading-tight mb-4">

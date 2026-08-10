@@ -148,10 +148,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Image
                 src="/JaxMart_bg.png"
                 alt="JaxMart"
-                width={100}
-                height={38}
+                width={140}
+                height={45}
                 priority
-                className="h-8 w-auto object-contain group-hover:scale-[1.02] transition-all duration-300"
+                className="h-10 sm:h-11 w-auto object-contain group-hover:scale-[1.02] transition-all duration-300"
               />
             </Link>
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[8px] text-emerald-700 font-mono font-bold tracking-wider">
@@ -230,7 +230,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 <div className="relative">
                   <Avatar name={user?.fullName ?? 'U'} src={user?.avatarUrl} size="sm" className="h-7 w-7 border border-gray-200" />
-                  <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 bg-emerald-500 border border-white rounded-full shadow-sm" />
                 </div>
                 <span className="hidden sm:inline text-xs font-bold text-gray-700 group-hover:text-[#232F72] transition-colors max-w-[100px] truncate">
                   {user?.fullName?.split(' ')[0]}

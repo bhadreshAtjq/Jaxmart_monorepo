@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import {
   FaMagnifyingGlass, FaBars, FaXmark, FaUser,
-  FaShieldHalved, FaCircleCheck, FaArrowRight
+  FaShieldHalved, FaCircleCheck, FaArrowRight, FaChevronRight
 } from 'react-icons/fa6';
 import { useAuthStore } from '@/lib/store';
-import { Avatar, PageLoader } from '@/components/ui';
+import { Avatar, PageLoader, SearchAutocomplete } from '@/components/ui';
 import { userApi } from '@/lib/api';
+import { useLocationCurrency } from '@/components/providers/LocationCurrencyProvider';
 
 import Image from 'next/image';
 
@@ -33,6 +34,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(isLoggedIn);
+  const { countryCode, currency, isLoading } = useLocationCurrency();
 
   useEffect(() => {
     setMounted(true);
@@ -86,6 +88,14 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
             <span className="hidden md:inline">|</span>
             <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
+            <span className="hidden md:inline">|</span>
+            <span className="hidden md:flex items-center gap-1">
+              {!isLoading && countryCode ? (
+                <>Ship to: <strong className="text-white">{countryCode}</strong> ({currency.symbol} {currency.code})</>
+              ) : (
+                <span className="text-gray-500 animate-pulse">Location...</span>
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             {showAuth ? (
@@ -116,26 +126,16 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               <Image
                 src="/JaxMart_bg.png"
                 alt="JaxMart"
-                width={108}
-                height={42}
+                width={150}
+                height={50}
                 priority
-                className="h-9 w-auto object-contain"
+                className="h-11 sm:h-12 w-auto object-contain"
               />
             </Link>
 
-            {/* Search Bar */}
+            {/* Search Bar with Autocomplete Suggestions */}
             <div className="flex-1 max-w-2xl">
-              <div className="flex border border-gray-300 rounded-lg overflow-hidden hover:border-jungle-green-400 focus-within:border-jungle-green-500 focus-within:ring-1 focus-within:ring-jungle-green-200 transition-all">
-                <input
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  placeholder="Search products, suppliers, categories..."
-                  className="flex-1 h-10 px-4 text-sm outline-none"
-                />
-                <button onClick={handleSearch} className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white px-5 transition-all duration-300">
-                  <FaMagnifyingGlass className="h-4 w-4" />
-                </button>
-              </div>
+              <SearchAutocomplete compact placeholder="Search products, suppliers, categories..." />
             </div>
 
             {/* Nav Links */}
@@ -210,44 +210,97 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
       {/* Footer */}
       {!pathname.startsWith('/inbox') && (
-        <footer className="bg-gray-900 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-              <div>
-                <h4 className="font-bold text-sm mb-4">JaxMart</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">India's trusted B2B marketplace connecting verified suppliers with buyers.</p>
+        <footer className="relative bg-[#090b11] text-gray-300 border-t border-gray-800/60 overflow-hidden">
+          {/* Subtle Background Glow */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#232F72]/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#36ADA3]/5 rounded-full blur-[100px] pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-12">
+              
+              {/* Brand Column */}
+              <div className="lg:col-span-2">
+                <Link href="/home" className="inline-block mb-6 group">
+                  <Image
+                    src="/JaxMart_bg.png"
+                    alt="JaxMart"
+                    width={150}
+                    height={50}
+                    className="h-11 w-auto object-contain"
+                  />
+                </Link>
+                <p className="text-sm text-gray-400 leading-relaxed font-medium max-w-sm">
+                  India's premier B2B marketplace engineered for verified wholesale trade, seamless sourcing, and uncompromising escrow protection.
+                </p>
               </div>
+
+              {/* For Buyers */}
               <div>
-                <h4 className="font-bold text-sm mb-4">For Buyers</h4>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <Link href="/search" className="block hover:text-white transition-colors">Find Products</Link>
-                  <Link href="/rfq/create" className="block hover:text-white transition-colors">Post a Request</Link>
-                  <Link href="/orders" className="block hover:text-white transition-colors">My Orders</Link>
+                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">For Buyers</h4>
+                <div className="space-y-4 text-sm text-gray-400 font-medium">
+                  <Link href="/search" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    Find Products
+                  </Link>
+                  <Link href="/rfq/create" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    Post a Request
+                  </Link>
+                  <Link href="/orders" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    My Orders
+                  </Link>
                 </div>
               </div>
+
+              {/* For Sellers */}
               <div>
-                <h4 className="font-bold text-sm mb-4">For Sellers</h4>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <Link href="/seller/dashboard" className="block hover:text-white transition-colors">Seller Center</Link>
-                  <Link href="/seller/listings/new" className="block hover:text-white transition-colors">List Products</Link>
-                  <Link href="/seller/rfq-inbox" className="block hover:text-white transition-colors">Buyer Requests</Link>
+                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">For Sellers</h4>
+                <div className="space-y-4 text-sm text-gray-400 font-medium">
+                  <Link href="/seller/dashboard" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    Seller Center
+                  </Link>
+                  <Link href="/seller/listings/new" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    List Products
+                  </Link>
+                  <Link href="/seller/rfq-inbox" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
+                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
+                    Buyer Requests
+                  </Link>
                 </div>
               </div>
+
+              {/* Trust & Safety */}
               <div>
-                <h4 className="font-bold text-sm mb-4">Trust & Safety</h4>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <span className="block">Escrow Protection</span>
-                  <span className="block">Verified Suppliers</span>
-                  <span className="block">Quality Guarantee</span>
+                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Trust & Safety</h4>
+                <div className="space-y-4 text-sm text-gray-400 font-medium">
+                  <span className="flex items-center gap-2 group cursor-default w-fit">
+                    <FaShieldHalved className="h-3.5 w-3.5 text-gray-500 group-hover:text-blue-500 transition-colors" />
+                    <span className="group-hover:text-gray-300 transition-colors">Escrow Protection</span>
+                  </span>
+                  <span className="flex items-center gap-2 group cursor-default w-fit">
+                    <FaCircleCheck className="h-3.5 w-3.5 text-gray-500 group-hover:text-emerald-500 transition-colors" />
+                    <span className="group-hover:text-gray-300 transition-colors">Verified Suppliers</span>
+                  </span>
+                  <span className="flex items-center gap-2 group cursor-default w-fit">
+                    <FaCircleCheck className="h-3.5 w-3.5 text-gray-500 group-hover:text-emerald-500 transition-colors" />
+                    <span className="group-hover:text-gray-300 transition-colors">Quality Guarantee</span>
+                  </span>
                 </div>
               </div>
             </div>
-            <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-              <span>© 2026 JaxMart. All rights reserved.</span>
-              <div className="flex gap-4">
-                <span className="hover:text-white cursor-pointer">Terms of Use</span>
-                <span className="hover:text-white cursor-pointer">Privacy Policy</span>
-                <span className="hover:text-white cursor-pointer">Contact Us</span>
+
+            {/* Bottom Bar */}
+            <div className="border-t border-white/[0.05] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-gray-500">
+              <span className="flex items-center gap-2">
+                © 2026 JaxMart. All rights reserved.
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-6">
+                <span className="hover:text-white transition-colors cursor-pointer">Terms of Use</span>
+                <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
+                <span className="hover:text-white transition-colors cursor-pointer">Contact Us</span>
               </div>
             </div>
           </div>

@@ -299,7 +299,14 @@ class _AppShellState extends State<AppShell> {
                     title: Row(
                       children: [
                         if (isSellerView) ...[
-                          const SizedBox(width: 36),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: AppLogo(
+                              height: 32,
+                              style: AppLogoStyle.color,
+                              onTap: () => context.go('/seller/dashboard'),
+                            ),
+                          ),
                           Expanded(
                             child: Center(
                               child: ModeSwitcher(isSellerView: isSellerView),

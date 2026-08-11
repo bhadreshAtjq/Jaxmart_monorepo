@@ -4913,7 +4913,6 @@ class _RfqListScreenState extends State<RfqListScreen> {
   List<JsonMap> _filtered(List<JsonMap> items) {
     return items.where((item) {
       if (sellerMode) {
-        final matchTab = true;
         final matchSearch = _search.isEmpty ||
             textOf(item['title'])
                 .toLowerCase()
@@ -4921,7 +4920,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
             textOf(item['description'])
                 .toLowerCase()
                 .contains(_search.toLowerCase());
-        return matchTab && matchSearch;
+        return matchSearch;
       }
       final status = textOf(item['status']).toUpperCase();
       final matchTab = _tab == 'OPEN'
@@ -4968,12 +4967,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
                       width: 7,
                       height: 7,
                       decoration: const BoxDecoration(
-                          color: Color(0xFF36ADA3),
+                          color: Color(0xFF10B981),
                           shape: BoxShape.circle)),
                   const SizedBox(width: 6),
                   const Text('MY REQUESTS',
                       style: TextStyle(
-                          color: Color(0xFF36ADA3),
+                          color: Color(0xFF0D9488),
                           fontWeight: FontWeight.w900,
                           fontSize: 10,
                           letterSpacing: 1.2)),
@@ -4995,7 +4994,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Stats + New Request button ────────────────────────────
-                if (!sellerMode)
+                if (!sellerMode) ...[
                   Row(
                     children: [
                       Expanded(
@@ -5004,8 +5003,15 @@ class _RfqListScreenState extends State<RfqListScreen> {
                               horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             children: [
@@ -5015,11 +5021,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   children: [
                                     const Text('YOUR REQUESTS',
                                         style: TextStyle(
+                                            fontFamily: JaxText.heading,
                                             fontSize: 9,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.grey,
                                             letterSpacing: 0.5)),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 3),
                                     Text('${allItems.length}',
                                         style: const TextStyle(
                                             fontFamily: JaxText.heading,
@@ -5031,7 +5038,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                               ),
                               Container(
                                   width: 1,
-                                  height: 32,
+                                  height: 30,
                                   color: const Color(0xFFE2E8F0)),
                               Expanded(
                                 child: Padding(
@@ -5042,11 +5049,12 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                     children: [
                                       const Text('QUOTES RECEIVED',
                                           style: TextStyle(
+                                              fontFamily: JaxText.heading,
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.grey,
                                               letterSpacing: 0.5)),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 3),
                                       Text('$quotesCount',
                                           style: const TextStyle(
                                               fontFamily: JaxText.heading,
@@ -5063,32 +5071,29 @@ class _RfqListScreenState extends State<RfqListScreen> {
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.hovered) ||
-                                states.contains(WidgetState.pressed)) {
-                              return const Color(0xFF232F72); // Blue / Navy on hover or tap
-                            }
-                            return const Color(0xFF10B981); // Emerald Teal green base
-                          }),
-                          foregroundColor: WidgetStateProperty.all(Colors.white),
-                          elevation: WidgetStateProperty.all(0),
-                          shape: WidgetStateProperty.all(
-                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          padding: WidgetStateProperty.all(
-                            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                          ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
                         ),
                         icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('New Request',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold)),
+                        label: const Text(
+                          'New Request',
+                          style: TextStyle(
+                              fontFamily: JaxText.heading,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
+                        ),
                         onPressed: () => context.push('/rfq/create'),
                       ),
                     ],
                   ),
-                if (!sellerMode) const SizedBox(height: 16),
+                  const SizedBox(height: 16),
+                ],
 
                 // ── Tabs + Search ─────────────────────────────────────────
                 if (sellerMode)
@@ -5207,7 +5212,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: const Color(0xFFE2E8F0)),
                             ),
                             child: Row(
@@ -5219,23 +5224,34 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 180),
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 7),
+                                        horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: selected
-                                          ? const Color(0xFF0F172A)
+                                          ? Colors.white
                                           : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(9),
+                                      boxShadow: selected
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.04),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ]
+                                          : null,
                                     ),
                                     child: Text(
                                       tab,
                                       style: TextStyle(
+                                        fontFamily: JaxText.heading,
                                         fontSize: 11,
                                         color: selected
-                                            ? Colors.white
-                                            : Colors.grey.shade600,
+                                            ? const Color(0xFF0F172A)
+                                            : Colors.grey.shade500,
                                         fontWeight: selected
-                                            ? FontWeight.bold
-                                            : FontWeight.w500,
+                                            ? FontWeight.w900
+                                            : FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -5254,19 +5270,24 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           onChanged: (v) => setState(() => _search = v),
                           style: const TextStyle(fontSize: 13),
                           decoration: InputDecoration(
-                            hintText: 'Search requests...',
-                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                            prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.grey),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            hintText: 'Search requests..',
+                            hintStyle: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                            prefixIcon: const Icon(Icons.search_rounded,
+                                size: 18, color: Colors.grey),
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFCBD5E1)),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFCBD5E1)),
                             ),
                           ),
                         ),
@@ -5318,20 +5339,20 @@ class _RfqListScreenState extends State<RfqListScreen> {
                         .toList(),
                   ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // ── Pro Tips & Trust Safety Cards ─────────────────────────
                 if (!sellerMode) ...[
                   // Pro Tips Dark Navy Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.2),
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.15),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -5354,6 +5375,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                             const Text(
                               'PRO TIPS',
                               style: TextStyle(
+                                fontFamily: JaxText.heading,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF10B981),
@@ -5363,12 +5385,27 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          'Detailed requests with specific quantities and target budgets receive up to 40% more quotes.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFFE2E8F0),
-                            height: 1.5,
+                        RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                              fontFamily: JaxText.body,
+                              fontSize: 12,
+                              color: Color(0xFFCBD5E1),
+                              height: 1.5,
+                            ),
+                            children: [
+                              TextSpan(
+                                  text:
+                                      'Detailed requests with specific quantities and target budgets receive up to '),
+                              TextSpan(
+                                text: '40% more quotes',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              TextSpan(text: '.'),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -5376,7 +5413,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: const Color(0xFF334155)),
                           ),
                           child: Row(
@@ -5387,6 +5424,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   Text(
                                     'LIVE NETWORK',
                                     style: TextStyle(
+                                      fontFamily: JaxText.heading,
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFF94A3B8),
@@ -5397,6 +5435,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                   Text(
                                     '8,204 Suppliers',
                                     style: TextStyle(
+                                      fontFamily: JaxText.heading,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white,
@@ -5406,9 +5445,11 @@ class _RfqListScreenState extends State<RfqListScreen> {
                               ),
                               const Spacer(),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  color: const Color(0xFF10B981)
+                                      .withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
@@ -5425,6 +5466,7 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                     const Text(
                                       'Online',
                                       style: TextStyle(
+                                        fontFamily: JaxText.heading,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF10B981),
@@ -5444,14 +5486,14 @@ class _RfqListScreenState extends State<RfqListScreen> {
                   // Trust & Safety White Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: 0.02),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -5462,11 +5504,13 @@ class _RfqListScreenState extends State<RfqListScreen> {
                       children: [
                         Row(
                           children: const [
-                            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 16),
+                            Icon(Icons.check_circle_rounded,
+                                color: Color(0xFF10B981), size: 16),
                             SizedBox(width: 6),
                             Text(
                               'TRUST & SAFETY',
                               style: TextStyle(
+                                fontFamily: JaxText.heading,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF0F172A),
@@ -5485,14 +5529,16 @@ class _RfqListScreenState extends State<RfqListScreen> {
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.shield_outlined, color: Color(0xFF0F172A), size: 20),
+                              child: const Icon(Icons.shield_outlined,
+                                  color: Color(0xFF0F172A), size: 20),
                             ),
                             const SizedBox(width: 10),
                             const Expanded(
                               child: Text(
                                 'Quotes only come from verified suppliers with audited business profiles.',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontFamily: JaxText.body,
+                                  fontSize: 11.5,
                                   color: Color(0xFF64748B),
                                   height: 1.4,
                                 ),
@@ -5503,22 +5549,25 @@ class _RfqListScreenState extends State<RfqListScreen> {
                         const SizedBox(height: 14),
                         SizedBox(
                           width: double.infinity,
-                          height: 40,
+                          height: 42,
                           child: OutlinedButton(
                             onPressed: () {},
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF0F172A),
-                              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                              backgroundColor: const Color(0xFFF8FAFC),
+                              side: const BorderSide(
+                                  color: Color(0xFFE2E8F0), width: 1),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: const Text(
                               'HOW ESCROW WORKS',
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                                fontFamily: JaxText.heading,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           ),
@@ -5547,9 +5596,16 @@ class _EmptyRequests extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -5558,17 +5614,11 @@ class _EmptyRequests extends StatelessWidget {
             height: 64,
             width: 64,
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFF8FAFC),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
-            child: const Icon(Icons.inbox_outlined, size: 30, color: Color(0xFF94A3B8)),
+            child: const Icon(Icons.widgets_outlined,
+                size: 30, color: Color(0xFFCBD5E1)),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -5582,44 +5632,39 @@ class _EmptyRequests extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'You haven\'t posted any sourcing requests in this category yet.\nStart getting quotes from verified sellers today.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: Color(0xFF64748B),
-              height: 1.5,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'You haven\'t posted any sourcing requests in this category yet. Start getting quotes from verified sellers today.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: JaxText.body,
+                fontSize: 11.5,
+                color: Color(0xFF64748B),
+                height: 1.5,
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 42,
-            child: ElevatedButton(
-              onPressed: onPost,
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.hovered) ||
-                      states.contains(WidgetState.pressed)) {
-                    return const Color(0xFF10B981); // Green on hover/tap
-                  }
-                  return const Color(0xFF232F72); // Dark Navy Blue base
-                }),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
-                elevation: WidgetStateProperty.all(2),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                padding: WidgetStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 28),
-                ),
+          ElevatedButton(
+            onPressed: onPost,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF202958),
+              foregroundColor: Colors.white,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
-                'POST A REQUEST',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text(
+              'POST A REQUEST',
+              style: TextStyle(
+                fontFamily: JaxText.heading,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 0.8,
               ),
             ),
           ),
@@ -6705,128 +6750,388 @@ class SellerDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
-    final name = textOf(user?['fullName']).split(' ').first;
-    final greeting = name.isNotEmpty
-        ? 'Welcome back, $name'
-        : 'Manage your store and performance';
+    final fullName = textOf(user['fullName']);
+    final firstName = fullName.isNotEmpty ? fullName.split(' ').first : 'Seller';
 
     return BlocProvider(
       create: (_) => ResourceCubit()
         ..load(() => apiOf(context).myListings({}),
             listKeys: const ['listings']),
-      child: JaxPage(
-        title: 'Seller Home',
-        subtitle: greeting,
-        child: BlocBuilder<ResourceCubit, ResourceState>(
-          builder: (context, state) => AsyncContent(
-            state: state,
-            onRetry: () => context.read<ResourceCubit>().load(
-                () => apiOf(context).myListings({}),
-                listKeys: const ['listings']),
-            builder: (_) {
-              final listings = state.items;
-              final activeCount =
-                  listings.where((l) => l['status'] == 'ACTIVE').length;
-              final totalCount = numOf(state.data['total']) ?? listings.length;
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: BlocBuilder<ResourceCubit, ResourceState>(
+            builder: (context, state) => AsyncContent(
+              state: state,
+              onRetry: () => context.read<ResourceCubit>().load(
+                  () => apiOf(context).myListings({}),
+                  listKeys: const ['listings']),
+              builder: (_) {
+                final listings = state.items;
+                final activeCount =
+                    listings.where((l) => l['status'] == 'ACTIVE').length;
+                final totalCount = numOf(state.data['total']) ?? listings.length;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.35,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SellerStatCard(
-                          label: 'ACTIVE PRODUCTS',
-                          value: activeCount.toString(),
-                          icon: Icons.storefront_rounded),
-                      _SellerStatCard(
-                          label: 'TOTAL PRODUCTS',
-                          value: totalCount.toString(),
-                          icon: Icons.inventory_2_rounded),
-                      const _SellerStatCard(
-                          label: 'BUYER REQUESTS',
-                          value: '0',
-                          sub: 'Coming soon',
-                          icon: Icons.inbox_rounded),
-                      const _SellerStatCard(
-                          label: 'AVG RATING',
-                          value: '4.8',
-                          sub: 'Based on 0 reviews',
-                          icon: Icons.star_rounded),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Add Product',
-                          subtitle: 'List your products or services on JaxMart',
-                          buttonText: 'Manage Products',
-                          icon: Icons.storefront_rounded,
-                          onTap: () => context.push('/seller/listings'),
+                      // ── Dark Navy Hero Header ──
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF1B2348), Color(0xFF2B3566)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.2)),
+                                  ),
+                                  child: const Text(
+                                    'SELLER PORTAL',
+                                    style: TextStyle(
+                                      fontFamily: JaxText.heading,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: () =>
+                                      context.push('/seller/listings/new'),
+                                  icon: const Icon(Icons.add_rounded,
+                                      size: 14, color: Color(0xFF1B2348)),
+                                  label: const Text(
+                                    'New Product',
+                                    style: TextStyle(
+                                      fontFamily: JaxText.heading,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1B2348),
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Welcome back, $firstName',
+                              style: const TextStyle(
+                                fontFamily: JaxText.heading,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              "Here's what's happening with your store today. Manage your listings and track your performance.",
+                              style: TextStyle(
+                                fontFamily: JaxText.body,
+                                fontSize: 12,
+                                color: Color(0xFFDBEAFE),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── 4 Stat Cards Grid ──
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GridView.count(
+                              crossAxisCount: 2,
+                              childAspectRatio: 1.3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                _SellerStatCard(
+                                  label: 'ACTIVE PRODUCTS',
+                                  value: activeCount.toString(),
+                                  badgeText: 'LIVE',
+                                  badgeColor: const Color(0xFFECFDF5),
+                                  badgeTextColor: const Color(0xFF059669),
+                                  icon: Icons.storefront_rounded,
+                                  iconBgColor: const Color(0xFFEFF6FF),
+                                  iconColor: const Color(0xFF2563EB),
+                                ),
+                                _SellerStatCard(
+                                  label: 'TOTAL PRODUCTS',
+                                  value: totalCount.toString(),
+                                  badgeText: 'Total',
+                                  badgeColor: Colors.transparent,
+                                  badgeTextColor: Colors.grey.shade400,
+                                  icon: Icons.inventory_2_rounded,
+                                  iconBgColor: const Color(0xFFEFF6FF),
+                                  iconColor: const Color(0xFF2563EB),
+                                ),
+                                _SellerStatCard(
+                                  label: 'BUYER REQUESTS',
+                                  value: '-',
+                                  badgeText: 'SOON',
+                                  badgeColor: const Color(0xFFF3F4F6),
+                                  badgeTextColor: const Color(0xFF6B7280),
+                                  icon: Icons.inbox_rounded,
+                                  iconBgColor: const Color(0xFFFFFBEB),
+                                  iconColor: const Color(0xFFD97706),
+                                ),
+                                _SellerStatCard(
+                                  label: 'AVG RATING',
+                                  value: '-',
+                                  badgeText: 'No reviews',
+                                  badgeColor: Colors.transparent,
+                                  badgeTextColor: Colors.grey.shade400,
+                                  icon: Icons.star_rounded,
+                                  iconBgColor: const Color(0xFFFFE4E6),
+                                  iconColor: const Color(0xFFF43F5E),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // ── Quick Actions Section ──
+                            const Text(
+                              'Quick Actions',
+                              style: TextStyle(
+                                fontFamily: JaxText.heading,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Shortcuts to manage your store',
+                              style: TextStyle(
+                                fontFamily: JaxText.body,
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            _QuickActionCard(
+                              title: 'Manage Products',
+                              subtitle:
+                                  'View, edit, or remove your current product listings.',
+                              buttonText: 'Go to Products',
+                              icon: Icons.storefront_rounded,
+                              iconBgColor: const Color(0xFFEFF6FF),
+                              iconColor: const Color(0xFF2563EB),
+                              onTap: () => context.push('/seller/listings'),
+                            ),
+                            const SizedBox(height: 12),
+
+                            _QuickActionCard(
+                              title: 'Buyer Requests',
+                              subtitle:
+                                  'Check new requirements from potential buyers.',
+                              buttonText: 'View Inbox',
+                              icon: Icons.inbox_rounded,
+                              iconBgColor: const Color(0xFFFFFBEB),
+                              iconColor: const Color(0xFFD97706),
+                              onTap: () => context.push('/seller/rfq-inbox'),
+                            ),
+                            const SizedBox(height: 12),
+
+                            const _QuickActionCard(
+                              title: 'Analytics',
+                              subtitle:
+                                  'Track your page views and conversion metrics.',
+                              buttonText: 'Coming Soon',
+                              icon: Icons.trending_up_rounded,
+                              iconBgColor: Color(0xFFECFDF5),
+                              iconColor: Color(0xFF059669),
+                              disabled: true,
+                              badgeText: 'SOON',
+                            ),
+                            const SizedBox(height: 28),
+
+                            // ── Recent Products Section ──
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Recent Products',
+                                  style: TextStyle(
+                                    fontFamily: JaxText.heading,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () =>
+                                      context.push('/seller/listings'),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'View All',
+                                        style: TextStyle(
+                                          fontFamily: JaxText.heading,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(Icons.chevron_right_rounded,
+                                          size: 16, color: Colors.grey.shade600),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+
+                            if (listings.isEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 40, horizontal: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                      color: const Color(0xFFE2E8F0)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.02),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFEFF6FF),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.widgets_rounded,
+                                        color: Color(0xFF2563EB),
+                                        size: 26,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'No products listed yet',
+                                      style: TextStyle(
+                                        fontFamily: JaxText.heading,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: Text(
+                                        'Get started by creating your first product or service listing to start receiving enquiries from buyers.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: JaxText.body,
+                                          fontSize: 12,
+                                          color: Colors.grey.shade500,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton.icon(
+                                      onPressed: () => context
+                                          .push('/seller/listings/new'),
+                                      icon: const Icon(Icons.add_rounded,
+                                          size: 16, color: Colors.white),
+                                      label: const Text(
+                                        'Create Your First Listing',
+                                        style: TextStyle(
+                                          fontFamily: JaxText.heading,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFF1F264E),
+                                        foregroundColor: Colors.white,
+                                        elevation: 2,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Column(
+                                children: listings.take(6).map((l) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: ListingTile(
+                                      item: l,
+                                      isSellerMode: true,
+                                      showActions: false,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Buyer Requests',
-                          subtitle: 'View and respond to buyer requirements',
-                          buttonText: 'View Requests',
-                          icon: Icons.inbox_rounded,
-                          onTap: () => context.push('/seller/rfq-inbox'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Row(
-                    children: [
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Analytics',
-                          subtitle:
-                              'View page visits, enquiries, and conversions',
-                          buttonText: 'Coming Soon',
-                          icon: Icons.trending_up_rounded,
-                          disabled: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  SectionTitle(
-                      title: 'Recent Products',
-                      action: () => context.push('/seller/listings')),
-                  const SizedBox(height: 12),
-                  if (listings.isEmpty)
-                    EmptyState(
-                      title: 'No products listed yet',
-                      description:
-                          'Create your first product or service listing to start getting enquiries.',
-                      icon: Icons.storefront_rounded,
-                      action: JaxButton(
-                          label: 'Create Listing',
-                          onPressed: () =>
-                              context.push('/seller/listings/new')),
-                    )
-                  else
-                    ...listings.take(6).map((l) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ListingTile(
-                            item: l, isSellerMode: true, showActions: false))),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -6835,40 +7140,105 @@ class SellerDashboardScreen extends StatelessWidget {
 }
 
 class _SellerStatCard extends StatelessWidget {
-  const _SellerStatCard(
-      {required this.label, required this.value, this.sub, required this.icon});
+  const _SellerStatCard({
+    required this.label,
+    required this.value,
+    required this.badgeText,
+    required this.badgeColor,
+    required this.badgeTextColor,
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+  });
+
   final String label;
   final String value;
-  final String? sub;
+  final String badgeText;
+  final Color badgeColor;
+  final Color badgeTextColor;
   final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
-    return JaxCard(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                  child: Text(label,
-                      style: JaxText.label.copyWith(
-                          fontSize: 10,
-                          color: JaxColors.onSurfaceVariant,
-                          letterSpacing: 1))),
-              Icon(icon, size: 14, color: JaxColors.outline),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: iconColor),
+              ),
+              if (badgeText.isNotEmpty)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: badgeTextColor,
+                    ),
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(value, style: JaxText.h2),
-          if (sub != null) ...[
-            const SizedBox(height: 4),
-            Text(sub!,
-                style: JaxText.label
-                    .copyWith(fontSize: 9, color: JaxColors.primary)),
-          ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade400,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: value == '-'
+                      ? Colors.grey.shade400
+                      : const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -6881,77 +7251,138 @@ class _QuickActionCard extends StatelessWidget {
     required this.subtitle,
     required this.buttonText,
     required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
     this.onTap,
     this.disabled = false,
+    this.badgeText,
   });
 
   final String title;
   final String subtitle;
   final String buttonText;
   final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
   final VoidCallback? onTap;
   final bool disabled;
+  final String? badgeText;
 
   @override
   Widget build(BuildContext context) {
-    return JaxCard(
+    return Container(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: JaxColors.secondary.withValues(alpha: .1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: JaxColors.secondaryDark, size: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: JaxText.title.copyWith(fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(subtitle,
-                    style: JaxText.bodySmall
-                        .copyWith(color: JaxColors.onSurfaceVariant)),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 32,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: JaxColors.primary,
-                      side: BorderSide(
-                          color: disabled
-                              ? JaxColors.outlineVariant
-                              : JaxColors.primary),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                    onPressed: disabled ? null : onTap,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(buttonText,
-                            style: JaxText.label.copyWith(
-                                fontSize: 11,
-                                color: disabled
-                                    ? JaxColors.outline
-                                    : JaxColors.primary)),
-                        if (!disabled) ...[
-                          const SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_rounded,
-                              size: 12, color: JaxColors.primary),
-                        ],
-                      ],
-                    ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          if (badgeText != null)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  badgeText!,
+                  style: const TextStyle(
+                    fontFamily: JaxText.heading,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6B7280),
                   ),
                 ),
-              ],
+              ),
             ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: JaxText.body,
+                        fontSize: 11.5,
+                        color: Colors.grey.shade500,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (disabled)
+                      Text(
+                        buttonText,
+                        style: TextStyle(
+                          fontFamily: JaxText.heading,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade400,
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: onTap,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              buttonText,
+                              style: TextStyle(
+                                fontFamily: JaxText.heading,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: iconColor,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 14,
+                              color: iconColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -83,12 +83,12 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
             <Image
-              src="/JaxMart_bg.png"
+              src="/JaxMart_logo_white.png"
               alt="JaxMart"
               width={108}
               height={42}
               priority
-              className="h-9 w-auto object-contain brightness-0 invert opacity-95"
+              className="h-9 w-auto object-contain opacity-95"
             />
           </div>
           <h1 className="text-4xl font-heading font-bold text-white leading-tight mb-4">

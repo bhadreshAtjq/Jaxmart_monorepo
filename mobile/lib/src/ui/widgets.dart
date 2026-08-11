@@ -308,25 +308,12 @@ class _AppShellState extends State<AppShell> {
                           _buildProfileAvatarButton(context, auth),
                         ]
                         else ...[
-                          GestureDetector(
-                            onTap: () => context.go('/home'),
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Image.asset(
-                                'assets/images/JaxMart_bg.png',
-                                height: 32,
-                                width: 90,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const Text(
-                                  'JaxMart',
-                                  style: TextStyle(
-                                    fontFamily: 'SourceSans3',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: JaxColors.primary,
-                                  ),
-                                ),
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: AppLogo(
+                              height: 32,
+                              style: AppLogoStyle.color,
+                              onTap: () => context.go('/home'),
                             ),
                           ),
                           Expanded(
@@ -2021,5 +2008,131 @@ class _ProfileDropdownCardState extends State<ProfileDropdownCard> {
     );
   }
 }
+
+enum AppLogoStyle { color, white, dark, auto }
+
+class AppLogo extends StatelessWidget {
+  final double? height;
+  final double? width;
+  final AppLogoStyle style;
+  final BoxFit fit;
+  final AlignmentGeometry alignment;
+  final VoidCallback? onTap;
+
+  const AppLogo({
+    super.key,
+    this.height,
+    this.width,
+    this.style = AppLogoStyle.auto,
+    this.fit = BoxFit.contain,
+    this.alignment = Alignment.center,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mediaQuery = MediaQuery.of(context);
+        final screenHeight = mediaQuery.size.height;
+
+        // Responsive dynamic height calculation
+        double targetHeight = height ??
+            (screenHeight < 650
+                ? 34.0
+                : screenHeight < 900
+                    ? 42.0
+                    : 50.0);
+
+        if (constraints.maxHeight < targetHeight && constraints.maxHeight > 0) {
+          targetHeight = constraints.maxHeight;
+        }
+
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        String assetPath;
+        switch (style) {
+          case AppLogoStyle.white:
+            assetPath = 'assets/images/JaxMart_logo_white.png';
+            break;
+          case AppLogoStyle.dark:
+            assetPath = 'assets/images/JaxMart_logo_dark.png';
+            break;
+          case AppLogoStyle.color:
+            assetPath = 'assets/images/JaxMart_bg.png';
+            break;
+          case AppLogoStyle.auto:
+            assetPath = isDark
+                ? 'assets/images/JaxMart_logo_dark.png'
+                : 'assets/images/JaxMart_bg.png';
+            break;
+        }
+
+        Widget logoWidget = Image.asset(
+          assetPath,
+          height: targetHeight,
+          width: width,
+          fit: fit,
+          alignment: alignment,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/JaxMart_bg.png',
+              height: targetHeight,
+              width: width,
+              fit: fit,
+              alignment: alignment,
+              errorBuilder: (_, __, ___) => FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Jax',
+                        style: TextStyle(
+                          fontFamily: 'SourceSans3',
+                          fontSize: targetHeight * 0.65,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF00B074),
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'mart',
+                        style: TextStyle(
+                          fontFamily: 'SourceSans3',
+                          fontSize: targetHeight * 0.65,
+                          fontWeight: FontWeight.w900,
+                          color: style == AppLogoStyle.white || isDark
+                              ? Colors.white
+                              : const Color(0xFF0A65CC),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+
+        if (onTap != null) {
+          logoWidget = GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: logoWidget,
+          );
+        }
+
+        return Container(
+          alignment: alignment,
+          constraints: BoxConstraints(
+            maxHeight: targetHeight,
+          ),
+          child: logoWidget,
+        );
+      },
+    );
+  }
+}
+
 
 

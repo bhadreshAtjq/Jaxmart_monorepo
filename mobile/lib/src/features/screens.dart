@@ -34,7 +34,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/images/JaxMart_bg.png', height: 58),
+              const AppLogo(height: 58, style: AppLogoStyle.color),
               const SizedBox(height: 24),
               const CircularProgressIndicator(color: JaxColors.primary),
             ],
@@ -113,12 +113,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 24),
                   // Centered Header Brand Logo
-                  Center(
-                    child: Image.asset(
-                      'assets/images/JaxMart_bg.png',
-                      height: 38,
-                      color: Colors.white,
-                      colorBlendMode: BlendMode.srcIn,
+                  const Center(
+                    child: AppLogo(
+                      height: 44,
+                      style: AppLogoStyle.white,
                     ),
                   ),
                   const SizedBox(height: 36),
@@ -2069,20 +2067,9 @@ class TradeSafetyFooter extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset(
-                'assets/images/JaxMart_bg.png',
+              const AppLogo(
                 height: 24,
-                width: 70,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Text(
-                  'JaxMart',
-                  style: TextStyle(
-                    fontFamily: 'SourceSans3',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
+                style: AppLogoStyle.white,
               ),
               const Spacer(),
               const Text(

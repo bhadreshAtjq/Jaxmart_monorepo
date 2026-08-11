@@ -5084,109 +5084,126 @@ class _RfqListScreenState extends State<RfqListScreen> {
 
                 // ── Tabs + Search ─────────────────────────────────────────
                 if (sellerMode)
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      // Search
-                      Container(
-                        width: 250,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: .02),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2))
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _searchCtrl,
-                          onChanged: (v) => setState(() => _search = v),
-                          decoration: InputDecoration(
-                            hintText: 'Search requests...',
-                            hintStyle: JaxText.bodySmall
-                                .copyWith(color: JaxColors.onSurfaceVariant),
-                            prefixIcon:
-                                const Icon(Icons.search_rounded, size: 18),
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 8),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                    color: JaxColors.outlineVariant,
-                                    width: 0.5)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                    color: JaxColors.outlineVariant,
-                                    width: 0.5)),
-                          ),
-                        ),
-                      ),
-                      // Tabs
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: JaxColors.outlineVariant, width: 0.5),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: _currentTabs.map((tab) {
-                            final selected = _tab == tab;
-                            return GestureDetector(
-                              onTap: () {
-                                if (_tab != tab) {
-                                  setState(() => _tab = tab);
-                                  final cubit = context.read<ResourceCubit>();
-                                  cubit.clear();
-                                  cubit.load(
-                                    () => apiOf(context).sellerRfqInbox({
-                                      'matchOnly': tab == 'MATCHED REQUESTS'
-                                          ? 'true'
-                                          : 'false',
-                                      'limit': 20,
-                                    }),
-                                    listKeys: const ['rfqs'],
-                                  );
-                                }
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 7),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? const Color(0xFF0F172A)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 580;
+                      return Flex(
+                        direction: isWide ? Axis.horizontal : Axis.vertical,
+                        crossAxisAlignment: isWide
+                            ? CrossAxisAlignment.center
+                            : CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Search Input
+                          SizedBox(
+                            width: isWide ? 280 : double.infinity,
+                            height: 44,
+                            child: TextField(
+                              controller: _searchCtrl,
+                              onChanged: (v) => setState(() => _search = v),
+                              style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                              decoration: InputDecoration(
+                                hintText: 'Search keywords...',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 13,
                                 ),
-                                child: Text(
-                                  tab,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    letterSpacing: 0.5,
-                                    color: selected
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
-                                    fontWeight: selected
-                                        ? FontWeight.w800
-                                        : FontWeight.w700,
-                                  ),
+                                prefixIcon: const Icon(
+                                  Icons.search_rounded,
+                                  size: 18,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFF1D4ED8), width: 1.5),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
+                            ),
+                          ),
+                          if (!isWide) const SizedBox(height: 12),
+                          // Tabs Switcher
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFF1F5F9)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: isWide ? MainAxisSize.min : MainAxisSize.max,
+                              children: _currentTabs.map((tab) {
+                                final selected = _tab == tab;
+                                return Expanded(
+                                  flex: isWide ? 0 : 1,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (_tab != tab) {
+                                        setState(() => _tab = tab);
+                                        final cubit = context.read<ResourceCubit>();
+                                        cubit.clear();
+                                        cubit.load(
+                                          () => apiOf(context).sellerRfqInbox({
+                                            'matchOnly': tab == 'MATCHED REQUESTS'
+                                                ? 'true'
+                                                : 'false',
+                                            'search': _search,
+                                            'limit': 20,
+                                          }),
+                                          listKeys: const ['rfqs'],
+                                        );
+                                      }
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 180),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 9),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: selected
+                                            ? const Color(0xFF0F172A)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        tab,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          letterSpacing: 0.5,
+                                          color: selected
+                                              ? Colors.white
+                                              : Colors.grey.shade500,
+                                          fontWeight: selected
+                                              ? FontWeight.w900
+                                              : FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   )
                 else
                   Column(

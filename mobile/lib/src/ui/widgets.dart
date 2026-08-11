@@ -1072,95 +1072,78 @@ class RfqTile extends StatelessWidget {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Badge, Time, and Budget on the right
+                // Top Row: Type Badge, Relative Time, and Budget on right
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Badge & Time
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE0E7FF), // Light indigo/blue
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Color(0xFF4338CA), // Indigo text
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade400),
-                              const SizedBox(width: 4),
-                              Text(
-                                relativeTime,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.grey.shade500,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9), // Light gray badge background
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        textOf(item['rfqType'], 'PRODUCT').toUpperCase(),
+                        style: const TextStyle(
+                          color: Color(0xFF334155), // Dark slate text
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
-                    // Budget (right-aligned)
+                    const SizedBox(width: 8),
+                    Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade400),
+                    const SizedBox(width: 4),
+                    Text(
+                      relativeTime,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                    const Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         const Text(
                           'BUDGET',
                           style: TextStyle(
-                            color: Color(0xFF9CA3AF), // Gray 400
-                            fontSize: 8,
+                            color: Color(0xFF94A3B8),
+                            fontSize: 9,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
                           formatRfqBudget(item),
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontFamily: JaxText.heading,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E1B4B), // Indigo-950
+                            color: Color(0xFF0F172A),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 // Title
                 Text(
                   title,
                   style: const TextStyle(
                     fontFamily: JaxText.heading,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1E1B4B),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
                     height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Description
+                // Description (italic quotes)
                 if (textOf(item['description']).isNotEmpty) ...[
                   Text(
                     '"${textOf(item['description'])}"',
@@ -1169,79 +1152,90 @@ class RfqTile extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: JaxText.body,
                       fontStyle: FontStyle.italic,
-                      fontSize: 12,
+                      fontSize: 13,
                       color: Colors.grey.shade600,
                       height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 12),
                 ],
-                const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
-                // Buyer info + Category
+                // Footer Row: Buyer Avatar, Category, Dot, Quotes count, and Send Quote Button
                 Row(
                   children: [
-                    JaxAvatar(
-                      name: textOf(buyer['fullName'], 'Buyer'),
-                      url: textOf(buyer['avatarUrl']),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6,
+                        runSpacing: 4,
                         children: [
+                          JaxAvatar(
+                            name: textOf(buyer['fullName'], 'Buyer'),
+                            url: textOf(buyer['avatarUrl']),
+                            size: 22,
+                          ),
                           Text(
                             textOf(buyer['fullName'], 'Buyer'),
                             style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF374151), // Gray 700
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF334155),
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          if (category.isNotEmpty) ...[
+                            Container(
+                              width: 3,
+                              height: 3,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFCBD5E1),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.widgets_outlined, size: 12, color: Color(0xFF2563EB)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  category,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFCBD5E1),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                           Text(
-                            category.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            '$quotesCount QUOTES RECEIVED',
                             style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: JaxColors.secondaryDark,
-                              letterSpacing: 0.2,
+                              color: Color(0xFF64748B),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Bottom Action Area: Quotes Count & Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$quotesCount ${quotesCount == 1 ? 'QUOTE' : 'QUOTES'} RECEIVED',
-                          style: const TextStyle(
-                            color: Color(0xFF6B7280), // Gray 500
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () => context.push('/seller/rfq/${item['id']}/quote'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E1B4B), // Primary dark indigo
+                        backgroundColor: const Color(0xFF1D4ED8), // Jax Blue
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         elevation: 0,
                       ),
                       child: const Row(
@@ -1249,10 +1243,10 @@ class RfqTile extends StatelessWidget {
                         children: [
                           Text(
                             'Send Quote',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
                           ),
                           SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_rounded, size: 12),
+                          Icon(Icons.arrow_forward_rounded, size: 13),
                         ],
                       ),
                     ),

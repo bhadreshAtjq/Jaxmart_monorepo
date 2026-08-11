@@ -3565,6 +3565,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                               setState(() => _sort = v);
                                               _reload(context);
                                             }),
+                                        _SortTab(
+                                            label: 'POPULAR',
+                                            value: 'popular',
+                                            selected: _sort,
+                                            onTap: (v) {
+                                              setState(() => _sort = v);
+                                              _reload(context);
+                                            }),
                                       ],
                                     ),
                                   ),

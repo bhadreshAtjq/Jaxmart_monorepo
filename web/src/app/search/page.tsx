@@ -15,7 +15,15 @@ import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
-type SortOption = 'relevance' | 'rating' | 'newest' | 'featured';
+type SortOption = 'relevance' | 'newest' | 'rating' | 'featured' | 'popular';
+
+const SORT_OPTIONS: { id: SortOption; label: string }[] = [
+  { id: 'relevance', label: 'Relevance' },
+  { id: 'newest', label: 'New Arrival' },
+  { id: 'rating', label: 'Top Rated' },
+  { id: 'featured', label: 'Featured' },
+  { id: 'popular', label: 'Popular' },
+];
 
 export default function SearchPage() {
   return (
@@ -90,7 +98,7 @@ function SearchPageContent() {
   const totalPages = data?.pagination?.pages ?? 1;
 
   // Apply client-side advanced B2B filters (like price range, min order quantity, port, payment terms)
-  const listings = listingsRaw.filter((l: any) => {
+  let listings = listingsRaw.filter((l: any) => {
     const pd = l.productDetail;
     if (!pd) return true; // Keep service listings unfiltered by product specs
 
@@ -109,6 +117,17 @@ function SearchPageContent() {
 
     return true;
   });
+
+  // Client-side fallback sorting if needed
+  if (sortBy === 'popular') {
+    listings = [...listings].sort((a: any, b: any) => (b.viewCount || 0) - (a.viewCount || 0) || (b.avgRating || 0) - (a.avgRating || 0));
+  } else if (sortBy === 'rating') {
+    listings = [...listings].sort((a: any, b: any) => (b.avgRating || 0) - (a.avgRating || 0));
+  } else if (sortBy === 'newest') {
+    listings = [...listings].sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  } else if (sortBy === 'featured') {
+    listings = [...listings].sort((a: any, b: any) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+  }
 
   const total = listings.length === listingsRaw.length ? totalRaw : listings.length;
   const activeFilterCount = 
@@ -400,23 +419,28 @@ function SearchPageContent() {
             </div>
 
             {/* Sort Bar */}
-            <div className="flex items-center justify-between mb-6 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-semibold px-2">Sort By:</span>
-                {(['relevance', 'newest', 'rating', 'featured'] as SortOption[]).map(s => (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 sm:py-0 w-full sm:w-auto">
+                <span className="text-gray-500 font-semibold px-2 shrink-0">Sort By:</span>
+                {SORT_OPTIONS.map((opt) => (
                   <button
-                    key={s}
-                    onClick={() => setSortBy(s)}
+                    key={opt.id}
+                    onClick={() => {
+                      setSortBy(opt.id);
+                      setPage(1);
+                    }}
                     className={clsx(
-                      'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-colors',
-                      sortBy === s ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      'px-3 py-1.5 rounded-md font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0',
+                      sortBy === opt.id
+                        ? 'bg-white border border-gray-200 text-jungle-green-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100/60'
                     )}
                   >
-                    {s}
+                    {opt.label}
                   </button>
                 ))}
               </div>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold px-2">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold px-2 shrink-0">
                 Showing {listings.length} of {total} items
               </span>
             </div>

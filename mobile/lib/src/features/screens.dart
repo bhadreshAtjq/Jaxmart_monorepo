@@ -3901,7 +3901,159 @@ class _SearchScreenState extends State<SearchScreen> {
                         builder: (_) {
                           final items = state.items;
                           if (items.isEmpty) {
-                            return const EmptyState(title: 'No wholesale listings found');
+                            final queryText = _q.text.trim();
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // 1. AI Reasoning & Insight Card
+                                Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFFBEB),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Row(
+                                            children: [
+                                              Icon(Icons.auto_awesome_rounded, color: Color(0xFFD97706), size: 16),
+                                              SizedBox(width: 6),
+                                              Text(
+                                                'AI REASONING & INSIGHT',
+                                                style: TextStyle(
+                                                  fontFamily: JaxText.heading,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 0.5,
+                                                  color: Color(0xFFD97706),
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFFD97706), size: 16),
+                                            ],
+                                          ),
+                                          if (queryText.isNotEmpty)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(color: const Color(0xFFFDE68A)),
+                                              ),
+                                              child: Text(
+                                                '"$queryText"',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF92400E),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text.rich(
+                                        TextSpan(
+                                          style: const TextStyle(fontSize: 12, color: Color(0xFF78350F), height: 1.4),
+                                          children: [
+                                            TextSpan(
+                                                text: queryText.isEmpty
+                                                    ? 'No active catalog items matched your criteria. '
+                                                    : 'No active catalog items matched "$queryText". '),
+                                            const TextSpan(
+                                                text:
+                                                    'You can post a custom Sourcing Request (RFQ) to receive direct quotations from verified suppliers.'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // 2. Dashed Border Empty State Card
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFAFAFA),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        ),
+                                        child: const Icon(
+                                          Icons.view_in_ar_rounded,
+                                          size: 32,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Text(
+                                        'NO PRODUCTS MATCH FILTERS',
+                                        style: TextStyle(
+                                          fontFamily: JaxText.heading,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF0F172A),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        "We couldn't find items that match your search filters. Try widening your filters or post a request.",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF64748B),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      SizedBox(
+                                        height: 42,
+                                        child: ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF1E3A8A),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            final titleParam =
+                                                queryText.isNotEmpty ? '?title=${Uri.encodeComponent(queryText)}' : '';
+                                            context.push('/rfq/create$titleParam');
+                                          },
+                                          icon: const Icon(Icons.send_rounded, size: 15),
+                                          label: const Text(
+                                            'POST SOURCING REQUEST',
+                                            style: TextStyle(
+                                              fontFamily: JaxText.heading,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
                           }
 
                           return Column(

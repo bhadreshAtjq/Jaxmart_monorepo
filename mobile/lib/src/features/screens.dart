@@ -2054,42 +2054,6 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
 class TradeSafetyFooter extends StatelessWidget {
   const TradeSafetyFooter({super.key});
 
-  void _showPolicyDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontFamily: JaxText.heading,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Text(
-            content,
-            style: const TextStyle(
-              fontFamily: JaxText.body,
-              fontSize: 13,
-              color: Colors.white70,
-              height: 1.5,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close', style: TextStyle(color: JaxColors.secondary)),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2276,30 +2240,31 @@ class TradeSafetyFooter extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _FooterLink(
-                        label: 'Terms of Use',
-                        fontSize: 11,
-                        onTap: () => _showPolicyDialog(
-                          context,
-                          'Terms of Use',
-                          'By accessing or using JaxMart, you agree to comply with our Terms of Service, Escrow protection policies, and B2B transaction rules.',
+                      Text(
+                        'Terms of Use',
+                        style: TextStyle(
+                          fontFamily: JaxText.body,
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
                         ),
                       ),
                       const SizedBox(width: 14),
-                      _FooterLink(
-                        label: 'Privacy Policy',
-                        fontSize: 11,
-                        onTap: () => _showPolicyDialog(
-                          context,
-                          'Privacy Policy',
-                          'JaxMart respects user privacy. Your contact and financial data is encrypted and used strictly for identity verification, Escrow clearing, and order processing.',
+                      Text(
+                        'Privacy Policy',
+                        style: TextStyle(
+                          fontFamily: JaxText.body,
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
                         ),
                       ),
                       const SizedBox(width: 14),
-                      _FooterLink(
-                        label: 'Contact Us',
-                        fontSize: 11,
-                        onTap: () => context.push('/support'),
+                      Text(
+                        'Contact Us',
+                        style: TextStyle(
+                          fontFamily: JaxText.body,
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     ],
                   ),

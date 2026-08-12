@@ -1741,105 +1741,137 @@ class _AiSmartSourcingCardState extends State<AiSmartSourcingCard> {
     super.dispose();
   }
 
+  void _submitSearch() {
+    final txt = _controller.text.trim();
+    if (txt.isNotEmpty) {
+      context.push('/search?q=${Uri.encodeComponent(txt)}');
+    } else {
+      context.push('/search');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFF0FDFA), Color(0xFFEFF6FF)],
+          colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFCCFBF1)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0D9488).withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0D9488),
-                  borderRadius: BorderRadius.circular(10),
+          Center(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: const TextSpan(
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.3,
                 ),
-                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontFamily: JaxText.heading,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                    ),
-                    children: [
-                      TextSpan(text: 'All tasks in one ask, '),
-                      TextSpan(
-                        text: 'smart sourcing with AI',
-                        style: TextStyle(color: Color(0xFF0D9488)),
-                      ),
-                    ],
+                children: [
+                  TextSpan(text: 'All tasks in one ask, '),
+                  TextSpan(
+                    text: 'smart sourcing with AI',
+                    style: TextStyle(color: Color(0xFF0D9488)),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Container(
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF99F6E4), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 6,
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    style: const TextStyle(fontSize: 12),
-                    decoration: const InputDecoration(
-                      hintText: "Describe your sourcing needs e.g. 'I need 500 meters stainless steel pipe...'",
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 11),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
+                TextField(
+                  controller: _controller,
+                  maxLines: 2,
+                  minLines: 1,
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A), height: 1.4),
+                  decoration: const InputDecoration(
+                    hintText: "Describe your sourcing needs in detail (e.g. 'Find verified suppliers of high-grade aluminum in Pune')...",
+                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.4),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
+                  onSubmitted: (_) => _submitSearch(),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    final txt = _controller.text.trim();
-                    if (txt.isNotEmpty) {
-                      context.push('/rfq/create?title=${Uri.encodeComponent(txt)}');
-                    }
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.all(4),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Visual AI search initialized. Take a photo or upload product image.')),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ),
-                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 16),
-                  ),
+                    GestureDetector(
+                      onTap: _submitSearch,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF1E3A8A),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

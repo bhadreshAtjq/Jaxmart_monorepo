@@ -2054,46 +2054,328 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
 class TradeSafetyFooter extends StatelessWidget {
   const TradeSafetyFooter({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const AppLogo(
-                height: 24,
-                style: AppLogoStyle.white,
-              ),
-              const Spacer(),
-              const Text(
-                'Global B2B Sourcing Platform',
-                style: TextStyle(
-                  fontFamily: JaxText.body,
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
+  void _showPolicyDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: JaxText.heading,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Connecting verified manufacturers, suppliers, and bulk buyers across India & international markets with Escrow protection.',
-            style: TextStyle(
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            content,
+            style: const TextStyle(
               fontFamily: JaxText.body,
-              fontSize: 11,
-              color: Colors.grey.shade400,
-              height: 1.4,
+              fontSize: 13,
+              color: Colors.white70,
+              height: 1.5,
             ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: JaxColors.secondary)),
           ),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF090B11), // Web Dark Theme Footer
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 580;
+
+          Widget brandSection = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppLogo(
+                height: 28,
+                style: AppLogoStyle.color,
+                alignment: Alignment.centerLeft,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "India's premier B2B marketplace engineered for verified wholesale trade, seamless sourcing, and uncompromising escrow protection.",
+                style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 12,
+                  color: Colors.grey.shade400,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          );
+
+          Widget buyersColumn = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'FOR BUYERS',
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FooterLink(
+                label: 'Find Products',
+                onTap: () => context.push('/search'),
+              ),
+              const SizedBox(height: 8),
+              _FooterLink(
+                label: 'Post a Request',
+                onTap: () => context.push('/rfq/create'),
+              ),
+              const SizedBox(height: 8),
+              _FooterLink(
+                label: 'My Orders',
+                onTap: () => context.push('/orders'),
+              ),
+            ],
+          );
+
+          Widget sellersColumn = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'FOR SELLERS',
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FooterLink(
+                label: 'Seller Center',
+                onTap: () => context.push('/seller/dashboard'),
+              ),
+              const SizedBox(height: 8),
+              _FooterLink(
+                label: 'List Products',
+                onTap: () => context.push('/seller/listings/create'),
+              ),
+              const SizedBox(height: 8),
+              _FooterLink(
+                label: 'Buyer Requests',
+                onTap: () => context.push('/seller/rfq-inbox'),
+              ),
+            ],
+          );
+
+          Widget trustColumn = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'TRUST & SAFETY',
+                style: TextStyle(
+                  fontFamily: JaxText.heading,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const _TrustItem(
+                icon: Icons.shield_outlined,
+                label: 'Escrow Protection',
+              ),
+              const SizedBox(height: 8),
+              const _TrustItem(
+                icon: Icons.verified_outlined,
+                label: 'Verified Suppliers',
+              ),
+              const SizedBox(height: 8),
+              const _TrustItem(
+                icon: Icons.check_circle_outline_rounded,
+                label: 'Quality Guarantee',
+              ),
+            ],
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isTablet) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: brandSection),
+                    const SizedBox(width: 24),
+                    Expanded(flex: 2, child: buyersColumn),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 2, child: sellersColumn),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 2, child: trustColumn),
+                  ],
+                ),
+              ] else ...[
+                brandSection,
+                const SizedBox(height: 24),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: buyersColumn),
+                    const SizedBox(width: 12),
+                    Expanded(child: sellersColumn),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                trustColumn,
+              ],
+
+              const SizedBox(height: 24),
+              const Divider(color: Colors.white12, height: 1, thickness: 1),
+              const SizedBox(height: 16),
+
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  Text(
+                    '© ${DateTime.now().year} JaxMart. All rights reserved.',
+                    style: TextStyle(
+                      fontFamily: JaxText.body,
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _FooterLink(
+                        label: 'Terms of Use',
+                        fontSize: 11,
+                        onTap: () => _showPolicyDialog(
+                          context,
+                          'Terms of Use',
+                          'By accessing or using JaxMart, you agree to comply with our Terms of Service, Escrow protection policies, and B2B transaction rules.',
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      _FooterLink(
+                        label: 'Privacy Policy',
+                        fontSize: 11,
+                        onTap: () => _showPolicyDialog(
+                          context,
+                          'Privacy Policy',
+                          'JaxMart respects user privacy. Your contact and financial data is encrypted and used strictly for identity verification, Escrow clearing, and order processing.',
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      _FooterLink(
+                        label: 'Contact Us',
+                        fontSize: 11,
+                        onTap: () => context.push('/support'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FooterLink extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  final double fontSize;
+
+  const _FooterLink({
+    required this.label,
+    required this.onTap,
+    this.fontSize = 12,
+  });
+
+  @override
+  State<_FooterLink> createState() => _FooterLinkState();
+}
+
+class _FooterLinkState extends State<_FooterLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _isHovered = true),
+      onTapUp: (_) => setState(() => _isHovered = false),
+      onTapCancel: () => setState(() => _isHovered = false),
+      child: Text(
+        widget.label,
+        style: TextStyle(
+          fontFamily: JaxText.body,
+          fontSize: widget.fontSize,
+          color: _isHovered ? Colors.white : Colors.grey.shade400,
+          fontWeight: _isHovered ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _TrustItem({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Colors.grey.shade400),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: JaxText.body,
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+        ),
+      ],
     );
   }
 }

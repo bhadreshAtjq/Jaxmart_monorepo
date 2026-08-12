@@ -3977,6 +3977,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    const TradeSafetyFooter(),
                   ],
                 ),
               );
@@ -4488,6 +4490,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       id: widget.id,
                       item: item,
                       product: product),
+                  const SizedBox(height: 24),
+                  const TradeSafetyFooter(),
                 ],
               );
             },

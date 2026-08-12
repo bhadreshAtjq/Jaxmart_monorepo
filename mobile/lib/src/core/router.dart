@@ -109,6 +109,7 @@ class AppRouter {
                 GoRoute(path: '/seller/rfq/:id/quote', builder: (_, state) => SubmitQuoteScreen(rfqId: state.pathParameters['id']!)),
                 GoRoute(path: '/seller/listings', builder: (_, __) => const SellerListingsScreen()),
                 GoRoute(path: '/seller/listings/new', builder: (_, __) => const ListingFormScreen()),
+                GoRoute(path: '/seller/listings/create', builder: (_, __) => const ListingFormScreen()),
                 GoRoute(
                   path: '/seller/listings/:id/edit',
                   builder: (_, state) => ListingFormScreen(listingId: state.pathParameters['id']),

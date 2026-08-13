@@ -1836,11 +1836,7 @@ class _AiSmartSourcingCardState extends State<AiSmartSourcingCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Visual AI search initialized. Take a photo or upload product image.')),
-                        );
-                      },
+                      onTap: () => _showImageSearchDialog(context),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -1877,6 +1873,395 @@ class _AiSmartSourcingCardState extends State<AiSmartSourcingCard> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+void _showImageSearchDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => const ImageSearchDialog(),
+  );
+}
+
+class ImageSearchDialog extends StatefulWidget {
+  const ImageSearchDialog({super.key});
+
+  @override
+  State<ImageSearchDialog> createState() => _ImageSearchDialogState();
+}
+
+class _ImageSearchDialogState extends State<ImageSearchDialog> {
+  bool _isUploading = false;
+  String? _selectedFileName;
+
+  final List<Map<String, String>> _sampleImages = const [
+    {'label': 'Industrial Machinery', 'query': 'Machinery', 'icon': '⚙️'},
+    {'label': 'Solar Energy Panels', 'query': 'Solar Panels', 'icon': '☀️'},
+    {'label': 'Textile & Fabrics', 'query': 'Textiles', 'icon': '🧵'},
+    {'label': 'Steel Fasteners', 'query': 'Steel Bolts', 'icon': '🔩'},
+  ];
+
+  Future<void> _pickFileFromDevice() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _selectedFileName = result.files.first.name;
+        });
+      }
+      // If user cancelled, keep _selectedFileName as null!
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open file picker: $e')),
+        );
+      }
+    }
+  }
+
+  void _handleUpload([String? query]) {
+    setState(() => _isUploading = true);
+    final targetQuery = query ??
+        (_selectedFileName != null
+            ? _selectedFileName!
+                .replaceAll('_', ' ')
+                .replaceAll('.jpg', '')
+                .replaceAll('.png', '')
+            : 'Industrial Equipment');
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) {
+        Navigator.pop(context);
+        context.push('/search?q=${Uri.encodeComponent(targetQuery)}');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Container(
+        width: 520,
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. Header Bar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Find product inspiration with Image Search',
+                      style: TextStyle(
+                        fontFamily: JaxText.heading,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // 2. Dashed Drop Zone Container
+              GestureDetector(
+                onTap: _selectedFileName == null ? _pickFileFromDevice : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: _selectedFileName != null ? const Color(0xFFF0FDF4) : const Color(0xFFFAFAFA),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _selectedFileName != null ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      if (_selectedFileName != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFDCFCE7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            size: 36,
+                            color: Color(0xFF166534),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Selected Image: $_selectedFileName',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF14532D),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Visual features extracted. Ready to search matching B2B suppliers.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 12,
+                          runSpacing: 10,
+                          children: [
+                            TextButton(
+                              onPressed: () => setState(() => _selectedFileName = null),
+                              child: const Text('Change File', style: TextStyle(color: Colors.red, fontSize: 12)),
+                            ),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E3A8A),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              onPressed: _isUploading ? null : () => _handleUpload(),
+                              icon: _isUploading
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.search_rounded, size: 16),
+                              label: const Text(
+                                'SEARCH WITH THIS IMAGE',
+                                style: TextStyle(
+                                  fontFamily: JaxText.heading,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        // Cloud Upload Icon Badge
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 32,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Paste Instruction Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Paste an image you copied with ',
+                              style: TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: const Text(
+                                'Ctrl',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: const Text(
+                                'V',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Drag and drop an image here or upload a file',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Primary Upload Pill Button
+                        SizedBox(
+                          width: 140,
+                          height: 40,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E3A8A),
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            onPressed: _isUploading ? null : _pickFileFromDevice,
+                            icon: const Icon(Icons.folder_open_rounded, size: 16),
+                            label: const Text(
+                              'Upload',
+                              style: TextStyle(
+                                fontFamily: JaxText.heading,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 18),
+                      const Divider(color: Color(0xFFE2E8F0)),
+                      const SizedBox(height: 10),
+
+                      // Quick Sample Categories
+                      const Text(
+                        'OR TRY A QUICK SAMPLE IMAGE',
+                        style: TextStyle(
+                          fontFamily: JaxText.heading,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: _sampleImages.map((sample) {
+                          return ActionChip(
+                            avatar: Text(sample['icon']!, style: const TextStyle(fontSize: 12)),
+                            label: Text(sample['label']!),
+                            labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            onPressed: () => _handleUpload(sample['query']),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // 3. JaxMart Lens Banner
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFFEDD5)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF97316),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'JaxMart Lens',
+                            style: TextStyle(
+                              fontFamily: JaxText.heading,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Screenshot an image to search for similar items with lower prices and flexible customization',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF64748B),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('JaxMart Lens Extension initialized.')),
+                        );
+                      },
+                      child: const Text(
+                        'Add to Chrome',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

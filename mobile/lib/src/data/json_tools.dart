@@ -53,10 +53,57 @@ String shortDate(dynamic value) {
   return DateFormat('MMM d, yyyy').format(date.toLocal());
 }
 
+const List<String> _productFallbackImages = [
+  'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1604176354204-9268737828e4?w=600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&auto=format&fit=crop',
+];
+
+String getFallbackProductImage([String? seedTitle]) {
+  if (seedTitle != null && seedTitle.isNotEmpty) {
+    final lower = seedTitle.toLowerCase();
+    if (lower.contains('phone') || lower.contains('mobile') || lower.contains('tecno') || lower.contains('electronics')) {
+      return _productFallbackImages[1];
+    }
+    if (lower.contains('solar') || lower.contains('energy') || lower.contains('panel')) {
+      return _productFallbackImages[2];
+    }
+    if (lower.contains('roller') || lower.contains('machinery') || lower.contains('cnc') || lower.contains('earth') || lower.contains('moving')) {
+      return _productFallbackImages[0];
+    }
+    if (lower.contains('bolt') || lower.contains('steel') || lower.contains('metal') || lower.contains('fastener')) {
+      return _productFallbackImages[3];
+    }
+    if (lower.contains('fabric') || lower.contains('cotton') || lower.contains('textile')) {
+      return _productFallbackImages[4];
+    }
+  }
+  return _productFallbackImages[5];
+}
+
+String resolveImageUrl(String? rawUrl, [String? seedTitle]) {
+  final url = textOf(rawUrl).trim();
+  if (url.isEmpty) return getFallbackProductImage(seedTitle);
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) {
+    return 'https://jaxmart-monorepo.onrender.com$url';
+  }
+  return 'https://jaxmart-monorepo.onrender.com/$url';
+}
+
 String firstImage(JsonMap item) {
+  final title = textOf(item['title']);
   final media = asList(item['media']);
-  if (media.isNotEmpty) return textOf(media.first['url']);
-  return textOf(item['imageUrl']);
+  if (media.isNotEmpty) {
+    final mediaUrl = textOf(media.first['url']);
+    if (mediaUrl.isNotEmpty) return resolveImageUrl(mediaUrl, title);
+  }
+  final imgUrl = textOf(item['imageUrl']);
+  if (imgUrl.isNotEmpty) return resolveImageUrl(imgUrl, title);
+  return getFallbackProductImage(title);
 }
 
 String sellerName(JsonMap item) {

@@ -1011,14 +1011,38 @@ class _ListingImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final validUrl = resolveImageUrl(image);
+
     final box = Container(
       width: size == double.infinity ? double.infinity : size,
       height: aspectRatio == null ? size : null,
-      decoration: BoxDecoration(color: JaxColors.surfaceLow, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+      ),
       clipBehavior: Clip.antiAlias,
-      child: image.isEmpty
-          ? const Center(child: Icon(Icons.factory_rounded, size: 34, color: JaxColors.outlineVariant))
-          : CachedNetworkImage(imageUrl: image, fit: BoxFit.cover),
+      child: CachedNetworkImage(
+        imageUrl: validUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: const Color(0xFFF1F5F9),
+          child: const Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF94A3B8)),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Image.network(
+          getFallbackProductImage(image),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: const Color(0xFFF1F5F9),
+            child: const Icon(Icons.inventory_2_outlined, size: 32, color: Color(0xFF94A3B8)),
+          ),
+        ),
+      ),
     );
     return aspectRatio == null ? box : AspectRatio(aspectRatio: aspectRatio!, child: box);
   }

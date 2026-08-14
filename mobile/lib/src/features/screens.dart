@@ -4003,21 +4003,39 @@ class _SearchScreenState extends State<SearchScreen> {
             builder: (context, state) {
               final pagination = asMap(state.data['pagination']);
               final total = (numOf(pagination['total']) ?? 0).toInt();
+              final hasQuery = _q.text.trim().isNotEmpty;
+              final breadcrumbText = hasQuery ? 'Search Result: "${_q.text.trim()}"' : 'Search Result';
               final titleText =
-                  _q.text.isEmpty ? 'Wholesale Market Directory' : 'Search Results';
+                  hasQuery ? 'Search Results for "${_q.text.trim()}"' : 'Wholesale Market Directory';
 
               final titleWidget = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.go('/home'),
-                        child: const Text('Home', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-                      ),
-                      const Text(' › ', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                      const Text('Wholesale Directory', style: TextStyle(fontSize: 10, color: JaxColors.secondary, fontWeight: FontWeight.bold)),
-                    ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () => context.go('/home'),
+                          child: const Text('Home',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                        const Text(' › ',
+                            style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        Text(
+                          breadcrumbText,
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: JaxColors.secondary,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -4640,6 +4658,112 @@ class _SortTab extends StatelessWidget {
   }
 }
 
+class ProductBreadcrumbBar extends StatelessWidget {
+  const ProductBreadcrumbBar({
+    required this.categoryName,
+    required this.productTitle,
+    this.categoryId,
+    super.key,
+  });
+
+  final String categoryName;
+  final String productTitle;
+  final String? categoryId;
+
+  @override
+  Widget build(BuildContext context) {
+    final catUpper =
+        categoryName.trim().isEmpty ? 'PRODUCTS' : categoryName.toUpperCase();
+    final titleUpper =
+        productTitle.trim().isEmpty ? 'PRODUCT DETAILS' : productTitle.toUpperCase();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 0.8),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => context.go('/home'),
+              child: Text(
+                'INDEX',
+                style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade500,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                '/',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade400,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                final catId = categoryId;
+                if (catId != null && catId.isNotEmpty) {
+                  context.push('/search?category=$catId');
+                } else {
+                  context
+                      .push('/search?q=${Uri.encodeComponent(categoryName)}');
+                }
+              },
+              child: Text(
+                catUpper,
+                style: TextStyle(
+                  fontFamily: JaxText.body,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade700,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                '/',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade400,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              titleUpper,
+              style: const TextStyle(
+                fontFamily: JaxText.body,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: JaxColors.primaryContainer,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ListingDetailScreen extends StatefulWidget {
   const ListingDetailScreen({required this.id, super.key});
   final String id;
@@ -4697,6 +4821,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  ProductBreadcrumbBar(
+                    categoryName: categoryName(item),
+                    productTitle: textOf(item['title']),
+                    categoryId: textOf(asMap(item['category'])['id']),
+                  ),
+                  const SizedBox(height: 14),
                   AspectRatio(
                     aspectRatio: 1,
                     child: JaxCard(

@@ -1544,21 +1544,9 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   CategoryGrid(categories: categoriesList),
 
-                  // Active RFQ Requests
-                  if (rfqsList.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    SectionTitle(
-                        title: 'Active RFQ Requests',
-                        actionText: 'View All',
-                        action: () => context.push('/rfq')),
-                    const SizedBox(height: 12),
-                    ...rfqsList.take(4).map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: RfqTile(
-                            item: item,
-                            sellerMode: true,
-                            showMaxBudgetOnly: true))),
-                  ],
+                  // Active RFQ Sourcing Requests (Web App 1-to-1)
+                  const SizedBox(height: 24),
+                  ActiveRfqSourcingSection(rfqs: rfqsList),
                   const SizedBox(height: 24),
                   const TradeSafetyFooter(),
                 ],
@@ -1567,6 +1555,137 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ActiveRfqSourcingSection extends StatelessWidget {
+  const ActiveRfqSourcingSection({required this.rfqs, super.key});
+  final List<JsonMap> rfqs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Header Bar
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDCFCE7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.mail_outline_rounded,
+                          size: 14,
+                          color: Color(0xFF166534),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Active RFQ Sourcing Requests',
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Live requests posted by buyers waiting for suppliers to quote',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => context.push('/rfq'),
+              child: Row(
+                children: const [
+                  Text(
+                    'View Sourcing Board',
+                    style: TextStyle(
+                      fontFamily: JaxText.heading,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF166534),
+                    ),
+                  ),
+                  SizedBox(width: 2),
+                  Icon(Icons.arrow_forward_rounded, size: 12, color: Color(0xFF166534)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // 2. Content Box (Empty State or Dynamic List)
+        if (rfqs.isEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFCBD5E1),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.inbox_outlined,
+                  size: 36,
+                  color: Color(0xFF94A3B8),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'No active requests right now. Be the first to post!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          // Render dynamic RFQ list when items exist
+          ...rfqs.take(4).map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: RfqTile(
+                  item: item,
+                  sellerMode: true,
+                  showMaxBudgetOnly: true,
+                ),
+              )),
+        ],
+      ],
     );
   }
 }

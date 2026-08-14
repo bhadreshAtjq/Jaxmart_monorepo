@@ -203,7 +203,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-[10px] text-gray-400">
-                  <span className="font-semibold text-gray-500">Hot Searches:</span>
+                  <span className="font-semibold text-gray-500">Popular Searches:</span>
                   <Link href="/search?q=Solar%20Panel" className="hover:text-jungle-green-600 hover:underline">Solar Panels</Link>
                   <span>•</span>
                   <Link href="/search?q=Steel" className="hover:text-jungle-green-600 hover:underline">TMT Steel</Link>

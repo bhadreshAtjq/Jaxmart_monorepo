@@ -2974,7 +2974,7 @@ class _HeroSearchCardState extends State<HeroSearchCard> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                'Hot Searches:',
+                'Popular Searches:',
                 style: TextStyle(
                   fontFamily: JaxText.body,
                   fontSize: 10,

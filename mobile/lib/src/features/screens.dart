@@ -1523,20 +1523,28 @@ class HomeScreen extends StatelessWidget {
                   }),
                   const SizedBox(height: 18),
 
-                  // 8. Account Records & Top Factories Card
-                  AccountRecordsAndFactoriesCard(listings: featuredListings),
-                  const SizedBox(height: 22),
+                  // 1) JAXMART ESCROW
+                  const EscrowInfoCard(),
+                  const SizedBox(height: 20),
 
-                  // 9. Product Collections (New Products, Most Popular, Amazon's Choice, Low MOQ, OEM)
+                  // 2) TOP FACTORIES
+                  AccountRecordsAndFactoriesCard(listings: featuredListings),
+                  const SizedBox(height: 20),
+
+                  // 3) Join as a Wholesale Supplier
+                  const SupplierJoinCard(),
+                  const SizedBox(height: 24),
+
+                  // Product Collections (New Products, Most Popular, Amazon's Choice, Low MOQ, OEM)
                   ProductCollectionsCard(listings: featuredListings),
                   const SizedBox(height: 22),
 
-                  // 10. Browse Markets & Industries Grid
+                  // Browse Markets & Industries Grid
                   const SectionTitle(title: 'Browse Markets & Industries'),
                   const SizedBox(height: 12),
                   CategoryGrid(categories: categoriesList),
 
-                  // 11. Active RFQ Requests
+                  // Active RFQ Requests
                   if (rfqsList.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     SectionTitle(
@@ -1551,12 +1559,6 @@ class HomeScreen extends StatelessWidget {
                             sellerMode: true,
                             showMaxBudgetOnly: true))),
                   ],
-                  const SizedBox(height: 24),
-
-                  // 12. Escrow Info & Trade Safety
-                  const EscrowInfoCard(),
-                  const SizedBox(height: 24),
-                  const SupplierJoinCard(),
                   const SizedBox(height: 24),
                   const TradeSafetyFooter(),
                 ],
@@ -2784,8 +2786,8 @@ class SupplierJoinCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Join as a Wholesale Supplier',
-            style: JaxText.h2.copyWith(color: Colors.white, fontSize: 20),
+            '3) Join as a Wholesale Supplier',
+            style: JaxText.h2.copyWith(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           Text(
@@ -3327,9 +3329,12 @@ class EscrowInfoCard extends StatelessWidget {
               const Icon(Icons.shield_rounded,
                   color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('JAXMART ESCROW',
+              Text('1) JAXMART ESCROW',
                   style: JaxText.title.copyWith(
-                      fontSize: 14, color: JaxColors.primaryContainer)),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: JaxColors.primaryContainer)),
             ],
           ),
           const SizedBox(height: 18),
@@ -3455,9 +3460,12 @@ class FeaturedFactoriesCard extends StatelessWidget {
               const Icon(Icons.handshake_rounded,
                   color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('FEATURED FACTORIES',
+              Text('2) TOP FACTORIES',
                   style: JaxText.title.copyWith(
-                      fontSize: 14, color: JaxColors.primaryContainer)),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: JaxColors.primaryContainer)),
             ],
           ),
           const SizedBox(height: 18),

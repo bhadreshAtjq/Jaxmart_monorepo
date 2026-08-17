@@ -1535,7 +1535,7 @@ class HomeScreen extends StatelessWidget {
                   const SupplierJoinCard(),
                   const SizedBox(height: 24),
 
-                  // Product Collections (New Products, Most Popular, Amazon's Choice, Low MOQ, OEM)
+                  // Product Collections (New Products, Most Popular, Analyst's Choice, Low MOQ, OEM)
                   ProductCollectionsCard(listings: featuredListings),
                   const SizedBox(height: 22),
 
@@ -2479,7 +2479,7 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
   static const _tabs = [
     'New Products',
     'Most Popular',
-    'Amazon\'s Choice',
+    'Analyst\'s Choice',
     'Low MOQ',
     'OEM Products',
   ];
@@ -2487,6 +2487,19 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
   @override
   Widget build(BuildContext context) {
     if (widget.listings.isEmpty) return const SizedBox.shrink();
+
+    // Filter/slice listings dynamically per active tab
+    final List<JsonMap> displayListings;
+    if (_activeTab == 'Most Popular') {
+      displayListings = List<JsonMap>.from(widget.listings)..shuffle();
+    } else if (_activeTab == 'Analyst\'s Choice') {
+      displayListings = widget.listings.reversed.toList();
+    } else if (_activeTab == 'Low MOQ') {
+      displayListings = widget.listings.where((l) => textOf(l['moq']).contains('1') || textOf(l['moq']).contains('10')).toList();
+      if (displayListings.isEmpty) displayListings.addAll(widget.listings);
+    } else {
+      displayListings = widget.listings;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2500,9 +2513,9 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
                 onTap: () => setState(() => _activeTab = tab),
                 child: Container(
                   margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSel ? JaxColors.primaryContainer : Colors.grey.shade100,
+                    color: isSel ? const Color(0xFF1E3A8A) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -2511,7 +2524,7 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
                       fontFamily: JaxText.heading,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: isSel ? Colors.white : Colors.grey.shade700,
+                      color: isSel ? Colors.white : const Color(0xFF475569),
                     ),
                   ),
                 ),
@@ -2519,62 +2532,87 @@ class _ProductCollectionsCardState extends State<ProductCollectionsCard> {
             }).toList(),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         SizedBox(
-          height: 180,
+          height: 195,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: widget.listings.length,
+            itemCount: displayListings.length,
             itemBuilder: (context, idx) {
-              final item = widget.listings[idx];
-              final img = textOf(item['images'] != null && asList(item['images']).isNotEmpty
-                  ? asList(item['images'])[0]
-                  : null);
+              final item = displayListings[idx];
+              final imgUrl = firstImage(item);
+              final priceVal = item['price'] ?? item['pricePerUnit'] ?? item['basePrice'];
+              final priceStr = (item['priceOnRequest'] == true || priceVal == null || priceVal == 'POA')
+                  ? '₹POA'
+                  : money(priceVal);
+
               return GestureDetector(
                 onTap: () => context.push('/listings/${item['id']}'),
                 child: Container(
-                  width: 140,
+                  width: 145,
                   margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                         child: Container(
-                          height: 90,
+                          height: 100,
                           width: double.infinity,
-                          color: Colors.grey.shade100,
-                          child: img.isNotEmpty
-                              ? Image.network(img, fit: BoxFit.cover)
-                              : const Icon(Icons.image_rounded, color: Colors.grey),
+                          color: const Color(0xFFF1F5F9),
+                          child: CachedNetworkImage(
+                            imageUrl: resolveImageUrl(imgUrl, textOf(item['title'])),
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: const Color(0xFFF1F5F9),
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF94A3B8)),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Image.network(
+                              getFallbackProductImage(textOf(item['title'])),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        textOf(item['title']),
+                        textOf(item['title'], 'Product Item'),
                         style: const TextStyle(
                           fontFamily: JaxText.heading,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: JaxColors.onSurface,
+                          color: Color(0xFF0F172A),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const Spacer(),
                       Text(
-                        '₹${item['price'] ?? 'POA'}',
+                        priceStr,
                         style: const TextStyle(
                           fontFamily: JaxText.heading,
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
-                          color: JaxColors.secondary,
+                          color: Color(0xFF0D9488),
                         ),
                       ),
                     ],

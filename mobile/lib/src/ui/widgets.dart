@@ -1635,7 +1635,7 @@ class _FloatingActionMenuState extends State<FloatingActionMenu> with SingleTick
             ),
           ),
         Positioned(
-          bottom: 24,
+          bottom: 42 + MediaQuery.of(context).padding.bottom,
           right: 20,
           child: Column(
             mainAxisSize: MainAxisSize.min,

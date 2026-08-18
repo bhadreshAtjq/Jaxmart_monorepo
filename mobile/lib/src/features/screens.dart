@@ -2969,7 +2969,7 @@ class TradeSafetyFooter extends StatelessWidget {
                   maxWidth: constraints.maxWidth * 0.75,
                 ),
                 child: SvgPicture.asset(
-                  'assets/images/Jaxmart final logo-01.svg',
+                  'assets/images/Jaxmart final logo-02.svg',
                   height: logoHeight,
                   fit: BoxFit.contain,
                   alignment: Alignment.centerLeft,

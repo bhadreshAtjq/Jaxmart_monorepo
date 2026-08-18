@@ -12,17 +12,17 @@ import 'auth_cubit.dart';
 class AppRouter {
   AppRouter(AuthCubit authCubit, JaxApiClient api)
       : router = GoRouter(
-          initialLocation: '/home',
+          initialLocation: '/splash',
           refreshListenable: GoRouterRefreshStream(authCubit.stream),
           redirect: (context, state) {
             final auth = authCubit.state;
             final location = state.uri.path;
-            final isSplash = location == '/splash' || location == '/';
+            final isSplash = location == '/splash';
             final authRoute = location.startsWith('/auth');
             final isSetup = location == '/auth/setup';
 
-            if (auth.status == AuthStatus.unknown || auth.status == AuthStatus.loading) {
-              return null;
+            if (auth.status == AuthStatus.unknown || (auth.status == AuthStatus.loading && isSplash)) {
+              return isSplash ? null : '/splash';
             }
 
             final hasIncompleteProfile = auth.isLoggedIn &&
@@ -56,6 +56,7 @@ class AppRouter {
             return null;
           },
           routes: [
+            GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
             GoRoute(path: '/auth/login', builder: (_, __) => const LoginScreen()),
             GoRoute(
               path: '/auth/otp',

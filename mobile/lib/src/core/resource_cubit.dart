@@ -66,6 +66,7 @@ class ResourceCubit extends Cubit<ResourceState> {
       final data = asMap(payload);
       final items = listKeys.isEmpty ? asList(payload) : pickList(payload, listKeys);
       final pagination = asMap(data['pagination']);
+      if (isClosed) return;
       emit(
         ResourceState(
           status: ResourceStatus.success,
@@ -76,22 +77,28 @@ class ResourceCubit extends Cubit<ResourceState> {
         ),
       );
     } on DioException catch (error) {
+      if (isClosed) return;
       emit(state.copyWith(status: ResourceStatus.failure, message: _message(error)));
     } catch (error) {
+      if (isClosed) return;
       emit(state.copyWith(status: ResourceStatus.failure, message: '$error'));
     }
   }
 
   Future<bool> submit(Future<dynamic> Function() action) async {
+    if (isClosed) return false;
     emit(state.copyWith(status: ResourceStatus.submitting));
     try {
       final payload = await action();
+      if (isClosed) return true;
       emit(state.copyWith(status: ResourceStatus.success, data: asMap(payload), message: 'Saved successfully'));
       return true;
     } on DioException catch (error) {
+      if (isClosed) return false;
       emit(state.copyWith(status: ResourceStatus.failure, message: _message(error)));
       return false;
     } catch (error) {
+      if (isClosed) return false;
       emit(state.copyWith(status: ResourceStatus.failure, message: '$error'));
       return false;
     }

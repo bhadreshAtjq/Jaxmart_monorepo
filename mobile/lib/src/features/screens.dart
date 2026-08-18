@@ -2958,14 +2958,22 @@ class TradeSafetyFooter extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isTablet = constraints.maxWidth > 580;
+          final logoHeight = constraints.maxWidth < 360 ? 32.0 : 38.0;
 
           Widget brandSection = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppLogo(
-                height: 28,
-                style: AppLogoStyle.color,
-                alignment: Alignment.centerLeft,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: logoHeight,
+                  maxWidth: constraints.maxWidth * 0.75,
+                ),
+                child: SvgPicture.asset(
+                  'assets/images/Jaxmart final logo-01.svg',
+                  height: logoHeight,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.centerLeft,
+                ),
               ),
               const SizedBox(height: 12),
               Text(

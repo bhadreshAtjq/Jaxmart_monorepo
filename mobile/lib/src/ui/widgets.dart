@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/auth_cubit.dart';
@@ -2073,71 +2074,50 @@ class AppLogo extends StatelessWidget {
           targetHeight = constraints.maxHeight;
         }
 
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-
-        String assetPath;
-        switch (style) {
-          case AppLogoStyle.white:
-            assetPath = 'assets/images/JaxMart_logo_white.png';
-            break;
-          case AppLogoStyle.dark:
-            assetPath = 'assets/images/JaxMart_logo_dark.png';
-            break;
-          case AppLogoStyle.color:
-            assetPath = 'assets/images/JaxMart_bg.png';
-            break;
-          case AppLogoStyle.auto:
-            assetPath = isDark
-                ? 'assets/images/JaxMart_logo_dark.png'
-                : 'assets/images/JaxMart_bg.png';
-            break;
+        Widget logoWidget;
+        if (style == AppLogoStyle.color || style == AppLogoStyle.auto) {
+          logoWidget = SvgPicture.asset(
+            'assets/images/Jaxmart final logo-01.svg',
+            height: targetHeight,
+            width: width,
+            fit: fit,
+            alignment: alignment,
+          );
+        } else if (style == AppLogoStyle.white) {
+          logoWidget = Image.asset(
+            'assets/images/JaxMart_logo_white.png',
+            height: targetHeight,
+            width: width,
+            fit: fit,
+            alignment: alignment,
+            errorBuilder: (context, error, stackTrace) {
+              return SvgPicture.asset(
+                'assets/images/Jaxmart final logo-01.svg',
+                height: targetHeight,
+                width: width,
+                fit: fit,
+                alignment: alignment,
+              );
+            },
+          );
+        } else {
+          logoWidget = Image.asset(
+            'assets/images/JaxMart_logo_dark.png',
+            height: targetHeight,
+            width: width,
+            fit: fit,
+            alignment: alignment,
+            errorBuilder: (context, error, stackTrace) {
+              return SvgPicture.asset(
+                'assets/images/Jaxmart final logo-01.svg',
+                height: targetHeight,
+                width: width,
+                fit: fit,
+                alignment: alignment,
+              );
+            },
+          );
         }
-
-        Widget logoWidget = Image.asset(
-          assetPath,
-          height: targetHeight,
-          width: width,
-          fit: fit,
-          alignment: alignment,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/images/JaxMart_bg.png',
-              height: targetHeight,
-              width: width,
-              fit: fit,
-              alignment: alignment,
-              errorBuilder: (_, __, ___) => FittedBox(
-                fit: BoxFit.scaleDown,
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Jax',
-                        style: TextStyle(
-                          fontFamily: 'SourceSans3',
-                          fontSize: targetHeight * 0.65,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF00B074),
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'mart',
-                        style: TextStyle(
-                          fontFamily: 'SourceSans3',
-                          fontSize: targetHeight * 0.65,
-                          fontWeight: FontWeight.w900,
-                          color: style == AppLogoStyle.white || isDark
-                              ? Colors.white
-                              : const Color(0xFF0A65CC),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
 
         if (onTap != null) {
           logoWidget = GestureDetector(

@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -19,27 +21,334 @@ import '../ui/widgets.dart';
 
 JaxApiClient apiOf(BuildContext context) => context.read<JaxApiClient>();
 
-class SplashScreen extends StatelessWidget {
+class _SplashColors {
+  static const bgDeep = Color(0xFF051917);
+  static const bgMid = Color(0xFF0A2E2B);
+  static const teal = Color(0xFF0997A8);
+  static const cyan = Color(0xFF02B1A2);
+  static const green = Color(0xFF60BA4A);
+  static const inkLight = Color(0xFFEAFFF4);
+  static const inkDim = Color(0xFF8FC9BD);
+}
+
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _splashController;
+  late final AnimationController _loaderController;
+
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _pulse;
+  late final Animation<double> _splitProgress;
+  late final Animation<double> _loaderOpacity;
+
+  bool _animationCompleted = false;
+
+  bool get _reduceMotion =>
+      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _splashController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    );
+
+    _loaderController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _logoScale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.6, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 28,
+      ),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 72),
+    ]).animate(_splashController);
+
+    _logoOpacity = CurvedAnimation(
+      parent: _splashController,
+      curve: const Interval(0.0, 0.22, curve: Curves.easeOut),
+    );
+
+    _splitProgress = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 18),
+      TweenSequenceItem(
+        tween: Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOutSine)),
+        weight: 60,
+      ),
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 22),
+    ]).animate(_splashController);
+
+    _pulse = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 28),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.05)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 7,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.05, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 7,
+      ),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 58),
+    ]).animate(_splashController);
+
+    _loaderOpacity = CurvedAnimation(
+      parent: _splashController,
+      curve: const Interval(0.78, 0.9, curve: Curves.easeOut),
+    );
+
+    _splashController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _loaderController.repeat();
+        _animationCompleted = true;
+        _navigateIfReady();
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _play());
+  }
+
+  void _play() {
+    _splashController.reset();
+    _loaderController
+      ..stop()
+      ..reset();
+
+    if (_reduceMotion) {
+      _splashController.value = 1.0;
+      _loaderController.repeat();
+      _animationCompleted = true;
+      _navigateIfReady();
+      return;
+    }
+    _splashController.forward();
+  }
+
+  void _navigateIfReady() {
+    if (!_animationCompleted || !mounted) return;
+    final auth = context.read<AuthCubit>().state;
+    if (auth.status == AuthStatus.unknown || auth.status == AuthStatus.loading) {
+      return;
+    }
+
+    final hasIncompleteProfile = auth.isLoggedIn &&
+        (textOf(auth.user['fullName']) == 'New User' ||
+            textOf(auth.user['fullName']).trim().isEmpty);
+
+    if (auth.isLoggedIn) {
+      if (hasIncompleteProfile) {
+        context.go('/auth/setup');
+      } else {
+        context.go('/home');
+      }
+    } else {
+      context.go('/auth/login');
+    }
+  }
+
+  @override
+  void dispose() {
+    _splashController.dispose();
+    _loaderController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final scale = size.width / 390;
+
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) context.go('/home');
-        if (state.status == AuthStatus.guest) context.go('/auth/login');
+        if (_animationCompleted) {
+          _navigateIfReady();
+        }
       },
       child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        backgroundColor: Colors.black,
+        body: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [_SplashColors.bgMid, _SplashColors.bgDeep, _SplashColors.bgDeep],
+            ),
+          ),
+          child: Stack(
             children: [
-              const AppLogo(height: 58, style: AppLogoStyle.color),
-              const SizedBox(height: 24),
-              const CircularProgressIndicator(color: JaxColors.primary),
+              // soft glows echoing where the arrows will settle
+              Align(
+                alignment: const Alignment(0.9, -0.85),
+                child: _Glow(color: _SplashColors.teal.withValues(alpha: .35), size: 260),
+              ),
+              Align(
+                alignment: const Alignment(-0.9, 0.9),
+                child: _Glow(color: _SplashColors.green.withValues(alpha: .30), size: 260),
+              ),
+
+              // ---- logo mark: two independently animated arrow groups (centered, without text) ----
+              Align(
+                alignment: Alignment.center,
+                child: AnimatedBuilder(
+                  animation: _splashController,
+                  builder: (context, _) {
+                    final t = _splitProgress.value;
+                    final envelope = math.sin(t * math.pi);
+                    final theta = t * 2 * math.pi;
+
+                    final ampX = size.width * 0.35;
+                    final ampY = size.height * 0.22;
+
+                    final upperDx = ampX * math.sin(theta) * envelope;
+                    final upperDy = -ampY * math.sin(2 * theta) * envelope;
+                    final upperRot = (12 * math.sin(theta) * envelope) * (math.pi / 180);
+
+                    final lowerDx = -ampX * math.sin(theta) * envelope;
+                    final lowerDy = ampY * math.sin(2 * theta) * envelope;
+                    final lowerRot = (-12 * math.sin(theta) * envelope) * (math.pi / 180);
+
+                    return SizedBox(
+                      width: 140 * scale,
+                      height: 140 * scale,
+                      child: Opacity(
+                        opacity: _logoOpacity.value,
+                        child: Transform.scale(
+                          scale: _logoScale.value * _pulse.value,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              _ArrowLayer(
+                                asset: 'assets/images/Jaxmart logo upper arrow.svg',
+                                size: 140 * scale,
+                                offset: Offset(upperDx, upperDy),
+                                rotation: upperRot,
+                                extraScale: 1 + 0.12 * envelope,
+                                opacity: 1.0,
+                              ),
+                              _ArrowLayer(
+                                asset: 'assets/images/Jaxmart logo lower arrow.svg',
+                                size: 140 * scale,
+                                offset: Offset(lowerDx, lowerDy),
+                                rotation: lowerRot,
+                                extraScale: 1 + 0.12 * envelope,
+                                opacity: 1.0,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // ---- loader dots (fade in once, then pulse forever) ----
+              Align(
+                alignment: const Alignment(0, 0.82),
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([_splashController, _loaderController]),
+                  builder: (context, _) {
+                    return Opacity(
+                      opacity: _loaderOpacity.value,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(3, (i) {
+                          final phase = (_loaderController.value - i * 0.18) % 1.0;
+                          final wave = (math.sin(phase * 2 * math.pi) + 1) / 2;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Opacity(
+                              opacity: 0.35 + wave * 0.65,
+                              child: Transform.scale(
+                                scale: 1 + wave * 0.35,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: _SplashColors.inkLight,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ArrowLayer extends StatelessWidget {
+  const _ArrowLayer({
+    required this.asset,
+    required this.size,
+    required this.offset,
+    required this.rotation,
+    required this.extraScale,
+    required this.opacity,
+  });
+
+  final String asset;
+  final double size;
+  final Offset offset;
+  final double rotation;
+  final double extraScale;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: offset,
+      child: Transform.rotate(
+        angle: rotation,
+        child: Transform.scale(
+          scale: extraScale,
+          child: Opacity(
+            opacity: opacity.clamp(0.0, 1.0),
+            child: SvgPicture.asset(asset, width: size, height: size),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Glow extends StatelessWidget {
+  const _Glow({required this.color, required this.size});
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
       ),
     );
   }

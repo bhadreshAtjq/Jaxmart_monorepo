@@ -3174,12 +3174,10 @@ class TradeSafetyFooter extends StatelessWidget {
 class _FooterLink extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
-  final double fontSize;
 
   const _FooterLink({
     required this.label,
     required this.onTap,
-    this.fontSize = 12,
   });
 
   @override
@@ -3200,7 +3198,7 @@ class _FooterLinkState extends State<_FooterLink> {
         widget.label,
         style: TextStyle(
           fontFamily: JaxText.body,
-          fontSize: widget.fontSize,
+          fontSize: 12,
           color: _isHovered ? Colors.white : Colors.grey.shade400,
           fontWeight: _isHovered ? FontWeight.w600 : FontWeight.w400,
         ),
@@ -5283,9 +5281,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               final seller = asMap(item['seller']);
               final media = asList(item['media']);
               final currentUser = context.watch<AuthCubit>().state.user;
-              final isOwner = currentUser != null &&
+              final isOwner =
                   textOf(currentUser['id']) == textOf(seller['id']);
-              final basePriceNum = numOf(product['pricePerUnit']);
               final bulkSlabs = asList(product['bulkPriceSlabs']);
               final productCerts = asStringList(product['certifications']);
               final businessProfile = asMap(seller['businessProfile']);
@@ -8975,7 +8972,6 @@ class ListingFormScreen extends StatefulWidget {
 
 class _ListingFormScreenState extends State<ListingFormScreen> {
   bool _isLoadingListing = false;
-  JsonMap? _editingListing;
   int _step = 1;
   final _title = TextEditingController();
   final _description = TextEditingController();
@@ -9040,7 +9036,6 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
       final api = apiOf(context);
       final data = await api.listing(widget.listingId!);
       setState(() {
-        _editingListing = data;
         _isLoadingListing = false;
         _populateFields(data);
       });

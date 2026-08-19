@@ -7,7 +7,17 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>B2b Platform</string>
+	<string>JaxMart</string>
+	<key>NSCameraUsageDescription</key>
+	<string>JaxMart requires camera access so you can capture and upload product images and document attachments.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>JaxMart requires photo library access to let you select product photos and business documents for upload.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>JaxMart requires microphone access for audio and video media attachments.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>JaxMart requires location access to find nearby suppliers and calculate accurate shipping estimates.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>JaxMart uses location access for location-based delivery updates.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

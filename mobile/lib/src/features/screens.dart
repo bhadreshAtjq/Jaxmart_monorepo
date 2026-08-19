@@ -7210,7 +7210,6 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
         'score': 5,
         'met': _title.text.trim().length >= 3
       },
-      {'label': 'Category', 'score': 5, 'met': _category.isNotEmpty},
       {
         'label': 'Product Details',
         'score': 43,
@@ -7265,9 +7264,12 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
   }
 
   bool _canNext() {
-    if (_step == 0)
-      return _title.text.trim().length >= 3 && _category.isNotEmpty;
-    if (_step == 1) return _desc.text.trim().length >= 20;
+    if (_step == 0) {
+      return _title.text.trim().length >= 3;
+    }
+    if (_step == 1) {
+      return _desc.text.trim().length >= 20;
+    }
     return true;
   }
 
@@ -7550,6 +7552,15 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
   Widget _buildStepContent(
       BuildContext context, List<JsonMap> categories, List<JsonMap> suggested) {
     if (_step == 0) {
+      if (_category.isEmpty && suggested.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _category.isEmpty && suggested.isNotEmpty) {
+            setState(() {
+              _category = textOf(suggested.first['id']);
+            });
+          }
+        });
+      }
       return FormCard(
         key: const ValueKey(0),
         children: [
@@ -7562,28 +7573,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
             ),
             style: JaxText.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
-          const FieldLabel('2. SELECT CATEGORY'),
-          DropdownButtonFormField<String>(
-            value: _category.isEmpty ? null : _category,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              hintText: 'Choose the closest matching category',
-            ),
-            items: categories.map((cat) {
-              return DropdownMenuItem(
-                value: textOf(cat['id']),
-                child: Text(
-                  textOf(cat['name']),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            }).toList(),
-            onChanged: (v) => setState(() => _category = v ?? ''),
-          ),
-          _buildSuggestedCategories(suggested),
-          const SizedBox(height: 12),
-          const FieldLabel('3. WHAT DO YOU NEED?'),
+          const SizedBox(height: 16),
+          const FieldLabel('2. WHAT DO YOU NEED?'),
           _buildTypeSelection(),
         ],
       );
@@ -7682,68 +7673,6 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
         ],
       );
     }
-  }
-
-  Widget _buildSuggestedCategories(List<JsonMap> suggested) {
-    if (suggested.isEmpty || _category.isNotEmpty)
-      return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: JaxColors.surfaceLow,
-        borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: JaxColors.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.lightbulb_outline_rounded,
-                  color: Colors.amber, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                'SUGGESTED CATEGORIES BASED ON TITLE:',
-                style: JaxText.label
-                    .copyWith(fontSize: 9, color: JaxColors.primaryContainer),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: suggested.map((cat) {
-              final catId = textOf(cat['id']);
-              final name = textOf(cat['name']);
-              return InkWell(
-                onTap: () => setState(() => _category = catId),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: JaxColors.outlineVariant),
-                  ),
-                  child: Text(
-                    name,
-                    style: JaxText.bodySmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: JaxColors.primaryContainer,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildTypeSelection() {

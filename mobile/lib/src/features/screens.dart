@@ -3773,17 +3773,9 @@ class _InstantRfqCardState extends State<InstantRfqCard> {
   }
 
   void _postRfq() {
-    final product = _rfqProduct.text.trim();
-    if (product.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please specify what product you need')),
-      );
-      return;
-    }
-    final qtyVal = _rfqQty.text.trim();
-    final qty = qtyVal.isEmpty ? '100' : qtyVal;
-    context.push(
-        '/rfq/create?title=${Uri.encodeComponent(product)}&qty=${Uri.encodeComponent(qty)}&unit=${Uri.encodeComponent(_unit)}');
+    _rfqProduct.clear();
+    _rfqQty.clear();
+    context.push('/rfq/create');
   }
 }
 
@@ -7190,7 +7182,8 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
   @override
   void initState() {
     super.initState();
-    _title.text = widget.title ?? '';
+    _title.text = '';
+    _desc.text = '';
   }
 
   @override

@@ -7200,7 +7200,7 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
     final checks = [
       {
         'label': 'Product Name',
-        'score': 5,
+        'score': 3,
         'met': _title.text.trim().length >= 3
       },
       {

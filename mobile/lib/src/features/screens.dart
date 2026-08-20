@@ -7314,10 +7314,6 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // Safety Guarantee Banner
-                      _buildSafetyGuarantee(),
-                      const SizedBox(height: 28),
-
                       // Navigation Buttons
                       _buildNavigation(context, submitState),
                     ],
@@ -7830,41 +7826,7 @@ class _RfqCreateScreenState extends State<RfqCreateScreen> {
     );
   }
 
-  Widget _buildSafetyGuarantee() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: JaxColors.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.shield_rounded,
-              color: JaxColors.secondary, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'SAFETY GUARANTEE',
-                  style: JaxText.label.copyWith(
-                      color: Colors.white, fontSize: 10, letterSpacing: 1),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Your contact details are protected. Only selected sellers can access your profile during negotiation.',
-                  style: JaxText.bodySmall.copyWith(
-                      color: Colors.white70, fontSize: 11, height: 1.3),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildNavigation(BuildContext context, ResourceState submitState) {
     return Row(

@@ -9158,28 +9158,44 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                                       const SizedBox(height: 8),
                                       BlocBuilder<CategoriesCubit,
                                           ResourceState>(
-                                        builder: (context, cats) =>
-                                            DropdownButtonFormField<String>(
-                                          value: _category.isEmpty
-                                              ? null
-                                              : _category,
-                                          hint: const Text(
-                                              'SELECT VERTICAL REGISTRY...'),
-                                          decoration: const InputDecoration(
+                                        builder: (context, cats) {
+                                          final defaultVerticals = [
+                                            {'id': 'cat_construction', 'name': 'Construction'},
+                                            {'id': 'cat_electronics', 'name': 'Electronics'},
+                                            {'id': 'cat_industrial', 'name': 'Industrial Supplies'},
+                                            {'id': 'cat_services', 'name': 'Services'},
+                                            {'id': 'cat_textiles', 'name': 'Textiles'},
+                                          ];
+                                          final availableCats = cats.items.isNotEmpty
+                                              ? cats.items
+                                              : defaultVerticals;
+
+                                          return DropdownButtonFormField<String>(
+                                            value: _category,
+                                            isExpanded: true,
+                                            decoration: const InputDecoration(
                                               border: OutlineInputBorder(),
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 12)),
-                                          items: cats.items
-                                              .map((cat) => DropdownMenuItem(
-                                                  value: textOf(cat['id']),
-                                                  child: Text(
-                                                      textOf(cat['name']))))
-                                              .toList(),
-                                          onChanged: (v) => setState(
-                                              () => _category = v ?? ''),
-                                        ),
+                                              contentPadding: EdgeInsets.symmetric(
+                                                  horizontal: 16, vertical: 12),
+                                            ),
+                                            items: [
+                                              const DropdownMenuItem<String>(
+                                                value: '',
+                                                child: Text('Select Vertical Registry'),
+                                              ),
+                                              ...availableCats.map((cat) {
+                                                final id = textOf(cat['id']);
+                                                final name = textOf(cat['name']);
+                                                return DropdownMenuItem<String>(
+                                                  value: id,
+                                                  child: Text(name),
+                                                );
+                                              }),
+                                            ],
+                                            onChanged: (v) =>
+                                                setState(() => _category = v ?? ''),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),

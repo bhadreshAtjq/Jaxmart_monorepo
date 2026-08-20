@@ -4212,15 +4212,19 @@ class _SearchScreenState extends State<SearchScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+            final navBarPadding = MediaQuery.of(context).padding.bottom;
+            final totalBottomPadding = math.max(bottomInset, navBarPadding + 28);
+
             return Padding(
               padding: EdgeInsets.only(
                 left: 16,
                 right: 16,
                 top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                bottom: totalBottomPadding,
               ),
               child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.75,
+                height: MediaQuery.of(context).size.height * 0.72,
                 child: Column(
                   children: [
                     Row(
@@ -4354,20 +4358,33 @@ class _SearchScreenState extends State<SearchScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
-                      height: 44,
-                      child: ElevatedButton(
+                      height: 50,
+                      child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: JaxColors.primaryContainer,
                           foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () {
                           Navigator.pop(ctx);
                           _reload(outerContext);
                         },
-                        child: const Text('APPLY FILTERS', style: TextStyle(fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                        label: const Text(
+                          'APPLY FILTERS',
+                          style: TextStyle(
+                            fontFamily: JaxText.heading,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
                       ),
                     ),
                   ],

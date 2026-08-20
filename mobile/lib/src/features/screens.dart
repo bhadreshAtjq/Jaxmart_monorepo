@@ -12073,43 +12073,44 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   ),
                 ),
                 // ── B2B Quick Replies ────────────────────────────────────────
-                if (_showQuickReplies)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                    color: Color(0xFF10B981),
-                                    shape: BoxShape.circle)),
-                            const SizedBox(width: 6),
-                            const Text('B2B QUICK REPLIES',
-                                style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 1)),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () =>
-                                  setState(() => _showQuickReplies = false),
-                              child: const Text('Dismiss',
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2563EB))),
-                            ),
-                          ],
-                        ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                  color: Color(0xFF10B981),
+                                  shape: BoxShape.circle)),
+                          const SizedBox(width: 6),
+                          const Text('B2B QUICK REPLIES',
+                              style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF64748B),
+                                  letterSpacing: 1)),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _showQuickReplies = !_showQuickReplies),
+                            child: Text(
+                                _showQuickReplies ? 'Dismiss' : 'Show Replies',
+                                style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2563EB))),
+                          ),
+                        ],
+                      ),
+                      if (_showQuickReplies) ...[
                         const SizedBox(height: 8),
                         SizedBox(
                           height: 32,
@@ -12148,8 +12149,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
+                ),
                 // ── Input Bar ───────────────────────────────────────────────
                 SafeArea(
                   top: false,

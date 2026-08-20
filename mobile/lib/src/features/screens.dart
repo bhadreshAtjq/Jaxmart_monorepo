@@ -1832,15 +1832,15 @@ class HomeScreen extends StatelessWidget {
                   }),
                   const SizedBox(height: 18),
 
-                  // 1) JAXMART ESCROW
+                  // JAXMART ESCROW
                   const EscrowInfoCard(),
                   const SizedBox(height: 20),
 
-                  // 2) TOP FACTORIES
+                  // TOP FACTORIES
                   AccountRecordsAndFactoriesCard(listings: featuredListings),
                   const SizedBox(height: 20),
 
-                  // 3) Join as a Wholesale Supplier
+                  // Join as a Wholesale Supplier
                   const SupplierJoinCard(),
                   const SizedBox(height: 24),
 
@@ -2703,75 +2703,7 @@ class AccountRecordsAndFactoriesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFDBEAFE)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'ACCOUNT RECORDS',
-                style: TextStyle(
-                  fontFamily: JaxText.heading,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1E40AF),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _recordItem(Icons.verified_user_rounded, 'Verified', '100% Audit'),
-                  _recordItem(Icons.local_shipping_rounded, 'Fast Delivery', 'Global Ship'),
-                  _recordItem(Icons.security_rounded, 'Escrow Safe', 'Protected'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        FeaturedFactoriesCard(listings: listings),
-      ],
-    );
-  }
-
-  Widget _recordItem(IconData icon, String title, String subtitle) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: const Color(0xFF2563EB)),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontFamily: JaxText.heading,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontFamily: JaxText.body,
-                fontSize: 9,
-                color: Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+    return FeaturedFactoriesCard(listings: listings);
   }
 }
 
@@ -3258,7 +3190,7 @@ class SupplierJoinCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '3) Join as a Wholesale Supplier',
+            'Join as a Wholesale Supplier',
             style: JaxText.h2.copyWith(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -3793,7 +3725,7 @@ class EscrowInfoCard extends StatelessWidget {
               const Icon(Icons.shield_rounded,
                   color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('1) JAXMART ESCROW',
+              Text('JAXMART ESCROW',
                   style: JaxText.title.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -3802,13 +3734,13 @@ class EscrowInfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          _buildItem('1. Secure Payments',
+          _buildItem('Secure Payments',
               'JaxMart holds your funds in escrow, protecting you from fraud.'),
           const SizedBox(height: 16),
-          _buildItem('2. Verified Shipping',
+          _buildItem('Verified Shipping',
               'We verify GSTIN, HSN, and carrier logistics before releasing funds.'),
           const SizedBox(height: 16),
-          _buildItem('3. Inspection Guarantee',
+          _buildItem('Inspection Guarantee',
               'Release payments to suppliers only after verifying cargo quality.'),
         ],
       ),
@@ -3924,7 +3856,7 @@ class FeaturedFactoriesCard extends StatelessWidget {
               const Icon(Icons.handshake_rounded,
                   color: JaxColors.secondary, size: 20),
               const SizedBox(width: 10),
-              Text('2) TOP FACTORIES',
+              Text('TOP FACTORIES',
                   style: JaxText.title.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

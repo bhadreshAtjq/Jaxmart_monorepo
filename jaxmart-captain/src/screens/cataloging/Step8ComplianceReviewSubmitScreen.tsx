@@ -163,7 +163,7 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
           countryOfOrigin: data.countryOfOrigin,
           certifications: data.certifications ? [data.certifications] : [],
           warranty: data.warrantyDetails,
-          status: 'DRAFT',
+          status: 'UNDER_REVIEW',
         },
         photosToUpload: photosArray,
       });

@@ -7,6 +7,7 @@ const {
   approveKyc,
   getListingQueue,
   approveListing,
+  rejectListing,
   getUsers,
   getDisputes,
   resolveDispute
@@ -40,6 +41,7 @@ router.patch('/kyc/:userId/approve', approveKyc);
 router.patch('/kyc/:userId/reject', (req, res) => res.json({ message: 'Rejected' })); // Simple stub
 router.get('/listings/queue', getListingQueue);
 router.patch('/listings/:id/approve', approveListing);
+router.patch('/listings/:id/reject', rejectListing);
 router.get('/users', getUsers);
 router.get('/disputes', getDisputes);
 router.patch('/disputes/:id/resolve', resolveDispute);

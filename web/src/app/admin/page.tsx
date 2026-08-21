@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
    FaUsers, FaFileLines, FaTriangleExclamation, FaArrowTrendUp,
    FaCircleCheck, FaCircleXmark, FaEye, FaChartBar, FaShieldHalved,
@@ -24,8 +25,24 @@ const TABS = [
    { id: 'events', label: 'Global Events', icon: FaCalendarDays, color: 'text-[#36ADA3]' },
 ];
 
-export default function AdminDashboard() {
-   const [tab, setTab] = useState('overview');
+export default function AdminPage() {
+   return (
+      <Suspense fallback={<PageLoader />}>
+         <AdminDashboard />
+      </Suspense>
+   );
+}
+
+function AdminDashboard() {
+   const searchParams = useSearchParams();
+   const paramTab = searchParams.get('tab');
+   const [tab, setTab] = useState(paramTab === 'listings' || paramTab === 'inventory' ? 'listings' : 'overview');
+
+   useEffect(() => {
+      if (paramTab === 'listings' || paramTab === 'inventory') {
+         setTab('listings');
+      }
+   }, [paramTab]);
 
    const [userSearch, setUserSearch] = useState('');
    const { data: stats, isLoading: statsLoading } = useAdminStats();
@@ -352,34 +369,47 @@ export default function AdminDashboard() {
                         <EmptyState icon={<FaInbox className="h-10 w-10 text-jax-teal" />} title="Inventory Clear" description="All market listings have been successfully reviewed and audited." />
                      ) : (
                         <div className="grid grid-cols-1 gap-4">
-                           {(listingsQueue.queue).map((item: any) => (
-                              <Card key={item.id} className="p-6 border border-gray-200/60 shadow-sm rounded-2xl">
-                                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                    <div className="flex items-center gap-5">
-                                       <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
-                                          {item.media && item.media[0] ? (
-                                             <img src={item.media[0].url} alt={item.title} className="w-full h-full object-cover" />
-                                          ) : (
-                                             'SKU'
-                                          )}
-                                       </div>
-                                       <div>
-                                          <h3 className="text-base font-heading font-black text-jax-dark uppercase tracking-wide mb-1">{item.title}</h3>
-                                          <div className="flex flex-wrap items-center gap-3">
-                                             <span className="text-xs font-bold text-jax-teal">₹{item.productDetail?.pricePerUnit || item.basePrice || '18.50'}</span>
-                                             <span className="text-xs text-gray-400">Category: {item.category?.name || 'Industrial Supplies'}</span>
-                                             <Badge status="PENDING" label={item.status || 'UNDER_REVIEW'} className="text-[9px]" />
+                           {(listingsQueue.queue).map((item: any) => {
+                              const skuCode = item.productDetail?.sku || `SKU-${item.id.substring(0, 8).toUpperCase()}`;
+                              const sellerCompany = item.seller?.businessProfile?.legalName || item.seller?.businessProfile?.businessName || item.seller?.fullName || 'Seller Partner';
+                              const price = item.productDetail?.pricePerUnit || item.basePrice || '18.50';
+                              const moq = item.productDetail?.minOrderQty || 1;
+                              const uom = item.productDetail?.unitOfMeasure || 'pcs';
+                              const hsn = item.productDetail?.hsnCode;
+
+                              return (
+                                 <Card key={item.id} className="p-6 border border-gray-200/60 shadow-sm rounded-2xl">
+                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                       <div className="flex items-center gap-5">
+                                          <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
+                                             {item.media && item.media[0] ? (
+                                                <img src={item.media[0].url} alt={item.title} className="w-full h-full object-cover" />
+                                             ) : (
+                                                'SKU'
+                                             )}
                                           </div>
-                                          <p className="text-xs text-gray-500 mt-2 line-clamp-1">{item.description || 'B2B Product SKU'}</p>
+                                          <div>
+                                             <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-base font-heading font-black text-jax-dark tracking-wide">{item.title}</h3>
+                                                <Badge status="PENDING" label={item.status || 'UNDER_REVIEW'} className="text-[9px]" />
+                                             </div>
+                                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                                                <span className="font-mono font-bold text-jax-blue">SKU: {skuCode}</span>
+                                                {hsn && <span className="font-mono text-gray-400">HSN: {hsn}</span>}
+                                                <span className="font-bold text-jax-teal">₹{price} / {uom} (MOQ: {moq})</span>
+                                                <span className="text-gray-400">Merchant: {sellerCompany}</span>
+                                             </div>
+                                             <p className="text-xs text-gray-500 mt-2 line-clamp-1">{item.description || 'Cataloged Product SKU'}</p>
+                                          </div>
+                                       </div>
+                                       <div className="flex flex-col gap-2 w-full md:w-auto shrink-0">
+                                          <Button variant="success" className="h-11 px-6 font-bold uppercase tracking-wider text-[10px]" icon={<FaCircleCheck />} onClick={() => handleApprove('listing', item.id)}>Approve Listing</Button>
+                                          <Button variant="outline" className="h-11 px-6 text-red-500 border-red-100 hover:bg-red-50 font-bold uppercase tracking-wider text-[10px]" icon={<FaCircleXmark />} onClick={() => handleReject('listing', item.id)}>Reject Listing</Button>
                                        </div>
                                     </div>
-                                    <div className="flex flex-col gap-2 w-full md:w-auto shrink-0">
-                                       <Button variant="success" className="h-11 px-6 font-bold uppercase tracking-wider text-[10px]" icon={<FaCircleCheck />} onClick={() => handleApprove('listing', item.id)}>Approve Listing</Button>
-                                       <Button variant="outline" className="h-11 px-6 text-red-500 border-red-100 hover:bg-red-50 font-bold uppercase tracking-wider text-[10px]" icon={<FaCircleXmark />} onClick={() => handleReject('listing', item.id)}>Reject Listing</Button>
-                                    </div>
-                                 </div>
-                              </Card>
-                           ))}
+                                 </Card>
+                              );
+                           })}
                         </div>
                      )}
                   </div>

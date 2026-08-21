@@ -70,8 +70,10 @@ const getListingQueue = async (req, res) => {
       include: {
         seller: { include: { businessProfile: true } },
         category: true,
-        media: true
-      }
+        media: true,
+        productDetail: true
+      },
+      orderBy: { createdAt: 'desc' }
     });
     res.json({ queue: listings });
   } catch (err) {
@@ -89,6 +91,19 @@ const approveListing = async (req, res) => {
     res.json({ success: true, listing });
   } catch (err) {
     res.status(500).json({ error: 'Failed to approve listing' });
+  }
+};
+
+const rejectListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await prisma.listing.update({
+      where: { id },
+      data: { status: 'REJECTED' },
+    });
+    res.json({ success: true, listing });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reject listing' });
   }
 };
 
@@ -134,6 +149,7 @@ module.exports = {
   approveKyc,
   getListingQueue,
   approveListing,
+  rejectListing,
   getUsers,
   getDisputes,
   resolveDispute

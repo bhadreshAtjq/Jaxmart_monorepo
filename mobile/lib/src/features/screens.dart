@@ -11349,6 +11349,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   JsonMap? _conversation;
   JsonMap? _listing;
   bool _isLoadingInfo = true;
+  bool _isProfileSheetOpen = false;
   late final ResourceCubit _resourceCubit;
 
   static const _quickReplies = [
@@ -11455,7 +11456,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  void _showPartnerProfileSheet(BuildContext context) {
+  void _togglePartnerProfileSheet(BuildContext context) {
+    if (_isProfileSheetOpen) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    setState(() {
+      _isProfileSheetOpen = true;
+    });
+
     final recipientName = _conversation != null
         ? textOf(asMap(_conversation!['recipient'])['fullName'], 'DRS MANUFACTURING REPRESENTATIVE')
         : 'DRS MANUFACTURING REPRESENTATIVE';
@@ -11533,9 +11543,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(Icons.shield_rounded, size: 12, color: Color(0xFF10B981)),
                     SizedBox(width: 4),
                     Text(
@@ -11747,7 +11757,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ),
         ),
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        setState(() {
+          _isProfileSheetOpen = false;
+        });
+      }
+    });
   }
 
   Widget _statRow(String label, String val, {bool isGreen = false}) {
@@ -11864,7 +11880,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
               padding: const EdgeInsets.only(right: 10),
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF0F172A),
+                  foregroundColor: _isProfileSheetOpen ? Colors.white : const Color(0xFF0F172A),
+                  backgroundColor: _isProfileSheetOpen ? const Color(0xFF0F172A) : Colors.transparent,
                   side: const BorderSide(color: Color(0xFFCBD5E1), width: 1),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
@@ -11873,10 +11890,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => _showPartnerProfileSheet(context),
-                icon: const Icon(Icons.badge_outlined, size: 14, color: Color(0xFF0F172A)),
-                label: const Text('HIDE PROFILE',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900)),
+                onPressed: () => _togglePartnerProfileSheet(context),
+                icon: Icon(
+                  _isProfileSheetOpen ? Icons.visibility_off_outlined : Icons.badge_outlined,
+                  size: 14,
+                  color: _isProfileSheetOpen ? Colors.white : const Color(0xFF0F172A),
+                ),
+                label: Text(
+                  _isProfileSheetOpen ? 'HIDE PROFILE' : 'SHOW PROFILE',
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900),
+                ),
               ),
             ),
           ],

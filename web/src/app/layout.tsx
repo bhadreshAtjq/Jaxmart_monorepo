@@ -84,9 +84,14 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
+import Script from 'next/script';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${raleway.variable} ${sourceSans.variable}`}>
+      <head>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      </head>
       <body>
         <ScrollRestorer />
         <Providers>

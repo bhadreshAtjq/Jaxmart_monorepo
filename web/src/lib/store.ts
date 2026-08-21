@@ -14,6 +14,13 @@ export interface User {
   avatarUrl?: string;
   hasSeenTour: boolean;
   isAdmin: boolean;
+  businessProfile?: {
+    businessName?: string;
+    businessType?: string;
+    gstin?: string;
+    pan?: string;
+  };
+  subscription?: any;
 }
 
 interface AuthStore {

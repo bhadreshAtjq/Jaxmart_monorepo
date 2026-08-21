@@ -502,6 +502,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginVertical: 4,
   },
+  categoryPillText: {
+    ...typography.labelCaps,
+    color: colors.secondary,
+    fontSize: 10,
+    marginTop: 2,
+  },
   skuPriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

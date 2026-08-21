@@ -1,277 +1,304 @@
 'use client';
+
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  FaFileLines, FaClock, FaCubes, FaComment, 
-  FaCircleCheck, FaStar, FaArrowLeft, FaShieldHalved,
-  FaBolt, FaAward, FaCalendarCheck
+import {
+  FaFileLines,
+  FaClock,
+  FaCubes,
+  FaComment,
+  FaCircleCheck,
+  FaStar,
+  FaArrowLeft,
+  FaShieldHalved,
+  FaBolt,
+  FaAward,
+  FaCalendarCheck,
+  FaLocationDot,
+  FaCoins,
+  FaBuilding,
+  FaHandshake,
+  FaCheck,
+  FaArrowRight,
+  FaMessage,
 } from 'react-icons/fa6';
+import { ShieldCheck, Award, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { rfqApi } from '@/lib/api';
+import { rfqApi, messageApi } from '@/lib/api';
 import { useRfq, revalidate } from '@/lib/hooks';
-import { Button, Card, Badge, Avatar, SectionHeader, EmptyState, Container, TrustScore, RfqDetailSkeleton } from '@/components/ui';
+import { Button, Card, Badge, Avatar, EmptyState, Container, TrustScore, RfqDetailSkeleton } from '@/components/ui';
 import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { motion } from 'framer-motion';
+import { clsx } from 'clsx';
+import Link from 'next/link';
 
 export default function RfqDetailPage() {
   const { id } = useParams();
   const router = useRouter();
 
   const { data: rfq, isLoading, mutate } = useRfq(id as string);
-
   const { user } = useAuthStore();
+  const isBuyer = user?.id === rfq?.buyerId;
   const isSeller = user?.userType === 'SELLER' || user?.userType === 'BOTH';
-  const hasQuoted = rfq?.quotes && rfq.quotes.length > 0;
 
-  const [awarding, setAwarding] = useState(false);
+  const [awardingQuoteId, setAwardingQuoteId] = useState<string | null>(null);
+
   const handleAward = async (quoteId: string) => {
-    setAwarding(true);
+    setAwardingQuoteId(quoteId);
     try {
-      await rfqApi.awardQuote(id as string, quoteId);
-      mutate(); 
-      revalidate.rfqs(); 
-      toast.success('Quote accepted. Order created successfully.');
-      router.push('/orders');
+      const res = await rfqApi.awardQuote(id as string, quoteId);
+      mutate();
+      revalidate.rfqs();
+      revalidate.deals();
+      toast.success('🎉 Quote accepted! JaxMart Assured Deal initiated with escrow protection.');
+      router.push(`/deals/${res.data.dealId || res.data.deal?.id}`);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to award quote');
+      toast.error(err?.response?.data?.error || 'Failed to award quote');
     } finally {
-      setAwarding(false);
+      setAwardingQuoteId(null);
+    }
+  };
+
+  const handleStartChat = async (sellerId: string, quoteAmount: number) => {
+    try {
+      const msg = `Hello, I received your quotation of ₹${quoteAmount.toLocaleString('en-IN')} for "${rfq.title}". Let's discuss specifications and milestone schedule.`;
+      const { data: conv } = await messageApi.startConversation(sellerId, msg, rfq.id);
+      router.push(`/inbox?id=${conv.id}&recipientId=${sellerId}`);
+    } catch {
+      router.push('/inbox');
     }
   };
 
   if (isLoading) return <AppLayout><RfqDetailSkeleton /></AppLayout>;
-  if (!rfq) return <AppLayout><EmptyState title="Request Not Found" /></AppLayout>;
+  if (!rfq) {
+    return (
+      <AppLayout>
+        <Container className="py-24 text-center">
+          <EmptyState
+            title="RFQ Not Found"
+            description="This sourcing request might have expired or been removed."
+          />
+        </Container>
+      </AppLayout>
+    );
+  }
+
+  const quotes = rfq.quotes || [];
 
   return (
     <AppLayout>
-      <div className="bg-white border-b border-gray-100 mb-8">
-        <Container size="xl" className="py-8">
-           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <button onClick={() => router.push('/rfq')} className="flex items-center gap-2 text-[10px] font-black text-jax-blue uppercase tracking-widest hover:gap-3 transition-all mb-4">
-                  <FaArrowLeft className="h-3 w-3" /> Back to Requests
-                </button>
-                <div className="flex items-center gap-3 mb-2">
-                   <Badge status={rfq.status} className="bg-jax-accent/10 text-jax-accent border-jax-accent/20" />
-                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">ID: #{rfq.id.slice(0, 12)}</span>
+      <div className="bg-slate-50 min-h-screen pb-24 pt-6">
+        <Container size="xl">
+          {/* Back button */}
+          <button
+            onClick={() => router.push(isBuyer ? '/rfq' : '/seller/rfq-inbox')}
+            className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors mb-6"
+          >
+            <FaArrowLeft className="h-3 w-3" /> Back to {isBuyer ? 'My Requests' : 'Lead Inbox'}
+          </button>
+
+          {/* Hero RFQ Card */}
+          <div className="bg-white border border-gray-200/80 rounded-3xl p-6 md:p-8 shadow-sm mb-8">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-gray-100">
+              <div className="space-y-2 max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Badge status={rfq.status} />
+                  <span className="text-xs text-gray-400 font-medium">RFQ #{rfq.id.substring(0, 8)}</span>
+                  <div className="h-1 w-1 bg-gray-300 rounded-full" />
+                  <span className="text-xs font-bold text-jungle-green-700 bg-jungle-green-50 px-2.5 py-0.5 rounded-lg border border-jungle-green-100">
+                    {rfq.category?.name}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
+                  </span>
                 </div>
-                <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-tight mb-2">
-                   {rfq.title}
+
+                <h1 className="text-2xl md:text-3xl font-heading font-black text-gray-900 tracking-tight">
+                  {rfq.title}
                 </h1>
-                <div className="flex items-center gap-6">
-                   <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                      <FaClock className="h-3 w-3" />
-                      Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
-                   </div>
-                   <div className="flex items-center gap-2 text-[10px] font-bold text-jax-accent uppercase tracking-wide">
-                      <FaBolt className="h-3 w-3" />
-                      {rfq.category?.name}
-                   </div>
+              </div>
+
+              <div className="flex items-center gap-4 bg-slate-50 border border-gray-200/80 rounded-2xl p-4 shrink-0">
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Target Budget</p>
+                  <p className="text-xl font-heading font-black text-gray-900">
+                    {rfq.budgetMin || rfq.budgetMax
+                      ? `₹${(rfq.budgetMin || 0).toLocaleString('en-IN')} - ${rfq.budgetMax ? `₹${rfq.budgetMax.toLocaleString('en-IN')}` : 'Open'}`
+                      : 'Open to Bids'}
+                  </p>
+                </div>
+                <div className="h-8 w-px bg-gray-200" />
+                <div className="text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Quotes</p>
+                  <p className="text-xl font-heading font-black text-jungle-green-700">{quotes.length}</p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-3">
-                 <div className="h-16 w-16 rounded-2xl bg-jax-blue text-white flex flex-col items-center justify-center shadow-lg">
-                    <span className="text-xl font-black leading-none">{rfq.quotes?.length || 0}</span>
-                    <span className="text-[8px] font-bold uppercase tracking-widest mt-1">Quotes</span>
-                 </div>
+            </div>
+
+            {/* Requirement Specifications Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-gray-100 text-xs">
+              <div>
+                <span className="text-gray-400 font-bold block mb-0.5">Quantity Required</span>
+                <span className="font-bold text-gray-900 text-sm">
+                  {rfq.quantity ? `${rfq.quantity} ${rfq.unitOfMeasure || 'Units'}` : 'Not Specified'}
+                </span>
               </div>
-           </div>
-        </Container>
-      </div>
-
-      <Container size="xl" className="pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-          <div className="lg:col-span-2 space-y-12">
-            <section>
-              <h2 className="text-xs font-black text-jax-dark uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                 <FaFileLines className="text-jax-accent" /> Request Details
-              </h2>
-              <Card className="p-10 border-none shadow-xl shadow-black/[0.02]">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10 pb-8 border-b border-gray-100">
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Category</p>
-                    <p className="text-sm font-black text-jax-dark uppercase">{rfq.category?.name}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sourcing Type</p>
-                    <p className="text-sm font-black text-jax-blue uppercase">{rfq.rfqType}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Deadline</p>
-                    <div className="flex items-center gap-2">
-                       <FaCalendarCheck className="h-3.5 w-3.5 text-jax-accent" />
-                       <p className="text-sm font-black text-jax-dark">{rfq.deadline ? new Date(rfq.deadline).toLocaleDateString() : 'Active'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none">
-                  {rfq.description}
-                </div>
-              </Card>
-            </section>
-
-            <section>
-              <div className="flex items-center justify-between mb-8">
-                 <h2 className="text-xs font-black text-jax-dark uppercase tracking-[0.2em] flex items-center gap-2">
-                    <FaBolt className="text-jax-accent" /> Quotes Received
-                  </h2>
-                 <span className="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                    Matched Bids
-                 </span>
+              <div>
+                <span className="text-gray-400 font-bold block mb-0.5">Delivery Destination</span>
+                <span className="font-bold text-gray-900 text-sm flex items-center gap-1">
+                  <FaLocationDot className="h-3 w-3 text-red-500" />
+                  {rfq.locationPreference || 'Pan India'}
+                </span>
               </div>
-              
-              <div className="space-y-6">
-                {rfq.quotes?.length > 0 ? rfq.quotes.map((quote: any, i: number) => (
-                  <motion.div
-                    key={quote.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <Card className="relative overflow-hidden group hover:border-jax-accent/30 transition-all p-0 shadow-sm hover:shadow-2xl">
-                      {quote.status === 'WON' && (
-                        <div className="absolute top-0 right-0 bg-emerald-500 text-white px-6 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-bl-3xl shadow-lg z-10 flex items-center gap-2">
-                          <FaAward /> Awarded
-                        </div>
-                      )}
-                      
-                      <div className="flex flex-col md:flex-row">
-                          <div className="p-8 flex-1">
-                             <div className="flex items-start gap-5 mb-6">
-                                <Avatar name={quote.seller?.businessProfile?.businessName || quote.seller?.fullName} size="lg" className="rounded-2xl shadow-lg ring-4 ring-gray-50" />
-                                <div className="min-w-0">
-                                   <div className="flex items-center gap-2 mb-1">
-                                      <h4 className="font-black text-jax-dark text-lg uppercase tracking-tight truncate">
-                                         {quote.seller?.businessProfile?.businessName || quote.seller?.fullName}
-                                      </h4>
-                                      <Badge status="ACTIVE" label="Verified Seller" className="text-[8px] bg-emerald-50 text-emerald-600 border-none px-2" />
-                                   </div>
-                                   <div className="flex items-center gap-4">
-                                      <div className="flex items-center gap-1.5">
-                                         <FaStar className="h-3 w-3 text-amber-400" />
-                                         <span className="text-[11px] font-black text-jax-dark">{quote.seller?.avgRating || '4.8'}</span>
-                                      </div>
-                                      <TrustScore score={quote.seller?.trustScore || 92} />
-                                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                         <FaClock className="h-3 w-3" /> {quote.timelineDays}d lead time
-                                      </div>
-                                   </div>
-                                </div>
-                             </div>
-                             
-                             <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 flex items-start gap-3">
-                                <FaComment className="h-4 w-4 text-jax-blue mt-1 shrink-0" />
-                                <p className="text-sm text-gray-500 italic leading-relaxed">&quot;{quote.proposalText}&quot;</p>
-                             </div>
-                             
-                             <div className="mt-8 flex items-center justify-between pt-6 border-t border-dashed border-gray-100">
-                               <button className="flex items-center gap-2.5 text-jax-blue font-black text-[10px] uppercase tracking-[0.2em] hover:text-jax-accent transition-colors">
-                                 <FaComment className="h-3.5 w-3.5" /> Message Seller
-                               </button>
-                               
-                               {rfq.status === 'OPEN' && (
-                                 <Button 
-                                   size="sm" 
-                                   variant="primary" 
-                                   className="bg-jax-accent border-none shadow-xl shadow-jax-accent/20 px-8"
-                                   loading={awarding} 
-                                   onClick={() => handleAward(quote.id)}
-                                 >
-                                   Award Order
-                                 </Button>
-                               )}
-                             </div>
-                          </div>
-                          
-                          <div className="bg-jax-dark text-white md:w-56 p-8 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-1 shrink-0">
-                             <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Price Quoted</p>
-                             <p className="text-2xl font-black text-jax-accent tracking-tighter">₹{quote.quotedAmount?.toLocaleString('en-IN')}</p>
-                             <p className="text-[8px] font-bold text-white/30 uppercase mt-2">per unit</p>
-                          </div>
-                       </div>
-                    </Card>
-                  </motion.div>
-                )) : (
-                  <Card className="py-24 flex flex-col items-center text-center border-dashed border-2">
-                    <div className="h-20 w-20 rounded-full bg-jax-blue/5 flex items-center justify-center text-jax-blue mb-6">
-                       <FaBolt className="h-8 w-8 animate-pulse" />
-                    </div>
-                    <h3 className="text-lg font-black text-jax-dark uppercase mb-2">Waiting for Quotes</h3>
-                    <p className="text-xs text-gray-500 max-w-sm">Sellers have been notified. Quotes should arrive soon.</p>
-                  </Card>
-                )}
+              <div>
+                <span className="text-gray-400 font-bold block mb-0.5">Supplier Preference</span>
+                <span className="font-bold text-gray-900 text-sm">
+                  {rfq.preferredProviderType || 'Any Verified Factory'}
+                </span>
               </div>
-            </section>
-          </div>
-
-          <div className="space-y-8">
-            <Card variant="dark" className="p-8 relative overflow-hidden group border-none">
-              <FaShieldHalved className="h-32 w-32 absolute -bottom-8 -right-8 text-white/[0.03]" />
-              <div className="relative z-10">
-                 <h3 className="font-black text-lg uppercase tracking-tight mb-4 flex items-center gap-3">
-                    <FaShieldHalved className="text-jax-accent" /> Payment Safety
-                 </h3>
-                 <p className="text-sm text-white/50 mb-8 leading-relaxed font-medium">
-                    Payments are protected by JaxMart. Money is only sent to the seller after delivery confirmation.
-                 </p>
-                 <div className="space-y-4">
-                   {[
-                     { l: 'Milestone Tracking', s: 'Active' },
-                     { l: 'QC Inspection', s: 'Available' },
-                     { l: 'Dispute Support', s: 'Ready' }
-                   ].map((item, i) => (
-                     <div key={i} className="flex items-center justify-between pb-3 border-b border-white/5">
-                        <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">{item.l}</span>
-                        <Badge status="ACTIVE" label={item.s} className="bg-white/10 text-white text-[8px] border-none" />
-                     </div>
-                   ))}
-                 </div>
+              <div>
+                <span className="text-gray-400 font-bold block mb-0.5">Escrow Protection</span>
+                <span className="font-bold text-emerald-700 text-sm flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Guaranteed
+                </span>
               </div>
-            </Card>
+            </div>
 
-            <div className="p-8 bg-white border border-gray-100 rounded-3xl shadow-sm">
-               <h4 className="text-[10px] font-black text-jax-blue uppercase tracking-[0.25em] mb-6">Order Status</h4>
-               <p className="text-xs text-gray-500 font-medium leading-relaxed mb-8">
-                  Once awarded, an order will be created to track delivery and payments.
-               </p>
-               
-               {isSeller && !hasQuoted && rfq.status === 'OPEN' && (
-                 <Button 
-                   fullWidth 
-                   onClick={() => router.push(`/rfq/${rfq.id}/quote`)}
-                   className="mb-4 h-12 bg-jax-dark text-white rounded-xl shadow-lg"
-                 >
-                   Send Quote
-                 </Button>
-               )}
-
-               {rfq.status === 'AWARDED' && rfq.quotes?.find((q: any) => q.status === 'WON')?.order && (
-                  <Button 
-                     fullWidth 
-                     onClick={() => router.push(`/orders/${rfq.quotes.find((q: any) => q.status === 'WON').order.id}`)}
-                     className="mb-4 h-12 bg-emerald-600 text-white rounded-xl shadow-lg border-none"
-                     icon={<FaAward />}
-                  >
-                     View Active Order
-                  </Button>
-               )}
-
-               <Button 
-                  fullWidth 
-                  variant="outline" 
-                  className="text-jax-dark font-black text-[9px] border-gray-200"
-                  onClick={() => router.push('/orders')}
-               >
-                  My Orders
-               </Button>
+            {/* Detailed Description */}
+            <div className="pt-6">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-gray-400 mb-2">Technical Description & Scope</h4>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50/60 p-5 rounded-2xl border border-gray-100">
+                {rfq.description}
+              </p>
             </div>
           </div>
-        </div>
-      </Container>
+
+          {/* Sourcing Quotations Matrix */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-heading font-black text-gray-900 tracking-tight">
+                  Received Supplier Quotations ({quotes.length})
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Compare prices, milestone schedules, and supplier trust scores.
+                </p>
+              </div>
+
+              {!isBuyer && !quotes.some((q: any) => q.sellerId === user?.id) && rfq.status === 'OPEN' && (
+                <Button
+                  onClick={() => router.push(`/rfq/${rfq.id}/quote`)}
+                  className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl font-bold text-xs px-6 py-2.5 shadow"
+                >
+                  Submit Quote
+                </Button>
+              )}
+            </div>
+
+            {!quotes.length ? (
+              <div className="bg-white border border-gray-200/80 rounded-3xl p-12 text-center text-gray-400">
+                <FaFileLines className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <h4 className="font-bold text-gray-700 text-sm">Waiting for Supplier Quotes</h4>
+                <p className="text-xs text-gray-400 mt-1 max-w-md mx-auto">
+                  Matched manufacturers have been notified. Incoming proposals will appear here in real time.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {quotes.map((quote: any) => {
+                  const seller = quote.seller;
+                  const isWon = quote.status === 'WON';
+
+                  return (
+                    <div
+                      key={quote.id}
+                      className={clsx(
+                        'bg-white border rounded-3xl p-6 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden',
+                        isWon ? 'border-emerald-300 ring-2 ring-emerald-500/20' : 'border-gray-200 hover:shadow-md'
+                      )}
+                    >
+                      {isWon && (
+                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-bl-xl shadow flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Quote Accepted & Awarded
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        {/* Supplier info */}
+                        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <Avatar name={seller?.fullName || 'Supplier'} size="md" />
+                            <div>
+                              <h4 className="font-bold text-sm text-gray-900">
+                                {seller?.businessProfile?.businessName || seller?.fullName}
+                              </h4>
+                              <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                                <FaCircleCheck className="h-3 w-3" /> Verified Factory
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Trust Score</span>
+                            <span className="text-sm font-black text-jungle-green-700 bg-jungle-green-50 px-2 py-0.5 rounded">
+                              {seller?.trustScore || 90}/100
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Quote Amount & Timeline */}
+                        <div className="bg-slate-50 border border-gray-200/80 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Quoted Price</span>
+                            <span className="text-2xl font-heading font-black text-gray-900">
+                              ₹{quote.quotedAmount?.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Lead Time</span>
+                            <span className="text-sm font-bold text-gray-800 flex items-center gap-1 justify-end">
+                              <FaClock className="h-3 w-3 text-jungle-green-600" /> {quote.timelineDays || 7} Days
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Proposal Cover Text */}
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Proposal Terms</span>
+                          <p className="text-xs text-gray-600 leading-relaxed bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            {quote.proposalText || 'Standard manufacturing terms proposed.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action CTA for Buyer */}
+                      {isBuyer && rfq.status === 'OPEN' && (
+                        <div className="flex items-center gap-3 pt-5 border-t border-gray-100 mt-4">
+                          <Button
+                            onClick={() => handleAward(quote.id)}
+                            disabled={awardingQuoteId === quote.id}
+                            className="flex-1 bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl font-bold text-xs py-3 shadow"
+                          >
+                            {awardingQuoteId === quote.id ? 'Processing...' : 'Accept Quote & Protect Deal'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleStartChat(quote.sellerId, quote.quotedAmount)}
+                            className="px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-1.5"
+                          >
+                            <FaMessage className="h-3.5 w-3.5" /> Negotiate
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Container>
+      </div>
     </AppLayout>
   );
 }

@@ -157,17 +157,15 @@ export const orderApi = {
   getDashboard: () => api.get('/orders/dashboard'),
 };
 
-// ── Payments ──────────────────────────────────────────────────────────────────
-export const paymentApi = {
-  createOrder: (orderId: string) => api.post('/payments/create-order', { orderId }),
-  verify: (data: any) => api.post('/payments/verify', data),
-  getBalance: () => api.get('/payments/seller/balance'),
-};
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 export const userApi = {
   getProfile: () => api.get('/users/me'),
   update: (data: any) => api.put('/users/profile', data),
+  addAddress: (data: any) => api.post('/users/addresses', data),
+  updateAddress: (id: string, data: any) => api.put(`/users/addresses/${id}`, data),
+  deleteAddress: (id: string) => api.delete(`/users/addresses/${id}`),
+  uploadKyc: (data: any) => api.post('/users/kyc/upload', data),
 };
 
 // ── Notifications ─────────────────────────────────────────────────────────────
@@ -184,6 +182,65 @@ export const messageApi = {
   getConversationListing: (id: string) => api.get(`/messages/conversations/${id}/listing`),
   startConversation: (recipientId: string, initialMessage?: string, rfqId?: string, orderId?: string, listingId?: string) =>
     api.post('/messages/conversations', { recipientId, initialMessage, rfqId, orderId, listingId }),
+};
+
+// ── Subscriptions & Billing ──────────────────────────────────────────────────
+export const subscriptionApi = {
+  getPlans: () => api.get('/subscriptions/plans'),
+  getMySubscription: () => api.get('/subscriptions/me'),
+  getEntitlements: () => api.get('/subscriptions/entitlements'),
+  subscribe: (data: { planId: string; billingCycle?: string; paymentMethod?: string }) =>
+    api.post('/subscriptions/subscribe', data),
+  verifyRazorpay: (data: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    planId: string;
+    billingCycle?: string;
+  }) => api.post('/subscriptions/verify-razorpay', data),
+  createCreditOrder: (packId: string) => api.post('/subscriptions/credits/order', { packId }),
+  verifyCreditPurchase: (data: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    packId: string;
+  }) => api.post('/subscriptions/credits/verify', data),
+  unlockLead: (rfqId: string) => api.post(`/subscriptions/unlock-lead/${rfqId}`),
+  changePlan: (newPlanId: string, billingCycle?: string) =>
+    api.post('/subscriptions/change-plan', { newPlanId, billingCycle }),
+  cancel: (immediate?: boolean) => api.post('/subscriptions/cancel', { immediate }),
+  submitDeposit: (data: any) => api.post('/subscriptions/manual-deposit', data),
+  getInvoices: () => api.get('/subscriptions/invoices'),
+  getInvoice: (id: string) => api.get(`/subscriptions/invoices/${id}`),
+};
+
+// ── Deals (JaxMart Assured Deals) ───────────────────────────────────────────
+export const dealApi = {
+  create: (data: {
+    rfqId?: string;
+    rfqQuoteId?: string;
+    sellerId: string;
+    agreedAmount: number;
+    orderType?: string;
+    milestonePlan?: any[];
+    notes?: string;
+  }) => api.post('/deals', data),
+  getAll: (params?: any) => api.get('/deals', { params }),
+  get: (id: string) => api.get(`/deals/${id}`),
+};
+
+// ── Payments, Invoices & Refunds ──────────────────────────────────────────────
+export const paymentApi = {
+  createOrder: (orderId: string) => api.post('/payments/create-order', { orderId }),
+  verify: (data: { razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string; orderId: string } | any) =>
+    api.post('/payments/verify', data),
+  getBalance: () => api.get('/payments/seller/balance'),
+  getInvoices: () => api.get('/payments/invoices'),
+  getInvoice: (id: string) => api.get(`/payments/invoices/${id}`),
+  getPurchases: () => api.get('/payments/purchases'),
+  requestRefund: (orderId: string, data: { reason: string; description?: string; evidenceUrls?: string[] }) =>
+    api.post(`/payments/orders/${orderId}/request-refund`, data),
+  getRefunds: () => api.get('/payments/refunds'),
 };
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -203,5 +260,23 @@ export const adminApi = {
   createEvent: (data: any) => api.post('/admin/events', data),
   updateEvent: (id: string, data: any) => api.put(`/admin/events/${id}`, data),
   deleteEvent: (id: string) => api.delete(`/admin/events/${id}`),
+  getSubscribers: (params?: any) => api.get('/admin/subscriptions/subscribers', { params }),
+  getDepositReceipts: () => api.get('/admin/subscriptions/deposit-receipts'),
+  verifyDepositReceipt: (id: string) => api.post(`/admin/subscriptions/deposit-receipts/${id}/verify`),
+  rejectDepositReceipt: (id: string, reason?: string) =>
+    api.post(`/admin/subscriptions/deposit-receipts/${id}/reject`, { reason }),
+  getFinancialReport: () => api.get('/admin/subscriptions/financial-report'),
+  getCaptains: () => api.get('/admin/captains'),
+  createCaptain: (data: any) => api.post('/admin/captains', data),
+  getCaptainOnboardings: (params?: any) => api.get('/admin/captains/onboardings', { params }),
+  getCaptainListings: () => api.get('/admin/captains/listings'),
+  getInvoices: (params?: any) => api.get('/admin/invoices', { params }),
+  getRefunds: () => api.get('/admin/refunds'),
+  processRefund: (orderId: string, data: { refundAmount?: number; reasonNote?: string }) =>
+    api.post(`/admin/refunds/${orderId}/process`, data),
+  rejectRefund: (orderId: string, reasonNote?: string) =>
+    api.post(`/admin/refunds/${orderId}/reject`, { reasonNote }),
 };
+
+
 

@@ -1,10 +1,22 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  FaFileLines, FaPlus, FaClock, FaCircleCheck,
-  FaChevronRight, FaMagnifyingGlass,
-  FaBolt, FaChartLine, FaBoxOpen, FaShieldHalved
+  FaFileLines,
+  FaPlus,
+  FaClock,
+  FaCircleCheck,
+  FaChevronRight,
+  FaMagnifyingGlass,
+  FaBolt,
+  FaChartLine,
+  FaBoxOpen,
+  FaShieldHalved,
+  FaArrowRight,
+  FaLocationDot,
+  FaTag,
+  FaBuilding,
 } from 'react-icons/fa6';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Card, Badge, PageLoader, Container } from '@/components/ui';
@@ -13,16 +25,26 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
+import { ShieldCheck, Award, Sparkles, CheckCircle2, TrendingUp, Layers } from 'lucide-react';
+
+const QUICK_TEMPLATES = [
+  { title: "Men's Cotton T-Shirts", category: 'Textiles & Apparel', qty: '500 Pcs', icon: '👕' },
+  { title: 'TMT Steel Rebar Fe 500D', category: 'Building & Construction', qty: '20 Metric Tons', icon: '🏗️' },
+  { title: 'Corrugated Packaging Cartons 5-Ply', category: 'Packaging & Printing', qty: '2,000 Boxes', icon: '📦' },
+  { title: 'Industrial Hex Bolts SS 304', category: 'Industrial Machinery', qty: '10,000 Pcs', icon: '🔩' },
+];
 
 export default function RfqListPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<'OPEN' | 'AWARDED' | 'CLOSED'>('OPEN');
   const [search, setSearch] = useState('');
 
   const { data, isLoading } = useMyRfqs(tab);
 
-  const rfqs = (data?.rfqs ?? []).filter((r: any) =>
-    r.title.toLowerCase().includes(search.toLowerCase()) ||
-    r.id.toLowerCase().includes(search.toLowerCase())
+  const rfqs = (data?.rfqs ?? []).filter(
+    (r: any) =>
+      r.title.toLowerCase().includes(search.toLowerCase()) ||
+      r.id.toLowerCase().includes(search.toLowerCase())
   );
 
   const stats = {
@@ -32,215 +54,265 @@ export default function RfqListPage() {
 
   return (
     <AppLayout>
-      <div className="bg-gradient-to-b from-gray-50/80 to-white border-b border-gray-200/60 relative overflow-hidden mb-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] pointer-events-none" />
+      {/* Header Banner */}
+      <div className="bg-gradient-to-b from-gray-50/80 to-white border-b border-gray-200/60 relative overflow-hidden mb-8 shadow-xs">
         <Container size="xl" className="py-10 relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                 <span className="relative flex h-2.5 w-2.5">
-                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-jax-accent opacity-40"></span>
-                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-jax-accent"></span>
-                 </span>
-                 <span className="text-[10px] font-black text-jax-accent uppercase tracking-[0.2em] bg-jax-accent/10 px-2 py-0.5 rounded-md">My Requests</span>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-jungle-green-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-jungle-green-600"></span>
+                </span>
+                <span className="text-[10px] font-black text-jungle-green-700 uppercase tracking-widest bg-jungle-green-50 px-2.5 py-0.5 rounded-full border border-jungle-green-200">
+                  Buyer Sourcing Center
+                </span>
               </div>
-              <h1 className="text-4xl font-heading font-black text-gray-900 tracking-tight leading-none mb-3">Sourcing Dashboard</h1>
-              <p className="text-sm text-gray-500 font-medium">Manage your requests, compare quotes, and source products efficiently.</p>
+              <h1 className="text-3xl md:text-4xl font-heading font-black text-gray-900 tracking-tight leading-none mb-2">
+                My Sourcing Requests & RFQs
+              </h1>
+              <p className="text-sm text-gray-500 font-medium">
+                Track your posted requirements, compare competing factory quotes, and manage Assured Deals.
+              </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-               <div className="flex items-center gap-6 px-6 py-3.5 bg-white rounded-2xl border border-gray-200/60 shadow-sm w-full sm:w-auto justify-center sm:justify-start">
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Requests</p>
-                    <p className="text-2xl font-black text-gray-900 leading-none">{stats.total}</p>
-                  </div>
-                  <div className="h-10 w-px bg-gray-100" />
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Quotes Received</p>
-                    <p className="text-2xl font-black text-jax-blue leading-none">{stats.quotes}</p>
-                  </div>
-               </div>
-               <Link href="/rfq/create" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-jax-accent to-emerald-500 text-white border-none shadow-lg shadow-jax-accent/20 hover:shadow-xl hover:scale-[1.02] transition-all duration-300" icon={<FaPlus />}>
-                     New Request
-                  </Button>
-               </Link>
+              <div className="flex items-center gap-6 px-6 py-3.5 bg-white rounded-2xl border border-gray-200 shadow-sm w-full sm:w-auto justify-center sm:justify-start">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Your RFQs
+                  </p>
+                  <p className="text-2xl font-black text-gray-900 leading-none">{stats.total}</p>
+                </div>
+                <div className="h-10 w-px bg-gray-100" />
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Quotes Received
+                  </p>
+                  <p className="text-2xl font-black text-jungle-green-700 leading-none">{stats.quotes}</p>
+                </div>
+              </div>
+
+              <Link href="/rfq/create" className="w-full sm:w-auto">
+                <Button
+                  className="w-full sm:w-auto h-14 px-8 bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-2xl shadow-lg font-bold text-xs uppercase tracking-wider flex items-center gap-2"
+                >
+                  <FaPlus className="h-3.5 w-3.5" /> Post New RFQ
+                </Button>
+              </Link>
             </div>
           </div>
         </Container>
       </div>
 
-      <Container size="xl" className="pb-20">
+      <Container size="xl" className="pb-24">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Content */}
+          {/* Main Content Area */}
           <div className="flex-1">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-              <div className="flex bg-gray-100/50 p-1 rounded-xl w-full md:w-fit border border-gray-200/50">
-                {(['OPEN', 'AWARDED', 'CLOSED'] as const).map(t => (
+            {/* Filter Tabs & Search Bar */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+              <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-fit">
+                {(['OPEN', 'AWARDED', 'CLOSED'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
                     className={clsx(
-                      'flex-1 md:flex-none px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300',
-                      tab === t ? 'bg-white text-jax-blue shadow-sm border border-gray-200/50' : 'text-gray-500 hover:text-gray-900'
+                      'flex-1 md:flex-none px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all',
+                      tab === t
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900'
                     )}
                   >
-                    {t}
+                    {t === 'OPEN' ? 'Active RFQs' : t === 'AWARDED' ? 'Awarded Deals' : 'Closed'}
                   </button>
                 ))}
               </div>
-              
-              <div className="relative w-full md:w-80 group">
-                 <div className="absolute -inset-0.5 bg-gradient-to-r from-jax-accent to-jax-blue rounded-xl blur opacity-0 group-focus-within:opacity-15 transition duration-500"></div>
-                 <div className="relative">
-                   <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5 group-focus-within:text-jax-accent transition-colors" />
-                   <input 
-                     value={search}
-                     onChange={e => setSearch(e.target.value)}
-                     placeholder="Search requests..."
-                     className="w-full h-11 bg-white border border-gray-200/80 rounded-xl pl-11 pr-4 text-xs font-heading font-medium text-gray-800 focus:border-jax-accent focus:ring-4 focus:ring-jax-accent/10 outline-none shadow-sm transition-all"
-                   />
-                 </div>
+
+              <div className="relative w-full md:w-80">
+                <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search your requests..."
+                  className="w-full h-11 bg-white border border-gray-200 rounded-xl pl-11 pr-4 text-xs font-medium text-gray-800 outline-none focus:border-jungle-green-600 shadow-xs"
+                />
               </div>
             </div>
 
-            {isLoading ? <PageLoader /> : rfqs.length === 0 ? (
-              <div className="py-24 flex flex-col items-center text-center bg-gradient-to-b from-gray-50/50 to-white border border-gray-100 rounded-3xl shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-                <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-8 border border-gray-50">
-                   <FaBoxOpen className="h-10 w-10 text-gray-300" />
+            {isLoading ? (
+              <PageLoader />
+            ) : rfqs.length === 0 ? (
+              /* Rich Onboarding Empty State */
+              <div className="bg-white border border-gray-200/80 rounded-3xl p-8 md:p-12 shadow-sm text-center space-y-8">
+                <div className="max-w-md mx-auto space-y-3">
+                  <div className="h-16 w-16 bg-jungle-green-50 text-jungle-green-600 rounded-3xl flex items-center justify-center mx-auto border border-jungle-green-100">
+                    <FaFileLines className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-heading font-black text-gray-900 tracking-tight">
+                    No Sourcing Requests Posted Yet
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                    When you post a buy requirement, verified factories will submit commercial quotations with lead times and volume pricing directly to your dashboard.
+                  </p>
+                  <div className="pt-2">
+                    <Link href="/rfq/create">
+                      <Button className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-2xl px-8 py-3.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                        Post Your First RFQ Free →
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-                <h3 className="text-xl font-black text-gray-900 mb-3 uppercase tracking-tight">No Requests Found</h3>
-                <p className="text-sm text-gray-500 max-w-sm mb-8 leading-relaxed">You haven't posted any sourcing requests in this category yet. Start getting quotes from verified sellers today.</p>
-                <Link href="/rfq/create">
-                  <Button className="h-12 px-8 bg-white text-jax-dark border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md transition-all font-bold text-xs uppercase tracking-wider">
-                     Post a Request
-                  </Button>
-                </Link>
+
+                {/* 3-Step Sourcing Explainer */}
+                <div className="pt-6 border-t border-gray-100">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-6">
+                    How JaxMart Factory Sourcing Works
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-gray-100">
+                      <div className="h-8 w-8 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-black text-xs mb-3">
+                        1
+                      </div>
+                      <h5 className="font-bold text-xs text-gray-900 mb-1">Post Specifications</h5>
+                      <p className="text-[11px] text-gray-500">
+                        Type your product details; our AI matches your requirement with audited manufacturers.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-gray-100">
+                      <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xs mb-3">
+                        2
+                      </div>
+                      <h5 className="font-bold text-xs text-gray-900 mb-1">Compare Live Quotes</h5>
+                      <p className="text-[11px] text-gray-500">
+                        Receive competing factory bids with milestone schedules and verified trust ratings.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-gray-100">
+                      <div className="h-8 w-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs mb-3">
+                        3
+                      </div>
+                      <h5 className="font-bold text-xs text-gray-900 mb-1">100% Escrow Protection</h5>
+                      <p className="text-[11px] text-gray-500">
+                        Funds are held in secure escrow and released only after you verify goods on delivery.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick 1-Click Templates */}
+                <div className="pt-6 border-t border-gray-100 text-left">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-4">
+                    Or Try Sourcing With a Sample Template:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {QUICK_TEMPLATES.map((tmpl, idx) => (
+                      <Link
+                        key={idx}
+                        href={`/rfq/create?title=${encodeURIComponent(tmpl.title)}`}
+                        className="p-3.5 rounded-2xl border border-gray-200 hover:border-jungle-green-600 hover:bg-jungle-green-50/50 transition-all flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{tmpl.icon}</span>
+                          <div>
+                            <p className="font-bold text-xs text-gray-900 group-hover:text-jungle-green-800">
+                              {tmpl.title}
+                            </p>
+                            <p className="text-[10px] text-gray-400">{tmpl.category} • {tmpl.qty}</p>
+                          </div>
+                        </div>
+                        <FaChevronRight className="h-3 w-3 text-gray-300 group-hover:text-jungle-green-700 group-hover:translate-x-1 transition-all" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {rfqs.map((rfq: any, i: number) => (
-                  <motion.div
+              /* Active RFQ Cards List */
+              <div className="space-y-4">
+                {rfqs.map((rfq: any) => (
+                  <div
                     key={rfq.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    onClick={() => router.push(`/rfq/${rfq.id}`)}
+                    className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-jungle-green-300 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
                   >
-                    <Link href={`/rfq/${rfq.id}`}>
-                      <Card className="hover:border-jax-accent/40 transition-all duration-300 group p-0 overflow-hidden shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] bg-white rounded-2xl">
-                        <div className="flex flex-col md:flex-row">
-                           <div className="p-6 md:p-8 flex-1">
-                              <div className="flex items-center gap-3 mb-4">
-                                 <Badge status={rfq.rfqType} className="bg-gray-100 text-gray-600 border-none font-bold tracking-wider px-2.5 py-1 text-[9px] uppercase shadow-inner" />
-                                 <div className="h-1 w-1 rounded-full bg-gray-300" />
-                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">REQ-{rfq.id.slice(0, 8)}</span>
-                              </div>
-                              <h3 className="text-xl font-black text-gray-900 group-hover:text-jax-accent transition-colors mb-3 tracking-tight leading-tight">
-                                 {rfq.title}
-                              </h3>
-                              <div className="flex flex-col gap-4">
-                                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                                   <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
-                                      <FaClock className="h-3 w-3 text-gray-400" />
-                                      Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
-                                   </div>
-                                   <div className="flex items-center gap-2 text-[10px] font-bold text-jax-accent uppercase tracking-wider bg-jax-accent/5 px-2.5 py-1.5 rounded-md border border-jax-accent/10">
-                                      <FaBolt className="h-3 w-3" />
-                                      {rfq.category?.name || 'General Sourcing'}
-                                   </div>
-                                </div>
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5">
+                        <Badge status={rfq.status} />
+                        <span className="text-xs font-bold text-jungle-green-700 bg-jungle-green-50 px-2 py-0.5 rounded-md">
+                          {rfq.category?.name}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Posted {formatDistanceToNow(new Date(rfq.createdAt), { addSuffix: true })}
+                        </span>
+                      </div>
 
-                                {rfq.leadsSentTo !== undefined && (
-                                  <div className="pt-4 border-t border-gray-100/80">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Lead Sent To Suppliers:</p>
-                                    {rfq.leadsSentTo.length > 0 ? (
-                                      <div className="flex flex-wrap gap-2">
-                                        {rfq.leadsSentTo.map((lead: any, idx: number) => (
-                                          <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/80 border border-gray-200/60 rounded-lg">
-                                            <div className="h-1.5 w-1.5 rounded-full bg-jax-accent" />
-                                            <span className="text-xs font-bold text-jax-dark">{lead.business}</span>
-                                            <span className="text-[10px] font-medium text-gray-500 hidden sm:inline-block">({lead.name})</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    ) : (
-                                      <div className="text-[10px] font-bold text-gray-400 bg-gray-50/50 px-3 py-2 rounded-lg inline-block">
-                                        No suppliers found matching this request.
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                           </div>
-                           
-                           <div className="bg-gray-50/80 md:w-64 border-t md:border-t-0 md:border-l border-gray-100 p-6 md:p-8 flex flex-row md:flex-col justify-between md:justify-center gap-4 relative overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/[0.01] pointer-events-none" />
-                              <div className="text-left md:text-right relative z-10">
-                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Quotes Received</p>
-                                 <div className="flex items-center md:justify-end gap-2">
-                                    <span className="text-3xl font-black text-gray-900 leading-none">{rfq._count?.quotes || 0}</span>
-                                    {rfq._count?.quotes > 0 && <span className="text-[9px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded shadow-sm">NEW</span>}
-                                 </div>
-                              </div>
-                              <div className="md:mt-auto relative z-10">
-                                 <Button variant="ghost" size="sm" className="w-full justify-between text-jax-blue hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 transition-all h-10 px-4 rounded-xl text-xs font-bold">
-                                    View Details <FaChevronRight className="h-3 w-3 opacity-50" />
-                                 </Button>
-                              </div>
-                           </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  </motion.div>
+                      <h3 className="font-heading font-black text-gray-900 text-lg hover:text-jungle-green-700 transition-colors truncate">
+                        {rfq.title}
+                      </h3>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                        <span>Quantity: <strong>{rfq.quantity ? `${rfq.quantity} ${rfq.unitOfMeasure || 'units'}` : 'Open'}</strong></span>
+                        <span>•</span>
+                        <span>Location: <strong>{rfq.locationPreference || 'Pan India'}</strong></span>
+                        <span>•</span>
+                        <span>Budget: <strong>{rfq.budgetMax ? `₹${rfq.budgetMax.toLocaleString('en-IN')}` : 'Open to Bids'}</strong></span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                      <div className="text-right">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
+                          Quotes
+                        </span>
+                        <span className="text-2xl font-heading font-black text-jungle-green-700">
+                          {rfq._count?.quotes || 0}
+                        </span>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl text-xs font-bold px-4 py-2"
+                      >
+                        Review Quotes →
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Sidebar Tools */}
-          <div className="lg:w-[320px] shrink-0 space-y-6">
-             <div className="p-7 relative overflow-hidden group bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-3xl shadow-xl shadow-slate-900/10 border border-slate-700/50">
-                <FaChartLine className="absolute -top-6 -right-6 h-32 w-32 text-white/[0.02] rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                <div className="relative z-10">
-                  <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Pro Tips
-                  </h4>
-                  <p className="text-[13px] text-slate-300 font-medium mb-6 leading-relaxed">
-                     Detailed requests with specific quantities and target budgets receive up to <strong className="text-white">40% more quotes</strong>.
-                  </p>
-                  <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Live Network</p>
-                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-black text-white">8,204 Suppliers</span>
-                        <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20">Online</span>
-                     </div>
-                  </div>
-                </div>
-             </div>
+          {/* Right Sidebar Info Card */}
+          <div className="lg:col-span-4 lg:w-80 space-y-6 shrink-0">
+            {/* Live Network Stats */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-jungle-green-300">
+                  Verified Supplier Network
+                </span>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              </div>
+              <h4 className="text-2xl font-heading font-black text-white">8,200+ Verified Factories</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Audited Indian manufacturers across Gujarat, Maharashtra, Tamil Nadu, and North India standing by to quote on your RFQ.
+              </p>
+            </div>
 
-             <div className="p-7 border border-gray-200/60 rounded-3xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                  <FaShieldHalved className="h-16 w-16 text-jax-blue" />
-                </div>
-                <h4 className="text-[10px] font-black text-jax-blue uppercase tracking-widest mb-5 flex items-center gap-2">
-                   <FaCircleCheck className="text-emerald-500 h-3.5 w-3.5" /> Trust & Safety
-                </h4>
-                <div className="space-y-5 relative z-10">
-                   <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-jax-blue/5 flex items-center justify-center shrink-0 border border-jax-blue/10">
-                         <FaShieldHalved className="h-4 w-4 text-jax-blue" />
-                      </div>
-                      <p className="text-[11px] text-gray-500 font-medium leading-relaxed pt-0.5">
-                        Quotes only come from verified suppliers with audited business profiles.
-                      </p>
-                   </div>
-                   <button className="w-full py-3.5 bg-gray-50 rounded-xl text-[10px] font-black text-gray-700 uppercase tracking-[0.15em] hover:bg-gray-100 hover:text-jax-dark transition-colors border border-gray-200/60 shadow-sm">
-                      How Escrow Works
-                   </button>
-                </div>
-             </div>
+            {/* Escrow Guarantee */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-3 shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
+                <ShieldCheck className="h-4 w-4 text-jungle-green-600" />
+                JaxMart Assured Escrow
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                When you accept a quote, funds remain in secure milestone escrow and are only released after verified proof of dispatch & quality inspection.
+              </p>
+            </div>
           </div>
         </div>
       </Container>

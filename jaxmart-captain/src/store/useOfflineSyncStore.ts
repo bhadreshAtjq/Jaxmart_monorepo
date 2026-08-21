@@ -4,6 +4,7 @@ import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { asyncStorage, ASYNC_KEYS } from '../utils/storage';
 import { uploadApi } from '../api/uploadApi';
 import { listingApi } from '../api/listingApi';
+import { companyApi } from '../api/companyApi';
 
 export type SyncItemType = 'SELLER_ONBOARDING' | 'SKU_SUBMISSION' | 'SKU_CATALOG';
 export type SyncItemStatus = 'PENDING' | 'SYNCING' | 'COMPLETED' | 'ERROR';
@@ -154,8 +155,10 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
 
         // 2. Dispatch payload to API
         if (item.type === 'SELLER_ONBOARDING') {
-          // Seller onboarding creates / syncs to /api/admin/kyc/queue
-          // Simulated or live endpoint submission
+          await companyApi.onboardCompany({
+            ...item.payload,
+            uploadedPhotos: uploadedUrls,
+          });
         } else if (item.type === 'SKU_SUBMISSION' || item.type === 'SKU_CATALOG') {
           const imageList = item.photosToUpload.map((p, idx) => ({
             url: uploadedUrls[p.key] || p.uri,

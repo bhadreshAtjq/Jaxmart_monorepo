@@ -274,6 +274,76 @@ export function useDeleteEvent(id: string) {
   });
 }
 
+export function useAdminSubscribers(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/subscriptions/subscribers' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminDepositReceipts(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/subscriptions/deposit-receipts' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminCaptains(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/captains' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminCaptainOnboardings(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/captains/onboardings' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminCaptainListings(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/captains/listings' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminInvoices(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/invoices' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useAdminRefunds(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && enabled ? '/admin/refunds' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useUserInvoices() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/payments/invoices' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useUserPurchases() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/payments/purchases' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useUserRefunds() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/payments/refunds' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
@@ -308,6 +378,50 @@ export function useMessages(conversationId: string | null) {
   );
 }
 
+// ─── Subscriptions & Entitlements ───────────────────────────────────────────
+
+export function useSubscriptionPlans() {
+  return useSWR('/subscriptions/plans', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+  });
+}
+
+export function useMySubscription() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/subscriptions/me' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useEntitlements() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/subscriptions/entitlements' : null, fetcher, {
+    revalidateOnFocus: true,
+  });
+}
+
+export function useInvoices() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn ? '/subscriptions/invoices' : null, fetcher);
+}
+
+// ─── Deals (JaxMart Assured Deals) ───────────────────────────────────────────
+
+export function useDeals(role = 'all') {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(
+    isLoggedIn ? ['/deals', { role }] : null,
+    fetcherWithParams,
+    { revalidateOnFocus: true }
+  );
+}
+
+export function useDeal(id: string | undefined) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(isLoggedIn && id ? `/deals/${id}` : null, fetcher);
+}
+
 // ─── Global Revalidation Helpers ──────────────────────────────────────────────
 // Call these after mutations to instantly refresh cached data
 
@@ -318,6 +432,14 @@ export const revalidate = {
   ),
   orders: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/orders') : Array.isArray(key) && key[0]?.startsWith('/orders'),
+    undefined, { revalidate: true }
+  ),
+  deals: () => globalMutate((key: any) =>
+    typeof key === 'string' ? key.startsWith('/deals') : Array.isArray(key) && key[0]?.startsWith('/deals'),
+    undefined, { revalidate: true }
+  ),
+  subscriptions: () => globalMutate((key: any) =>
+    typeof key === 'string' ? key.startsWith('/subscriptions') : Array.isArray(key) && key[0]?.startsWith('/subscriptions'),
     undefined, { revalidate: true }
   ),
   listings: () => globalMutate((key: any) =>
@@ -333,4 +455,5 @@ export const revalidate = {
     undefined, { revalidate: true }
   ),
 };
+
 

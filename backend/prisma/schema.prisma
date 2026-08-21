@@ -243,6 +243,10 @@ model User {
   subscription    Subscription?
   invoices        SubscriptionInvoice[]
   depositReceipts DepositReceipt[]
+  wallet          LeadCreditWallet?
+  leadUnlocks     LeadUnlock[]
+  buyerDeals      Deal[]         @relation("BuyerDeals")
+  sellerDeals     Deal[]         @relation("SellerDeals")
 
   @@index([kycStatus])
   @@index([userType])
@@ -724,6 +728,8 @@ model RfqRequest {
   quotes      RfqQuote[]
   invites     RfqInvite[]                    // targeted invitations
   savedBy     SavedRfq[]
+  leadUnlocks LeadUnlock[]
+  deals       Deal[]
 
   @@index([buyerId])
   @@index([categoryId])
@@ -781,6 +787,7 @@ model RfqQuote {
 
   // Status
   status         QuoteStatus @default(SUBMITTED)
+  leadCreditUsed Boolean     @default(false)
   rejectionNote  String?                    // NEW: why buyer rejected
   submittedAt    DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -790,6 +797,7 @@ model RfqQuote {
   seller  User       @relation(fields: [sellerId], references: [id])
   listing Listing?   @relation(fields: [listingId], references: [id])
   order   Order?
+  deals   Deal[]
 
   @@index([rfqId])
   @@index([sellerId])
@@ -863,6 +871,7 @@ model Order {
   payments  Payment[]                               // NEW: payment records
   reviews   Review[]
   disputes  Dispute[]
+  deal      Deal?
 
   @@index([buyerId])
   @@index([sellerId])
@@ -1251,11 +1260,19 @@ model SubscriptionPlan {
   monthlyPrice              Float
   yearlyPrice               Float
   currency                  String             @default("INR")
+  listingLimit              Int                @default(10)
+  leadQuotaPerCycle         Int                @default(10)
+  searchRankWeight          Int                @default(0)
+  hasVerifiedBadge          Boolean            @default(false)
+  hasFeaturedPlacement      Boolean            @default(false)
+  hasAnalytics              Boolean            @default(false)
+  hasApiAccess              Boolean            @default(false)
+  assuredDealFeeDiscountPct Int                @default(0)
+  teamSeats                 Int                @default(1)
   maxProducts               Int                @default(10) // -1 for unlimited
   maxImagesPerProduct       Int                @default(5)
   maxVideosPerProduct       Int                @default(0)
   allowBulkUpload           Boolean            @default(false)
-  allowApiAccess            Boolean            @default(false)
   verificationBadge         String             @default("NONE") // NONE, VERIFIED, GOLD, ASSESSED
   featuredProductSlots      Int                @default(0)
   hasAdvancedAnalytics      Boolean            @default(false)
@@ -1288,6 +1305,7 @@ model Subscription {
   cancelAtPeriodEnd      Boolean            @default(false)
   canceledAt             DateTime?
   endedAt                DateTime?
+  usedLeadQuotaInCycle   Int                @default(0)
   razorpayCustomerId     String?
   razorpaySubscriptionId String?
   stripeCustomerId       String?
@@ -1350,4 +1368,78 @@ model DepositReceipt {
   @@index([userId])
   @@index([status])
   @@map("deposit_receipts")
+}
+
+model LeadCreditWallet {
+  id           String                  @id @default(uuid())
+  sellerId     String                  @unique
+  balance      Int                     @default(0)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  seller       User                    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  transactions LeadCreditTransaction[]
+
+  @@map("lead_credit_wallets")
+}
+
+model LeadCreditTransaction {
+  id           String           @id @default(uuid())
+  walletId     String
+  amount       Int              // positive = credit added, negative = credit consumed
+  type         String           // PURCHASE, LEAD_UNLOCK, BONUS, REFUND
+  description  String?
+  referenceId  String?          // e.g. paymentId, rfqId
+  createdAt    DateTime         @default(now())
+
+  wallet       LeadCreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([createdAt])
+  @@map("lead_credit_transactions")
+}
+
+model LeadUnlock {
+  id           String      @id @default(uuid())
+  sellerId     String
+  rfqId        String
+  unlockedVia  String      // PLAN_QUOTA, CREDIT_WALLET, UNLIMITED_TIER
+  unlockedAt   DateTime    @default(now())
+
+  seller       User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  rfq          RfqRequest  @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  @@unique([sellerId, rfqId])
+  @@index([sellerId])
+  @@index([rfqId])
+  @@map("lead_unlocks")
+}
+
+model Deal {
+  id                   String      @id @default(uuid())
+  dealNumber           String      @unique @default(dbgenerated("gen_random_uuid()"))
+  rfqId                String?
+  rfqQuoteId           String?
+  buyerId              String
+  sellerId             String
+  orderId              String?     @unique
+  agreedAmount         Float
+  assuredDealFeePct    Float       @default(5.0)
+  assuredDealFee       Float       @default(0.0)
+  status               String      @default("DRAFT") // DRAFT, ACCEPTED, IN_ESCROW, DELIVERED, COMPLETED, CANCELLED
+  notes                String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  buyer                User        @relation("BuyerDeals", fields: [buyerId], references: [id])
+  seller               User        @relation("SellerDeals", fields: [sellerId], references: [id])
+  rfq                  RfqRequest? @relation(fields: [rfqId], references: [id])
+  rfqQuote             RfqQuote?   @relation(fields: [rfqQuoteId], references: [id])
+  order                Order?      @relation(fields: [orderId], references: [id])
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("deals")
 }

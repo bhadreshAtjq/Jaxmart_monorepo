@@ -2,16 +2,75 @@ const { prisma } = require('../config/database');
 const { logger } = require('../utils/logger');
 const { sendNotification } = require('../services/notificationService');
 const { matchProvidersToRfq } = require('../services/matchingService');
+const { checkLeadAccess, unlockLead } = require('../services/entitlementService');
 
-// POST /api/rfq
+/**
+ * Mask string helper (e.g., +91 9876543210 -> +91 98**** 3210, email -> t***@example.com)
+ */
+const maskContactInfo = (user, location) => {
+  if (!user) return null;
+
+  const fullName = user.fullName || 'Buyer';
+  const nameParts = fullName.split(' ');
+  const maskedName = nameParts.length > 1 
+    ? `${nameParts[0]} ${nameParts[1].slice(0, 1)}***` 
+    : `${fullName.slice(0, 3)}***`;
+
+  let maskedPhone = '+91 ••••• •••••';
+  if (user.phone && user.phone.length >= 8) {
+    maskedPhone = `${user.phone.slice(0, 4)}••••${user.phone.slice(-3)}`;
+  }
+
+  let maskedEmail = '••••@••••.com';
+  if (user.email) {
+    const [local, domain] = user.email.split('@');
+    maskedEmail = `${local.slice(0, 2)}•••@${domain || '••••.com'}`;
+  }
+
+  const businessName = user.businessProfile?.businessName
+    ? `${user.businessProfile.businessName.slice(0, 4)}•••• ${user.businessProfile.businessType || 'Corp'}`
+    : 'Verified Business Buyer';
+
+  return {
+    id: user.id,
+    fullName: maskedName,
+    businessName,
+    phone: maskedPhone,
+    email: maskedEmail,
+    trustScore: user.trustScore,
+    isMasked: true,
+    maskedCity: location?.city || 'India',
+    maskedState: location?.state || '',
+  };
+};
+
+/**
+ * POST /api/rfq
+ * Buyer creates a new RFQ (Request for Quotation / Lead)
+ */
 const createRfq = async (req, res) => {
   try {
     const {
-      rfqType, title, description, categoryId,
-      budgetMin, budgetMax, deadline,
-      locationPreference, preferredProviderType,
-      isPublic, attachments,
+      rfqType = 'PRODUCT',
+      title,
+      description,
+      categoryId,
+      quantity,
+      unitOfMeasure,
+      specifications,
+      budgetMin,
+      budgetMax,
+      deadline,
+      locationPreference,
+      preferredProviderType,
+      visibility = 'PUBLIC',
+      attachments = [],
+      preferredDeliveryDate,
     } = req.body;
+
+    if (!title || !description || !categoryId) {
+      return res.status(400).json({ error: 'Title, description, and category are required' });
+    }
 
     const buyer = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -21,41 +80,51 @@ const createRfq = async (req, res) => {
     const rfq = await prisma.rfqRequest.create({
       data: {
         buyerId: req.user.id,
-        rfqType: (rfqType || 'PRODUCT').toUpperCase(),
+        rfqType: rfqType.toUpperCase(),
         title,
         description,
         categoryId,
-        locationId: buyer.addresses[0]?.id || null,
+        quantity: quantity ? parseFloat(quantity) : null,
+        unitOfMeasure: unitOfMeasure || 'units',
+        specifications: specifications || {},
+        locationId: buyer?.addresses[0]?.id || null,
         budgetMin: budgetMin ? parseFloat(budgetMin) : null,
         budgetMax: budgetMax ? parseFloat(budgetMax) : null,
         deadline: deadline ? new Date(deadline) : null,
-        locationPreference,
-        preferredProviderType: preferredProviderType?.toUpperCase() || null,
-        visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
+        preferredDeliveryDate: preferredDeliveryDate ? new Date(preferredDeliveryDate) : null,
+        locationPreference: locationPreference || buyer?.addresses[0]?.city || 'Pan India',
+        preferredProviderType: preferredProviderType ? preferredProviderType.toUpperCase() : null,
+        visibility: visibility.toUpperCase(),
         attachments: attachments || [],
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
       },
       include: {
-        category: { select: { name: true } },
+        category: { select: { id: true, name: true, slug: true } },
         location: { select: { city: true, state: true } },
+        buyer: { select: { id: true, fullName: true, trustScore: true } },
       },
     });
 
-    // AI matching — find and notify relevant providersx`14  nkl
-    0
-    const notifiedSellers = await matchProvidersToRfq(rfq).catch((err) => {
+    // Notify matching sellers asynchronously
+    matchProvidersToRfq(rfq).catch((err) => {
       logger.error('RFQ matching failed:', err);
-      return [];
     });
 
-    res.status(201).json({ ...rfq, notifiedSellers });
+    res.status(201).json({
+      success: true,
+      message: 'RFQ posted successfully! Matched verified suppliers are being notified.',
+      rfq,
+    });
   } catch (err) {
     logger.error('createRfq error:', err);
     res.status(500).json({ error: 'Failed to create RFQ' });
   }
 };
 
-// GET /api/rfq (buyer's own RFQs)
+/**
+ * GET /api/rfq/my
+ * Buyer views their own submitted RFQs with quote counts and leads status
+ */
 const getMyRfqs = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
@@ -73,104 +142,49 @@ const getMyRfqs = async (req, res) => {
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          category: { select: { name: true } },
-          _count: { select: { quotes: true } },
+          category: { select: { id: true, name: true, slug: true } },
+          quotes: {
+            include: {
+              seller: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  trustScore: true,
+                  sellerRating: true,
+                  kycStatus: true,
+                  businessProfile: { select: { businessName: true } },
+                },
+              },
+            },
+            orderBy: { submittedAt: 'desc' },
+          },
+          _count: { select: { quotes: true, leadUnlocks: true } },
         },
       }),
       prisma.rfqRequest.count({ where }),
     ]);
 
-    const notifs = await prisma.notification.findMany({
-      where: { type: 'RFQ_MATCH' },
-      include: { user: { select: { fullName: true, businessProfile: { select: { businessName: true } } } } }
-    });
-
-    const rfqsWithLeads = rfqs.map(rfq => {
-      const matchingNotifs = notifs.filter(n => n.data && n.data.rfqId === rfq.id);
-      return {
-        ...rfq,
-        leadsSentTo: matchingNotifs.map(n => ({
-          name: n.user.fullName,
-          business: n.user.businessProfile?.businessName || 'Individual'
-        }))
-      };
-    });
-
-    res.json({ rfqs: rfqsWithLeads, total, page: parseInt(page) });
+    res.json({ rfqs, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {
     logger.error('getMyRfqs error:', err);
     res.status(500).json({ error: 'Failed to fetch RFQs' });
   }
 };
 
-// GET /api/rfq/:id
-const getRfq = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const rfq = await prisma.rfqRequest.findUnique({
-      where: { id },
-      include: {
-        buyer: { select: { id: true, fullName: true, trustScore: true } },
-        category: true,
-        location: true,
-        quotes: {
-          include: {
-            seller: {
-              select: {
-                id: true, fullName: true, trustScore: true, kycStatus: true,
-                businessProfile: { select: { businessName: true } },
-              },
-            },
-            order: { select: { id: true } },
-          },
-          orderBy: { submittedAt: 'desc' },
-        },
-      },
-    });
-
-    if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
-
-    // Filter quotes based on who is asking
-    const isOwner = rfq.buyerId === req.user.id;
-    if (!isOwner) {
-      // Non-owners (sellers) only see their own quote
-      rfq.quotes = rfq.quotes.filter(q => q.sellerId === req.user.id);
-    }
-
-    // Authorization: Buyer, already quoted, public RFQ, or matched category seller
-    const isBuyer = rfq.buyerId === req.user.id;
-    const hasQuote = rfq.quotes.some(q => q.sellerId === req.user.id);
-
-    let isMatchedSeller = false;
-    if (!isBuyer && !rfq.isPublic && !hasQuote && req.user.userType !== 'BUYER') {
-      const match = await prisma.listing.findFirst({
-        where: { sellerId: req.user.id, categoryId: rfq.categoryId, status: 'ACTIVE' }
-      });
-      if (match) isMatchedSeller = true;
-    }
-
-    if (!isBuyer && !rfq.isPublic && !hasQuote && !isMatchedSeller) {
-      return res.status(403).json({ error: 'Not authorized to view this RFQ' });
-    }
-
-    res.json(rfq);
-  } catch (err) {
-    logger.error('getRfq error:', err);
-    res.status(500).json({ error: 'Failed to fetch RFQ' });
-  }
-};
-
-// GET /api/rfq/seller/inbox (RFQs matched to seller)
+/**
+ * GET /api/rfq/seller/inbox
+ * Seller views leads matched to their profile with contact masking/unlock flags
+ */
 const getSellerRfqInbox = async (req, res) => {
   try {
-    const { page = 1, limit = 20, rfqType, search, matchOnly = 'false' } = req.query;
+    const sellerId = req.user.id;
+    const { page = 1, limit = 20, rfqType, search, matchOnly = 'false', categoryId } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Find categories this seller lists in (for matching)
     let categoryIds = [];
     if (matchOnly === 'true') {
       const sellerCategories = await prisma.listing.findMany({
-        where: { sellerId: req.user.id, status: 'ACTIVE' },
+        where: { sellerId, status: 'ACTIVE' },
         select: { categoryId: true },
         distinct: ['categoryId'],
       });
@@ -180,7 +194,8 @@ const getSellerRfqInbox = async (req, res) => {
     const where = {
       status: 'OPEN',
       expiresAt: { gt: new Date() },
-      ...(matchOnly === 'true' && { categoryId: { in: categoryIds } }),
+      ...(categoryId && { categoryId }),
+      ...(matchOnly === 'true' && categoryIds.length > 0 && { categoryId: { in: categoryIds } }),
       ...(rfqType && { rfqType: rfqType.toUpperCase() }),
       ...(search && {
         OR: [
@@ -188,7 +203,6 @@ const getSellerRfqInbox = async (req, res) => {
           { description: { contains: search, mode: 'insensitive' } },
         ],
       }),
-      quotes: { none: { sellerId: req.user.id } }, // Not yet quoted
     };
 
     const [rfqs, total] = await Promise.all([
@@ -198,74 +212,237 @@ const getSellerRfqInbox = async (req, res) => {
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          category: { select: { name: true } },
+          category: { select: { id: true, name: true, slug: true } },
           location: { select: { city: true, state: true } },
-          buyer: { select: { fullName: true, avatarUrl: true } },
+          buyer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              phone: true,
+              trustScore: true,
+              kycStatus: true,
+              avatarUrl: true,
+              businessProfile: { select: { businessName: true, businessType: true } },
+            },
+          },
+          quotes: {
+            where: { sellerId },
+            select: { id: true, quotedAmount: true, status: true, submittedAt: true },
+          },
           _count: { select: { quotes: true } },
         },
       }),
       prisma.rfqRequest.count({ where }),
     ]);
 
-    res.json({ rfqs, total, page: parseInt(page) });
+    // Check unlocks for each RFQ for this seller
+    const rfqsWithEntitlements = await Promise.all(
+      rfqs.map(async (rfq) => {
+        const access = await checkLeadAccess(sellerId, rfq.id);
+        const hasQuoted = rfq.quotes.length > 0;
+
+        if (access.isUnlocked || hasQuoted) {
+          return {
+            ...rfq,
+            isUnlocked: true,
+            unlockedVia: access.unlockedVia || (hasQuoted ? 'QUOTE_SUBMITTED' : 'PLAN'),
+            buyer: {
+              ...rfq.buyer,
+              isMasked: false,
+              businessName: rfq.buyer.businessProfile?.businessName || rfq.buyer.fullName,
+            },
+          };
+        } else {
+          return {
+            ...rfq,
+            isUnlocked: false,
+            buyer: maskContactInfo(rfq.buyer, rfq.location),
+          };
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+      rfqs: rfqsWithEntitlements,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+    });
   } catch (err) {
     logger.error('getSellerRfqInbox error:', err);
     res.status(500).json({ error: 'Failed to fetch RFQ inbox' });
   }
 };
 
-// POST /api/rfq/:id/quotes
+/**
+ * GET /api/rfq/:id
+ * Retrieve single RFQ details
+ */
+const getRfq = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const rfq = await prisma.rfqRequest.findUnique({
+      where: { id },
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            trustScore: true,
+            kycStatus: true,
+            avatarUrl: true,
+            businessProfile: { select: { businessName: true, businessType: true, gstin: true } },
+          },
+        },
+        category: true,
+        location: true,
+        quotes: {
+          include: {
+            seller: {
+              select: {
+                id: true,
+                fullName: true,
+                trustScore: true,
+                sellerRating: true,
+                kycStatus: true,
+                businessProfile: { select: { businessName: true } },
+              },
+            },
+            order: { select: { id: true, status: true, escrowStatus: true } },
+          },
+          orderBy: { submittedAt: 'desc' },
+        },
+      },
+    });
+
+    if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
+
+    const isBuyer = rfq.buyerId === userId;
+    const hasQuote = rfq.quotes.some(q => q.sellerId === userId);
+
+    if (isBuyer) {
+      return res.json({ ...rfq, isOwner: true, isUnlocked: true });
+    }
+
+    // Filter quotes: sellers only see their own quote
+    rfq.quotes = rfq.quotes.filter(q => q.sellerId === userId);
+
+    const access = await checkLeadAccess(userId, rfq.id);
+    if (!access.isUnlocked && !hasQuote) {
+      rfq.buyer = maskContactInfo(rfq.buyer, rfq.location);
+      return res.json({ ...rfq, isUnlocked: false, isOwner: false });
+    }
+
+    res.json({
+      ...rfq,
+      isUnlocked: true,
+      unlockedVia: access.unlockedVia || 'QUOTE_SUBMITTED',
+      isOwner: false,
+    });
+  } catch (err) {
+    logger.error('getRfq error:', err);
+    res.status(500).json({ error: 'Failed to fetch RFQ' });
+  }
+};
+
+/**
+ * POST /api/rfq/:id/quotes
+ * Seller submits quote on an RFQ (unlocks contact if not yet unlocked)
+ */
 const submitQuote = async (req, res) => {
   try {
     const { id: rfqId } = req.params;
-    const { quotedAmount, proposalText, milestonePlan, timelineDays, listingId } = req.body;
+    const sellerId = req.user.id;
+    const {
+      quotedAmount,
+      proposalText,
+      milestonePlan = [],
+      timelineDays = 7,
+      listingId,
+      variantId,
+      paymentTerms,
+      deliveryTerms,
+    } = req.body;
 
     const rfq = await prisma.rfqRequest.findUnique({ where: { id: rfqId } });
     if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
     if (rfq.status !== 'OPEN') return res.status(400).json({ error: 'RFQ is no longer open' });
-    if (rfq.buyerId === req.user.id) return res.status(400).json({ error: 'Cannot quote on own RFQ' });
+    if (rfq.buyerId === sellerId) return res.status(400).json({ error: 'Cannot quote on your own RFQ' });
 
-    // Check existing quote
-    const existing = await prisma.rfqQuote.findFirst({
-      where: { rfqId, sellerId: req.user.id },
+    const existingQuote = await prisma.rfqQuote.findFirst({
+      where: { rfqId, sellerId },
     });
-    if (existing) return res.status(400).json({ error: 'Already submitted a quote' });
+    if (existingQuote) {
+      return res.status(400).json({ error: 'You have already submitted a quote for this RFQ' });
+    }
+
+    // Ensure lead is unlocked
+    let leadCreditUsed = false;
+    const access = await checkLeadAccess(sellerId, rfqId);
+    if (!access.isUnlocked) {
+      try {
+        await unlockLead(sellerId, rfqId);
+        leadCreditUsed = true;
+      } catch (err) {
+        // Allow quoting even if free quota is used up, but flag leadCreditUsed
+        logger.warn(`Seller ${sellerId} quoting without unlocked lead: ${err.message}`);
+      }
+    }
 
     const quote = await prisma.rfqQuote.create({
       data: {
         rfqId,
-        sellerId: req.user.id,
+        sellerId,
         listingId: listingId || null,
+        variantId: variantId || null,
         quotedAmount: parseFloat(quotedAmount),
-        proposalText,
-        milestonePlan: milestonePlan || [],
+        proposalText: proposalText || 'Standard proposal submitted',
+        milestonePlan: milestonePlan.length > 0 ? milestonePlan : [
+          { title: 'Milestone 1: Order Confirmation & Production', amount: parseFloat(quotedAmount) * 0.5 },
+          { title: 'Milestone 2: Final Quality Check & Delivery', amount: parseFloat(quotedAmount) * 0.5 },
+        ],
         timelineDays: parseInt(timelineDays),
+        paymentTerms,
+        deliveryTerms,
+        leadCreditUsed,
       },
     });
 
-    // Update quote count on RFQ
     await prisma.rfqRequest.update({
       where: { id: rfqId },
       data: { quotesCount: { increment: 1 } },
     });
 
-    // Notify buyer
+    // Notify buyer of new quote
     await sendNotification({
       userId: rfq.buyerId,
       type: 'QUOTE_RECEIVED',
-      title: 'New quote received',
-      body: `You have a new quote for your RFQ: "${rfq.title}"`,
+      title: 'New Quote Received!',
+      body: `You received a quote of ₹${parseFloat(quotedAmount).toLocaleString('en-IN')} for "${rfq.title}"`,
       data: { rfqId, quoteId: quote.id },
     });
 
-    res.status(201).json(quote);
+    res.status(201).json({
+      success: true,
+      message: 'Quote submitted successfully',
+      quote,
+    });
   } catch (err) {
     logger.error('submitQuote error:', err);
     res.status(500).json({ error: 'Failed to submit quote' });
   }
 };
 
-// PATCH /api/rfq/:id/award/:quoteId
+/**
+ * PATCH /api/rfq/:id/award/:quoteId
+ * Buyer awards quote to seller and initiates Assured Deal / Order
+ */
 const awardQuote = async (req, res) => {
   try {
     const { id: rfqId, quoteId } = req.params;
@@ -274,15 +451,20 @@ const awardQuote = async (req, res) => {
     if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
     if (rfq.buyerId !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
 
-    const quote = await prisma.rfqQuote.findUnique({ where: { id: quoteId } });
+    const quote = await prisma.rfqQuote.findUnique({
+      where: { id: quoteId },
+      include: { seller: { include: { subscription: { include: { plan: true } } } } },
+    });
     if (!quote || quote.rfqId !== rfqId) return res.status(404).json({ error: 'Quote not found' });
 
-    const platformFeeRate = 0.05; // 5%
-    const platformFee = quote.quotedAmount * platformFeeRate;
-    const sellerPayout = quote.quotedAmount - platformFee;
+    // Calculate discounted platform fee
+    const discountPct = quote.seller?.subscription?.plan?.assuredDealFeeDiscountPct || 0;
+    const baseFeePct = 5.0;
+    const effectiveFeePct = Number((baseFeePct * (1 - discountPct / 100)).toFixed(2));
+    const platformFee = Number(((quote.quotedAmount * effectiveFeePct) / 100).toFixed(2));
+    const sellerPayout = Number((quote.quotedAmount - platformFee).toFixed(2));
 
-    // Create order
-    const order = await prisma.$transaction(async (tx) => {
+    const { order, deal } = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
           buyerId: req.user.id,
@@ -290,6 +472,7 @@ const awardQuote = async (req, res) => {
           rfqQuoteId: quoteId,
           orderType: rfq.rfqType,
           totalAmount: quote.quotedAmount,
+          platformFeeRate: effectiveFeePct / 100,
           platformFee,
           sellerPayout,
           status: 'CREATED',
@@ -297,13 +480,28 @@ const awardQuote = async (req, res) => {
           milestones: {
             create: (quote.milestonePlan?.length > 0 ? quote.milestonePlan : [{ title: 'Full delivery', amount: quote.quotedAmount }]).map(
               (m, i) => ({
-                title: m.title,
+                title: m.title || `Milestone ${i + 1}`,
                 amount: parseFloat(m.amount),
                 dueDate: m.dueDate ? new Date(m.dueDate) : null,
                 sortOrder: i,
               })
             ),
           },
+        },
+      });
+
+      const newDeal = await tx.deal.create({
+        data: {
+          rfqId,
+          rfqQuoteId: quoteId,
+          buyerId: req.user.id,
+          sellerId: quote.sellerId,
+          orderId: newOrder.id,
+          agreedAmount: quote.quotedAmount,
+          assuredDealFeePct: effectiveFeePct,
+          assuredDealFee: platformFee,
+          status: 'ACCEPTED',
+          notes: `Deal created from RFQ #${rfq.id.substring(0, 8)}`,
         },
       });
 
@@ -314,29 +512,35 @@ const awardQuote = async (req, res) => {
       });
       await tx.rfqRequest.update({ where: { id: rfqId }, data: { status: 'AWARDED' } });
 
-      return newOrder;
-    }, {
-      maxWait: 5000,
-      timeout: 20000
+      return { order: newOrder, deal: newDeal };
     });
 
     // Notify seller
     await sendNotification({
       userId: quote.sellerId,
       type: 'QUOTE_AWARDED',
-      title: 'Quote awarded!',
-      body: `Your quote for "${rfq.title}" has been awarded. Proceed to contract signing.`,
-      data: { orderId: order.id, rfqId },
+      title: 'Congratulations! Quote Awarded',
+      body: `Your quote for "${rfq.title}" has been accepted. JaxMart Assured Deal protection is now active.`,
+      data: { orderId: order.id, dealId: deal.id, rfqId },
     });
 
-    res.json({ message: 'Quote awarded', orderId: order.id, order });
+    res.json({
+      success: true,
+      message: 'Quote awarded and JaxMart Assured Deal created',
+      orderId: order.id,
+      dealId: deal.id,
+      deal,
+      order,
+    });
   } catch (err) {
     logger.error('awardQuote error:', err);
     res.status(500).json({ error: 'Failed to award quote' });
   }
 };
 
-// PATCH /api/rfq/quotes/:quoteId/shortlist
+/**
+ * PATCH /api/rfq/quotes/:quoteId/shortlist
+ */
 const shortlistQuote = async (req, res) => {
   try {
     const { quoteId } = req.params;
@@ -355,26 +559,28 @@ const shortlistQuote = async (req, res) => {
     await sendNotification({
       userId: quote.sellerId,
       type: 'QUOTE_SHORTLISTED',
-      title: 'Your quote was shortlisted!',
-      body: 'The buyer has shortlisted your quote. Stay ready for next steps.',
+      title: 'Quote Shortlisted!',
+      body: `The buyer shortlisted your quote for "${quote.rfq.title}". Prepare for negotiations.`,
       data: { rfqId: quote.rfqId, quoteId },
     });
 
-    res.json({ message: 'Quote short98listed' }); n
+    res.json({ success: true, message: 'Quote shortlisted' });
   } catch (err) {
     logger.error('shortlistQuote error:', err);
-    res.status(500).json({ error: 'Failed to shortlist' });
+    res.status(500).json({ error: 'Failed to shortlist quote' });
   }
 };
 
-// GET /api/rfq/:id/notified-sellers
+/**
+ * GET /api/rfq/:id/notified-sellers
+ */
 const getRfqNotifiedSellers = async (req, res) => {
   try {
     const { id } = req.params;
 
     const rfq = await prisma.rfqRequest.findUnique({
       where: { id },
-      select: { buyerId: true }
+      select: { buyerId: true },
     });
 
     if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
@@ -382,14 +588,14 @@ const getRfqNotifiedSellers = async (req, res) => {
 
     const notifs = await prisma.notification.findMany({
       where: { type: 'RFQ_MATCH' },
-      include: { user: { select: { fullName: true, businessProfile: { select: { businessName: true } } } } }
+      include: { user: { select: { fullName: true, businessProfile: { select: { businessName: true } } } } },
     });
 
-    const matchingNotifs = notifs.filter(n => n.data && n.data.rfqId === id);
+    const matchingNotifs = notifs.filter((n) => n.data && n.data.rfqId === id);
 
-    const notifiedSellers = matchingNotifs.map(n => ({
+    const notifiedSellers = matchingNotifs.map((n) => ({
       name: n.user.fullName,
-      business: n.user.businessProfile?.businessName || 'Individual'
+      business: n.user.businessProfile?.businessName || 'Verified Supplier',
     }));
 
     res.json({ notifiedSellers });
@@ -400,6 +606,12 @@ const getRfqNotifiedSellers = async (req, res) => {
 };
 
 module.exports = {
-  createRfq, getMyRfqs, getRfq, getSellerRfqInbox,
-  submitQuote, awardQuote, shortlistQuote, getRfqNotifiedSellers,
+  createRfq,
+  getMyRfqs,
+  getSellerRfqInbox,
+  getRfq,
+  submitQuote,
+  awardQuote,
+  shortlistQuote,
+  getRfqNotifiedSellers,
 };

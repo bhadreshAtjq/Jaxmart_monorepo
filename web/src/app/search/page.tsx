@@ -15,6 +15,7 @@ import { clsx } from 'clsx';
 import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 const CATEGORY_ICONS: Record<string, any> = {
   'industrial-supplies': FaIndustry,
@@ -480,51 +481,69 @@ function SearchPageContent() {
               </span>
             </div>
 
-            {/* AI Summary Block */}
+            {/* Enhanced AI Semantic Search Analysis */}
             {q && (
-              <div className="mb-8 bg-gradient-to-br from-amber-50/40 via-white to-emerald-50/30 p-6 rounded-2xl border border-amber-100 shadow-sm">
-                <div className="flex justify-end mb-3">
-                  <div className="bg-[#fff3eb] text-gray-800 px-4 py-1.5 rounded-xl text-xs font-bold shadow-sm border border-[#ffe4d1]">
-                    "{q}"
+              <div className="mb-8 bg-gradient-to-br from-emerald-50/60 via-white to-jungle-green-50/40 p-6 rounded-3xl border border-emerald-200/80 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-100/60">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                      AI Natural Language Sourcing Engine
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-gray-500 font-medium">
+                    Showing <strong>{total}</strong> verified match{total === 1 ? '' : 'es'}
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  <button 
-                    onClick={() => setShowThoughtProcess(!showThoughtProcess)}
-                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 hover:text-amber-900 transition-colors self-start"
-                  >
-                    <span className="text-[#ff5e00] font-black text-base leading-none">✦</span>
-                    <span>AI Reasoning & Insight</span>
-                    {showThoughtProcess ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
-                  </button>
+                {data?.parsedIntent && (
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    {data.parsedIntent.cleanQuery && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-xl border border-gray-200 text-xs font-bold text-gray-800 shadow-2xs">
+                        <span className="text-gray-400 font-normal">Intent:</span> {data.parsedIntent.cleanQuery}
+                      </div>
+                    )}
 
-                  {showThoughtProcess && (
-                    <div className="text-xs text-gray-600 bg-white/80 p-4 rounded-xl border border-amber-100/60 shadow-inner space-y-1">
-                      <p className="font-bold text-gray-700">✦ Intent Analysis Steps:</p>
-                      <ul className="list-disc pl-5 space-y-0.5">
-                        <li>Analyzed search keywords for "{q}" across catalog categories, brands, and tags</li>
-                        <li>Evaluated verified manufacturers with GSTIN/PAN compliance</li>
-                        <li>Extracted pricing tiers and minimum order quantity (MOQ) requirements</li>
-                        <li>Synthesized real-time wholesale directory listings</li>
-                      </ul>
-                    </div>
-                  )}
+                    {data.parsedIntent.detectedCategory && (
+                      <button
+                        onClick={() => setCategoryId(data.parsedIntent.detectedCategory.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-xl text-xs font-bold transition-all border border-emerald-300 shadow-2xs"
+                      >
+                        <span>📁 Industry: {data.parsedIntent.detectedCategory.breadcrumb}</span>
+                        <span className="text-[10px] text-emerald-700 underline font-black ml-1">Filter</span>
+                      </button>
+                    )}
 
-                  <div className="text-sm text-gray-800 leading-relaxed space-y-2">
-                    {total > 0 ? (
-                      <p>
-                        Found <strong>{total} verified product{total > 1 ? 's' : ''}</strong> matching <strong>"{q}"</strong>
-                        {minPriceFound !== null && maxPriceFound !== null && (
-                          <span> with pricing ranging from <strong>₹{minPriceFound.toLocaleString('en-IN')}</strong> to <strong>₹{maxPriceFound.toLocaleString('en-IN')}</strong> per unit.</span>
-                        )}
-                      </p>
-                    ) : (
-                      <p>
-                        No active catalog items matched <strong>"{q}"</strong>. You can post a custom Sourcing Request (RFQ) to receive direct quotations from verified suppliers.
-                      </p>
+                    {data.parsedIntent.detectedLocation && (
+                      <div className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-800 rounded-xl text-xs font-bold border border-blue-200">
+                        <span>📍 Hub: {data.parsedIntent.detectedLocation}</span>
+                      </div>
                     )}
                   </div>
+                )}
+
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  {total > 0 ? (
+                    <p>
+                      Natural language search matched <strong>{total} verified product{total > 1 ? 's' : ''}</strong> from approved suppliers.
+                      {minPriceFound !== null && maxPriceFound !== null && (
+                        <span> Wholesale price: <strong>₹{minPriceFound.toLocaleString('en-IN')}</strong> – <strong>₹{maxPriceFound.toLocaleString('en-IN')}</strong>.</span>
+                      )}
+                    </p>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                      <p className="text-gray-600">
+                        No exact catalog SKU found for this custom natural language request. Post an instant RFQ to get bids directly from verified manufacturers across India.
+                      </p>
+                      <Link href={`/rfq/create?title=${encodeURIComponent(data?.parsedIntent?.cleanQuery || q)}`}>
+                        <Button size="sm" className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl text-xs font-bold shrink-0 shadow">
+                          + Post Instant RFQ
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -17,13 +17,17 @@ import Image from 'next/image';
 const NAV_LINKS = [
   { href: '/home', label: 'Home' },
   { href: '/search', label: 'Products' },
+  { href: '/categories', label: 'Categories' },
   { href: '/rfq', label: 'Buyer Requests' },
+  { href: '/pricing', label: 'Pricing & Plans' },
 ];
 
 const AUTH_LINKS = [
   { href: '/orders', label: 'My Orders' },
+  { href: '/invoices', label: 'Invoices & Refunds' },
   { href: '/rfq/create', label: 'Post a Request' },
   { href: '/seller/dashboard', label: 'Dashboard' },
+  { href: '/seller/rfq-inbox', label: 'Lead Inbox' },
 ];
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {

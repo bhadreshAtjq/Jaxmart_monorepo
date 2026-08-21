@@ -28,6 +28,8 @@ const uploadRoutes = require('./routes/upload');
 const eventRoutes = require('./routes/events');
 const subscriptionRoutes = require('./routes/subscriptions');
 const kycRoutes = require('./routes/kyc');
+const dealRoutes = require('./routes/deals');
+const captainRoutes = require('./routes/captain');
 
 const app = express();
 const httpServer = createServer(app);
@@ -162,6 +164,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/kyc', kycRoutes);
+app.use('/api/deals', dealRoutes);
+app.use('/api/captain', captainRoutes);
 
 const { setupGraphQL } = require('./graphql');
 

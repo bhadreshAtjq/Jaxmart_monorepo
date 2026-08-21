@@ -60,30 +60,15 @@ export interface CreateListingPayload {
 export const listingApi = {
   createListing: async (payload: CreateListingPayload): Promise<any> => {
     try {
-      const { data } = await api.post('/listings', payload);
+      const { data } = await api.post('/captain/listings', payload);
       return data;
     } catch (err: any) {
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        try {
-          const authRes = await authApi.verifyOtp({
-            phone: '9876543210',
-            otp: '123456',
-            fullName: 'Captain Field Officer',
-            userType: 'BOTH',
-          });
-          if (authRes.accessToken) {
-            await secureStorage.setItem(SECURE_KEYS.ACCESS_TOKEN, authRes.accessToken);
-            if (authRes.refreshToken) {
-              await secureStorage.setItem(SECURE_KEYS.REFRESH_TOKEN, authRes.refreshToken);
-            }
-            const { data } = await api.post('/listings', payload);
-            return data;
-          }
-        } catch (authErr: any) {
-          console.warn('Auto auth retry failed:', authErr.message);
-        }
+      try {
+        const { data } = await api.post('/listings', payload);
+        return data;
+      } catch (fallbackErr: any) {
+        throw fallbackErr;
       }
-      throw err;
     }
   },
 

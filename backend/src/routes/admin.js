@@ -10,7 +10,11 @@ const {
   rejectListing,
   getUsers,
   getDisputes,
-  resolveDispute
+  resolveDispute,
+  getAdminCaptains,
+  createAdminCaptain,
+  getAdminCaptainOnboardings,
+  getAdminCaptainListings,
 } = require('../controllers/adminController');
 const {
   adminGetEvents,
@@ -30,6 +34,12 @@ const {
   rejectDepositReceipt,
   getFinancialAnalytics,
 } = require('../controllers/adminSubscriptionController');
+const {
+  getAdminInvoices,
+  getAdminRefunds,
+  processAdminRefund,
+  rejectAdminRefund,
+} = require('../controllers/paymentController');
 
 // All admin routes are protected
 router.use(authenticate, requireAdmin);
@@ -63,6 +73,18 @@ router.get('/subscriptions/deposit-receipts', getPendingDepositReceipts);
 router.post('/subscriptions/deposit-receipts/:id/verify', verifyDepositReceipt);
 router.post('/subscriptions/deposit-receipts/:id/reject', rejectDepositReceipt);
 router.get('/subscriptions/financial-report', getFinancialAnalytics);
+
+// Admin Captain Field Operations Management
+router.get('/captains', getAdminCaptains);
+router.post('/captains', createAdminCaptain);
+router.get('/captains/onboardings', getAdminCaptainOnboardings);
+router.get('/captains/listings', getAdminCaptainListings);
+
+// Admin Invoices & Refunds Management
+router.get('/invoices', getAdminInvoices);
+router.get('/refunds', getAdminRefunds);
+router.post('/refunds/:orderId/process', processAdminRefund);
+router.post('/refunds/:orderId/reject', rejectAdminRefund);
 
 module.exports = router;
 

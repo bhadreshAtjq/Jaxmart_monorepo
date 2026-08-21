@@ -3,139 +3,39 @@ const { cacheGet, cacheSet, cacheDel, CACHE_TTL } = require('../config/redis');
 const { logger } = require('../utils/logger');
 const { signListingMedia, cleanS3Url } = require('../utils/s3');
 
+const { executeSemanticSearch } = require('../services/semanticSearchService');
+
 // GET /api/listings/search
 const searchListings = async (req, res) => {
   try {
     const {
       q, tag, type, categoryId, city, state, minTrust, isVerified,
       minRating, page = 1, limit = 20, sortBy = 'relevance',
-      providerType, serviceMode,
     } = req.query;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = Math.min(parseInt(limit), 100);
-
-    let searchConditions = [];
-    if (q && q.trim()) {
-      const cleanQ = q.trim();
-      const words = cleanQ.split(/\s+/).filter(w => w.length > 1);
-
-      searchConditions = [
-        { title: { contains: cleanQ, mode: 'insensitive' } },
-        { description: { contains: cleanQ, mode: 'insensitive' } },
-        { category: { name: { contains: cleanQ, mode: 'insensitive' } } },
-        { category: { parent: { name: { contains: cleanQ, mode: 'insensitive' } } } },
-        { productDetail: { brand: { contains: cleanQ, mode: 'insensitive' } } },
-        { seller: { businessProfile: { businessName: { contains: cleanQ, mode: 'insensitive' } } } },
-        { seller: { fullName: { contains: cleanQ, mode: 'insensitive' } } },
-        { tags: { has: cleanQ.toLowerCase() } },
-      ];
-
-      for (const word of words) {
-        const lowerWord = word.toLowerCase();
-        searchConditions.push(
-          { title: { contains: word, mode: 'insensitive' } },
-          { category: { name: { contains: word, mode: 'insensitive' } } },
-          { category: { parent: { name: { contains: word, mode: 'insensitive' } } } },
-          { productDetail: { brand: { contains: word, mode: 'insensitive' } } },
-          { tags: { has: lowerWord } }
-        );
-      }
-    }
-
-    const where = {
-      status: 'ACTIVE',
-      ...(type && { listingType: type.toUpperCase() }),
-      ...(categoryId && { 
-        category: {
-          OR: [
-            { id: categoryId },
-            { parentId: categoryId },
-            { parent: { parentId: categoryId } }
-          ]
-        }
-      }),
-      ...(minRating && { avgRating: { gte: parseFloat(minRating) } }),
-      ...(searchConditions.length > 0 && { OR: searchConditions }),
-      ...(tag && {
-        tags: { has: tag.toLowerCase() }
-      }),
-      seller: {
-        isActive: true,
-        ...(isVerified === 'true' && { kycStatus: 'VERIFIED' }),
-        ...(minTrust && { trustScore: { gte: parseInt(minTrust) } }),
-      },
-      ...(city && {
-        location: { city: { equals: city, mode: 'insensitive' } },
-      }),
-    };
-
-    let orderBy = [];
-    switch (sortBy) {
-      case 'rating': orderBy = [{ avgRating: 'desc' }, { id: 'asc' }]; break;
-      case 'newest': orderBy = [{ createdAt: 'desc' }, { id: 'asc' }]; break;
-      case 'featured': orderBy = [{ isFeatured: 'desc' }, { id: 'asc' }]; break;
-      case 'popular': orderBy = [{ viewCount: 'desc' }, { quoteCount: 'desc' }, { reviewCount: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }]; break;
-      default: orderBy = [{ isFeatured: 'desc' }, { avgRating: 'desc' }, { id: 'asc' }];
-    }
-
-    let finalTake = take;
-    if (sortBy === 'popular') {
-      if (skip >= 100) finalTake = 0;
-      else if (skip + take > 100) finalTake = 100 - skip;
-    }
-
-    const [listings, rawTotal] = await Promise.all([
-      prisma.listing.findMany({
-        where,
-        orderBy,
-        skip,
-        take: finalTake,
-        include: {
-          seller: {
-            select: {
-              id: true, fullName: true, trustScore: true, kycStatus: true,
-              businessProfile: { select: { businessName: true } },
-            },
-          },
-          category: {
-            select: {
-              id: true, name: true, slug: true,
-              parent: {
-                select: {
-                  id: true, name: true,
-                  parent: {
-                    select: { id: true, name: true }
-                  }
-                }
-              }
-            }
-          },
-          location: { select: { city: true, state: true } },
-          media: { where: { isPrimary: true }, take: 1 },
-          productDetail: {
-            select: { pricePerUnit: true, priceType: true, minOrderQty: true, unitOfMeasure: true },
-          },
-          serviceDetail: {
-            select: { serviceMode: true, providerType: true, skillsTags: true, typicalDuration: true },
-          },
-        },
-      }),
-      prisma.listing.count({ where }),
-    ]);
-
-    const finalTotal = sortBy === 'popular' ? Math.min(rawTotal, 100) : rawTotal;
-
-    const signedListings = await Promise.all(listings.map(l => signListingMedia(l)));
+    const result = await executeSemanticSearch({
+      q,
+      tag,
+      type,
+      categoryId,
+      city: city || state,
+      isVerified,
+      minTrust,
+      minRating,
+      page,
+      limit,
+      sortBy,
+    });
 
     res.json({
-      listings: signedListings,
+      listings: result.listings,
       pagination: {
-        page: parseInt(page),
-        limit: take,
-        total: finalTotal,
-        pages: Math.ceil(finalTotal / take),
+        page: result.page,
+        limit: Math.min(parseInt(limit) || 20, 100),
+        total: result.total,
+        pages: result.totalPages,
       },
+      parsedIntent: result.parsedIntent,
     });
   } catch (err) {
     logger.error('searchListings error:', err);

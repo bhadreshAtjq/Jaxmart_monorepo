@@ -318,3 +318,23 @@
 .jaxmart-tour-popover .driver-popover-arrow {
   border-color: #0C1E26 !important;
 }
+
+/* ────────────────── Clean Single-Page Invoice Printing ────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  header, footer, nav, aside, .not-printable, [role="dialog"] > div:first-child {
+    display: none !important;
+  }
+}

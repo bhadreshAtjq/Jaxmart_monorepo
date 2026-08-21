@@ -23,6 +23,7 @@ import { useSkuWizardStore } from '../../store/useSkuWizardStore';
 import { useCompanyStore } from '../../store/useCompanyStore';
 import { useShiftStore } from '../../store/useShiftStore';
 import { useOfflineSyncStore } from '../../store/useOfflineSyncStore';
+import { useCatalogStore } from '../../store/useCatalogStore';
 import { WizardStepHeader } from '../../components/wizard/WizardStepHeader';
 import { WizardNavigationFooter } from '../../components/wizard/WizardNavigationFooter';
 import { CompanyContextCard } from '../../components/common/CompanyContextCard';
@@ -133,38 +134,32 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
         subtitle: `Company: ${targetCompanyName} · SKU: ${finalSku}`,
         payload: {
           sellerId: targetCompanyId,
-          title: step1.title,
-          brand: step1.brand,
-          categoryId: step1.categoryId,
-          hsnCode: step1.hsnCode,
-          shortDescription: step1.shortDescription,
-          detailedDescription: step1.detailedDescription,
+          listingType: 'PRODUCT',
+          title: step1.title || 'Cataloged Product',
+          description: step1.detailedDescription || step1.shortDescription || step1.title || 'B2B Product SKU',
+          brand: step1.brand || 'Generic',
+          categoryId: step1.categoryId && step1.categoryId.length > 20
+            ? step1.categoryId
+            : '7314cf57-3d90-4b10-afd6-cfa1fba585cc', // Live Industrial Supplies Category UUID
+          hsnCode: step1.hsnCode || '73181500',
           sku: finalSku,
           barcode: step2.barcode,
           manufacturerSku: step2.manufacturerSku,
-          mrp: step3.mrp,
-          price: step3.b2bPrice,
-          gstRate: step3.gstRate,
-          minOrderQuantity: step3.minOrderQty,
-          unitOfMeasure: step3.unitOfMeasure,
-          bulkPricing: step3.bulkPriceSlabs,
+          mrp: step3.mrp || 0,
+          pricePerUnit: step3.b2bPrice || step3.mrp || 0,
+          gstRate: step3.gstRate || 18,
+          minOrderQty: step3.minOrderQty || 1,
+          unitOfMeasure: step3.unitOfMeasure || 'pcs',
+          bulkPriceSlabs: step3.bulkPriceSlabs || [],
           hasVariants: step4.hasVariants,
           variantMatrix: step4.variantMatrix,
           customAttributes: step4.customAttributes,
-          stock: step5.stockQuantity,
+          stockAvailable: (step5.stockQuantity || 0) > 0,
           shelfLocation: step5.warehouseShelfLocation,
           expiryDate: step5.hasExpiryDate ? step5.expiryDate : null,
           returnPolicy: step5.returnPolicy,
-          weightNet: step6.netWeightKg,
-          weightGross: step6.grossWeightKg,
-          dimensions: {
-            length: step6.packagingLengthCm,
-            width: step6.packagingWidthCm,
-            height: step6.packagingHeightCm,
-          },
+          packagingDetails: `Length: ${step6.packagingLengthCm}cm, Width: ${step6.packagingWidthCm}cm, Height: ${step6.packagingHeightCm}cm`,
           volumetricWeight: step6.volumetricWeightKg,
-          isFragile: step6.isFragile,
-          isHazardous: step6.isHazardous,
           countryOfOrigin: data.countryOfOrigin,
           certifications: data.certifications ? [data.certifications] : [],
           warranty: data.warrantyDetails,
@@ -173,13 +168,33 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
         photosToUpload: photosArray,
       });
 
-      // 3. Increment counters
+      // 3. Save to local catalog store
+      await useCatalogStore.getState().addCatalogItem({
+        sku: finalSku,
+        companyId: targetCompanyId,
+        companyName: targetCompanyName,
+        title: step1.title || 'Cataloged Product',
+        brand: step1.brand || 'Generic',
+        categoryId: step1.categoryId || '7314cf57-3d90-4b10-afd6-cfa1fba585cc',
+        categoryName: step1.categoryName || 'Industrial Supplies',
+        hsnCode: step1.hsnCode || '73181500',
+        mrp: step3.mrp || 0,
+        b2bPrice: step3.b2bPrice || 0,
+        minOrderQty: step3.minOrderQty || 1,
+        unitOfMeasure: step3.unitOfMeasure || 'Pieces (pcs)',
+        stockQuantity: step5.stockQuantity || 100,
+        bulkPriceSlabs: step3.bulkPriceSlabs,
+        status: 'PENDING',
+        images: photosArray.map((p) => p.uri),
+      });
+
+      // 4. Increment counters
       incrementSkusCount();
-      if (activeCompany) {
-        incrementSkuCount(activeCompany.id);
+      if (targetCompanyId) {
+        incrementSkuCount(targetCompanyId);
       }
 
-      // 4. Delete saved draft
+      // 5. Delete saved draft
       await deleteDraft(draftId);
 
       setIsSubmitting(false);
@@ -369,7 +384,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 180,
   },
   reviewSectionTitle: {
     ...typography.headlineMd,

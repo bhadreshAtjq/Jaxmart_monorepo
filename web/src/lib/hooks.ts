@@ -234,6 +234,14 @@ export function useAdminKycQueue(enabled: boolean) {
   );
 }
 
+export function useAdminListingsQueue(enabled: boolean) {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  return useSWR(
+    isLoggedIn && enabled ? '/admin/listings/queue' : null,
+    fetcher
+  );
+}
+
 // ─── Events ───────────────────────────────────────────────────────────────────
 
 export function useEvents() {
@@ -271,9 +279,9 @@ export function useDeleteEvent(id: string) {
 
 export function useNotifications() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  
+
   return useSWR(isLoggedIn ? '/notifications' : null, fetcher, {
-    refreshInterval: 10_000, 
+    refreshInterval: 10_000,
     revalidateOnFocus: true,
   });
 }
@@ -304,23 +312,23 @@ export function useMessages(conversationId: string | null) {
 // Call these after mutations to instantly refresh cached data
 
 export const revalidate = {
-  rfqs: () => globalMutate((key: any) => 
+  rfqs: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/rfq') : Array.isArray(key) && key[0]?.startsWith('/rfq'),
     undefined, { revalidate: true }
   ),
-  orders: () => globalMutate((key: any) => 
+  orders: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/orders') : Array.isArray(key) && key[0]?.startsWith('/orders'),
     undefined, { revalidate: true }
   ),
-  listings: () => globalMutate((key: any) => 
+  listings: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/listings') : Array.isArray(key) && key[0]?.startsWith('/listings'),
     undefined, { revalidate: true }
   ),
-  messages: () => globalMutate((key: any) => 
+  messages: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/messages') : Array.isArray(key) && key[0]?.startsWith('/messages'),
     undefined, { revalidate: true }
   ),
-  admin: () => globalMutate((key: any) => 
+  admin: () => globalMutate((key: any) =>
     typeof key === 'string' ? key.startsWith('/admin') : Array.isArray(key) && key[0]?.startsWith('/admin'),
     undefined, { revalidate: true }
   ),

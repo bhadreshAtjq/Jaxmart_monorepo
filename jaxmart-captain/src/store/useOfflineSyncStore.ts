@@ -57,7 +57,7 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
         const online = Boolean(state.isConnected && state.isInternetReachable !== false);
         set({ isOnline: online });
         if (online) {
-          get().syncAllPending().catch(() => {});
+          get().syncAllPending().catch(() => { });
         }
       });
 
@@ -87,7 +87,7 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
 
     // Auto trigger if online
     if (get().isOnline) {
-      get().syncAllPending().catch(() => {});
+      get().syncAllPending().catch(() => { });
     }
 
     return newItem.id;
@@ -157,15 +157,16 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
           // Seller onboarding creates / syncs to /api/admin/kyc/queue
           // Simulated or live endpoint submission
         } else if (item.type === 'SKU_SUBMISSION' || item.type === 'SKU_CATALOG') {
+          const imageList = item.photosToUpload.map((p, idx) => ({
+            url: uploadedUrls[p.key] || p.uri,
+            isPrimary: idx === 0,
+          }));
           const payload = {
+            listingType: 'PRODUCT',
             ...item.payload,
-            images: Object.values(uploadedUrls),
+            images: imageList.length > 0 ? imageList : item.payload.images || [],
           };
-          try {
-            await listingApi.createListing(payload);
-          } catch (apiErr) {
-            // if endpoint in mock mode, mark completed for resilience
-          }
+          await listingApi.createListing(payload);
         }
 
         // 3. Mark completed
@@ -173,12 +174,12 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
           queue: state.queue.map((q) =>
             q.id === item.id
               ? {
-                  ...q,
-                  status: 'COMPLETED' as SyncItemStatus,
-                  syncedAt: new Date().toISOString(),
-                  errorMessage: undefined,
-                  lastError: undefined,
-                }
+                ...q,
+                status: 'COMPLETED' as SyncItemStatus,
+                syncedAt: new Date().toISOString(),
+                errorMessage: undefined,
+                lastError: undefined,
+              }
               : q
           ),
         }));
@@ -188,13 +189,13 @@ export const useOfflineSyncStore = create<OfflineSyncState>((set, get) => ({
           queue: state.queue.map((q) =>
             q.id === item.id
               ? {
-                  ...q,
-                  status: 'ERROR' as SyncItemStatus,
-                  retryCount: q.retryCount + 1,
-                  attempts: (q.attempts || 0) + 1,
-                  errorMessage: errorMsg,
-                  lastError: errorMsg,
-                }
+                ...q,
+                status: 'ERROR' as SyncItemStatus,
+                retryCount: q.retryCount + 1,
+                attempts: (q.attempts || 0) + 1,
+                errorMessage: errorMsg,
+                lastError: errorMsg,
+              }
               : q
           ),
         }));

@@ -46,15 +46,18 @@ export const SkuSuccessScreen: React.FC<SkuSuccessScreenProps> = ({ route, navig
 
   const handleGoToCompanyCatalog = () => {
     startNewWizard();
-    navigation.navigate('CompaniesTab', {
-      screen: 'CompanyDetail',
-      params: { companyId },
+    navigation.navigate('Main', {
+      screen: 'CompaniesTab',
+      params: {
+        screen: 'CompanyDetail',
+        params: { companyId },
+      },
     });
   };
 
   const handleReturnToDashboard = () => {
     startNewWizard();
-    navigation.navigate('DashboardTab');
+    navigation.navigate('Main', { screen: 'DashboardTab' });
   };
 
   return (

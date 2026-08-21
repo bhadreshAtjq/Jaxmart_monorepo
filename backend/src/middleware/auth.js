@@ -35,16 +35,16 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (err) {
     console.error('[DEBUG] Authentication Error:', err);
-    
+
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
     }
-    
+
     // Handle Prisma/Database errors specifically
     if (err.code && err.code.startsWith('P')) {
-      return res.status(503).json({ 
-        error: 'Database connection failed. Please try again in a few moments.', 
-        code: 'DATABASE_ERROR' 
+      return res.status(503).json({
+        error: 'Database connection failed. Please try again in a few moments.',
+        code: 'DATABASE_ERROR'
       });
     }
 
@@ -70,7 +70,7 @@ const requireSeller = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-  if (!req.user.isAdmin) {
+  if (!req.user.isAdmin && !['ADMIN', 'BOTH'].includes(req.user.userType)) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();

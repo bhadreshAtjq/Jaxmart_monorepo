@@ -152,7 +152,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           {/* Sync Icon Button */}
           <TouchableOpacity
             style={styles.syncIconButton}
-            onPress={() => navigation.navigate('SyncTab')}
+            onPress={() => navigation.navigate('SyncManager')}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -188,7 +188,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
           <TouchableOpacity
             style={styles.metricColumn}
-            onPress={() => navigation.navigate('SyncTab')}
+            onPress={() => navigation.navigate('SyncManager')}
             activeOpacity={0.7}
           >
             <Text

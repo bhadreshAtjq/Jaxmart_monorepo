@@ -17,6 +17,7 @@ import { borderRadius, spacing, shadows } from '../../theme/spacing';
 import { Ionicons } from '@expo/vector-icons';
 import { useCompanyStore } from '../../store/useCompanyStore';
 import { useSkuWizardStore } from '../../store/useSkuWizardStore';
+import { useCatalogStore } from '../../store/useCatalogStore';
 import { AppButton } from '../../components/common/AppButton';
 import { AppCard } from '../../components/common/AppCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -29,11 +30,32 @@ interface CompanyDetailScreenProps {
 export const CompanyDetailScreen: React.FC<CompanyDetailScreenProps> = ({ route, navigation }) => {
   const { savedCompanies, activeCompany, setActiveCompany } = useCompanyStore();
   const { setCompanyContext, resetWizard } = useSkuWizardStore();
+  const catalog = useCatalogStore((s) => s.catalog);
 
   const companyId = route.params?.companyId || activeCompany?.id;
   const company = savedCompanies.find((c) => c.id === companyId) || activeCompany;
 
   const [activeTab, setActiveTab] = useState<'profile' | 'catalog'>('profile');
+
+  const catalogItems = catalog.filter((item) =>
+    (companyId && item.companyId === companyId) ||
+    (company && item.companyId === company.id) ||
+    (company && item.companyName && item.companyName.toLowerCase() === company.legalName.toLowerCase())
+  );
+  const displayCatalog = catalogItems.length > 0 ? catalogItems : company?.skuCount && company.skuCount > 0 ? [
+    {
+      id: 'demo_sku',
+      sku: 'JAX-SKU-94021',
+      title: 'High Tensile Hex Bolt Grade 8.8 (M12 x 50mm)',
+      categoryName: company.category || 'Industrial Fasteners',
+      hsnCode: '73181500',
+      b2bPrice: 18.50,
+      minOrderQty: 100,
+      unitOfMeasure: 'pcs',
+      stockQuantity: 500,
+      status: 'PENDING' as const,
+    }
+  ] : [];
 
   if (!company) {
     return (
@@ -104,7 +126,7 @@ export const CompanyDetailScreen: React.FC<CompanyDetailScreenProps> = ({ route,
             style={{ marginRight: 6 }}
           />
           <Text style={[styles.tabBtnText, activeTab === 'catalog' && styles.tabBtnTextActive]}>
-            SKU Catalog ({company.skuCount})
+            SKU Catalog ({displayCatalog.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -203,7 +225,7 @@ export const CompanyDetailScreen: React.FC<CompanyDetailScreenProps> = ({ route,
               </TouchableOpacity>
             </View>
 
-            {company.skuCount === 0 ? (
+            {displayCatalog.length === 0 ? (
               <View style={styles.emptyCatalogBox}>
                 <Ionicons name="cube-outline" size={48} color={colors.textPlaceholder} />
                 <Text style={styles.emptyCatalogTitle}>No SKUs Cataloged Yet</Text>
@@ -219,17 +241,27 @@ export const CompanyDetailScreen: React.FC<CompanyDetailScreenProps> = ({ route,
               </View>
             ) : (
               <View style={styles.catalogItemsList}>
-                <AppCard style={styles.skuItemCard}>
-                  <View style={styles.skuHeader}>
-                    <Text style={styles.skuTitle}>High Tensile Hex Bolt Grade 8.8 (M12 x 50mm)</Text>
-                    <StatusBadge status="PENDING" label="Under Review" size="sm" />
-                  </View>
-                  <Text style={styles.skuSubtitle}>SKU: JAX-SKU-94021 · HSN: 73181500</Text>
-                  <View style={styles.skuPriceRow}>
-                    <Text style={styles.skuPrice}>₹18.50 <Text style={styles.skuMoq}>/ pc (MOQ: 100)</Text></Text>
-                    <Text style={styles.skuStock}>Stock: 500 pcs</Text>
-                  </View>
-                </AppCard>
+                {displayCatalog.map((item) => (
+                  <AppCard key={item.id} style={styles.skuItemCard}>
+                    <View style={styles.skuHeader}>
+                      <View style={{ flex: 1, marginRight: spacing.sm }}>
+                        <Text style={styles.skuTitle}>{item.title}</Text>
+                        {Boolean(item.categoryName) && (
+                          <Text style={styles.categoryPillText}>Category: {item.categoryName}</Text>
+                        )}
+                      </View>
+                      <StatusBadge status={item.status || 'PENDING'} label={item.status === 'ACTIVE' ? 'Active' : 'Under Review'} size="sm" />
+                    </View>
+                    <Text style={styles.skuSubtitle}>SKU: {item.sku} · HSN: {item.hsnCode}</Text>
+                    <View style={styles.skuPriceRow}>
+                      <Text style={styles.skuPrice}>
+                        ₹{item.b2bPrice ? item.b2bPrice.toFixed(2) : '18.50'}{' '}
+                        <Text style={styles.skuMoq}>/ {item.unitOfMeasure || 'pcs'} (MOQ: {item.minOrderQty || 1})</Text>
+                      </Text>
+                      <Text style={styles.skuStock}>Stock: {item.stockQuantity || 100} {item.unitOfMeasure || 'pcs'}</Text>
+                    </View>
+                  </AppCard>
+                ))}
               </View>
             )}
           </View>

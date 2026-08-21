@@ -66,7 +66,7 @@ const approveKyc = async (req, res) => {
 const getListingQueue = async (req, res) => {
   try {
     const listings = await prisma.listing.findMany({
-      where: { status: 'DRAFT' }, // Placeholder for 'UNDER_REVIEW'
+      where: { status: { in: ['DRAFT', 'UNDER_REVIEW', 'PENDING'] } },
       include: {
         seller: { include: { businessProfile: true } },
         category: true,
@@ -76,6 +76,19 @@ const getListingQueue = async (req, res) => {
     res.json({ queue: listings });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch listing queue' });
+  }
+};
+
+const approveListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await prisma.listing.update({
+      where: { id },
+      data: { status: 'ACTIVE', publishedAt: new Date() },
+    });
+    res.json({ success: true, listing });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to approve listing' });
   }
 };
 
@@ -120,6 +133,7 @@ module.exports = {
   getKycQueue,
   approveKyc,
   getListingQueue,
+  approveListing,
   getUsers,
   getDisputes,
   resolveDispute

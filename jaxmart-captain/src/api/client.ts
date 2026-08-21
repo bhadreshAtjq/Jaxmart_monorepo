@@ -8,19 +8,7 @@ export const getDefaultBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  if (Platform.OS === 'android') {
-    // Android emulator alias for host machine localhost:4000
-    return 'http://10.0.2.2:4000/api';
-  }
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined' && window.location.port === '3000') {
-      return `${window.location.protocol}//${window.location.hostname}:4000/api`;
-    }
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/api`;
-    }
-  }
-  return 'http://localhost:4000/api';
+  return 'http://3.111.57.216/api';
 };
 
 export const getApiBaseUrl = async (): Promise<string> => {
@@ -37,7 +25,7 @@ export const setCustomApiBaseUrl = async (url: string): Promise<void> => {
 
 const api = axios.create({
   baseURL: getDefaultBaseUrl(),
-  timeout: 30000,
+  timeout: 4000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

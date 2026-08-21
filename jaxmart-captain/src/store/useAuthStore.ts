@@ -103,7 +103,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         phone,
         otp,
         fullName: fullName || 'Captain Field Officer',
-        userType: 'ADMIN', // Captain authorized role
+        userType: 'BOTH', // Authorized role for seller & admin actions
       });
 
       if (res.accessToken) {

@@ -112,10 +112,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
           <Text style={styles.presetsLabel}>Quick Presets:</Text>
           <View style={styles.presetsRow}>
             <TouchableOpacity
-              style={styles.presetChip}
-              onPress={() => handleSetPreset('http://10.0.2.2:4000/api')}
+              style={[styles.presetChip, { backgroundColor: colors.secondaryContainer, borderColor: colors.secondary }]}
+              onPress={() => handleSetPreset('http://3.111.57.216/api')}
             >
-              <Text style={styles.presetChipText}>Android Emulator (10.0.2.2)</Text>
+              <Text style={[styles.presetChipText, { color: colors.secondary, fontWeight: '700' }]}>
+                Live Server (3.111.57.216 - 8029 Data)
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity

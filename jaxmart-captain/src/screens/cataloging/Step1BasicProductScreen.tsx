@@ -89,11 +89,11 @@ export const Step1BasicProductScreen: React.FC<Step1BasicProductScreenProps> = (
         setCategoriesList(cats);
       } else {
         setCategoriesList([
-          { id: 'cat_fasteners', name: 'Industrial Fasteners & Hardware', slug: 'fasteners' },
-          { id: 'cat_electrical', name: 'Electrical & Power Distribution', slug: 'electrical' },
-          { id: 'cat_safety', name: 'Safety Equipment & PPE Gear', slug: 'safety-ppe' },
-          { id: 'cat_building', name: 'Building & Construction Steel', slug: 'building-steel' },
-          { id: 'cat_machinery', name: 'Pumps, Motors & Bearings', slug: 'machinery' },
+          { id: '7314cf57-3d90-4b10-afd6-cfa1fba585cc', name: 'Industrial Supplies', slug: 'industrial-supplies' },
+          { id: 'b185c6b5-4fe3-4798-b4b2-77950e8058a1', name: 'Construction', slug: 'construction' },
+          { id: '0610bbdb-d157-4ba7-99ac-feacca755d16', name: 'Textiles', slug: 'textiles' },
+          { id: '46726386-4741-467c-a47b-b25d132ddef8', name: 'Electronics', slug: 'electronics' },
+          { id: '0a436ac8-b0a8-460c-8171-8fe0ce84554e', name: 'Services', slug: 'services' },
         ]);
       }
     });
@@ -272,6 +272,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 180,
   },
 });

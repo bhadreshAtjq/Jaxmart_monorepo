@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
     if (otpToVerify.length !== 6) return;
     setLoading(true);
     try {
-      const { data } = await authApi.verifyOtp(phone, otpToVerify);
+      const { data } = await authApi.verifyOtp(phone, otpToVerify, undefined, 'ADMIN');
       if (!data.user.isAdmin) {
         toast.error('Unauthorized Access: Administrative Credentials Not Detected');
         return;

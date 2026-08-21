@@ -135,19 +135,22 @@ export const Step7ReviewSubmitScreen: React.FC<Step7ReviewSubmitScreenProps> = (
     resetWizard();
     if (createdCompany) {
       setActiveCompany(createdCompany);
-      navigation.navigate('SkuWizardTab', {
-        screen: 'Step1BasicProduct',
-        params: { companyId: createdCompany.id, companyName: createdCompany.legalName },
+      navigation.navigate('Main', {
+        screen: 'SkuWizardTab',
+        params: {
+          screen: 'Step1BasicProduct',
+          params: { companyId: createdCompany.id, companyName: createdCompany.legalName },
+        },
       });
     } else {
-      navigation.navigate('DashboardTab');
+      navigation.navigate('Main', { screen: 'DashboardTab' });
     }
   };
 
   const handleReturnToDashboard = () => {
     setSuccessModalVisible(false);
     resetWizard();
-    navigation.navigate('DashboardTab');
+    navigation.navigate('Main', { screen: 'DashboardTab' });
   };
 
   return (
@@ -360,7 +363,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 180,
   },
   reviewCard: {
     padding: spacing.md,

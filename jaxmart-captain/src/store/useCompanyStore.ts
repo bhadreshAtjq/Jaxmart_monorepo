@@ -36,7 +36,7 @@ const INITIAL_DEMO_COMPANIES: CompanySummary[] = [
     pincode: '400072',
     category: 'Industrial Tools & Fasteners',
     kycStatus: 'VERIFIED',
-    skuCount: 14,
+    skuCount: 3,
     createdAt: new Date().toISOString(),
   },
   {
@@ -53,7 +53,7 @@ const INITIAL_DEMO_COMPANIES: CompanySummary[] = [
     pincode: '395002',
     category: 'Textiles & Apparel',
     kycStatus: 'VERIFIED',
-    skuCount: 28,
+    skuCount: 2,
     createdAt: new Date().toISOString(),
   },
   {

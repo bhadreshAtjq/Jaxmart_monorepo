@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 180,
   },
   modeSwitcherContainer: {
     flexDirection: 'row',

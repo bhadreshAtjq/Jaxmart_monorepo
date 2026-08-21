@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 180,
   },
   toggleCard: {
     flexDirection: 'row',

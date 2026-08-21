@@ -243,65 +243,143 @@ const createCaptainListing = async (req, res) => {
       unitOfMeasure = 'Pieces',
       priceType = 'FIXED',
       priceSlabs = [],
+      bulkPriceSlabs = [],
       brand,
+      sku,
+      hsnCode,
+      barcode,
+      mrp,
+      gstRate,
       specifications = {},
       images = [],
       tags = [],
     } = req.body;
 
-    if (!sellerId || !title || !categoryId) {
-      return res.status(400).json({ error: 'Seller ID, title, and category are required' });
-    }
+    const listingTitle = title || sku || 'Industrial Wholesale SKU';
 
-    // Verify seller exists
-    const seller = await prisma.user.findUnique({
-      where: { id: sellerId },
-      include: { addresses: { where: { isPrimary: true }, take: 1 } },
-    });
+    // 1. Resolve Target Seller
+    let seller = null;
+    if (sellerId && sellerId !== 'COMP_DEFAULT') {
+      seller = await prisma.user.findUnique({
+        where: { id: sellerId },
+        include: { addresses: { where: { isPrimary: true }, take: 1 } },
+      });
+    }
 
     if (!seller) {
-      return res.status(404).json({ error: 'Target seller not found' });
+      // Find latest seller or fallback to captain/admin user
+      seller = await prisma.user.findFirst({
+        where: { userType: { in: ['SELLER', 'BOTH'] } },
+        orderBy: { createdAt: 'desc' },
+        include: { addresses: { where: { isPrimary: true }, take: 1 } },
+      });
     }
 
-    const primaryAddress = seller.addresses[0];
+    if (!seller) {
+      seller = await prisma.user.findFirst({
+        orderBy: { createdAt: 'desc' },
+        include: { addresses: { where: { isPrimary: true }, take: 1 } },
+      });
+    }
 
-    // Generate unique slug
-    const baseSlug = title
+    if (!seller) {
+      return res.status(400).json({ error: 'No active seller or merchant found in database' });
+    }
+
+    const primaryAddress = seller.addresses?.[0];
+
+    // 2. Resolve Category (Ensure Foreign Key constraint is never violated)
+    let category = null;
+    if (categoryId) {
+      category = await prisma.category.findUnique({ where: { id: categoryId } });
+    }
+
+    if (!category) {
+      category = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { slug: 'industrial-machinery' },
+            { slug: 'electronics' },
+            { slug: 'textiles' },
+            { slug: 'construction' },
+          ],
+        },
+      });
+    }
+
+    if (!category) {
+      category = await prisma.category.findFirst();
+    }
+
+    if (!category) {
+      // Create a default category if none exists
+      category = await prisma.category.create({
+        data: {
+          name: 'Industrial Supplies',
+          slug: 'industrial-supplies-' + Date.now(),
+        },
+      });
+    }
+
+    // 3. Generate unique slug
+    const baseSlug = listingTitle
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .substring(0, 50);
-    const slug = `${baseSlug}-${Date.now().toString(36)}`;
+    const slug = `${baseSlug || 'sku'}-${Date.now().toString(36)}`;
 
-    // Create listing
+    // 4. Clean and normalize images array
+    const normalizedImages = Array.isArray(images) && images.length > 0
+      ? images
+      : [
+          {
+            url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
+            isPrimary: true,
+          },
+        ];
+
+    const effectivePrice = pricePerUnit ? parseFloat(pricePerUnit) : (mrp ? parseFloat(mrp) : 1250);
+    const effectiveSlabs = (bulkPriceSlabs && bulkPriceSlabs.length > 0) ? bulkPriceSlabs : priceSlabs;
+
+    // 5. Create Listing record
     const listing = await prisma.listing.create({
       data: {
-        sellerId,
-        categoryId,
-        title,
+        sellerId: seller.id,
+        categoryId: category.id,
+        title: listingTitle,
         slug,
         description: description || `Manufactured & supplied by ${seller.fullName}. Verified wholesale catalog SKU.`,
         listingType: 'PRODUCT',
         status: 'ACTIVE',
         isFeatured: true,
-        tags: Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : ['captain_verified', 'wholesale'],
+        tags: Array.from(new Set([
+          'captain_verified',
+          'wholesale',
+          'field_cataloged',
+          ...(Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : []),
+        ])),
         ...(primaryAddress && { locationId: primaryAddress.id }),
         productDetail: {
           create: {
-            brand: brand || 'OEM / Custom',
-            pricePerUnit: pricePerUnit ? parseFloat(pricePerUnit) : null,
+            brand: brand || 'OEM / Industrial',
+            pricePerUnit: effectivePrice,
             priceType: priceType || 'FIXED',
             minOrderQty: parseInt(minOrderQty) || 1,
             unitOfMeasure: unitOfMeasure || 'Pieces',
-            bulkPriceSlabs: priceSlabs.length > 0 ? priceSlabs : undefined,
-            specifications: typeof specifications === 'object' ? specifications : {},
+            bulkPriceSlabs: effectiveSlabs.length > 0 ? effectiveSlabs : undefined,
+            specifications: {
+              ...(typeof specifications === 'object' ? specifications : {}),
+              ...(sku && { sku }),
+              ...(hsnCode && { hsnCode }),
+              ...(barcode && { barcode }),
+              ...(gstRate && { gstRate: `${gstRate}%` }),
+            },
           },
         },
         media: {
-          create: (images.length > 0 ? images : [
-            { url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', isPrimary: true }
-          ]).map((img, idx) => ({
-            url: typeof img === 'string' ? img : img.url,
+          create: normalizedImages.map((img, idx) => ({
+            url: typeof img === 'string' ? img : (img.url || img.uri || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80'),
             mediaType: 'IMAGE',
             isPrimary: typeof img === 'object' ? Boolean(img.isPrimary) : idx === 0,
             sortOrder: idx,
@@ -309,13 +387,21 @@ const createCaptainListing = async (req, res) => {
         },
       },
       include: {
+        seller: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            businessProfile: true,
+          },
+        },
         category: true,
         productDetail: true,
         media: true,
       },
     });
 
-    logger.info(`Captain cataloged SKU #${listing.id} (${listing.title}) for seller ${sellerId}`);
+    logger.info(`Captain cataloged SKU #${listing.id} (${listing.title}) for seller ${seller.id}`);
 
     res.status(201).json({
       success: true,

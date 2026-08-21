@@ -398,13 +398,7 @@ const getAdminCaptainOnboardings = async (req, res) => {
 const getAdminCaptainListings = async (req, res) => {
   try {
     const listings = await prisma.listing.findMany({
-      where: {
-        OR: [
-          { tags: { has: 'captain_verified' } },
-          { status: 'ACTIVE' },
-        ],
-      },
-      take: 50,
+      take: 100,
       orderBy: { createdAt: 'desc' },
       include: {
         seller: {
@@ -415,9 +409,9 @@ const getAdminCaptainListings = async (req, res) => {
             businessProfile: { select: { businessName: true, gstin: true } },
           },
         },
-        category: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true, slug: true } },
         productDetail: true,
-        media: true,
+        media: { orderBy: { isPrimary: 'desc' } },
       },
     });
 

@@ -14,12 +14,20 @@ out/
 build/
 dist/
 
-# Development
+# Environment Variables (Strictly Ignored Everywhere)
 .env
+.env*
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+**/.env
+**/.env*
+**/.env.*
+!**/.env.example
 
 # Logs
 npm-debug.log*
@@ -27,7 +35,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 *.log
+**/*.log
 *.tsbuildinfo
+**/*.tsbuildinfo
 
 # OS Files
 .DS_Store
@@ -46,3 +56,4 @@ Thumbs.db
 # Project Specific
 backend/prisma/migrations/
 web/public/uploads/
+web/.vercel

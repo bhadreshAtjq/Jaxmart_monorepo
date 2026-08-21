@@ -113,10 +113,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
           <View style={styles.presetsRow}>
             <TouchableOpacity
               style={[styles.presetChip, { backgroundColor: colors.secondaryContainer, borderColor: colors.secondary }]}
-              onPress={() => handleSetPreset('http://3.111.57.216/api')}
+              onPress={() => handleSetPreset('http://192.168.1.33:4000/api')}
             >
               <Text style={[styles.presetChipText, { color: colors.secondary, fontWeight: '700' }]}>
-                Live Server (3.111.57.216 - 8029 Data)
+                Main Backend (192.168.1.33:4000)
               </Text>
             </TouchableOpacity>
 
@@ -125,6 +125,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
               onPress={() => handleSetPreset('http://localhost:4000/api')}
             >
               <Text style={styles.presetChipText}>Localhost:4000</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.presetChip}
+              onPress={() => handleSetPreset('http://10.0.2.2:4000/api')}
+            >
+              <Text style={styles.presetChipText}>Android Sim (10.0.2.2)</Text>
             </TouchableOpacity>
           </View>
 

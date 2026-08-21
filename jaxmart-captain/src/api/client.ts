@@ -8,7 +8,11 @@ export const getDefaultBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  return 'http://3.111.57.216/api';
+  if (Platform.OS === 'web') {
+    return 'http://localhost:4000/api';
+  }
+  // Primary local network IP for physical device & emulator connectivity
+  return 'http://192.168.1.33:4000/api';
 };
 
 export const getApiBaseUrl = async (): Promise<string> => {

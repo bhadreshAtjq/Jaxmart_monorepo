@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
@@ -72,10 +73,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         >
           {/* Header Brand Hero */}
           <View style={styles.heroSection}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="shield-checkmark" size={40} color="#FFFFFF" />
-            </View>
-            <Text style={styles.brandTitle}>JAXMART</Text>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <View style={styles.captainPill}>
               <Text style={styles.captainPillText}>CAPTAINS FIELD OPERATIONS</Text>
             </View>
@@ -168,21 +170,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     marginBottom: spacing.xl,
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-    ...shadows.card,
-  },
-  brandTitle: {
-    ...typography.displayLg,
-    color: '#FFFFFF',
-    fontWeight: '800',
-    letterSpacing: 2,
+  logoImage: {
+    width: 200,
+    height: 55,
+    marginBottom: spacing.sm,
   },
   captainPill: {
     backgroundColor: colors.secondary,

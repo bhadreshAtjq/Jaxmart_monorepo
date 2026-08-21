@@ -9031,7 +9031,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
       ],
       child: JaxPage(
         topWidget: GestureDetector(
-          onTap: () => context.pop(),
+          onTap: () => context.go('/seller/listings'),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

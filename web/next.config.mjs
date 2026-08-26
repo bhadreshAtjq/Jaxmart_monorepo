@@ -1,5 +1,3 @@
-// next.config.mjs
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   experimental: {
@@ -10,6 +8,14 @@ const nextConfig = {
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: '**' },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/:path*`,
+      },
+    ];
   },
 };
 

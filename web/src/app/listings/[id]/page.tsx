@@ -158,15 +158,15 @@ export default function ListingDetailPage() {
               
               {/* Visual Assets Panel */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 relative group flex items-center justify-center p-4">
+                <div className="aspect-square bg-gray-50/80 rounded-2xl overflow-hidden border border-gray-100 relative group flex items-center justify-center p-4">
                   {listing.media && listing.media.length > 0 ? (
                     <img 
                       src={listing.media[activeImg]?.url} 
                       alt={listing.title} 
-                      className="max-h-full max-w-full object-contain mix-blend-multiply" 
+                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500" 
                     />
                   ) : (
-                    <div className="text-gray-300 flex flex-col items-center gap-2">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
                       <FaBoxOpen className="h-16 w-16" />
                       <span className="text-[10px] font-black uppercase tracking-widest">No Visual Assets Registered</span>
                     </div>

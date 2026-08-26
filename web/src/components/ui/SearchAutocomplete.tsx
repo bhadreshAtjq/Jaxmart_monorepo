@@ -189,8 +189,8 @@ export function SearchAutocomplete({
 
   return (
     <div ref={containerRef} className={clsx('relative w-full', className)}>
-      <div className="flex border border-gray-300 rounded-xl overflow-hidden focus-within:border-jungle-green-500 focus-within:ring-2 focus-within:ring-jungle-green-500/20 transition-all bg-white shadow-sm">
-        <div className="relative flex-1 flex items-center">
+      <div className="flex border border-gray-300 rounded-md overflow-hidden focus-within:border-[#232F72] focus-within:ring-1 focus-within:ring-[#232F72] transition-all bg-white shadow-sm">
+        <div className="relative flex-1 flex items-center pl-2">
           <input
             type="text"
             value={query}
@@ -203,7 +203,7 @@ export function SearchAutocomplete({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={clsx(
-              'w-full text-sm outline-none px-4 text-gray-800 placeholder-gray-400 bg-transparent font-medium',
+              'w-full text-sm outline-none px-4 text-gray-600 placeholder-gray-400 bg-transparent font-medium',
               compact ? 'h-10' : 'h-12',
               inputClassName
             )}
@@ -212,7 +212,7 @@ export function SearchAutocomplete({
           {/* Loading or Clear Icon */}
           <div className="flex items-center gap-1.5 pr-3">
             {isLoading && (
-              <FaSpinner className="h-3.5 w-3.5 text-jungle-green-500 animate-spin" />
+              <FaSpinner className="h-3.5 w-3.5 text-[#232F72] animate-spin" />
             )}
             {query && !isLoading && (
               <button
@@ -234,7 +234,7 @@ export function SearchAutocomplete({
           type="button"
           onClick={() => triggerSearch()}
           className={clsx(
-            'bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white px-5 transition-all duration-300 flex items-center justify-center gap-2 font-semibold text-xs uppercase tracking-wider',
+            'bg-[#27386B] hover:bg-[#1E2B52] text-white px-6 transition-all duration-300 flex items-center justify-center gap-2 font-bold text-[11px] uppercase tracking-widest shrink-0',
             buttonClassName
           )}
         >

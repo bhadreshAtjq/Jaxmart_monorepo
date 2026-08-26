@@ -151,44 +151,44 @@ export default function HomePage() {
             <div className="hidden lg:flex flex-col lg:col-span-3 gap-6">
               {/* 1. Category Sidebar Menu (Alibaba-style) */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col group flex-1 min-h-[400px]">
-              <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 shrink-0 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
-                <FaBoxesStacked className="h-4 w-4 text-jungle-green-400" />
-                <span className="relative z-10">Markets & Industries</span>
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-5 py-4 font-black text-xs uppercase tracking-widest flex items-center gap-3 shrink-0 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+                  <FaBoxesStacked className="h-4 w-4 text-jungle-green-400" />
+                  <span className="relative z-10">Markets & Industries</span>
+                </div>
+                <div className="flex-1 overflow-y-auto divide-y divide-gray-50/50 py-2 custom-scrollbar">
+                  {catsLoading ? (
+                    Array(5).fill(0).map((_, i) => (
+                      <div key={i} className="p-4"><Skeleton className="h-4 w-3/4" /></div>
+                    ))
+                  ) : (
+                    categories.map((cat: any) => {
+                      const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
+                      return (
+                        <Link
+                          key={cat.id}
+                          href={`/search?category=${cat.id}`}
+                          className="group/item flex items-center justify-between px-5 py-3 text-sm text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700 transition-all duration-300 font-bold"
+                        >
+                          <span className="flex items-center gap-3.5 transform group-hover/item:translate-x-1 transition-transform duration-300">
+                            <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center group-hover/item:bg-jungle-green-100/50 group-hover/item:text-jungle-green-600 transition-colors border border-gray-100/50 group-hover/item:border-transparent">
+                              <Icon className="h-3.5 w-3.5 opacity-60 group-hover/item:opacity-100" />
+                            </div>
+                            {cat.name}
+                          </span>
+                          <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300" />
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto divide-y divide-gray-50/50 py-2 custom-scrollbar">
-                {catsLoading ? (
-                  Array(5).fill(0).map((_, i) => (
-                    <div key={i} className="p-4"><Skeleton className="h-4 w-3/4" /></div>
-                  ))
-                ) : (
-                  categories.map((cat: any) => {
-                    const Icon = CATEGORY_ICONS[cat.slug] || FaCubes;
-                    return (
-                      <Link
-                        key={cat.id}
-                        href={`/search?category=${cat.id}`}
-                        className="group/item flex items-center justify-between px-5 py-3 text-sm text-gray-600 hover:bg-gradient-to-r hover:from-jungle-green-50/50 hover:to-transparent hover:text-jungle-green-700 transition-all duration-300 font-bold"
-                      >
-                        <span className="flex items-center gap-3.5 transform group-hover/item:translate-x-1 transition-transform duration-300">
-                          <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center group-hover/item:bg-jungle-green-100/50 group-hover/item:text-jungle-green-600 transition-colors border border-gray-100/50 group-hover/item:border-transparent">
-                            <Icon className="h-3.5 w-3.5 opacity-60 group-hover/item:opacity-100" />
-                          </div>
-                          {cat.name}
-                        </span>
-                        <FaChevronRight className="h-3 w-3 text-gray-300 opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300" />
-                      </Link>
-                    );
-                  })
-                )}
-              </div>
-            </div>
 
               {/* 3. Fast RFQ Form Block (Moved below Markets & Industries) */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col justify-between relative overflow-hidden shrink-0">
                 {/* Decorative top gradient */}
                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-jungle-green-400 to-[#36ADA3]" />
-                
+
                 <div className="flex flex-col flex-1 relative z-10">
                   <div className="flex items-center gap-3 mb-6 shrink-0">
                     <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-jungle-green-50 to-teal-50 border border-jungle-green-100/50 flex items-center justify-center text-jungle-green-600 shrink-0 shadow-sm">
@@ -244,7 +244,7 @@ export default function HomePage() {
                       type="submit"
                       className="w-full h-12 bg-[#232F72] hover:bg-[#1C265B] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-lg shadow-[#232F72]/20 hover:shadow-xl hover:shadow-[#232F72]/30 active:scale-95 flex items-center justify-center gap-2 mt-2 shrink-0 group/btn border border-[#232F72]"
                     >
-                      Post Request Free 
+                      Post Request Free
                       <FaArrowRight className="h-3 w-3 transform group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                   </form>
@@ -380,7 +380,7 @@ export default function HomePage() {
                           <div className="flex items-center gap-5 mb-6">
                             <div className="flex flex-col items-end">
                               <span className="text-white font-bold text-sm md:text-base leading-tight tracking-wide flex items-center gap-1.5">
-                                <FaIndustry className="h-4 w-4 opacity-80"/> Jaxmart
+                                <FaIndustry className="h-4 w-4 opacity-80" /> Jaxmart
                               </span>
                               <span className="text-white font-semibold text-xs md:text-sm tracking-widest mt-0.5">Exhibitions</span>
                             </div>
@@ -397,7 +397,7 @@ export default function HomePage() {
                           <h2 className="text-3xl md:text-[2.75rem] font-black text-white leading-tight uppercase tracking-tight mb-5 max-w-3xl drop-shadow-lg">
                             {events[eventIndex].title}
                           </h2>
-                          
+
                           {/* Description */}
                           <p className="text-sm md:text-lg text-white/90 leading-relaxed font-medium max-w-xl mb-8 drop-shadow-md">
                             {events[eventIndex].description}
@@ -444,8 +444,8 @@ export default function HomePage() {
                           key={idx}
                           onClick={() => setEventIndex(idx)}
                           className={`h-1.5 rounded-full transition-all duration-300 ${idx === eventIndex
-                              ? 'w-4 bg-[#36ADA3]'
-                              : 'w-1.5 bg-[#2a3835] hover:bg-[#36ADA3]/50'
+                            ? 'w-4 bg-[#36ADA3]'
+                            : 'w-1.5 bg-[#2a3835] hover:bg-[#36ADA3]/50'
                             }`}
                           aria-label={`Go to slide ${idx + 1}`}
                         />
@@ -481,7 +481,7 @@ export default function HomePage() {
               {/* Outer border container with glowing effect */}
               <div className="absolute -inset-0.5 bg-gradient-to-r from-[#36ADA3] to-[#232F72] rounded-[28px] blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative bg-white rounded-[24px] border border-gray-200/50 shadow-2xl flex flex-col w-full min-h-[160px] overflow-hidden focus-within:ring-4 focus-within:ring-[#36ADA3]/10 transition-all duration-300">
-                
+
                 {/* Subtle top inner shadow */}
                 <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-gray-50/50 to-transparent pointer-events-none" />
 
@@ -524,16 +524,16 @@ export default function HomePage() {
                       <FaXmark className="h-5 w-5" />
                     </button>
                   </div>
-                  
+
                   <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 hover:border-[#36ADA3]/50 transition-colors group/upload cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                     <FaUpload className="h-8 w-8 text-gray-400 group-hover/upload:text-[#36ADA3] mb-4 transition-colors" />
                     <p className="text-[13px] text-gray-600 mb-2 font-medium text-center flex items-center gap-1.5">
-                      Paste an image you copied with 
-                      <kbd className="px-1.5 py-0.5 border border-gray-300 bg-white rounded text-[11px] font-mono shadow-sm font-bold text-gray-600">Ctrl</kbd> 
+                      Paste an image you copied with
+                      <kbd className="px-1.5 py-0.5 border border-gray-300 bg-white rounded text-[11px] font-mono shadow-sm font-bold text-gray-600">Ctrl</kbd>
                       <kbd className="px-1.5 py-0.5 border border-gray-300 bg-white rounded text-[11px] font-mono shadow-sm font-bold text-gray-600">V</kbd>
                     </p>
                     <p className="text-[13px] text-gray-500 mb-6 font-medium text-center">Drag and drop an image here or upload a file</p>
-                    
+
                     <button type="button" className="bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white font-bold px-8 py-2.5 rounded-full shadow-lg shadow-[#232F72]/20 hover:shadow-[#232F72]/30 transition-all active:scale-95">
                       Upload
                     </button>
@@ -596,7 +596,7 @@ export default function HomePage() {
                   featured?.listings?.slice(0, 12).map((item: any) => (
                     <Link key={item.id} href={`/listings/${item.id}`} className="group block h-full outline-none">
                       <div className="bg-white rounded-2xl border border-gray-100/80 overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:border-jungle-green-200/60 transition-all duration-500 h-full flex flex-col group-focus-visible:ring-2 group-focus-visible:ring-jungle-green-500 relative">
-                        
+
                         {/* Image Container with smooth zoom */}
                         <div className="aspect-square bg-gray-50 overflow-hidden relative">
                           {item.media?.[0] ? (
@@ -610,7 +610,7 @@ export default function HomePage() {
                               <FaIndustry className="h-12 w-12" />
                             </div>
                           )}
-                          
+
                           {/* Soft inner shadow overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -627,7 +627,7 @@ export default function HomePage() {
                               </span>
                             )}
                           </div>
-                          
+
                           {/* Trust Score Glassmorphism */}
                           {item.seller?.trustScore && (
                             <div className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-md border border-white/50 px-2 py-1 rounded-lg text-[10px] font-black text-gray-800 shadow-lg z-10">
@@ -676,50 +676,54 @@ export default function HomePage() {
           {/* Full Width Content Area */}
           <div className="lg:col-span-12 space-y-12 order-3">
 
-            {/* 1.5. Dual Showcase: New Products & Most Popular */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* New Products */}
-              <section className="bg-white rounded-2xl border border-gray-200/80 p-5">
+            {/* 1.5. Dual Showcase: Side-by-Side New Products & Most Popular */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+              {/* New Products Showcase Card */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-4 sm:p-5 shadow-sm flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">New Products</h2>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Explore the hottest releases in the past two weeks</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">Explore the hottest releases in the past two weeks</p>
                   </div>
-                  <Link href="/new-products" className="text-xs font-semibold text-gray-600 hover:text-jungle-green-600">
-                    See All
+                  <Link href="/new-products" className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-700 hover:text-jungle-green-600 bg-gray-100/80 hover:bg-jungle-green-50 rounded-full border border-gray-200/80 hover:border-jungle-green-200 transition-all duration-200 shrink-0 ml-2 shadow-sm group/seeall">
+                    <span>See All</span>
+                    <FaChevronRight className="w-2.5 h-2.5 text-gray-500 group-hover/seeall:text-jungle-green-600 group-hover/seeall:translate-x-0.5 transition-all duration-200" />
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pb-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {newProductsLoading ? (
                     Array(4).fill(0).map((_, i) => (
                       <div key={i} className="flex flex-col gap-2">
-                        <Skeleton className="aspect-square rounded-xl" />
-                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="w-full aspect-square rounded-xl" />
                         <Skeleton className="h-3 w-1/2" />
+                        <Skeleton className="h-2.5 w-3/4" />
+                        <Skeleton className="h-2.5 w-full" />
                       </div>
                     ))
                   ) : (
                     newProducts.slice(0, 4).map((product: any) => (
-                      <Link key={product.id} href={`/listings/${product.id}`} className="group">
-                        <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2">
+                      <Link key={product.id} href={`/listings/${product.id}`} className="group flex flex-col">
+                        <div className="w-full aspect-square bg-gray-50/80 rounded-xl border border-gray-100 overflow-hidden relative flex items-center justify-center p-2 mb-2 group-hover:border-gray-200 transition-colors">
                           {product.media?.[0]?.url ? (
                             <img
                               src={product.media[0].url}
                               alt={product.title}
-                              className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300"
+                              className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
-                            <FaBoxesStacked className="h-8 w-8 text-gray-300" />
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <FaBoxesStacked className="h-8 w-8" />
+                            </div>
                           )}
                         </div>
-                        <div className="font-bold text-gray-900 text-xs mb-0.5">
+                        <div className="font-bold text-gray-900 text-xs sm:text-sm mb-0.5">
                           {product.productDetail?.pricePerUnit ? `₹${product.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
                         </div>
-                        <div className="text-[9px] text-gray-500 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="text-[10px] sm:text-xs text-gray-500 mb-1 font-medium truncate">
                           Min. Order: {product.productDetail?.minOrderQty || 1} {product.productDetail?.unitOfMeasure || 'Pieces'}
                         </div>
-                        <h3 className="text-[9px] text-gray-700 line-clamp-2 group-hover:text-jungle-green-600 transition-colors leading-tight">
+                        <h3 className="text-[10px] sm:text-xs text-gray-700 line-clamp-2 leading-tight group-hover:text-jungle-green-600 transition-colors">
                           {product.title}
                         </h3>
                       </Link>
@@ -728,55 +732,79 @@ export default function HomePage() {
                 </div>
               </section>
 
-              {/* Most Popular */}
-              <section className="bg-white rounded-2xl border border-gray-200/80 p-5">
+              {/* Most Popular Showcase Card */}
+              <section className="bg-white rounded-2xl border border-gray-200/80 p-4 sm:p-5 shadow-sm flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">Most Popular</h2>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Trending B2B wholesale products: bulk deals from suppliers</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">Trending B2B wholesale products: bulk deals from suppliers</p>
                   </div>
-                  <Link href="/search?type=product&sort=popular" className="text-xs font-semibold text-gray-600 hover:text-jungle-green-600">
-                    See All
+                  <Link href="/most-popular" className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-700 hover:text-jungle-green-600 bg-gray-100/80 hover:bg-jungle-green-50 rounded-full border border-gray-200/80 hover:border-jungle-green-200 transition-all duration-200 shrink-0 ml-2 shadow-sm group/seeall">
+                    <span>See All</span>
+                    <FaChevronRight className="w-2.5 h-2.5 text-gray-500 group-hover/seeall:text-jungle-green-600 group-hover/seeall:translate-x-0.5 transition-all duration-200" />
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pb-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {featuredLoading ? (
                     Array(4).fill(0).map((_, i) => (
                       <div key={i} className="flex flex-col gap-2">
-                        <Skeleton className="aspect-square rounded-xl" />
-                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="w-full aspect-square rounded-xl" />
+                        <Skeleton className="h-3 w-full" />
                         <Skeleton className="h-3 w-1/2" />
+                        <Skeleton className="h-2.5 w-3/4" />
                       </div>
                     ))
                   ) : (
-                    featured?.listings?.slice(0, 4).map((item: any, idx: number) => (
-                      <Link key={item.id} href={`/listings/${item.id}`} className="group relative">
-                        <div className="aspect-square bg-gray-50 rounded-xl mb-2 overflow-hidden border border-gray-100 flex items-center justify-center p-2 relative">
-                          <div className="absolute top-1 left-1 bg-white/90 shadow text-[9px] font-bold px-1.5 py-0.5 rounded-sm z-10 text-orange-600 border border-orange-100">
-                            {idx + 1}
+                    featured?.listings?.slice(0, 4).map((item: any, idx: number) => {
+                      const ribbonBg =
+                        idx === 0 ? "bg-red-500 text-white" :
+                          idx === 1 ? "bg-amber-400 text-amber-950 font-black" :
+                            idx === 2 ? "bg-slate-300 text-slate-800" :
+                              "bg-sky-200 text-sky-900";
+
+                      return (
+                        <Link key={item.id} href={`/listings/${item.id}`} className="group flex flex-col">
+                          <div className="w-full aspect-square bg-gray-50/80 rounded-xl border border-gray-100 overflow-hidden relative flex items-center justify-center p-2 mb-2 group-hover:border-gray-200 transition-colors">
+                            {/* Vertical Notched Ribbon Badge */}
+                            <div
+                              className={`absolute top-0 left-2 w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center font-extrabold text-[10px] sm:text-xs shadow-sm z-10 pt-0.5 ${ribbonBg}`}
+                              style={{
+                                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)'
+                              }}
+                            >
+                              {idx + 1}
+                            </div>
+                            {item.media?.[0]?.url ? (
+                              <img
+                                src={item.media[0].url}
+                                alt={item.title}
+                                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <FaFire className="h-8 w-8" />
+                              </div>
+                            )}
                           </div>
-                          {item.media?.[0]?.url ? (
-                            <img
-                              src={item.media[0].url}
-                              alt={item.title}
-                              className="object-cover h-full w-full group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <FaFire className="h-8 w-8 text-gray-300" />
-                          )}
-                        </div>
-                        <h3 className="text-[9px] text-gray-700 line-clamp-2 group-hover:text-jungle-green-600 transition-colors leading-tight mb-0.5">
-                          {item.title}
-                        </h3>
-                        <div className="font-bold text-gray-900 text-xs mb-0.5">
-                          {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
-                        </div>
-                        <div className="text-[9px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">
-                          Min. Order: {item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pieces'}
-                        </div>
-                      </Link>
-                    ))
+
+                          {/* Line 1: Title (2 lines clamp) */}
+                          <h3 className="text-[10px] sm:text-xs text-gray-800 font-medium line-clamp-2 leading-tight group-hover:text-jungle-green-600 transition-colors mb-1 min-h-[28px]">
+                            {item.title}
+                          </h3>
+
+                          {/* Line 2: Price (Bold) */}
+                          <div className="font-bold text-gray-900 text-xs sm:text-sm mb-0.5">
+                            {item.productDetail?.pricePerUnit ? `₹${item.productDetail.pricePerUnit.toLocaleString('en-IN')}` : 'Get Price'}
+                          </div>
+
+                          {/* Line 3: Min Order */}
+                          <div className="text-[10px] sm:text-xs text-gray-500 font-medium truncate">
+                            Min. Order: {item.productDetail?.minOrderQty || 1} {item.productDetail?.unitOfMeasure || 'Pieces'}
+                          </div>
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
               </section>
@@ -792,18 +820,21 @@ export default function HomePage() {
                     <h2 className="text-base font-bold text-gray-900 line-clamp-1">Analyst's Choice</h2>
                     <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Discover products handpicked by experts</p>
                   </div>
-                  <Link href="/search?tag=analysts-choice" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
-                    See All
+                  <Link href="/analysts-choice" className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold text-gray-700 hover:text-jungle-green-600 bg-gray-100/80 hover:bg-jungle-green-50 rounded-full border border-gray-200/80 hover:border-jungle-green-200 transition-all duration-200 shrink-0 ml-2 shadow-sm group/seeall">
+                    <span>See All</span>
+                    <FaChevronRight className="w-2 h-2 text-gray-500 group-hover/seeall:text-jungle-green-600 group-hover/seeall:translate-x-0.5 transition-all duration-200" />
                   </Link>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-auto">
                   {analystChoiceProducts.map((item: any) => (
                     <Link key={`ac-${item.id}`} href={`/listings/${item.id}`} className="group block">
-                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                      <div className="w-[132px] max-w-full h-[137px] bg-gray-50/80 rounded-xl overflow-hidden border border-gray-100 mb-1.5 relative flex items-center justify-center p-2 mx-auto">
                         {item.media?.[0]?.url ? (
-                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                          <img src={item.media[0].url} alt={item.title} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
                         ) : (
-                          <FaStar className="h-6 w-6 text-gray-300" />
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <FaStar className="h-6 w-6" />
+                          </div>
                         )}
                       </div>
                       <div className="font-bold text-gray-900 text-[10px] truncate text-center">
@@ -821,18 +852,21 @@ export default function HomePage() {
                     <h2 className="text-base font-bold text-gray-900 line-clamp-1">Low MOQ</h2>
                     <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Small quantities for customization</p>
                   </div>
-                  <Link href="/search?tag=low-moq" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
-                    See All
+                  <Link href="/low-moq" className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold text-gray-700 hover:text-jungle-green-600 bg-gray-100/80 hover:bg-jungle-green-50 rounded-full border border-gray-200/80 hover:border-jungle-green-200 transition-all duration-200 shrink-0 ml-2 shadow-sm group/seeall">
+                    <span>See All</span>
+                    <FaChevronRight className="w-2 h-2 text-gray-500 group-hover/seeall:text-jungle-green-600 group-hover/seeall:translate-x-0.5 transition-all duration-200" />
                   </Link>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-auto">
                   {lowMoqProducts.map((item: any) => (
                     <Link key={`lm-${item.id}`} href={`/listings/${item.id}`} className="group block">
-                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                      <div className="w-[132px] max-w-full h-[137px] bg-gray-50/80 rounded-xl overflow-hidden border border-gray-100 mb-1.5 relative flex items-center justify-center p-2 mx-auto">
                         {item.media?.[0]?.url ? (
-                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                          <img src={item.media[0].url} alt={item.title} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
                         ) : (
-                          <FaBoxesStacked className="h-6 w-6 text-gray-300" />
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <FaBoxesStacked className="h-6 w-6" />
+                          </div>
                         )}
                       </div>
                       <div className="font-bold text-gray-900 text-[10px] truncate text-center">
@@ -850,18 +884,21 @@ export default function HomePage() {
                     <h2 className="text-base font-bold text-gray-900 line-clamp-1">OEM Products</h2>
                     <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">Cut production for cost savings.</p>
                   </div>
-                  <Link href="/search?tag=oem" className="text-[10px] font-semibold text-gray-600 hover:text-jungle-green-600 whitespace-nowrap ml-2">
-                    See All
+                  <Link href="/oem" className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold text-gray-700 hover:text-jungle-green-600 bg-gray-100/80 hover:bg-jungle-green-50 rounded-full border border-gray-200/80 hover:border-jungle-green-200 transition-all duration-200 shrink-0 ml-2 shadow-sm group/seeall">
+                    <span>See All</span>
+                    <FaChevronRight className="w-2 h-2 text-gray-500 group-hover/seeall:text-jungle-green-600 group-hover/seeall:translate-x-0.5 transition-all duration-200" />
                   </Link>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-auto">
                   {oemProducts.map((item: any) => (
                     <Link key={`oem-${item.id}`} href={`/listings/${item.id}`} className="group block">
-                      <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-2 mb-1.5">
+                      <div className="w-[132px] max-w-full h-[137px] bg-gray-50/80 rounded-xl overflow-hidden border border-gray-100 mb-1.5 relative flex items-center justify-center p-2 mx-auto">
                         {item.media?.[0]?.url ? (
-                          <img src={item.media[0].url} alt={item.title} className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300" />
+                          <img src={item.media[0].url} alt={item.title} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
                         ) : (
-                          <FaIndustry className="h-6 w-6 text-gray-300" />
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <FaIndustry className="h-6 w-6" />
+                          </div>
                         )}
                       </div>
                       <div className="font-bold text-gray-900 text-[10px] truncate text-center">
@@ -906,14 +943,14 @@ export default function HomePage() {
                     return (
                       <Link key={cat.id} href={`/search?category=${cat.id}`} className="group block outline-none">
                         <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-5 hover:border-jungle-green-200/60 hover:shadow-[0_12px_40px_-12px_rgba(54,173,163,0.2)] transition-all duration-400 ease-out relative overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-jungle-green-500">
-                          
+
                           {/* Soft hover gradient background */}
                           <div className="absolute inset-0 bg-gradient-to-r from-jungle-green-50/0 to-jungle-green-50/0 group-hover:from-jungle-green-50/40 group-hover:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out" />
-                          
+
                           <div className="relative h-14 w-14 rounded-2xl bg-gray-50/80 border border-gray-100/50 flex items-center justify-center text-gray-500 group-hover:bg-gradient-to-br group-hover:from-jungle-green-500 group-hover:to-jungle-green-600 group-hover:text-white group-hover:shadow-[0_8px_16px_-4px_rgba(54,173,163,0.4)] group-hover:border-transparent transition-all duration-400 ease-out transform group-hover:scale-[1.03] shrink-0">
                             <Icon className="h-6 w-6 transition-transform duration-400 group-hover:-rotate-3" />
                           </div>
-                          
+
                           <div className="min-w-0 flex-1 relative">
                             <p className="font-extrabold text-[15px] text-gray-800 group-hover:text-gray-900 transition-colors truncate mb-1">
                               {cat.name}
@@ -1001,7 +1038,7 @@ export default function HomePage() {
               {/* Decorative Background Glows */}
               <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover/banner:bg-blue-500/20 transition-colors duration-700 pointer-events-none" />
               <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
-              
+
               <div className="flex items-center gap-3 mb-6 relative z-10">
                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100/50 text-blue-600 flex items-center justify-center shadow-inner group-hover/banner:scale-110 transition-transform duration-500">
                   <FaBuildingShield className="h-5 w-5" />
@@ -1010,7 +1047,7 @@ export default function HomePage() {
                   JaxMart Escrow
                 </h3>
               </div>
-              
+
               <div className="space-y-6 relative z-10">
                 {[
                   {
@@ -1066,25 +1103,26 @@ export default function HomePage() {
                 ].map((fac, idx) => {
                   const Icon = fac.icon;
                   return (
-                  <div key={idx} className="group flex items-center gap-4 cursor-pointer">
-                    <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100/80 text-gray-400 group-hover:bg-jungle-green-500 group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-jungle-green-500/30 transition-all duration-300 shrink-0 transform group-hover:scale-105">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1 border-b border-gray-50 pb-4 group-last:border-0 group-last:pb-0">
-                      <p className="text-sm font-extrabold text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">{fac.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-block text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider group-hover:bg-jungle-green-50 group-hover:text-jungle-green-600 transition-colors">
-                          {fac.category}
-                        </span>
-                        <span className="text-[10px] text-gray-400 font-medium truncate">
-                          {fac.city} • Est. {fac.year}
-                        </span>
+                    <div key={idx} className="group flex items-center gap-4 cursor-pointer">
+                      <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100/80 text-gray-400 group-hover:bg-jungle-green-500 group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-jungle-green-500/30 transition-all duration-300 shrink-0 transform group-hover:scale-105">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1 border-b border-gray-50 pb-4 group-last:border-0 group-last:pb-0">
+                        <p className="text-sm font-extrabold text-gray-800 group-hover:text-jungle-green-600 transition-colors truncate">{fac.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-block text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider group-hover:bg-jungle-green-50 group-hover:text-jungle-green-600 transition-colors">
+                            {fac.category}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-medium truncate">
+                            {fac.city} • Est. {fac.year}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )})}
+                  )
+                })}
               </div>
-              
+
               <button className="w-full mt-5 py-2.5 rounded-xl border-2 border-gray-100 text-xs font-bold text-gray-600 hover:border-jungle-green-500 hover:text-jungle-green-600 transition-colors flex items-center justify-center gap-2">
                 View Factory Directory <FaArrowRight className="h-3 w-3" />
               </button>
@@ -1110,7 +1148,7 @@ export default function HomePage() {
 
       {/* Floating Side Menu */}
       <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.06)] rounded-l-lg py-5 px-3 flex flex-col gap-5 items-center border border-gray-100 border-r-0">
-        
+
         <div className="relative group">
           <button onClick={() => window.open('/exhibit', '_blank')} className="text-gray-700 hover:text-[#E31837] transition-colors p-1" aria-label="Booth Application">
             <ShoppingBag className="w-[22px] h-[22px] stroke-[2]" />

@@ -13,6 +13,8 @@ import { Badge, Avatar, Button, EmptyState, Card, Container, ListingCardSkeleton
 import { clsx } from 'clsx';
 import { useListingSearch, useCategories } from '@/lib/hooks';
 import Link from 'next/link';
+import Image from 'next/image';
+import mostPopularBannerImage from '@/components/assets/images/most popular.png';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type SortOption = 'relevance' | 'rating' | 'newest' | 'featured' | 'popular';
@@ -102,15 +104,15 @@ function ThemeSelect({
   );
 }
 
-export default function NewProductsPage() {
+export default function MostPopularPage() {
   return (
     <Suspense fallback={<ListingCardSkeleton />}>
-      <NewProductsContent />
+      <MostPopularContent />
     </Suspense>
   );
 }
 
-function NewProductsContent() {
+function MostPopularContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -118,7 +120,7 @@ function NewProductsContent() {
   const [q, setQ] = useState(searchParams.get('q') ?? '');
   const [type, setType] = useState(searchParams.get('type') ?? '');
   const [categoryId, setCategoryId] = useState(searchParams.get('category') ?? '');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [sortBy, setSortBy] = useState<SortOption>('popular');
   const [page, setPage] = useState(1);
 
   // Filters
@@ -152,13 +154,6 @@ function NewProductsContent() {
     }
   }, []);
 
-  // Scroll to the top when pagination (page) changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [page]);
-
   // Synchronize category or query from URL if changed
   useEffect(() => {
     setQ(searchParams.get('q') ?? '');
@@ -173,10 +168,11 @@ function NewProductsContent() {
   const apiParams = {
     q,
     limit: 100,
-    page: 1, // We only fetch the first 100 newest products
-    type: type || 'PRODUCT', // Explicitly default to PRODUCT for new products page
+    page: 1,
+    type: type || 'PRODUCT',
+    tag: 'most-popular',
     ...(categoryId && { categoryId }),
-    sortBy: 'newest', // ALWAYS sort by newest from the backend initially
+    sortBy,
     ...(filters.isVerified && { isVerified: 'true' }),
     ...(filters.minTrust && { minTrust: filters.minTrust }),
     ...(filters.minRating && { minRating: filters.minRating }),
@@ -249,10 +245,8 @@ function NewProductsContent() {
 
   return (
     <PublicLayout>
-      {/* Custom Theme Surface Page Wrapper with #C3CDDB Background */}
-      <div className="bg-[#C3CDDB] min-h-screen pb-16">
-
-
+      {/* Custom Theme Surface Page Wrapper for Most Popular */}
+      <div className="bg-[#4A1E20] min-h-screen pb-16">
 
         {/* Main Content Container */}
         <Container size="full" className="max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-6 py-6">
@@ -348,8 +342,7 @@ function NewProductsContent() {
             </span>
           </div>
 
-          {/* New Product Launchpad Banner */}
-          <NewProductLaunchpadHero />
+          <MostPopularHero />
 
           <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
 
@@ -901,38 +894,75 @@ function LaunchpadCategoryTabs({
   );
 }
 
-// ── NEW PRODUCT LAUNCHPAD BANNER ──────────────────────────────────────────────
-function NewProductLaunchpadHero() {
+// ── MOST POPULAR HERO BANNER ──────────────────────────────────────────────
+function MostPopularHero() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="relative w-full rounded-none overflow-hidden shadow-md mb-6 bg-[#091526]"
+      className="relative w-full overflow-hidden shadow-lg mb-6 bg-[#350b0e]"
     >
-      <div className="w-full h-[180px] sm:h-[240px] md:h-[280px] lg:h-[320px] relative flex items-center justify-center bg-[#091526] overflow-hidden">
-        <img
-          src="/new-product.png"
-          alt="New Product Showcase Banner"
-          className="w-full h-full object-cover object-center scale-[1.12] transition-transform duration-500 hover:scale-[1.14]"
+      <div className="w-full relative flex items-center justify-start overflow-hidden min-h-[240px] md:min-h-[300px]">
+        {/* Force object-contain on all screens so the image is NEVER cut vertically or horizontally */}
+        <Image 
+          src={mostPopularBannerImage} 
+          alt="Most Popular Banner" 
+          fill
+          className="object-contain object-right brightness-75" 
+          priority
         />
+        
+        {/* Decorative Background Elements (Left Side) */}
+        <div 
+          className="absolute inset-0 w-full z-10 pointer-events-none overflow-hidden"
+          style={{ 
+            WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 85%)',
+            maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 85%)'
+          }}
+        >
+          {/* Base gradient blending with the image on the right */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#150406] via-[#2e090c]/95 to-transparent" />
+          
+          {/* Animated Glow Orbs for depth */}
+          <motion.div 
+            animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }} 
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-1/2 -left-1/4 w-3/4 h-[150%] bg-[#EA3323] blur-[120px] rounded-full mix-blend-screen" 
+          />
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} 
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-[-20%] left-[20%] w-1/2 h-[100%] bg-[#fce588] blur-[100px] rounded-full mix-blend-screen" 
+          />
 
-        {/* Left Side Dark Gradient Overlay for Contrast */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent pointer-events-none" />
+          {/* Subtle Dot Grid Pattern */}
+          <div 
+            className="absolute inset-0 opacity-[0.07]" 
+            style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }} 
+          />
+          
+          {/* Diagonal Lines Texture */}
+          <div 
+            className="absolute inset-0 opacity-[0.03]" 
+            style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 8px)' }} 
+          />
+        </div>
 
         {/* Text Content Overlay */}
-        <div className="absolute inset-y-0 left-0 flex flex-col justify-center px-6 sm:px-10 lg:px-14 max-w-xl z-10">
-          <div className="inline-flex items-center gap-2 bg-white/95 border border-emerald-300/80 rounded-full px-3.5 py-1 mb-3.5 w-fit shadow-sm backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-xs" />
-            <span className="text-[11px] font-black text-jungle-green-900 uppercase tracking-widest">HOT RELEASES</span>
+        <div className="absolute inset-y-0 left-0 flex flex-col justify-center px-8 sm:px-12 lg:px-16 max-w-2xl z-20">
+          <div className="flex items-center gap-3 md:gap-4 mb-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-none drop-shadow-md">
+              <span className="text-[#EA3323]">M</span>OST POPULAR
+            </h1>
+            <div className="bg-[#fce588] rounded-[20px] px-3 py-0.5 flex items-center justify-center shadow-md">
+              <span className="text-[#EA3323] font-black text-base sm:text-lg md:text-xl italic pr-0.5">M</span>
+              <span className="text-gray-900 font-black text-base sm:text-lg md:text-xl italic">P</span>
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase leading-none drop-shadow-md font-sans">
-            NEW PRODUCT <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300">SHOWCASE</span>
-          </h1>
-
-          <p className="text-gray-200 font-semibold text-xs sm:text-base mt-2 sm:mt-3 tracking-wide drop-shadow-xs max-w-md">
-            Explore the hottest releases in the past two weeks
+          <p className="text-white text-sm sm:text-base md:text-lg font-medium mt-1 sm:mt-2 max-w-md leading-snug drop-shadow-md">
+            Trending B2B wholesale products. High demand bulk deals from top suppliers.
           </p>
         </div>
       </div>

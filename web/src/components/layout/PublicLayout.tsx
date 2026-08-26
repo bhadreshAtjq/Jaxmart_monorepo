@@ -26,7 +26,7 @@ const AUTH_LINKS = [
   { href: '/seller/dashboard', label: 'Dashboard' },
 ];
 
-export function PublicLayout({ children }: { children: React.ReactNode }) {
+export function PublicLayout({ children, hideHeader = false }: { children: React.ReactNode, hideHeader?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoggedIn, updateUser } = useAuthStore();
@@ -82,225 +82,219 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top Bar */}
-      <div className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8 text-[11px]">
-          <div className="flex items-center gap-4 text-gray-400">
-            <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
-            <span className="hidden md:inline">|</span>
-            <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
-            <span className="hidden md:inline">|</span>
-            <span className="hidden md:flex items-center gap-1">
-              {!isLoading && countryCode ? (
-                <>Ship to: <strong className="text-white">{countryCode}</strong> ({currency.symbol} {currency.code})</>
+      {!hideHeader && (
+        <div className="bg-gray-900 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8 text-[11px]">
+            <div className="flex items-center gap-4 text-gray-400">
+              <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
+              <span className="hidden md:inline">|</span>
+              <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
+              <span className="hidden md:inline">|</span>
+              <span className="hidden md:flex items-center gap-1">
+                {!isLoading && countryCode ? (
+                  <>Ship to: <strong className="text-white">{countryCode}</strong> ({currency.symbol} {currency.code})</>
+                ) : (
+                  <span className="text-gray-500 animate-pulse">Location...</span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {showAuth ? (
+                <>
+                  <Link href="/orders" className="text-gray-400 hover:text-white transition-colors">My Orders</Link>
+                  <span className="text-gray-600">|</span>
+                  <Link href="/profile" className="text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                    <FaUser className="h-3 w-3" /> {user?.fullName?.split(' ')[0]}
+                  </Link>
+                </>
               ) : (
-                <span className="text-gray-500 animate-pulse">Location...</span>
+                <>
+                  <Link href="/auth/login" className="text-gray-400 hover:text-white transition-colors">Sign In</Link>
+                  <span className="text-gray-600">|</span>
+                  <Link href="/auth/login" className="text-jungle-green-400 hover:text-jungle-green-300 transition-colors font-semibold">Join Free</Link>
+                </>
               )}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {showAuth ? (
-              <>
-                <Link href="/orders" className="text-gray-400 hover:text-white transition-colors">My Orders</Link>
-                <span className="text-gray-600">|</span>
-                <Link href="/profile" className="text-gray-400 hover:text-white transition-colors flex items-center gap-1">
-                  <FaUser className="h-3 w-3" /> {user?.fullName?.split(' ')[0]}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login" className="text-gray-400 hover:text-white transition-colors">Sign In</Link>
-                <span className="text-gray-600">|</span>
-                <Link href="/auth/login" className="text-jungle-green-400 hover:text-jungle-green-300 transition-colors font-semibold">Join Free</Link>
-              </>
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Navbar */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 gap-6">
-            {/* Logo */}
-            <Link href="/home" className="flex items-center shrink-0">
-              <Image
-                src="/JaxMart_bg.png"
-                alt="JaxMart"
-                width={150}
-                height={50}
-                priority
-                className="h-11 sm:h-12 w-auto object-contain"
-              />
-            </Link>
+      {!hideHeader && (
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-16 gap-6">
+              {/* Logo */}
+              <Link href="/home" className="flex items-center shrink-0">
+                <Image
+                  src="/JaxMart_bg.png"
+                  alt="JaxMart"
+                  width={150}
+                  height={50}
+                  priority
+                  className="h-11 sm:h-12 w-auto object-contain"
+                />
+              </Link>
 
-            {/* Search Bar with Autocomplete Suggestions */}
-            <div className="flex-1 max-w-2xl">
-              <SearchAutocomplete compact placeholder="Search products, suppliers, categories..." />
+              {/* Search Bar with Autocomplete Suggestions */}
+              <div className="flex-1 max-w-2xl">
+                <SearchAutocomplete compact placeholder="Search products, suppliers, categories..." />
+              </div>
+
+              {/* Nav Links */}
+              <nav className="hidden lg:flex items-center gap-1">
+                {NAV_LINKS.map(link => (
+                  <Link key={link.href} href={link.href}
+                    className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                      pathname === link.href || pathname.startsWith(link.href + '/') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    )}>
+                    {link.label}
+                  </Link>
+                ))}
+                {showAuth && (
+                  <>
+                    <Link href="/inbox"
+                      className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                        pathname.startsWith('/inbox') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      )}>
+                      Messages
+                    </Link>
+                    {isSeller && (
+                      <Link href="/seller/dashboard"
+                        className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                          pathname.startsWith('/seller') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        )}>
+                        Dashboard
+                      </Link>
+                    )}
+                  </>
+                )}
+              </nav>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 shrink-0">
+                <Link href="/rfq/create">
+                  <button className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white text-sm font-semibold px-4 h-10 rounded-lg transition-all duration-300 shadow-sm">
+                    Post Request
+                  </button>
+                </Link>
+                <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-gray-600">
+                  {mobileOpen ? <FaXmark className="h-5 w-5" /> : <FaBars className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Nav Links */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {NAV_LINKS.map(link => (
-                <Link key={link.href} href={link.href}
-                  className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    pathname === link.href || pathname.startsWith(link.href + '/') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  )}>
+          {/* Mobile Menu */}
+          {mobileOpen && (
+            <div className="lg:hidden border-t border-gray-200 bg-white py-3 px-4 space-y-1">
+              {[
+                ...NAV_LINKS, 
+                ...(showAuth ? [{ href: '/inbox', label: 'Messages' }] : []),
+                ...(showAuth ? AUTH_LINKS.filter(link => link.href !== '/seller/dashboard' || isSeller) : [])
+              ].map(link => (
+                <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                   {link.label}
                 </Link>
               ))}
-              {showAuth && (
-                <>
-                  <Link href="/inbox"
-                    className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      pathname.startsWith('/inbox') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    )}>
-                    Messages
-                  </Link>
-                  {isSeller && (
-                    <Link href="/seller/dashboard"
-                      className={clsx('px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                        pathname.startsWith('/seller') ? 'text-jungle-green-600 bg-jungle-green-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      )}>
-                      Dashboard
-                    </Link>
-                  )}
-                </>
+              {!showAuth && (
+                <Link href="/auth/login" onClick={() => setMobileOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-jungle-green-600 bg-jungle-green-50">
+                  Sign In / Register
+                </Link>
               )}
-            </nav>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 shrink-0">
-              <Link href="/rfq/create">
-                <button className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[#232F72] to-[#2F578A] hover:from-[#1C265B] hover:to-[#244774] text-white text-sm font-semibold px-4 h-10 rounded-lg transition-all duration-300 shadow-sm">
-                  Post Request
-                </button>
-              </Link>
-              <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-gray-600">
-                {mobileOpen ? <FaXmark className="h-5 w-5" /> : <FaBars className="h-5 w-5" />}
-              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white py-3 px-4 space-y-1">
-            {[
-              ...NAV_LINKS, 
-              ...(showAuth ? [{ href: '/inbox', label: 'Messages' }] : []),
-              ...(showAuth ? AUTH_LINKS.filter(link => link.href !== '/seller/dashboard' || isSeller) : [])
-            ].map(link => (
-              <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                {link.label}
-              </Link>
-            ))}
-            {!showAuth && (
-              <Link href="/auth/login" onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-jungle-green-600 bg-jungle-green-50">
-                Sign In / Register
-              </Link>
-            )}
-          </div>
-        )}
-      </header>
+          )}
+        </header>
+      )}
 
       {/* Page Content */}
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
       {!pathname.startsWith('/inbox') && (
-        <footer className="relative bg-[#090b11] text-gray-300 border-t border-gray-800/60 overflow-hidden">
-          {/* Subtle Background Glow */}
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#232F72]/10 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#36ADA3]/5 rounded-full blur-[100px] pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-12">
+        <footer className="relative bg-gradient-to-br from-[#03979B] via-[#0b6483] to-[#122e6e] text-white overflow-hidden font-sans">
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-8 pt-16 pb-8 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-12 mb-16">
               
-              {/* Brand Column */}
-              <div className="lg:col-span-2">
-                <Link href="/home" className="inline-block mb-6 group">
-                  <Image
-                    src="/JaxMart_bg.png"
-                    alt="JaxMart"
-                    width={150}
-                    height={50}
-                    className="h-11 w-auto object-contain"
-                  />
-                </Link>
-                <p className="text-sm text-gray-400 leading-relaxed font-medium max-w-sm">
-                  India's premier B2B marketplace engineered for verified wholesale trade, seamless sourcing, and uncompromising escrow protection.
-                </p>
-              </div>
-
-              {/* For Buyers */}
+              {/* About Us */}
               <div>
-                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">For Buyers</h4>
-                <div className="space-y-4 text-sm text-gray-400 font-medium">
-                  <Link href="/search" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    Find Products
-                  </Link>
-                  <Link href="/rfq/create" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    Post a Request
-                  </Link>
-                  <Link href="/orders" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    My Orders
-                  </Link>
+                <h4 className="text-white text-[15px] font-bold mb-6">About Us</h4>
+                <div className="space-y-4 text-[13px] text-white/90">
+                  <Link href="#" className="block hover:underline">Why choose Jaxmart.com</Link>
+                  <Link href="#" className="block hover:underline">Co-Create Pitch</Link>
+                  <Link href="#" className="block hover:underline">Corporate responsibility</Link>
+                  <Link href="#" className="block hover:underline">Careers</Link>
                 </div>
               </div>
 
-              {/* For Sellers */}
+              {/* Order protection */}
               <div>
-                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">For Sellers</h4>
-                <div className="space-y-4 text-sm text-gray-400 font-medium">
-                  <Link href="/seller/dashboard" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    Seller Center
-                  </Link>
-                  <Link href="/seller/listings/new" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    List Products
-                  </Link>
-                  <Link href="/seller/rfq-inbox" className="flex items-center gap-2 group hover:text-[#36ADA3] transition-colors w-fit">
-                    <FaChevronRight className="h-2.5 w-2.5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-[#36ADA3]" />
-                    Buyer Requests
-                  </Link>
+                <h4 className="text-white text-[15px] font-bold mb-6">Order protection</h4>
+                <div className="space-y-4 text-[13px] text-white/90">
+                  <Link href="#" className="block hover:underline">Secure payments</Link>
+                  <Link href="#" className="block hover:underline">Money-back guarantee</Link>
+                  <Link href="#" className="block hover:underline">Guaranteed on-time delivery</Link>
+                  <Link href="#" className="block hover:underline">After-sales protections</Link>
+                  <Link href="#" className="block hover:underline">Production monitoring & inspection services</Link>
+                  <Link href="#" className="block hover:underline">Policies and rules</Link>
                 </div>
               </div>
 
-              {/* Trust & Safety */}
+              {/* Source on Jaxmart.com */}
               <div>
-                <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Trust & Safety</h4>
-                <div className="space-y-4 text-sm text-gray-400 font-medium">
-                  <span className="flex items-center gap-2 group cursor-default w-fit">
-                    <FaShieldHalved className="h-3.5 w-3.5 text-gray-500 group-hover:text-blue-500 transition-colors" />
-                    <span className="group-hover:text-gray-300 transition-colors">Escrow Protection</span>
-                  </span>
-                  <span className="flex items-center gap-2 group cursor-default w-fit">
-                    <FaCircleCheck className="h-3.5 w-3.5 text-gray-500 group-hover:text-emerald-500 transition-colors" />
-                    <span className="group-hover:text-gray-300 transition-colors">Verified Suppliers</span>
-                  </span>
-                  <span className="flex items-center gap-2 group cursor-default w-fit">
-                    <FaCircleCheck className="h-3.5 w-3.5 text-gray-500 group-hover:text-emerald-500 transition-colors" />
-                    <span className="group-hover:text-gray-300 transition-colors">Quality Guarantee</span>
-                  </span>
+                <h4 className="text-white text-[15px] font-bold mb-6">Source on Jaxmart.com</h4>
+                <div className="space-y-4 text-[13px] text-white/90">
+                  <Link href="#" className="block hover:underline">Verified manufacturers</Link>
+                  <Link href="#" className="block hover:underline">Request for Quotation</Link>
+                </div>
+              </div>
+
+              {/* Help Center */}
+              <div>
+                <h4 className="text-white text-[15px] font-bold mb-6">Help Center</h4>
+                <div className="space-y-4 text-[13px] text-white/90">
+                  <Link href="#" className="block hover:underline">Buyer Help Center</Link>
+                  <Link href="#" className="block hover:underline">Live chat</Link>
+                  <Link href="#" className="block hover:underline">File a trade dispute</Link>
+                  <Link href="#" className="block hover:underline">Refunds</Link>
+                  <Link href="#" className="block hover:underline">Report IP infringement</Link>
+                  <Link href="#" className="block hover:underline">Report a violation</Link>
+                </div>
+              </div>
+
+              {/* Sell on Jaxmart.com */}
+              <div>
+                <h4 className="text-white text-[15px] font-bold mb-6">Sell on Jaxmart.com</h4>
+                <div className="space-y-4 text-[13px] text-white/90">
+                  <Link href="#" className="block hover:underline">Sell on Jaxmart.com</Link>
+                  <Link href="#" className="block hover:underline">Start selling</Link>
+                  <Link href="#" className="block hover:underline">Check order status</Link>
+                  <Link href="#" className="block hover:underline">Become a Verified Supplier</Link>
+                  <Link href="#" className="block hover:underline">Partnerships</Link>
                 </div>
               </div>
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-white/[0.05] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-gray-500">
-              <span className="flex items-center gap-2">
-                © 2026 JaxMart. All rights reserved.
-              </span>
-              <div className="flex flex-wrap items-center justify-center gap-6">
-                <span className="hover:text-white transition-colors cursor-pointer">Terms of Use</span>
-                <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
-                <span className="hover:text-white transition-colors cursor-pointer">Contact Us</span>
+            <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+              <Link href="/home" className="shrink-0">
+                <Image
+                  src="/Jaxmart_logo.svg"
+                  alt="JaxMart"
+                  width={150}
+                  height={50}
+                  className="h-10 w-auto object-contain brightness-0 invert"
+                />
+              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-[12px] font-medium text-white">
+                <Link href="#" className="hover:underline">Terms of Use</Link>
+                <span className="mx-1">|</span>
+                <Link href="#" className="hover:underline">Privacy Policy</Link>
+                <span className="mx-1">|</span>
+                <Link href="#" className="hover:underline">Security Measures</Link>
+                <span className="ml-2 font-semibold">Copyright © 2026 Jaxmart. All rights reserved.</span>
               </div>
             </div>
           </div>

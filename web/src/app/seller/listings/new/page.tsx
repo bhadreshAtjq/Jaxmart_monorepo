@@ -278,37 +278,38 @@ export default function NewListingPage() {
   return (
     <AppLayout>
       <RequirementGate>
-        <div className="bg-white border-b border-gray-100 mb-12">
-          <Container size="xl" className="py-12">
-             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div>
-                  <button onClick={() => router.push('/seller/listings')} className="flex items-center gap-2 text-[10px] font-black text-jax-blue uppercase tracking-widest hover:gap-3 transition-all mb-4">
-                    <FaArrowLeft className="h-3 w-3" /> Back to Ledger
-                  </button>
-                  <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Initialize Storefront SKU</h1>
-                  <p className="text-sm text-gray-500 font-medium font-sans">Provision a new industrial product or technical service into the global search index.</p>
-                </div>
-                
-                <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
-                  {STEPS.map((s, i) => (
-                    <div 
-                      key={s.id} 
-                      className={clsx(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-500",
-                        step === i ? "bg-jax-dark text-white shadow-lg" : "text-gray-400"
-                      )}
-                    >
-                      <s.icon className={clsx("h-3.5 w-3.5", step === i ? "text-jax-accent" : "text-gray-300")} />
-                      <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{s.label}</span>
-                      {step > i && <FaCircleCheck className="h-3 w-3 text-emerald-500" />}
-                    </div>
-                  ))}
-                </div>
-             </div>
-          </Container>
-        </div>
+        <div className="bg-[#C3CDDB] min-h-screen pb-32">
+          <div className="bg-white/90 backdrop-blur-md border-b border-gray-200/80 mb-12 shadow-xs">
+            <Container size="xl" className="py-12">
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                  <div>
+                    <button onClick={() => router.push('/seller/listings')} className="flex items-center gap-2 text-[10px] font-black text-jax-blue uppercase tracking-widest hover:gap-3 transition-all mb-4">
+                      <FaArrowLeft className="h-3 w-3" /> Back to Ledger
+                    </button>
+                    <h1 className="text-3xl font-heading font-black text-jax-dark tracking-tighter uppercase leading-none mb-2">Initialize Storefront SKU</h1>
+                    <p className="text-sm text-gray-500 font-medium font-sans">Provision a new industrial product or technical service into the global search index.</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 p-1 bg-gray-50/80 rounded-2xl border border-gray-200/60 shadow-xs">
+                    {STEPS.map((s, i) => (
+                      <div 
+                        key={s.id} 
+                        className={clsx(
+                          "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-500",
+                          step === i ? "bg-jax-dark text-white shadow-lg" : "text-gray-400"
+                        )}
+                      >
+                        <s.icon className={clsx("h-3.5 w-3.5", step === i ? "text-jax-accent" : "text-gray-300")} />
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{s.label}</span>
+                        {step > i && <FaCircleCheck className="h-3 w-3 text-emerald-500" />}
+                      </div>
+                    ))}
+                  </div>
+               </div>
+            </Container>
+          </div>
 
-        <Container size="xl" className="pb-32">
+          <Container size="xl">
           <div className="max-w-4xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -882,6 +883,7 @@ export default function NewListingPage() {
             </div>
           </div>
         </Container>
+        </div>
       </RequirementGate>
     </AppLayout>
   );

@@ -8,24 +8,68 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 export function ScrollRestorer() {
   const pathname = usePathname();
 
+  // Continuously track & save user's scroll stop position
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem(`scroll_${pathname}`, window.scrollY.toString());
+
+    let timeoutId: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      // Debounce scroll save so we capture the exact stop point when scrolling pauses
+      timeoutId = setTimeout(() => {
+        if (window.scrollY > 0) {
+          sessionStorage.setItem(`scroll_pos_${pathname}`, window.scrollY.toString());
+        }
+      }, 150);
     };
+
+    const handleBeforeUnload = () => {
+      if (window.scrollY > 0) {
+        sessionStorage.setItem(`scroll_pos_${pathname}`, window.scrollY.toString());
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [pathname]);
 
+  // Restore scroll position at exact stop point on mount / refresh / navigation
   useIsomorphicLayoutEffect(() => {
     if (typeof window === 'undefined') return;
-    window.history.scrollRestoration = 'manual';
-    const savedPos = sessionStorage.getItem(`scroll_${pathname}`);
+
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    // Force pages like /new-products to always open from the very top
+    if (pathname === '/new-products' || pathname.startsWith('/new-products')) {
+      sessionStorage.removeItem(`scroll_pos_${pathname}`);
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+      return;
+    }
+
+    const savedPos = sessionStorage.getItem(`scroll_pos_${pathname}`);
     if (savedPos) {
-      const y = parseInt(savedPos, 10);
-      window.scrollTo(0, y);
-      // Small timeout to catch Next.js layout shifts
-      setTimeout(() => window.scrollTo(0, y), 10);
+      const targetY = parseInt(savedPos, 10);
+      if (!isNaN(targetY) && targetY > 0) {
+        // Immediate scroll to stop point
+        window.scrollTo(0, targetY);
+
+        // Multiple RAF & timeout checks to ensure position remains at the stop point even after async content finishes rendering
+        requestAnimationFrame(() => window.scrollTo(0, targetY));
+        setTimeout(() => window.scrollTo(0, targetY), 50);
+        setTimeout(() => window.scrollTo(0, targetY), 200);
+        setTimeout(() => window.scrollTo(0, targetY), 500);
+      }
+    } else {
+      window.scrollTo(0, 0);
     }
   }, [pathname]);
 

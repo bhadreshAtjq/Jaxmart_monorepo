@@ -31,7 +31,7 @@ interface AppInputProps extends TextInputProps {
   showCharCount?: boolean;
 }
 
-export const AppInput: React.FC<AppInputProps> = ({
+export const AppInput = React.forwardRef<TextInput, AppInputProps>(({
   label,
   error,
   helperText,
@@ -50,7 +50,7 @@ export const AppInput: React.FC<AppInputProps> = ({
   secureTextEntry,
   value,
   ...rest
-}) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
@@ -104,6 +104,7 @@ export const AppInput: React.FC<AppInputProps> = ({
         )}
 
         <TextInput
+          ref={ref}
           style={[
             styles.input,
             isMonospace && typography.monoMedium,
@@ -169,7 +170,8 @@ export const AppInput: React.FC<AppInputProps> = ({
       </View>
     </View>
   );
-};
+});
+AppInput.displayName = 'AppInput';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -190,17 +192,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.outline,
-    borderRadius: borderRadius.small, // 8dp M3 standard
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
     minHeight: 52,
     paddingHorizontal: spacing.md,
   },
   inputContainerFocused: {
     borderColor: colors.primary,
-    borderWidth: 2,
-    backgroundColor: colors.surfaceContainerLowest,
+    backgroundColor: '#FFFFFF',
   },
   inputContainerError: {
     borderColor: colors.error,

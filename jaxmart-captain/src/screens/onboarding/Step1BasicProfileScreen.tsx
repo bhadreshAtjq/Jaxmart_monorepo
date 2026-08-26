@@ -9,7 +9,6 @@ import {
   Platform,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
@@ -102,7 +101,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
     mode: 'onBlur',
   });
 
-  // Auto-search trigger when exactly 15 characters are entered/pasted
+  // Auto-search trigger when exactly 15 characters are entered
   useEffect(() => {
     const clean = gstinInput.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (clean.length === 15 && clean !== lastSearchedRef.current) {
@@ -159,7 +158,9 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
         }
 
         setAutoFilledSuccess(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        try {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch (e) {}
       }
     } catch (e: any) {
       setIsSearching(false);
@@ -190,11 +191,6 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
     performGstSearch(clean);
   };
 
-  const handleGstDetectedFromOcr = (detectedGstin: string) => {
-    setGstinInput(detectedGstin);
-    performGstSearch(detectedGstin);
-  };
-
   const handleSelectPreset = (presetGstin: string) => {
     setGstinInput(presetGstin);
     performGstSearch(presetGstin);
@@ -221,6 +217,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* 🌟 Ultra-Clean Wizard Step Header */}
       <WizardStepHeader
         currentStep={1}
         totalSteps={7}
@@ -243,6 +240,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
           {/* Segmented Mode Switcher */}
           <View style={styles.modeSwitcherContainer}>
             <TouchableOpacity
+              activeOpacity={0.8}
               style={[
                 styles.modeTab,
                 onboardingMode === 'GST_FAST_TRACK' && styles.modeTabActive,
@@ -251,8 +249,8 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
             >
               <Ionicons
                 name="flash"
-                size={16}
-                color={onboardingMode === 'GST_FAST_TRACK' ? '#FFFFFF' : colors.textSecondary}
+                size={15}
+                color={onboardingMode === 'GST_FAST_TRACK' ? '#FFFFFF' : '#64748B'}
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -266,6 +264,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
             </TouchableOpacity>
 
             <TouchableOpacity
+              activeOpacity={0.8}
               style={[
                 styles.modeTab,
                 onboardingMode === 'MANUAL' && styles.modeTabActive,
@@ -274,8 +273,8 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
             >
               <Ionicons
                 name="create-outline"
-                size={16}
-                color={onboardingMode === 'MANUAL' ? '#FFFFFF' : colors.textSecondary}
+                size={15}
+                color={onboardingMode === 'MANUAL' ? '#FFFFFF' : '#64748B'}
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -319,7 +318,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
                     Point camera at certificate, signboard, bill or business card
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.secondary} />
+                <Ionicons name="chevron-forward" size={18} color="#0D9488" />
               </TouchableOpacity>
 
               {/* Text Search Input Row */}
@@ -356,16 +355,6 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
                 </TouchableOpacity>
               </View>
 
-              {/* Scanning Active HUD Indicator */}
-              {isSearching && (
-                <View style={styles.scanningHud}>
-                  <ActivityIndicator size="small" color={colors.secondary} style={{ marginRight: 8 }} />
-                  <Text style={styles.scanningHudText}>
-                    Searching official GSTN registry for {gstinInput}...
-                  </Text>
-                </View>
-              )}
-
               {/* Quick Preset Chips */}
               <View style={styles.presetsWrapper}>
                 <Text style={styles.presetsLabel}>Quick Demo GSTINs:</Text>
@@ -376,7 +365,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
                       style={styles.presetChip}
                       onPress={() => handleSelectPreset(p.gstin)}
                     >
-                      <Text style={styles.presetChipText}>{p.label}</Text>
+                      <Text style={styles.presetChipText}>⚡ {p.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -387,7 +376,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
                 <View style={styles.verifiedTaxpayerCard}>
                   <View style={styles.taxpayerHeader}>
                     <View style={styles.taxpayerHeaderLeft}>
-                      <Ionicons name="shield-checkmark" size={18} color={colors.secondary} style={{ marginRight: 6 }} />
+                      <Ionicons name="shield-checkmark" size={18} color="#0D9488" style={{ marginRight: 6 }} />
                       <Text style={styles.taxpayerBadgeText}>OFFICIAL GST RECORD</Text>
                     </View>
                     <View style={styles.statusPill}>
@@ -411,17 +400,10 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
 
                     <View style={styles.taxpayerDetailCol}>
                       <Text style={styles.taxpayerDetailLabel}>EXTRACTED PAN</Text>
-                      <Text style={[styles.taxpayerDetailValue, { fontFamily: 'monospace', color: colors.secondary }]}>
+                      <Text style={[styles.taxpayerDetailValue, { fontFamily: 'monospace', color: '#0D9488' }]}>
                         {parseGstin(gstinInput).pan}
                       </Text>
                     </View>
-                  </View>
-
-                  <View style={styles.taxpayerJurisdictionBox}>
-                    <Ionicons name="location" size={14} color={colors.onSecondaryContainer} style={{ marginRight: 4 }} />
-                    <Text style={styles.taxpayerJurisdictionText}>
-                      {gstResult.state_jurisdiction?.value || `${parseGstin(gstinInput).stateName} State`}
-                    </Text>
                   </View>
 
                   {autoFilledSuccess && (
@@ -439,6 +421,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
 
           {/* Business Profile Form Card */}
           <View style={styles.formCard}>
+            <View style={styles.formCardTopBar} />
             <Text style={styles.formCardTitle}>Legal Business Identity</Text>
             <Text style={styles.formCardSubtitle}>
               {autoFilledSuccess
@@ -493,6 +476,7 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
 
           {/* Primary Owner Contact Information */}
           <View style={styles.formCard}>
+            <View style={styles.formCardTopBar} />
             <Text style={styles.formCardTitle}>Primary Owner / Authorized Representative</Text>
             <Text style={styles.formCardSubtitle}>
               Decision maker for payments, commercial terms, and warehouse operations
@@ -503,11 +487,12 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
               name="primaryOwnerName"
               render={({ field: { onChange, value } }) => (
                 <AppInput
-                  label="Primary Owner / Director Full Name"
-                  placeholder="e.g. Rajesh Sharma"
+                  label="Owner / Representative Full Name"
+                  placeholder="e.g. Rajesh Kumar Sharma"
                   value={value}
                   onChangeText={onChange}
                   error={errors.primaryOwnerName?.message}
+                  icon="person-outline"
                   required
                 />
               )}
@@ -518,30 +503,15 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
               name="primaryMobile"
               render={({ field: { onChange, value } }) => (
                 <AppInput
-                  label="Primary Mobile Number"
-                  placeholder="10-digit mobile"
+                  label="Primary Mobile Number (OTP Verified)"
+                  placeholder="10-digit mobile number"
                   value={value}
-                  onChangeText={(t) => onChange(t.replace(/[^0-9]/g, ''))}
-                  error={errors.primaryMobile?.message}
-                  prefix="+91 "
+                  onChangeText={onChange}
                   keyboardType="phone-pad"
                   maxLength={10}
+                  error={errors.primaryMobile?.message}
+                  icon="call-outline"
                   required
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="secondaryPhone"
-              render={({ field: { onChange, value } }) => (
-                <AppInput
-                  label="Secondary Phone / Landline (Optional)"
-                  placeholder="Alternate contact phone"
-                  value={value || ''}
-                  onChangeText={(t) => onChange(t.replace(/[^0-9]/g, ''))}
-                  error={errors.secondaryPhone?.message}
-                  keyboardType="phone-pad"
                 />
               )}
             />
@@ -551,13 +521,14 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
               name="email"
               render={({ field: { onChange, value } }) => (
                 <AppInput
-                  label="Official Email Address"
-                  placeholder="e.g. accounts@business.com"
+                  label="Official Business Email"
+                  placeholder="name@company.com"
                   value={value}
                   onChangeText={onChange}
-                  error={errors.email?.message}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  error={errors.email?.message}
+                  icon="mail-outline"
                   required
                 />
               )}
@@ -572,7 +543,6 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
                   options={LANGUAGE_OPTIONS}
                   selectedValue={value || 'English'}
                   onSelect={onChange}
-                  error={errors.preferredLanguage?.message}
                 />
               )}
             />
@@ -580,19 +550,24 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* OCR Camera Scanner Modal */}
+      <GstOcrScannerModal
+        visible={scannerModalVisible}
+        onClose={() => setScannerModalVisible(false)}
+        onGstDetected={(detectedGstin) => {
+          setGstinInput(detectedGstin);
+          performGstSearch(detectedGstin);
+        }}
+      />
+
+      {/* Navigation Wizard Footer */}
       <WizardNavigationFooter
         currentStep={1}
         totalSteps={7}
         onNext={handleSubmit(onSubmit)}
         onBack={() => navigation.goBack()}
         onSaveDraft={handleSaveDraft}
-      />
-
-      {/* Optical GST Document OCR Camera Modal */}
-      <GstOcrScannerModal
-        visible={scannerModalVisible}
-        onClose={() => setScannerModalVisible(false)}
-        onGstDetected={handleGstDetectedFromOcr}
+        nextLabel="Continue to Store Location →"
       />
     </SafeAreaView>
   );
@@ -601,48 +576,51 @@ export const Step1BasicProfileScreen: React.FC<Step1BasicProfileScreenProps> = (
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: 180,
+    padding: spacing.md,
+    paddingBottom: 100,
   },
   modeSwitcherContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: borderRadius.md,
-    padding: 3,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 4,
     marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   modeTab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.xs + 3,
-    borderRadius: borderRadius.sm,
+    paddingVertical: 9,
+    borderRadius: 10,
   },
   modeTabActive: {
-    backgroundColor: colors.primary,
-    ...shadows.card,
+    backgroundColor: '#0F172A',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
   modeTabText: {
-    ...typography.labelMd,
-    color: colors.textSecondary,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
   },
   modeTabTextActive: {
     color: '#FFFFFF',
+    fontWeight: '800',
   },
   gstSearchCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: colors.secondary,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
     ...shadows.card,
   },
   cardHeaderRow: {
@@ -651,56 +629,51 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   zapCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.secondary,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
   cardHeaderTitle: {
-    ...typography.titleMd,
-    color: colors.primaryDark,
-    fontWeight: '800',
     fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '800',
   },
   cardHeaderSubtitle: {
-    ...typography.bodySm,
-    color: colors.textSecondary,
     fontSize: 11,
+    color: '#64748B',
     marginTop: 1,
   },
   ocrScanTriggerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondaryContainer,
+    backgroundColor: '#CCFBF1',
     borderWidth: 1.5,
-    borderColor: colors.secondary,
+    borderColor: '#0D9488',
     padding: spacing.md,
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
     marginBottom: spacing.md,
-    ...shadows.card,
   },
   ocrScanIconWrap: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.secondary,
+    backgroundColor: '#0D9488',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
   ocrScanTitle: {
-    ...typography.titleMd,
-    color: colors.onSecondaryContainer,
-    fontWeight: '800',
     fontSize: 13,
+    color: '#115E59',
+    fontWeight: '800',
   },
   ocrScanSubtitle: {
-    ...typography.bodySm,
-    color: colors.onSecondaryContainer,
     fontSize: 11,
+    color: '#115E59',
     marginTop: 1,
   },
   searchInputRow: {
@@ -712,70 +685,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.secondary,
+    backgroundColor: '#0F172A',
     height: 46,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
     marginLeft: spacing.sm,
     marginTop: 24,
-    ...shadows.card,
   },
   searchBtnDisabled: {
     opacity: 0.7,
   },
   searchBtnText: {
-    ...typography.labelMd,
+    fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '800',
-  },
-  scanningHud: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLow,
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
-    marginTop: spacing.xs,
-  },
-  scanningHudText: {
-    ...typography.bodySm,
-    color: colors.secondary,
-    fontWeight: '600',
-    fontSize: 11,
   },
   presetsWrapper: {
     marginTop: spacing.sm,
   },
   presetsLabel: {
-    ...typography.labelCaps,
-    color: colors.textSecondary,
     fontSize: 10,
-    marginBottom: 4,
+    fontWeight: '800',
+    color: '#64748B',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   presetsTrack: {
     flexDirection: 'row',
   },
   presetChip: {
-    backgroundColor: colors.surfaceContainerLow,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm + 2,
-    borderRadius: borderRadius.full,
-    marginRight: spacing.xs,
+    borderColor: '#CBD5E1',
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginRight: 6,
   },
   presetChipText: {
-    ...typography.bodySm,
-    color: colors.primaryDark,
-    fontWeight: '600',
     fontSize: 11,
+    color: '#0F172A',
+    fontWeight: '700',
   },
   verifiedTaxpayerCard: {
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: borderRadius.md,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 14,
     padding: spacing.md,
     marginTop: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.secondary,
+    borderWidth: 1.5,
+    borderColor: '#10B981',
   },
   taxpayerHeader: {
     flexDirection: 'row',
@@ -788,34 +747,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   taxpayerBadgeText: {
-    ...typography.labelCaps,
-    color: colors.onSecondaryContainer,
-    fontWeight: '800',
     fontSize: 10,
+    color: '#065F46',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   statusPill: {
-    backgroundColor: colors.secondary,
+    backgroundColor: '#10B981',
     paddingVertical: 2,
-    paddingHorizontal: spacing.xs + 2,
-    borderRadius: borderRadius.xs,
+    paddingHorizontal: 8,
+    borderRadius: 6,
   },
   statusPillText: {
-    ...typography.labelCaps,
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 9,
   },
   taxpayerLegalName: {
-    ...typography.titleMd,
-    color: colors.onSecondaryContainer,
-    fontWeight: '800',
     fontSize: 14,
-    marginTop: 2,
+    color: '#065F46',
+    fontWeight: '800',
+    marginTop: 3,
   },
   taxpayerTradeName: {
-    ...typography.bodySm,
-    color: colors.onSecondaryContainer,
     fontSize: 12,
+    color: '#047857',
     marginTop: 1,
   },
   taxpayerDetailsRow: {
@@ -826,63 +782,60 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   taxpayerDetailLabel: {
-    ...typography.labelCaps,
-    color: colors.onSecondaryContainer,
     fontSize: 9,
-    opacity: 0.8,
+    fontWeight: '800',
+    color: '#047857',
+    letterSpacing: 0.4,
   },
   taxpayerDetailValue: {
-    ...typography.bodySm,
-    color: colors.onSecondaryContainer,
-    fontWeight: '700',
     fontSize: 12,
+    color: '#065F46',
+    fontWeight: '700',
     marginTop: 1,
-  },
-  taxpayerJurisdictionBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.xs + 2,
-  },
-  taxpayerJurisdictionText: {
-    ...typography.bodySm,
-    color: colors.onSecondaryContainer,
-    fontSize: 11,
   },
   autoFilledSuccessBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.sm,
+    borderColor: '#6EE7B7',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
     marginTop: spacing.sm,
   },
   autoFilledSuccessText: {
-    ...typography.labelMd,
-    color: '#065F46',
-    fontWeight: '700',
     fontSize: 11,
+    color: '#047857',
+    fontWeight: '700',
   },
   formCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: spacing.md + 2,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
+    position: 'relative',
+    overflow: 'hidden',
     ...shadows.card,
   },
+  formCardTopBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#0F172A',
+  },
   formCardTitle: {
-    ...typography.titleMd,
-    color: colors.primaryDark,
-    fontWeight: '700',
+    fontSize: 15,
+    color: '#0F172A',
+    fontWeight: '800',
   },
   formCardSubtitle: {
-    ...typography.bodySm,
-    color: colors.textSecondary,
     fontSize: 11,
+    color: '#64748B',
     marginTop: 2,
     marginBottom: spacing.md,
   },

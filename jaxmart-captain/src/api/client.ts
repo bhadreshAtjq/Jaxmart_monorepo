@@ -12,7 +12,7 @@ export const getDefaultBaseUrl = (): string => {
     return 'http://localhost:4000/api';
   }
   // Primary local network IP for physical device & emulator connectivity
-  return 'http://192.168.1.33:4000/api';
+  return 'http://192.168.1.11:4000/api';
 };
 
 export const getApiBaseUrl = async (): Promise<string> => {

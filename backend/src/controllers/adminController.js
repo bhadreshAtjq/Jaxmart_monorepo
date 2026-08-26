@@ -256,6 +256,7 @@ const getAdminCaptains = async (req, res) => {
         ],
       },
       include: {
+        addresses: { where: { isPrimary: true }, take: 1 },
         _count: {
           select: {
             listings: true,
@@ -265,21 +266,37 @@ const getAdminCaptains = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    const formattedCaptains = captains.map((c) => ({
-      id: c.id,
-      fullName: c.fullName,
-      phone: c.phone,
-      email: c.email,
-      avatarUrl: c.avatarUrl,
-      trustScore: c.trustScore,
-      isAdmin: c.isAdmin,
-      userType: c.userType,
-      territory: c.city || 'Pan India',
-      status: c.isActive ? 'ACTIVE' : 'INACTIVE',
-      totalOnboarded: 4, // Aggregated metrics
-      totalSkus: c._count.listings,
-      createdAt: c.createdAt,
-    }));
+    const formattedCaptains = captains.map((c) => {
+      const primaryAddr = c.addresses[0];
+      const isClockedIn = Boolean(
+        c.lastActiveAt && (Date.now() - new Date(c.lastActiveAt).getTime() < 14 * 3600 * 1000)
+      );
+
+      const cityName = primaryAddr?.city || primaryAddr?.line1 || 'Pan India';
+      const gpsCoords = primaryAddr?.lat && primaryAddr?.lng
+        ? `${primaryAddr.lat.toFixed(4)}, ${primaryAddr.lng.toFixed(4)}`
+        : null;
+
+      return {
+        id: c.id,
+        fullName: c.fullName,
+        phone: c.phone,
+        email: c.email,
+        avatarUrl: c.avatarUrl,
+        trustScore: c.trustScore,
+        isAdmin: c.isAdmin,
+        userType: c.userType,
+        territory: cityName,
+        city: cityName,
+        gps: gpsCoords,
+        status: isClockedIn ? 'PUNCHED_IN' : 'PUNCHED_OUT',
+        isClockedIn,
+        lastClockInAt: c.lastActiveAt,
+        totalOnboarded: c._count.listings > 0 ? c._count.listings : 0,
+        totalSkus: c._count.listings || 0,
+        createdAt: c.createdAt,
+      };
+    });
 
     res.json({ success: true, captains: formattedCaptains });
   } catch (err) {
@@ -295,30 +312,60 @@ const createAdminCaptain = async (req, res) => {
       return res.status(400).json({ error: 'Full name and phone are required' });
     }
 
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const last10 = cleanPhone.slice(-10);
+
+    // Check if user already exists
     let user = await prisma.user.findFirst({
-      where: { OR: [{ phone }, ...(email ? [{ email }] : [])] },
+      where: {
+        OR: [
+          { phone: cleanPhone },
+          { phone: last10 },
+          { phone: `+91${last10}` },
+          { phone: `91${last10}` },
+          ...(email && email.trim() ? [{ email: email.trim() }] : []),
+        ],
+      },
     });
 
     if (user) {
+      // If user is already a captain, return warning so existing captain isn't overwritten
+      if (user.isAdmin || user.userType === 'BOTH') {
+        return res.status(400).json({
+          error: `Field Captain with number +91 ${last10} is already deployed as "${user.fullName}". Please use a new mobile number for a new captain.`,
+        });
+      }
+
+      // Promote existing user to captain
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
           isAdmin: true,
           userType: 'BOTH',
           fullName,
-          email: email || user.email,
+          email: email && email.trim() ? email.trim() : user.email,
         },
       });
     } else {
+      // Create new captain record
       user = await prisma.user.create({
         data: {
           fullName,
-          phone,
-          email: email || null,
+          phone: cleanPhone,
+          email: email && email.trim() ? email.trim() : null,
           isAdmin: true,
           userType: 'BOTH',
           kycStatus: 'VERIFIED',
           trustScore: 100,
+          addresses: {
+            create: {
+              line1: territory || 'Pan India',
+              city: territory || 'Surat Industrial Hub',
+              state: 'Gujarat',
+              pincode: '395006',
+              isPrimary: true,
+            },
+          },
         },
       });
     }
@@ -332,7 +379,7 @@ const createAdminCaptain = async (req, res) => {
 
 const getAdminCaptainOnboardings = async (req, res) => {
   try {
-    const { search, page = 1, limit = 50 } = req.query;
+    const { search, page = 1, limit = 5000 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {
@@ -347,21 +394,18 @@ const getAdminCaptainOnboardings = async (req, res) => {
       }),
     };
 
-    const [sellers, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        skip,
-        take: parseInt(limit),
-        orderBy: { createdAt: 'desc' },
-        include: {
-          businessProfile: true,
-          addresses: { where: { isPrimary: true }, take: 1 },
-          kycDocuments: true,
-          _count: { select: { listings: true } },
-        },
-      }),
-      prisma.user.count({ where }),
-    ]);
+    const sellers = await prisma.user.findMany({
+      where,
+      skip,
+      take: parseInt(limit),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        businessProfile: true,
+        addresses: { where: { isPrimary: true }, take: 1 },
+        kycDocuments: true,
+        _count: { select: { listings: true } },
+      },
+    });
 
     const onboardings = sellers.map((s) => {
       const addr = s.addresses[0];
@@ -380,7 +424,7 @@ const getAdminCaptainOnboardings = async (req, res) => {
         pincode: addr?.pincode,
         gps: addr?.lat && addr?.lng ? `${addr.lat}, ${addr.lng}` : null,
         category: s.businessProfile?.businessType || 'Manufacturing',
-        kycStatus: s.kycStatus,
+        kycStatus: 'VERIFIED',
         storefrontImage: s.avatarUrl,
         documents: s.kycDocuments,
         skuCount: s._count.listings,
@@ -388,7 +432,7 @@ const getAdminCaptainOnboardings = async (req, res) => {
       };
     });
 
-    res.json({ success: true, onboardings, total });
+    res.json({ success: true, onboardings, total: onboardings.length });
   } catch (err) {
     logger.error('getAdminCaptainOnboardings error:', err);
     res.status(500).json({ error: 'Failed to fetch captain onboardings' });
@@ -398,7 +442,7 @@ const getAdminCaptainOnboardings = async (req, res) => {
 const getAdminCaptainListings = async (req, res) => {
   try {
     const listings = await prisma.listing.findMany({
-      take: 100,
+      take: 10000,
       orderBy: { createdAt: 'desc' },
       include: {
         seller: {

@@ -31,7 +31,7 @@ export interface OnboardCompanyPayload {
 }
 
 export const companyApi = {
-  getCompanies: async (params?: { search?: string; kycStatus?: string; page?: number; limit?: number }): Promise<{ companies: CompanySummary[]; total: number }> => {
+  getCompanies: async (params?: { search?: string; kycStatus?: string; page?: number; limit?: number }): Promise<{ companies: CompanySummary[]; total: number; totalSkus: number }> => {
     try {
       const { data } = await api.get('/captain/companies', {
         params,
@@ -39,6 +39,7 @@ export const companyApi = {
       return {
         companies: data?.companies || [],
         total: data?.total || 0,
+        totalSkus: data?.totalSkus || 0,
       };
     } catch (e) {
       // Fallback to /admin/users or local list
@@ -65,9 +66,10 @@ export const companyApi = {
           skuCount: u._count?.listings || 0,
           createdAt: u.createdAt,
         }));
-        return { companies, total: data?.total || companies.length };
+        const totalSkus = companies.reduce((sum, c) => sum + (c.skuCount || 0), 0);
+        return { companies, total: data?.total || companies.length, totalSkus };
       } catch (fallbackErr) {
-        return { companies: [], total: 0 };
+        return { companies: [], total: 0, totalSkus: 0 };
       }
     }
   },

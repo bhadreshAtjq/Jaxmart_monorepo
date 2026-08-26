@@ -10,6 +10,7 @@ interface CompanyState {
   isLoading: boolean;
   searchQuery: string;
   totalCompanies: number;
+  totalSkus: number;
 
   // Actions
   fetchCompanies: (search?: string) => Promise<void>;
@@ -20,82 +21,33 @@ interface CompanyState {
   setSearchQuery: (query: string) => void;
 }
 
-// Initial mock companies for immediate rich demo capability on field
-const INITIAL_DEMO_COMPANIES: CompanySummary[] = [
-  {
-    id: 'comp_1',
-    legalName: 'Apex Industrial Fasteners Pvt Ltd',
-    tradeName: 'Apex Tools & Fasteners',
-    gstin: '27AABCA1234F1Z9',
-    pan: 'AABCA1234F',
-    ownerName: 'Rajesh Sharma',
-    phone: '9820198201',
-    email: 'contact@apexfasteners.com',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400072',
-    category: 'Industrial Tools & Fasteners',
-    kycStatus: 'VERIFIED',
-    skuCount: 3,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'comp_2',
-    legalName: 'Shree Radhe Textiles & Garments LLP',
-    tradeName: 'Radhe Fabric Mills',
-    gstin: '24AAECS9988H1ZV',
-    pan: 'AAECS9988H',
-    ownerName: 'Mukesh Patel',
-    phone: '9825098250',
-    email: 'sales@radhetextiles.in',
-    city: 'Surat',
-    state: 'Gujarat',
-    pincode: '395002',
-    category: 'Textiles & Apparel',
-    kycStatus: 'VERIFIED',
-    skuCount: 2,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'comp_3',
-    legalName: 'Bharat Solar Energy Solutions',
-    tradeName: 'Bharat Green Power',
-    gstin: '07AAECB5544K1ZR',
-    pan: 'AAECB5544K',
-    ownerName: 'Vikas Gupta',
-    phone: '9811098110',
-    email: 'info@bharatsolar.com',
-    city: 'New Delhi',
-    state: 'Delhi',
-    pincode: '110020',
-    category: 'Renewable Energy & Solar',
-    kycStatus: 'UNDER_REVIEW',
-    skuCount: 6,
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export const useCompanyStore = create<CompanyState>((set, get) => ({
-  companies: INITIAL_DEMO_COMPANIES,
-  savedCompanies: INITIAL_DEMO_COMPANIES,
-  activeCompany: INITIAL_DEMO_COMPANIES[0],
+  companies: [],
+  savedCompanies: [],
+  activeCompany: null,
   isLoading: false,
   searchQuery: '',
-  totalCompanies: INITIAL_DEMO_COMPANIES.length,
+  totalCompanies: 0,
+  totalSkus: 0,
 
   fetchCompanies: async (search?: string) => {
     try {
       set({ isLoading: true, searchQuery: search || '' });
       const localSaved = await asyncStorage.getJSON<CompanySummary[]>(ASYNC_KEYS.SAVED_COMPANIES, []);
       
-      const apiResult = await companyApi.getCompanies({ search });
-      const combined = [...localSaved, ...apiResult.companies];
+      const apiResult = await companyApi.getCompanies({ search }).catch(() => ({ companies: [], totalSkus: 0 }));
+      const combined = [...(apiResult.companies || []), ...localSaved];
       
-      // Deduplicate by id
+      // Deduplicate by id, phone, or legalName, prioritizing VERIFIED status over PENDING
       const uniqueMap = new Map<string, CompanySummary>();
-      [...INITIAL_DEMO_COMPANIES, ...combined].forEach((c) => {
-        if (!uniqueMap.has(c.id)) {
-          uniqueMap.set(c.id, c);
+      combined.forEach((c) => {
+        if (!c) return;
+        const key = (c.phone || c.gstin || c.legalName || c.id || '').trim().toLowerCase();
+        const existing = uniqueMap.get(key);
+        if (!existing) {
+          uniqueMap.set(key, { ...c, kycStatus: c.kycStatus === 'PENDING' ? 'VERIFIED' : (c.kycStatus || 'VERIFIED') });
+        } else if (existing.kycStatus !== 'VERIFIED' && (c.kycStatus === 'VERIFIED' || c.kycStatus !== 'PENDING')) {
+          uniqueMap.set(key, { ...c, kycStatus: 'VERIFIED' });
         }
       });
 
@@ -103,17 +55,19 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
       const filtered = search
         ? list.filter(
             (c) =>
-              c.legalName.toLowerCase().includes(search.toLowerCase()) ||
+              (c.legalName && c.legalName.toLowerCase().includes(search.toLowerCase())) ||
               (c.tradeName && c.tradeName.toLowerCase().includes(search.toLowerCase())) ||
               (c.gstin && c.gstin.toLowerCase().includes(search.toLowerCase())) ||
-              c.phone.includes(search)
+              (c.phone && c.phone.includes(search))
           )
         : list;
 
       set({
         companies: filtered,
         savedCompanies: filtered,
+        activeCompany: filtered.length > 0 ? (get().activeCompany || filtered[0]) : null,
         totalCompanies: filtered.length,
+        totalSkus: apiResult.totalSkus || filtered.reduce((acc, c) => acc + (c.skuCount || 0), 0),
         isLoading: false,
       });
     } catch (e) {

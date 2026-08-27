@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -108,6 +109,7 @@ export const AppInput = React.forwardRef<TextInput, AppInputProps>(({
           style={[
             styles.input,
             isMonospace && typography.monoMedium,
+            rest.multiline && { textAlignVertical: 'top', minHeight: rest.numberOfLines ? rest.numberOfLines * 24 : 80, paddingTop: 12, paddingBottom: 12 },
             inputStyle,
           ]}
           value={value ?? ''}
@@ -218,7 +220,8 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.bodyLarge,
     color: colors.onSurface,
-    paddingVertical: spacing.sm,
+    paddingVertical: Platform.OS === 'ios' ? spacing.sm : 0,
+    paddingHorizontal: 0,
   },
   affixText: {
     ...typography.bodyLarge,

@@ -158,7 +158,7 @@ export const Step4VariantsAttributesScreen: React.FC<Step4VariantsAttributesScre
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView

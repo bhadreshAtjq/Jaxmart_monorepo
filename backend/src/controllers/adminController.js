@@ -137,7 +137,7 @@ const rejectKyc = async (req, res) => {
 const getListingQueue = async (req, res) => {
   try {
     const listings = await prisma.listing.findMany({
-      where: { status: { in: ['DRAFT', 'UNDER_REVIEW', 'PENDING'] } },
+      where: { status: 'DRAFT' },
       include: {
         seller: { include: { businessProfile: true } },
         category: true,

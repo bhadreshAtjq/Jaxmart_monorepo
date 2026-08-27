@@ -72,23 +72,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               style={styles.logoImage}
               resizeMode="contain"
             />
-            
-            <View style={styles.captainPill}>
-              <Ionicons name="shield-checkmark" size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
-              <Text style={styles.captainPillText}>CAPTAINS FIELD OPERATIONS</Text>
-            </View>
-
-            <Text style={styles.heroSubtitle}>
-              On-ground seller onboarding, live KYC verification, and warehouse SKU cataloging platform
-            </Text>
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Captain Sign In</Text>
-            <Text style={styles.formSubtitle}>
-              Enter your registered mobile number to receive a 6-digit verification code
-            </Text>
+            <Text style={[styles.formTitle, { marginBottom: spacing.lg }]}>Captain Sign In</Text>
 
             <Controller
               control={control}
@@ -120,14 +108,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               style={{ marginTop: spacing.xs }}
             />
           </View>
-
-          {/* Security Footer Notice */}
-          <View style={styles.securityFooter}>
-            <Ionicons name="lock-closed" size={14} color={colors.primaryFixedDim} style={{ marginRight: 6 }} />
-            <Text style={styles.securityText}>
-              256-Bit Encrypted Corporate Gateway · Authorized Personnel Only
-            </Text>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -141,36 +121,35 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xxl,
   },
   heroSection: {
     alignItems: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: 40,
   },
   logoImage: {
-    width: 190,
-    height: 50,
-    marginBottom: spacing.xs,
+    width: 240,
+    height: 70,
+    marginBottom: spacing.xl,
   },
   captainPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingVertical: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 6,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   captainPillText: {
     ...typography.labelCaps,
     color: '#FFFFFF',
     fontWeight: '800',
-    letterSpacing: 0.8,
-    fontSize: 10,
+    letterSpacing: 1,
+    fontSize: 11,
   },
   heroSubtitle: {
     ...typography.bodySm,
@@ -181,18 +160,22 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.modal,
+    borderRadius: 24,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
   },
   formTitle: {
     ...typography.headlineMd,
     color: colors.primaryDark,
     fontWeight: '800',
-    fontSize: 22,
+    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   formSubtitle: {
     ...typography.bodySm,

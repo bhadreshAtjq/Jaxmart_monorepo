@@ -115,7 +115,7 @@ export const Step6PackagingDimensionsScreen: React.FC<Step6PackagingDimensionsSc
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView

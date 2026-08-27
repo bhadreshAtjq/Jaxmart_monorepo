@@ -85,16 +85,16 @@ export const CompanySelectScreen: React.FC<CompanySelectScreenProps> = ({ naviga
           <Text style={styles.metaLabel}>GSTIN</Text>
           <Text style={styles.metaValMono}>{item.gstin || 'Unregistered'}</Text>
         </View>
-        
+
         <View style={styles.verticalDivider} />
-        
+
         <View style={styles.metaBox}>
           <Text style={styles.metaLabel}>CITY</Text>
           <Text style={styles.metaVal} numberOfLines={1}>{item.city ? `${item.city}, ${item.state}` : 'N/A'}</Text>
         </View>
-        
+
         <View style={styles.verticalDivider} />
-        
+
         <View style={styles.metaBoxRight}>
           <Text style={styles.metaLabel}>SKUs</Text>
           <Text style={styles.metaValBold}>{item.skuCount}</Text>

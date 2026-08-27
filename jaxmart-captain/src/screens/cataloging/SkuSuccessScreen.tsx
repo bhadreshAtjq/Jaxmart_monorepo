@@ -57,7 +57,10 @@ export const SkuSuccessScreen: React.FC<SkuSuccessScreenProps> = ({ route, navig
 
   const handleReturnToDashboard = () => {
     startNewWizard();
-    navigation.navigate('Main', { screen: 'DashboardTab' });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'SkuDraftsList' }],
+    });
   };
 
   return (
@@ -116,9 +119,9 @@ export const SkuSuccessScreen: React.FC<SkuSuccessScreenProps> = ({ route, navig
           />
 
           <AppButton
-            title="Return to Field Dashboard"
+            title="Return to Catalog List"
             variant="primary"
-            icon="home"
+            icon="list"
             onPress={handleReturnToDashboard}
             fullWidth
           />

@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { prisma } = require('../config/database');
 const { redis } = require('../config/redis');
 const { generateTokens } = require('../middleware/auth');
-const { sendSms } = require('../services/smsService');
+const { sendMsg91Otp, sendSms } = require('../services/smsService');
 const { logger } = require('../utils/logger');
 
 // In-memory fallback for development if Redis is unavailable
@@ -65,7 +65,7 @@ const sendOtp = async (req, res) => {
     try {
       const attempts = await redis.incr(`otp_attempts:${phone}`);
       if (attempts === 1) await redis.expire(`otp_attempts:${phone}`, 900);
-      if (attempts > 3) {
+      if (attempts > 5) {
         return res.status(429).json({ error: 'Too many OTP requests. Try again in 15 minutes.' });
       }
     } catch (err) {
@@ -74,16 +74,18 @@ const sendOtp = async (req, res) => {
 
     const otp = await generateOtp(phone);
 
-    // In production, send via SMS. In dev, return in response and allow 123456.
-    if (process.env.NODE_ENV === 'production') {
-      await sendSms(phone, `Your B2B Platform OTP is ${otp}. Valid for 5 minutes.`);
+    // If production AND MSG91_AUTHKEY is present, dispatch real SMS OTP via MSG91
+    // In staging / dev, log to console and return simulated OTP with 123456 bypass
+    const isProductionOtp = process.env.NODE_ENV === 'production' && !!process.env.MSG91_AUTHKEY;
+    if (isProductionOtp) {
+      await sendMsg91Otp(phone, otp);
     } else {
-      logger.info(`DEV OTP for ${phone}: ${otp} (Bypass: 123456)`);
+      logger.info(`[STAGING/DEV OTP] Mobile: ${phone} | OTP: ${otp} | Universal Bypass: 123456`);
     }
 
     res.json({
       message: 'OTP sent successfully',
-      ...(process.env.NODE_ENV !== 'production' && { otp, bypass: '123456' }), 
+      ...(!isProductionOtp && { otp, bypass: '123456' }), 
     });
   } catch (err) {
     logger.error('sendOtp error:', err);
@@ -138,11 +140,18 @@ const verifyOtp = async (req, res) => {
     }
 
     const isDevBypass = String(otp) === '123456';
+    const isProductionOtp = process.env.NODE_ENV === 'production' && !!process.env.MSG91_AUTHKEY;
     
-    logger.debug(`Verify OTP attempt: ${phone}, provided: ${otp}, bypass: ${isDevBypass}`);
+    logger.debug(`Verify OTP attempt: ${phone}, provided: ${otp}, bypass: ${isDevBypass}, isProd: ${isProductionOtp}`);
 
-    if (!isDevBypass && (!storedOtp || storedOtp !== String(otp))) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
+    if (isProductionOtp) {
+      if (!storedOtp || storedOtp !== String(otp)) {
+        return res.status(400).json({ error: 'Invalid or expired OTP. Please enter the code sent to your phone.' });
+      }
+    } else {
+      if (!isDevBypass && (!storedOtp || storedOtp !== String(otp))) {
+        return res.status(400).json({ error: 'Invalid or expired OTP' });
+      }
     }
 
     try {

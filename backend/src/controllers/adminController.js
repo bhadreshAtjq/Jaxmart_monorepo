@@ -1,5 +1,6 @@
 const { prisma } = require('../config/database');
 const { logger } = require('../utils/logger');
+const { signListingMedia, getPresignedUrl } = require('../utils/s3');
 
 // GET /api/admin/analytics
 const getAnalytics = async (req, res) => {
@@ -80,24 +81,81 @@ const getAnalytics = async (req, res) => {
 // GET /api/admin/kyc/queue
 const getKycQueue = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      where: { kycStatus: { in: ['PENDING', 'UNDER_REVIEW'] } },
-      include: {
-        businessProfile: true,
-        kycDocuments: true,
-      },
-      orderBy: { createdAt: 'desc' },
+    const { status, search, page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const where = {};
+    if (status && status !== 'ALL') {
+      if (status === 'PENDING') {
+        where.kycStatus = { in: ['PENDING', 'UNDER_REVIEW'] };
+      } else {
+        where.kycStatus = status;
+      }
+    }
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { fullName: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+        { businessProfile: { businessName: { contains: q, mode: 'insensitive' } } },
+        { businessProfile: { gstin: { contains: q, mode: 'insensitive' } } },
+        { businessProfile: { pan: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [users, total, pendingCount, verifiedCount, rejectedCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        include: {
+          businessProfile: true,
+          kycDocuments: true,
+          addresses: { where: { isPrimary: true }, take: 1 },
+          _count: { select: { listings: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: parseInt(limit, 10),
+      }),
+      prisma.user.count({ where }),
+      prisma.user.count({ where: { kycStatus: { in: ['PENDING', 'UNDER_REVIEW'] } } }),
+      prisma.user.count({ where: { kycStatus: 'VERIFIED' } }),
+      prisma.user.count({ where: { kycStatus: 'REJECTED' } }),
+    ]);
+
+    // Sign any document URLs in kycDocuments and user avatar
+    const signedQueue = await Promise.all(
+      users.map(async (u) => {
+        const signedDocs = await Promise.all(
+          u.kycDocuments.map(async (doc) => ({
+            ...doc,
+            documentUrl: await getPresignedUrl(doc.documentUrl),
+            backSideUrl: doc.backSideUrl ? await getPresignedUrl(doc.backSideUrl) : null,
+          }))
+        );
+        const signedAvatar = u.avatarUrl ? await getPresignedUrl(u.avatarUrl) : null;
+        return {
+          id: u.id,
+          userId: u.id,
+          user: { ...u, avatarUrl: signedAvatar, kycDocuments: signedDocs },
+          documents: signedDocs,
+          createdAt: u.createdAt,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      queue: signedQueue,
+      users: signedQueue.map((item) => item.user),
+      total,
+      pendingCount,
+      verifiedCount,
+      rejectedCount,
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      totalPages: Math.ceil(total / parseInt(limit, 10)) || 1,
     });
-
-    const queue = users.map((u) => ({
-      id: u.id,
-      userId: u.id,
-      user: u,
-      documents: u.kycDocuments,
-      createdAt: u.createdAt,
-    }));
-
-    res.json({ queue });
   } catch (err) {
     logger.error('getKycQueue error:', err);
     res.status(500).json({ error: 'Failed to fetch KYC queue' });
@@ -108,12 +166,24 @@ const getKycQueue = async (req, res) => {
 const approveKyc = async (req, res) => {
   try {
     const { userId } = req.params;
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
-      data: { kycStatus: 'VERIFIED', trustScore: { increment: 25 } },
+      data: {
+        kycStatus: 'VERIFIED',
+        trustScore: { increment: 15 },
+        businessProfile: {
+          update: { verifiedAt: new Date() },
+        },
+      },
+      include: { businessProfile: true, kycDocuments: true },
     });
-    res.json({ success: true, message: 'KYC verified and trust score updated' });
+    await prisma.kycDocument.updateMany({
+      where: { userId, status: 'PENDING' },
+      data: { status: 'VERIFIED', reviewedAt: new Date(), reviewedBy: req.user?.id },
+    });
+    res.json({ success: true, user, message: 'KYC verified and merchant activated' });
   } catch (err) {
+    logger.error('approveKyc error:', err);
     res.status(500).json({ error: 'Approval failed' });
   }
 };
@@ -122,13 +192,19 @@ const approveKyc = async (req, res) => {
 const rejectKyc = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { reason } = req.body;
-    await prisma.user.update({
+    const { reason = 'Documents failed verification' } = req.body;
+    const user = await prisma.user.update({
       where: { id: userId },
       data: { kycStatus: 'REJECTED' },
+      include: { businessProfile: true, kycDocuments: true },
     });
-    res.json({ success: true, message: 'KYC rejected' });
+    await prisma.kycDocument.updateMany({
+      where: { userId, status: 'PENDING' },
+      data: { status: 'REJECTED', reviewNote: reason, reviewedAt: new Date(), reviewedBy: req.user?.id },
+    });
+    res.json({ success: true, user, message: 'KYC rejected' });
   } catch (err) {
+    logger.error('rejectKyc error:', err);
     res.status(500).json({ error: 'Rejection failed' });
   }
 };
@@ -136,18 +212,67 @@ const rejectKyc = async (req, res) => {
 // GET /api/admin/listings/queue
 const getListingQueue = async (req, res) => {
   try {
-    const listings = await prisma.listing.findMany({
-      where: { status: 'DRAFT' },
-      include: {
-        seller: { include: { businessProfile: true } },
-        category: true,
-        media: true,
-        productDetail: true,
-      },
-      orderBy: { createdAt: 'desc' },
+    const { status, search, page = 1, limit = 100 } = req.query;
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const where = {};
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { category: { name: { contains: q, mode: 'insensitive' } } },
+        { seller: { fullName: { contains: q, mode: 'insensitive' } } },
+        { seller: { businessProfile: { businessName: { contains: q, mode: 'insensitive' } } } },
+      ];
+    }
+
+    const [listings, total, draftCount, activeCount, rejectedCount] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        include: {
+          seller: {
+            select: {
+              id: true,
+              fullName: true,
+              phone: true,
+              email: true,
+              businessProfile: { select: { businessName: true, gstin: true } },
+            },
+          },
+          category: { select: { id: true, name: true, slug: true } },
+          media: { select: { id: true, url: true, isPrimary: true }, take: 3 },
+          productDetail: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: parseInt(limit, 10),
+      }),
+      prisma.listing.count({ where }),
+      prisma.listing.count({ where: { status: 'DRAFT' } }),
+      prisma.listing.count({ where: { status: 'ACTIVE' } }),
+      prisma.listing.count({ where: { status: 'REJECTED' } }),
+    ]);
+
+    const signedListings = await Promise.all(listings.map((l) => signListingMedia(l)));
+
+    res.json({
+      success: true,
+      listings: signedListings,
+      queue: signedListings,
+      total,
+      draftCount,
+      activeCount,
+      rejectedCount,
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      totalPages: Math.ceil(total / parseInt(limit, 10)) || 1,
     });
-    res.json({ queue: listings });
   } catch (err) {
+    logger.error('getListingQueue error:', err);
     res.status(500).json({ error: 'Failed to fetch listing queue' });
   }
 };
@@ -158,9 +283,16 @@ const approveListing = async (req, res) => {
     const listing = await prisma.listing.update({
       where: { id },
       data: { status: 'ACTIVE', publishedAt: new Date() },
+      include: {
+        seller: { select: { fullName: true, businessProfile: { select: { businessName: true } } } },
+        category: true,
+        media: true,
+        productDetail: true,
+      },
     });
-    res.json({ success: true, listing });
+    res.json({ success: true, listing, message: 'SKU published to live marketplace' });
   } catch (err) {
+    logger.error('approveListing error:', err);
     res.status(500).json({ error: 'Failed to approve listing' });
   }
 };
@@ -171,9 +303,16 @@ const rejectListing = async (req, res) => {
     const listing = await prisma.listing.update({
       where: { id },
       data: { status: 'REJECTED' },
+      include: {
+        seller: { select: { fullName: true, businessProfile: { select: { businessName: true } } } },
+        category: true,
+        media: true,
+        productDetail: true,
+      },
     });
-    res.json({ success: true, listing });
+    res.json({ success: true, listing, message: 'SKU rejected / unindexed' });
   } catch (err) {
+    logger.error('rejectListing error:', err);
     res.status(500).json({ error: 'Failed to reject listing' });
   }
 };
@@ -492,7 +631,9 @@ const getAdminCaptainListings = async (req, res) => {
       },
     });
 
-    res.json({ success: true, listings });
+    const signedListings = await Promise.all(listings.map((l) => signListingMedia(l)));
+
+    res.json({ success: true, listings: signedListings });
   } catch (err) {
     logger.error('getAdminCaptainListings error:', err);
     res.status(500).json({ error: 'Failed to fetch captain listings' });

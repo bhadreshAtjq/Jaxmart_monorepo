@@ -131,9 +131,23 @@ export default function ListingDetailPage() {
   const dynamicSpecs = getSpecifications(listing);
 
   // Bulk Price Slabs (e.g., 10-49: ₹500, 50-199: ₹450, 200+: ₹400)
-  const bulkPriceSlabs = pd?.bulkPriceSlabs?.length > 0
-    ? pd.bulkPriceSlabs
-    : effectivePrice
+  const rawSlabs = pd?.bulkPriceSlabs || [];
+  const validSlabs = Array.isArray(rawSlabs)
+    ? rawSlabs
+        .filter((s: any) => {
+          const val = Number(s.pricePerUnit ?? s.price ?? 0);
+          return val > 0;
+        })
+        .map((s: any) => ({
+          minQty: s.minQty,
+          maxQty: s.maxQty || 'Above',
+          pricePerUnit: Number(s.pricePerUnit ?? s.price),
+        }))
+    : [];
+
+  const bulkPriceSlabs = validSlabs.length > 0
+    ? validSlabs
+    : effectivePrice && effectivePrice > 0
     ? [
         { minQty: pd?.minOrderQty || 1, maxQty: (pd?.minOrderQty || 1) * 5, pricePerUnit: effectivePrice },
         { minQty: (pd?.minOrderQty || 1) * 5 + 1, maxQty: (pd?.minOrderQty || 1) * 20, pricePerUnit: Math.round(effectivePrice * 0.92) },
@@ -211,13 +225,13 @@ export default function ListingDetailPage() {
         <div className="bg-white border-b border-gray-200/80">
           <Container size="xl" className="py-3.5">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 overflow-x-auto whitespace-nowrap">
-              <Link href="/" className="hover:text-jungle-green-700 transition-colors">Home</Link>
+              <Link href="/" className="hover:text-emerald-700 transition-colors">Home</Link>
               <FaChevronRight className="h-2.5 w-2.5 text-gray-300 shrink-0" />
-              <Link href="/categories" className="hover:text-jungle-green-700 transition-colors">Categories</Link>
+              <Link href="/categories" className="hover:text-emerald-700 transition-colors">Categories</Link>
               <FaChevronRight className="h-2.5 w-2.5 text-gray-300 shrink-0" />
               {listing.category && (
                 <>
-                  <Link href={`/search?category=${listing.category.id}`} className="hover:text-jungle-green-700 transition-colors">
+                  <Link href={`/search?category=${listing.category.id}`} className="hover:text-emerald-700 transition-colors">
                     {listing.category.name}
                   </Link>
                   <FaChevronRight className="h-2.5 w-2.5 text-gray-300 shrink-0" />
@@ -231,16 +245,20 @@ export default function ListingDetailPage() {
         <Container size="xl" className="py-8">
           {/* Main Product Showcase Card */}
           <div className="bg-white rounded-3xl border border-gray-200/80 p-6 md:p-8 shadow-sm mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
               
               {/* Column 1: Image Gallery (5 cols) */}
-              <div className="lg:col-span-5 space-y-4">
-                <div className="aspect-square bg-gray-50/80 rounded-3xl overflow-hidden border border-gray-200/80 relative flex items-center justify-center p-6 group">
-                  {listing.media && listing.media.length > 0 ? (
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                {/* Main Image Frame */}
+                <div className="relative w-full aspect-square max-h-[440px] bg-slate-50/90 rounded-3xl overflow-hidden border border-slate-200/90 flex items-center justify-center p-4 group">
+                  {listing.media && listing.media.length > 0 && listing.media[activeImg]?.url ? (
                     <img
                       src={listing.media[activeImg]?.url}
                       alt={listing.title}
-                      className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      onError={(e: any) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80';
+                      }}
+                      className="w-full h-full object-contain select-none transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
                     <div className="text-gray-300 flex flex-col items-center gap-2">
@@ -249,8 +267,9 @@ export default function ListingDetailPage() {
                     </div>
                   )}
 
-                  <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-                    <span className="bg-jungle-green-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                  {/* Badges Overlay */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-1.5 pointer-events-none">
+                    <span className="bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
                       <ShieldCheck className="h-3 w-3" /> Assured Deal
                     </span>
                     {seller?.kycStatus === 'VERIFIED' && (
@@ -263,19 +282,26 @@ export default function ListingDetailPage() {
 
                 {/* Thumbnails strip */}
                 {listing.media && listing.media.length > 1 && (
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+                  <div className="flex items-center gap-3 overflow-x-auto pb-1.5 scrollbar-thin">
                     {listing.media.map((m: any, i: number) => (
                       <button
                         key={i}
                         onClick={() => setActiveImg(i)}
                         className={clsx(
-                          'h-18 w-18 rounded-2xl border-2 overflow-hidden shrink-0 transition-all p-1 bg-white',
+                          'h-16 w-16 min-w-[64px] min-h-[64px] max-w-[64px] max-h-[64px] rounded-2xl border-2 overflow-hidden shrink-0 transition-all p-1 bg-white flex items-center justify-center cursor-pointer',
                           activeImg === i
-                            ? 'border-jungle-green-600 ring-2 ring-jungle-green-100 shadow-md'
-                            : 'border-gray-200 opacity-70 hover:opacity-100'
+                            ? 'border-emerald-600 ring-2 ring-emerald-100 shadow-sm'
+                            : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-300'
                         )}
                       >
-                        <img src={m.url} className="w-full h-full object-cover rounded-xl" alt="" />
+                        <img
+                          src={m.url}
+                          onError={(e: any) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80';
+                          }}
+                          className="w-full h-full object-cover rounded-xl"
+                          alt=""
+                        />
                       </button>
                     ))}
                   </div>
@@ -283,135 +309,120 @@ export default function ListingDetailPage() {
               </div>
 
               {/* Column 2: Product Specifications & Tiered Pricing (4 cols) */}
-              <div className="lg:col-span-4 space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-jungle-green-700 bg-jungle-green-50 px-2.5 py-0.5 rounded-md border border-jungle-green-100">
+              <div className="lg:col-span-4 flex flex-col justify-between gap-6">
+                <div className="space-y-4">
+                  {/* Category & SKU */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
                       {listing.category?.name || 'B2B Wholesale'}
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">SKU: {activeVariant?.sku || pd?.sku || id?.toString().substring(0, 8)}</span>
+                    <span className="text-xs text-slate-400 font-medium font-mono">
+                      SKU: {activeVariant?.sku || pd?.sku || id?.toString().substring(0, 8)}
+                    </span>
                   </div>
 
-                  <h1 className="text-2xl md:text-3xl font-heading font-black text-gray-900 tracking-tight leading-snug">
+                  {/* Title */}
+                  <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-snug font-heading">
                     {listing.title}
                   </h1>
 
-                  <div className="flex items-center gap-3 mt-2 text-xs font-semibold text-gray-600">
-                    <div className="flex items-center gap-1 text-amber-500">
-                      <FaStar className="h-3.5 w-3.5 fill-current" />
-                      <span className="font-bold text-gray-900">{listing.avgRating || '4.9'}</span>
+                  {/* Rating & Stock Status */}
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 flex-wrap">
+                    <div className="flex items-center gap-1 text-amber-500 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                      <FaStar className="h-3 w-3 fill-current" />
+                      <span className="font-black text-slate-900">{listing.avgRating || '4.9'}</span>
                     </div>
                     <span>•</span>
                     <span>{listing.reviewCount || 0} Verified Reviews</span>
                     <span>•</span>
-                    <span className="text-emerald-700 font-bold">In Stock</span>
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      In Stock
+                    </span>
                   </div>
-                </div>
 
-                {/* Tiered Wholesale Price Matrix */}
-                <div className="bg-slate-50 border border-gray-200/80 rounded-3xl p-5 space-y-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
-                    Wholesale Slab Pricing (ex-Factory)
-                  </span>
-
-                  {bulkPriceSlabs.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      {bulkPriceSlabs.map((slab: any, idx: number) => (
-                        <div key={idx} className="bg-white border border-gray-200 rounded-2xl p-3 shadow-xs">
-                          <p className="text-[11px] text-gray-500 font-bold">
-                            {slab.maxQty === 'Above' ? `≥ ${slab.minQty}` : `${slab.minQty} - ${slab.maxQty}`} {pd?.unitOfMeasure || 'pcs'}
-                          </p>
-                          <p className="text-base md:text-lg font-heading font-black text-jungle-green-700 mt-0.5">
-                            ₹{slab.pricePerUnit?.toLocaleString('en-IN')}
-                          </p>
-                        </div>
-                      ))}
+                  {/* Tiered Wholesale Price Matrix */}
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-3xl p-5 space-y-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Wholesale Base Price
+                      </span>
+                      <span className="text-xs text-slate-500 font-bold">ex-Factory</span>
                     </div>
-                  ) : (
+
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-heading font-black text-gray-900">
+                      <span className="text-3xl font-black text-slate-900">
                         {effectivePrice ? `₹${effectivePrice.toLocaleString('en-IN')}` : 'Contact for Quote'}
                       </span>
-                      <span className="text-xs text-gray-500 font-bold">/ {pd?.unitOfMeasure || 'Unit'}</span>
+                      <span className="text-xs text-slate-500 font-bold">/ {pd?.unitOfMeasure || 'Unit'}</span>
                     </div>
-                  )}
 
-                  <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-gray-600 font-medium">
-                    <span>MOQ: <strong>{pd?.minOrderQty || 1} {pd?.unitOfMeasure || 'Pieces'}</strong></span>
-                    <span>•</span>
-                    <span>Lead Time: <strong>{pd?.leadTimeDays || 7} Days</strong></span>
-                    {pd?.sampleAvailable && (
-                      <>
-                        <span>•</span>
-                        <span className="text-amber-700 font-bold">Sample: {pd.samplePrice ? `₹${pd.samplePrice}` : 'Available'}</span>
-                      </>
+                    {bulkPriceSlabs.length > 0 && (
+                      <div className="pt-2 border-t border-slate-200/80">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block mb-2">
+                          Volume Discount Slabs
+                        </span>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          {bulkPriceSlabs.map((slab: any, idx: number) => (
+                            <div key={idx} className="bg-white border border-emerald-200/80 rounded-2xl p-2.5 shadow-xs">
+                              <p className="text-[10px] text-slate-500 font-bold truncate">
+                                {slab.maxQty === 'Above' ? `≥ ${slab.minQty}` : `${slab.minQty} - ${slab.maxQty}`} {pd?.unitOfMeasure || 'units'}
+                              </p>
+                              <p className="text-sm font-black text-emerald-700 mt-0.5">
+                                ₹{Number(slab.pricePerUnit).toLocaleString('en-IN')}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </div>
 
-                {/* Variant Configuration Selector */}
-                {listing.variants && listing.variants.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700 block">
-                      Select Specification / Variant:
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {listing.variants.map((v: any) => (
-                        <button
-                          key={v.id}
-                          onClick={() => setSelectedVariant(v)}
-                          className={clsx(
-                            'px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all',
-                            activeVariant?.id === v.id
-                              ? 'border-jungle-green-600 bg-jungle-green-50 text-jungle-green-900 font-black shadow-xs ring-1 ring-jungle-green-600'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                          )}
-                        >
-                          {v.title}
-                          {v.priceOverride && (
-                            <span className="ml-1.5 text-gray-500 font-normal">
-                              (₹{v.priceOverride.toLocaleString('en-IN')})
-                            </span>
-                          )}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-slate-600 font-medium">
+                      <span>MOQ: <strong className="text-slate-900">{pd?.minOrderQty || 1} {pd?.unitOfMeasure || 'Pieces'}</strong></span>
+                      <span>•</span>
+                      <span>Lead Time: <strong className="text-slate-900">{pd?.leadTimeDays || 7} Days</strong></span>
+                      {pd?.sampleAvailable && (
+                        <>
+                          <span>•</span>
+                          <span className="text-amber-700 font-bold">Sample: {pd.samplePrice ? `₹${pd.samplePrice}` : 'Available'}</span>
+                        </>
+                      )}
                     </div>
                   </div>
-                )}
 
-                {/* Sourcing Quantity Selector */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700 block">Target Sourcing Quantity:</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      min={pd?.minOrderQty || 1}
-                      placeholder={`e.g. ${pd?.minOrderQty || 100}`}
-                      value={inquiryQty}
-                      onChange={(e) => setInquiryQty(e.target.value)}
-                      className="w-36 border border-gray-300 rounded-2xl px-4 py-2.5 text-sm font-bold text-gray-900 outline-none focus:border-jungle-green-600"
-                    />
-                    <span className="text-xs text-gray-500 font-bold">{pd?.unitOfMeasure || 'Pieces'}</span>
+                  {/* Sourcing Quantity Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">Target Sourcing Quantity:</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={pd?.minOrderQty || 1}
+                        placeholder={`e.g. ${pd?.minOrderQty || 100}`}
+                        value={inquiryQty}
+                        onChange={(e) => setInquiryQty(e.target.value)}
+                        className="w-36 bg-white border border-slate-300 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-xs"
+                      />
+                      <span className="text-xs text-slate-500 font-bold">{pd?.unitOfMeasure || 'Pieces'}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Action CTAs */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-2.5 pt-2">
                   <Button
                     onClick={() => setShowInquiryModal(true)}
                     disabled={isOwner}
-                    className="w-full py-4 bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all"
                   >
-                    <FaMessage className="h-4 w-4" />
+                    <FaMessage className="h-3.5 w-3.5" />
                     {isOwner ? 'Own Catalog Item' : 'Chat With Supplier & Negotiate'}
                   </Button>
 
                   <Button
                     onClick={handleCreateAssuredDeal}
                     variant="outline"
-                    className="w-full py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-50"
+                    className="w-full py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 transition-all"
                   >
-                    <FaShieldHalved className="h-4 w-4 text-jungle-green-600" />
+                    <FaShieldHalved className="h-3.5 w-3.5 text-emerald-600" />
                     Request Quote with Assured Deal Protection
                   </Button>
                 </div>
@@ -419,60 +430,60 @@ export default function ListingDetailPage() {
 
               {/* Column 3: Supplier Verification & Trust Card (3 cols) */}
               <div className="lg:col-span-3">
-                <div className="bg-slate-50 border border-gray-200/80 rounded-3xl p-6 space-y-6">
+                <div className="bg-slate-50 border border-slate-200/90 rounded-3xl p-6 space-y-6">
                   {/* Supplier Header */}
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">
                       Verified Supplier Profile
                     </span>
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar name={bp?.businessName || seller?.fullName} size="lg" />
                       <div className="min-w-0">
-                        <h4 className="font-heading font-black text-gray-900 text-sm truncate">
+                        <h4 className="font-heading font-black text-slate-900 text-sm truncate">
                           {bp?.businessName || seller?.fullName}
                         </h4>
-                        <p className="text-[11px] text-gray-500 truncate">
+                        <p className="text-[11px] text-slate-500 truncate">
                           {bp?.businessType || 'Manufacturer & Exporter'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="space-y-2 pt-3 border-t border-gray-200/60 text-xs">
+                    <div className="space-y-2 pt-3 border-t border-slate-200/80 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Trust Score:</span>
-                        <span className="font-black text-jungle-green-700 bg-jungle-green-100/70 px-2 py-0.5 rounded">
+                        <span className="text-slate-500">Trust Score:</span>
+                        <span className="font-black text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
                           {seller?.trustScore || 90} / 100
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">KYC Status:</span>
+                        <span className="text-slate-500">KYC Status:</span>
                         <span className="font-bold text-emerald-700 flex items-center gap-1">
                           <FaCircleCheck className="h-3 w-3" /> Verified
                         </span>
                       </div>
                       {bp?.gstin && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-500">GSTIN:</span>
-                          <span className="font-bold text-gray-900 font-mono text-[11px]">{bp.gstin}</span>
+                          <span className="text-slate-500">GSTIN:</span>
+                          <span className="font-bold text-slate-900 font-mono text-[11px]">{bp.gstin}</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Location:</span>
-                        <span className="font-bold text-gray-900">{seller?.city || 'Gujarat, India'}</span>
+                        <span className="text-slate-500">Location:</span>
+                        <span className="font-bold text-slate-900">{seller?.city || 'Gujarat, India'}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Avg Response:</span>
-                        <span className="font-bold text-gray-900">&lt; 2 Hours</span>
+                        <span className="text-slate-500">Avg Response:</span>
+                        <span className="font-bold text-slate-900">&lt; 2 Hours</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Assured Deal Escrow Guarantee */}
-                  <div className="bg-jungle-green-900 text-white rounded-2xl p-4 text-xs space-y-1.5">
+                  <div className="bg-slate-900 text-white rounded-2xl p-4 text-xs space-y-1.5 shadow-xs">
                     <div className="flex items-center gap-2 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
                       <ShieldCheck className="h-4 w-4" /> JaxMart Escrow
                     </div>
-                    <p className="text-jungle-green-100 text-[11px] leading-relaxed">
+                    <p className="text-slate-300 text-[11px] leading-relaxed">
                       Your payment is held in secure escrow and released to supplier only after you approve delivery proofs.
                     </p>
                   </div>
@@ -480,7 +491,7 @@ export default function ListingDetailPage() {
                   <Button
                     onClick={() => setShowInquiryModal(true)}
                     variant="outline"
-                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-white"
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-white border-slate-300 text-slate-700 hover:bg-slate-100"
                   >
                     Contact Business
                   </Button>
@@ -503,9 +514,9 @@ export default function ListingDetailPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
                   className={clsx(
-                    'px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all',
+                    'px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer',
                     activeTab === tab.id
-                      ? 'bg-jungle-green-700 text-white shadow-md'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                       : 'text-gray-500 hover:bg-gray-100'
                   )}
                 >
@@ -572,7 +583,7 @@ export default function ListingDetailPage() {
                   </div>
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <span className="text-gray-400 font-bold block mb-1">Trust Score</span>
-                    <span className="font-bold text-jungle-green-700 text-sm">{seller?.trustScore || 90} / 100</span>
+                    <span className="font-bold text-emerald-700 text-sm">{seller?.trustScore || 90} / 100</span>
                   </div>
                 </div>
               </div>
@@ -620,7 +631,7 @@ export default function ListingDetailPage() {
                 <h3 className="text-xl font-heading font-black text-gray-900">
                   Related Products in {listing.category?.name || 'Category'}
                 </h3>
-                <Link href={`/search?category=${listing.categoryId}`} className="text-xs font-bold text-jungle-green-700 hover:underline">
+                <Link href={`/search?category=${listing.categoryId}`} className="text-xs font-bold text-emerald-700 hover:underline">
                   View All →
                 </Link>
               </div>
@@ -728,7 +739,7 @@ export default function ListingDetailPage() {
                 <Button
                   type="submit"
                   disabled={sending}
-                  className="w-full bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-2xl py-3.5 font-bold text-xs uppercase tracking-wider"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl py-3.5 font-bold text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 cursor-pointer"
                 >
                   {sending ? 'Connecting...' : 'Send Inquiry & Start Chat'}
                 </Button>

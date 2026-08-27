@@ -58,6 +58,21 @@ function AdminDashboard() {
    const [selectedUserDetail, setSelectedUserDetail] = useState<any>(null);
    const [copiedField, setCopiedField] = useState<string | null>(null);
 
+   // Inventory Moderation & Catalog State
+   const [listingSearch, setListingSearch] = useState('');
+   const [listingStatusFilter, setListingStatusFilter] = useState<'ALL' | 'DRAFT' | 'ACTIVE' | 'REJECTED'>('ALL');
+   const [selectedListingDetail, setSelectedListingDetail] = useState<any>(null);
+   const [listingPage, setListingPage] = useState(1);
+   const [listingLimit, setListingLimit] = useState(20);
+
+   // KYC Verification Queue State
+   const [kycSearch, setKycSearch] = useState('');
+   const [kycStatusFilter, setKycStatusFilter] = useState<'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED'>('ALL');
+   const [selectedKycDetail, setSelectedKycDetail] = useState<any>(null);
+   const [kycPage, setKycPage] = useState(1);
+   const [kycLimit, setKycLimit] = useState(20);
+   const [previewDocUrl, setPreviewDocUrl] = useState<string | null>(null);
+
    const { data: stats, isLoading: statsLoading } = useAdminStats();
    const { data: users, isLoading: usersLoading } = useAdminUsers(
       tab === 'users',
@@ -65,8 +80,24 @@ function AdminDashboard() {
       userTypeFilter !== 'ALL' ? userTypeFilter : undefined,
       kycFilter !== 'ALL' ? kycFilter : undefined
    );
-   const { data: kycQueue, isLoading: kycLoading } = useAdminKycQueue(tab === 'kyc');
-   const { data: listingsQueue, isLoading: listingsLoading } = useAdminListingsQueue(tab === 'listings');
+   const { data: kycQueue, isLoading: kycLoading, mutate: mutateKyc } = useAdminKycQueue(
+      tab === 'kyc',
+      {
+         status: kycStatusFilter !== 'ALL' ? kycStatusFilter : undefined,
+         search: kycSearch,
+         page: kycPage,
+         limit: kycLimit,
+      }
+   );
+   const { data: listingsQueue, isLoading: listingsLoading } = useAdminListingsQueue(
+      tab === 'listings',
+      {
+         status: listingStatusFilter !== 'ALL' ? listingStatusFilter : undefined,
+         search: listingSearch,
+         page: listingPage,
+         limit: listingLimit,
+      }
+   );
    const { data: eventsData, isLoading: eventsLoading } = useAdminEvents(tab === 'events');
    const { data: subscribersData, isLoading: subscribersLoading } = useAdminSubscribers(tab === 'subscriptions');
    const { data: depositsData, isLoading: depositsLoading } = useAdminDepositReceipts(tab === 'subscriptions');
@@ -1139,99 +1170,905 @@ function AdminDashboard() {
                   </div>
                )}
 
-               {/* ────────────────── TAB 4: KYC QUEUE ────────────────── */}
-               {tab === 'kyc' && (
-                  <div className="space-y-4">
-                     {kycLoading ? (
-                        <div className="space-y-3">
-                           {Array(3).fill(0).map((_, i) => (
-                              <Skeleton key={i} className="h-28 rounded-2xl" />
+                {/* ────────────────── TAB 4: KYC QUEUE & VERIFICATION ────────────────── */}
+                {tab === 'kyc' && (
+                   <div className="space-y-5">
+                      {/* Summary KPI Cards */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div className="flex items-center justify-between">
+                               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Merchants</p>
+                               <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-black">
+                                  <FaBuilding className="h-3.5 w-3.5" />
+                               </span>
+                            </div>
+                            <p className="text-2xl font-black text-slate-900 mt-2">
+                               {(kycQueue?.total ?? stats?.counts?.sellers ?? 0).toLocaleString()}
+                            </p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div className="flex items-center justify-between">
+                               <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Pending Audit</p>
+                               <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-black">
+                                  <AlertTriangle className="h-3.5 w-3.5" />
+                               </span>
+                            </div>
+                            <p className="text-2xl font-black text-amber-600 mt-2">
+                               {(kycQueue?.pendingCount ?? 0).toLocaleString()}
+                            </p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div className="flex items-center justify-between">
+                               <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Verified Merchants</p>
+                               <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-black">
+                                  <FaCircleCheck className="h-3.5 w-3.5" />
+                               </span>
+                            </div>
+                            <p className="text-2xl font-black text-emerald-600 mt-2">
+                               {(kycQueue?.verifiedCount ?? 0).toLocaleString()}
+                            </p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div className="flex items-center justify-between">
+                               <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Rejected</p>
+                               <span className="p-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-black">
+                                  <FaCircleXmark className="h-3.5 w-3.5" />
+                               </span>
+                            </div>
+                            <p className="text-2xl font-black text-rose-600 mt-2">
+                               {(kycQueue?.rejectedCount ?? 0).toLocaleString()}
+                            </p>
+                         </div>
+                      </div>
+
+                      {/* Search & Status Filters */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+                         <div className="relative w-full md:w-96">
+                            <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
+                            <input
+                               type="text"
+                               placeholder="Search trade name, owner, GSTIN, PAN, phone..."
+                               value={kycSearch}
+                               onChange={(e) => {
+                                  setKycSearch(e.target.value);
+                                  setKycPage(1);
+                               }}
+                               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium"
+                            />
+                         </div>
+
+                         {/* Status Filter Tabs */}
+                         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto p-1 bg-slate-100/80 rounded-xl">
+                            {[
+                               { id: 'ALL', label: 'All Merchants' },
+                               { id: 'PENDING', label: 'Pending Review Queue', count: kycQueue?.pendingCount },
+                               { id: 'VERIFIED', label: 'Verified Badges' },
+                               { id: 'REJECTED', label: 'Rejected' },
+                            ].map((f) => (
+                               <button
+                                  key={f.id}
+                                  onClick={() => {
+                                     setKycStatusFilter(f.id as any);
+                                     setKycPage(1);
+                                  }}
+                                  className={clsx(
+                                     'px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer',
+                                     kycStatusFilter === f.id
+                                        ? 'bg-white text-slate-900 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                  )}
+                               >
+                                  <span>{f.label}</span>
+                                  {f.count !== undefined && f.count > 0 && (
+                                     <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-black">
+                                        {f.count}
+                                     </span>
+                                  )}
+                               </button>
+                            ))}
+                         </div>
+                      </div>
+
+                      {/* Merchant Cards Grid / Empty State */}
+                      {kycLoading ? (
+                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {Array(6).fill(0).map((_, i) => (
+                               <Skeleton key={i} className="h-56 rounded-3xl" />
+                            ))}
+                         </div>
+                      ) : !kycQueue?.queue?.length ? (
+                         <div className="p-16 rounded-3xl bg-white border border-dashed border-slate-200 text-center">
+                            <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+                               <FaCircleCheck className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-900">No Merchant KYC Records Found</p>
+                            <p className="text-xs text-slate-400 mt-1">Try clearing your search query or switching status filters.</p>
+                         </div>
+                      ) : (
+                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {kycQueue.queue.map((item: any) => {
+                               const u = item.user || {};
+                               const bp = u.businessProfile || {};
+                               const docs = item.documents || u.kycDocuments || [];
+                               const isCaptainVerified = docs.some((d: any) => d.verificationMethod === 'CAPTAIN_ONSITE');
+
+                               return (
+                                  <div
+                                     key={item.id}
+                                     className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                                  >
+                                     <div className="space-y-3.5">
+                                        {/* Card Header: Business Title & KYC Badge */}
+                                        <div className="flex items-start justify-between gap-3">
+                                           <div className="flex items-center gap-3 min-w-0">
+                                              <div className="h-12 w-12 rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center p-1 relative">
+                                                 {u.avatarUrl ? (
+                                                    <img src={u.avatarUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                                                 ) : (
+                                                    <FaStore className="h-5 w-5 text-slate-400" />
+                                                 )}
+                                                 {u.kycStatus === 'VERIFIED' && (
+                                                    <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-0.5 rounded-full ring-2 ring-white">
+                                                       <FaCircleCheck className="h-3 w-3" />
+                                                    </span>
+                                                 )}
+                                              </div>
+                                              <div className="min-w-0">
+                                                 <h3 className="font-heading font-black text-slate-900 text-sm truncate group-hover:text-indigo-600 transition-colors">
+                                                    {bp.businessName || u.fullName || 'Business Entity'}
+                                                 </h3>
+                                                 <p className="text-[11px] text-slate-500 font-medium truncate flex items-center gap-1.5">
+                                                    <span>{bp.businessType || 'Proprietorship'}</span>
+                                                    <span>•</span>
+                                                    <span className="text-slate-400">{u.userType || 'SELLER'}</span>
+                                                 </p>
+                                              </div>
+                                           </div>
+
+                                           <Badge status={u.kycStatus || 'PENDING'} />
+                                        </div>
+
+                                        {/* Owner Info & Identifiers */}
+                                        <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-100 space-y-2 text-xs">
+                                           <div className="flex items-center justify-between text-[11px]">
+                                              <span className="text-slate-500">Contact Person:</span>
+                                              <span className="font-bold text-slate-900">{u.fullName}</span>
+                                           </div>
+                                           <div className="flex items-center justify-between text-[11px]">
+                                              <span className="text-slate-500">Phone:</span>
+                                              <button
+                                                 onClick={() => handleCopy(u.phone, 'Phone')}
+                                                 className="font-mono font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                                              >
+                                                 {u.phone || 'N/A'}
+                                                 <FaRegCopy className="h-2.5 w-2.5 opacity-60" />
+                                              </button>
+                                           </div>
+                                           {bp.gstin && (
+                                              <div className="flex items-center justify-between text-[11px]">
+                                                 <span className="text-slate-500">GSTIN:</span>
+                                                 <button
+                                                    onClick={() => handleCopy(bp.gstin, 'GSTIN')}
+                                                    className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1 hover:border-slate-300"
+                                                 >
+                                                    {bp.gstin}
+                                                    <FaRegCopy className="h-2.5 w-2.5 text-slate-400" />
+                                                 </button>
+                                              </div>
+                                           )}
+                                           {bp.pan && (
+                                              <div className="flex items-center justify-between text-[11px]">
+                                                 <span className="text-slate-500">PAN:</span>
+                                                 <button
+                                                    onClick={() => handleCopy(bp.pan, 'PAN')}
+                                                    className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1 hover:border-slate-300"
+                                                 >
+                                                    {bp.pan}
+                                                    <FaRegCopy className="h-2.5 w-2.5 text-slate-400" />
+                                                 </button>
+                                              </div>
+                                           )}
+                                        </div>
+
+                                        {/* Verification Details & Documents */}
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                           {isCaptainVerified ? (
+                                              <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-black text-[10px] uppercase tracking-wider border border-emerald-200/80 flex items-center gap-1">
+                                                 <ShieldCheck className="h-3 w-3" /> Field Captain On-Site
+                                              </span>
+                                           ) : (
+                                              <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-black text-[10px] uppercase tracking-wider border border-blue-200/80 flex items-center gap-1">
+                                                 <FaFileLines className="h-3 w-3" /> Digital Submission
+                                              </span>
+                                           )}
+
+                                           <span className="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[10px]">
+                                              🛡️ Trust {u.trustScore || 85}/100
+                                           </span>
+
+                                           <span className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 font-medium text-[10px]">
+                                              {docs.length} {docs.length === 1 ? 'Doc' : 'Docs'}
+                                           </span>
+                                        </div>
+                                     </div>
+
+                                     {/* Card Action CTAs */}
+                                     <div className="pt-4 mt-4 border-t border-slate-100 flex items-center gap-2">
+                                        <button
+                                           onClick={() => setSelectedKycDetail(item)}
+                                           className="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                                        >
+                                           <FaEye className="h-3 w-3" />
+                                           <span>Audit Dossier</span>
+                                        </button>
+
+                                        {u.kycStatus !== 'VERIFIED' && (
+                                           <button
+                                              onClick={() => handleApprove('kyc', u.id)}
+                                              className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1 transition-all shadow-xs cursor-pointer"
+                                              title="Approve and verify merchant"
+                                           >
+                                              <FaCheck className="h-3 w-3" />
+                                              <span>Verify</span>
+                                           </button>
+                                        )}
+
+                                        {u.kycStatus !== 'REJECTED' && (
+                                           <button
+                                              onClick={() => handleReject('kyc', u.id)}
+                                              className="py-2 px-3 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                              title="Reject or revoke KYC"
+                                           >
+                                              <FaXmark className="h-3 w-3" />
+                                           </button>
+                                        )}
+                                     </div>
+                                  </div>
+                               );
+                            })}
+                         </div>
+                      )}
+
+                      {/* Pagination Controls */}
+                      {kycQueue?.totalPages > 1 && (
+                         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                               <span>
+                                  Showing <strong className="text-slate-900">{(kycPage - 1) * kycLimit + 1}</strong>–<strong className="text-slate-900">{Math.min(kycPage * kycLimit, kycQueue?.total || 0)}</strong> of <strong className="text-slate-900">{(kycQueue?.total || 0).toLocaleString()}</strong> Merchants
+                               </span>
+                               <div className="flex items-center gap-1.5 ml-2">
+                                  <span className="text-[11px] text-slate-400">Per page:</span>
+                                  <select
+                                     value={kycLimit}
+                                     onChange={(e) => {
+                                        setKycLimit(Number(e.target.value));
+                                        setKycPage(1);
+                                     }}
+                                     className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                                  >
+                                     <option value={10}>10</option>
+                                     <option value={20}>20</option>
+                                     <option value={50}>50</option>
+                                     <option value={100}>100</option>
+                                  </select>
+                               </div>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                               <button
+                                  onClick={() => setKycPage((p) => Math.max(p - 1, 1))}
+                                  disabled={kycPage === 1}
+                                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+                               >
+                                  Previous
+                               </button>
+
+                               {Array.from({ length: Math.min(kycQueue?.totalPages || 1, 7) }).map((_, idx) => {
+                                  let pageNum = idx + 1;
+                                  const totalP = kycQueue?.totalPages || 1;
+                                  if (totalP > 7) {
+                                     if (kycPage > 4 && kycPage < totalP - 3) {
+                                        pageNum = kycPage - 3 + idx;
+                                     } else if (kycPage >= totalP - 3) {
+                                        pageNum = totalP - 6 + idx;
+                                     }
+                                  }
+                                  if (pageNum > totalP) return null;
+
+                                  return (
+                                     <button
+                                        key={pageNum}
+                                        onClick={() => setKycPage(pageNum)}
+                                        className={clsx(
+                                           'w-8 h-8 rounded-xl text-xs font-bold transition-all',
+                                           kycPage === pageNum
+                                              ? 'bg-indigo-600 text-white shadow-xs'
+                                              : 'text-slate-600 hover:bg-slate-100'
+                                        )}
+                                     >
+                                        {pageNum}
+                                     </button>
+                                  );
+                               })}
+
+                               <button
+                                  onClick={() => setKycPage((p) => Math.min(p + 1, kycQueue?.totalPages || 1))}
+                                  disabled={kycPage === kycQueue?.totalPages}
+                                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+                               >
+                                  Next
+                               </button>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+                )}
+
+               {/* ────────────────── TAB 5: INVENTORY MODERATION & CATALOG MASTER ────────────────── */}
+               {tab === 'listings' && (
+                  <div className="space-y-5">
+                     {/* Summary Metric Cards */}
+                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                           <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total SKUs</p>
+                              <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-black">
+                                 <FaBoxOpen className="h-3.5 w-3.5" />
+                              </span>
+                           </div>
+                           <p className="text-2xl font-black text-slate-900 mt-2">
+                              {(listingsQueue?.total ?? listingsQueue?.listings?.length ?? 0).toLocaleString()}
+                           </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                           <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Pending Review</p>
+                              <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-black">
+                                 <AlertTriangle className="h-3.5 w-3.5" />
+                              </span>
+                           </div>
+                           <p className="text-2xl font-black text-amber-600 mt-2">
+                              {(listingsQueue?.draftCount ?? 0).toLocaleString()}
+                           </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                           <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Live Active</p>
+                              <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-black">
+                                 <FaCircleCheck className="h-3.5 w-3.5" />
+                              </span>
+                           </div>
+                           <p className="text-2xl font-black text-emerald-600 mt-2">
+                              {(listingsQueue?.activeCount ?? 0).toLocaleString()}
+                           </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                           <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Delisted / Rejected</p>
+                              <span className="p-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-black">
+                                 <FaCircleXmark className="h-3.5 w-3.5" />
+                              </span>
+                           </div>
+                           <p className="text-2xl font-black text-rose-600 mt-2">
+                              {(listingsQueue?.rejectedCount ?? 0).toLocaleString()}
+                           </p>
+                        </div>
+                     </div>
+
+                     {/* Search & Status Filter Toolbar */}
+                     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div className="relative flex-1 max-w-md">
+                           <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
+                           <input
+                              type="text"
+                              placeholder="Search by SKU title, category, brand, HSN, merchant name..."
+                              value={listingSearch}
+                              onChange={(e) => {
+                                 setListingSearch(e.target.value);
+                                 setListingPage(1);
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                           />
+                           {listingSearch && (
+                              <button
+                                 onClick={() => {
+                                    setListingSearch('');
+                                    setListingPage(1);
+                                 }}
+                                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-xs"
+                              >
+                                 <FaXmark className="h-3 w-3" />
+                              </button>
+                           )}
+                        </div>
+
+                        {/* Status Tabs Filter */}
+                        <div className="flex flex-wrap items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                           {[
+                              { id: 'ALL', label: 'All Catalog', count: listingsQueue?.total },
+                              { id: 'DRAFT', label: 'Pending Review', count: listingsQueue?.draftCount },
+                              { id: 'ACTIVE', label: 'Live Marketplace', count: listingsQueue?.activeCount },
+                              { id: 'REJECTED', label: 'Rejected', count: listingsQueue?.rejectedCount },
+                           ].map((item) => (
+                              <button
+                                 key={item.id}
+                                 onClick={() => {
+                                    setListingStatusFilter(item.id as any);
+                                    setListingPage(1);
+                                 }}
+                                 className={clsx(
+                                    'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5',
+                                    listingStatusFilter === item.id
+                                       ? 'bg-white text-indigo-600 shadow-xs font-black'
+                                       : 'text-slate-600 hover:text-slate-900'
+                                 )}
+                              >
+                                 <span>{item.label}</span>
+                                 {typeof item.count === 'number' && (
+                                    <span className={clsx(
+                                       'text-[10px] px-1.5 py-0.5 rounded-full',
+                                       listingStatusFilter === item.id
+                                          ? 'bg-indigo-50 text-indigo-700 font-black'
+                                          : 'bg-slate-200 text-slate-600'
+                                    )}>
+                                       {item.count}
+                                    </span>
+                                 )}
+                              </button>
                            ))}
                         </div>
-                     ) : !kycQueue?.queue?.length ? (
+                     </div>
+
+                     {/* Listings Grid / Cards */}
+                     {listingsLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {Array(6).fill(0).map((_, i) => (
+                              <Skeleton key={i} className="h-48 rounded-2xl" />
+                           ))}
+                        </div>
+                     ) : !(listingsQueue?.listings || listingsQueue?.queue)?.length ? (
                         <div className="p-16 rounded-2xl bg-white border border-dashed border-slate-200 text-center">
                            <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
                               <FaCircleCheck className="h-6 w-6" />
                            </div>
-                           <p className="text-sm font-bold text-slate-900">KYC Review Queue Empty</p>
-                           <p className="text-xs text-slate-400 mt-1">All on-ground and digital identity submissions have been audited.</p>
+                           <p className="text-sm font-bold text-slate-900">No Listings Match Filter</p>
+                           <p className="text-xs text-slate-400 mt-1">Try switching tabs or clearing your search term.</p>
                         </div>
                      ) : (
-                        <div className="space-y-3">
-                           {kycQueue.queue.map((item: any) => (
-                              <div key={item.id} className="p-5 rounded-2xl bg-white border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-                                 <div className="flex items-center gap-3.5">
-                                    <Avatar name={item.user?.fullName} size="md" />
-                                    <div>
-                                       <div className="flex items-center gap-2">
-                                          <h3 className="text-sm font-bold text-slate-900">{item.user?.fullName}</h3>
-                                          <Badge status={item.user?.kycStatus} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {(listingsQueue?.listings || listingsQueue?.queue).map((listing: any) => {
+                              const primaryImg = listing.media?.find((m: any) => m.isPrimary)?.url || listing.media?.[0]?.url;
+                              const price = listing.productDetail?.pricePerUnit ?? listing.pricePerUnit;
+                              const uom = listing.productDetail?.unitOfMeasure || 'unit';
+                              const moq = listing.productDetail?.minOrderQty || 1;
+                              const slabs = listing.productDetail?.bulkPriceSlabs || [];
+                              const merchantName = listing.seller?.businessProfile?.businessName || listing.seller?.fullName || 'Verified Supplier';
+
+                              return (
+                                 <div
+                                    key={listing.id}
+                                    className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-3 group"
+                                 >
+                                    {/* Top Row: Thumbnail + Title + Status */}
+                                    <div className="flex items-start gap-3.5">
+                                       {/* Image Thumbnail */}
+                                       <div
+                                          onClick={() => setSelectedListingDetail(listing)}
+                                          className="relative h-20 w-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 cursor-pointer group-hover:border-indigo-300 transition-colors"
+                                       >
+                                          {primaryImg ? (
+                                             <img
+                                                src={primaryImg}
+                                                alt={listing.title}
+                                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                             />
+                                          ) : (
+                                             <div className="h-full w-full flex items-center justify-center text-slate-400">
+                                                <FaBoxOpen className="h-8 w-8" />
+                                             </div>
+                                          )}
+                                          {listing.media?.length > 1 && (
+                                             <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                                                +{listing.media.length - 1}
+                                             </span>
+                                          )}
                                        </div>
-                                       <p className="text-xs text-slate-500">{item.user?.businessProfile?.businessName || 'Business Name Pending'}</p>
-                                       <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                          Submitted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                                       </p>
+
+                                       {/* Content Header */}
+                                       <div className="flex-1 min-w-0">
+                                          <div className="flex items-center justify-between gap-2 mb-1">
+                                             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 truncate">
+                                                {listing.category?.name || 'General B2B'}
+                                             </span>
+                                             {/* Status Badge */}
+                                             <span className={clsx(
+                                                'text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0',
+                                                listing.status === 'ACTIVE' && 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                                                listing.status === 'DRAFT' && 'bg-amber-50 text-amber-700 border border-amber-200',
+                                                listing.status === 'REJECTED' && 'bg-rose-50 text-rose-700 border border-rose-200'
+                                             )}>
+                                                {listing.status === 'ACTIVE' && <FaCircleCheck className="h-2.5 w-2.5" />}
+                                                {listing.status === 'DRAFT' && <AlertTriangle className="h-2.5 w-2.5" />}
+                                                {listing.status === 'REJECTED' && <FaCircleXmark className="h-2.5 w-2.5" />}
+                                                {listing.status === 'DRAFT' ? 'Pending Review' : listing.status}
+                                             </span>
+                                          </div>
+
+                                          <h3
+                                             onClick={() => setSelectedListingDetail(listing)}
+                                             className="text-xs font-bold text-slate-900 line-clamp-2 cursor-pointer hover:text-indigo-600 transition-colors"
+                                             title={listing.title}
+                                          >
+                                             {listing.title}
+                                          </h3>
+
+                                          {/* Merchant & Brand Details */}
+                                          <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 flex-wrap">
+                                             <span className="flex items-center gap-1 font-semibold text-slate-700">
+                                                <FaBuilding className="h-3 w-3 text-indigo-500 shrink-0" />
+                                                <span className="truncate max-w-[140px]">{merchantName}</span>
+                                             </span>
+                                             {listing.productDetail?.brand && (
+                                                <span className="text-slate-400">• Brand: <strong className="text-slate-600">{listing.productDetail.brand}</strong></span>
+                                             )}
+                                             {listing.productDetail?.specifications?.hsnCode && (
+                                                <span className="text-slate-400">• HSN: <strong className="text-slate-600">{listing.productDetail.specifications.hsnCode}</strong></span>
+                                             )}
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    {/* Middle Row: Pricing & Volume Discount Slabs */}
+                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
+                                       <div>
+                                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Wholesale Price</span>
+                                          <span className="font-black text-slate-900 text-sm">
+                                             {price ? `₹${Number(price).toLocaleString('en-IN')}` : 'On Request'}
+                                             <span className="text-[10px] font-normal text-slate-500"> / {uom}</span>
+                                          </span>
+                                       </div>
+
+                                       <div className="text-right">
+                                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Min Order Qty</span>
+                                          <span className="font-bold text-slate-700 text-xs">
+                                             {moq} {uom}
+                                          </span>
+                                       </div>
+
+                                       {Array.isArray(slabs) && slabs.length > 0 && (
+                                          <div className="hidden sm:block text-right border-l border-slate-200 pl-3">
+                                             <span className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider block">Bulk Slabs</span>
+                                             <span className="text-[10px] font-bold text-emerald-700">
+                                                {slabs.length} Discount Tier{slabs.length > 1 ? 's' : ''}
+                                             </span>
+                                          </div>
+                                       )}
+                                    </div>
+
+                                    {/* Bottom Row: Actions */}
+                                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                                       <button
+                                          onClick={() => setSelectedListingDetail(listing)}
+                                          className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 transition-colors"
+                                       >
+                                          <FaEye className="h-3 w-3" />
+                                          Inspect Specs
+                                       </button>
+
+                                       <div className="flex items-center gap-2">
+                                          <a
+                                             href={`/listings/${listing.id}`}
+                                             target="_blank"
+                                             rel="noreferrer"
+                                             className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                             title="View on public marketplace"
+                                          >
+                                             <ExternalLink className="h-3.5 w-3.5" />
+                                          </a>
+
+                                          {listing.status !== 'ACTIVE' ? (
+                                             <button
+                                                onClick={() => handleApprove('listing', listing.id)}
+                                                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                                             >
+                                                <FaCheck className="h-3 w-3" />
+                                                Publish SKU
+                                             </button>
+                                          ) : (
+                                             <button
+                                                onClick={() => handleReject('listing', listing.id)}
+                                                className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold transition-all flex items-center gap-1"
+                                             >
+                                                <FaXmark className="h-3 w-3" />
+                                                Unpublish
+                                             </button>
+                                          )}
+                                       </div>
                                     </div>
                                  </div>
-
-                                 <div className="flex items-center gap-2">
-                                    <button
-                                       onClick={() => handleApprove('kyc', item.userId)}
-                                       className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5"
-                                    >
-                                       <FaCheck className="h-3 w-3" /> Approve KYC
-                                    </button>
-                                    <button
-                                       onClick={() => handleReject('kyc', item.userId)}
-                                       className="px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors flex items-center gap-1.5"
-                                    >
-                                       <FaXmark className="h-3 w-3" /> Reject
-                                    </button>
-                                 </div>
-                              </div>
-                           ))}
+                              );
+                           })}
                         </div>
                      )}
-                  </div>
-               )}
 
-               {/* ────────────────── TAB 5: INVENTORY MODERATION ────────────────── */}
-               {tab === 'listings' && (
-                  <div className="space-y-4">
-                     {listingsLoading ? (
-                        <div className="space-y-3">
-                           {Array(3).fill(0).map((_, i) => (
-                              <Skeleton key={i} className="h-24 rounded-2xl" />
-                           ))}
-                        </div>
-                     ) : !listingsQueue?.listings?.length ? (
-                        <div className="p-16 rounded-2xl bg-white border border-dashed border-slate-200 text-center">
-                           <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
-                              <FaCircleCheck className="h-6 w-6" />
+                     {/* Pagination Controls */}
+                     {typeof listingsQueue?.total === 'number' && listingsQueue.total > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                           <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                              <span>
+                                 Showing <strong className="text-slate-900 font-bold">{((listingPage - 1) * listingLimit) + 1}</strong>–
+                                 <strong className="text-slate-900 font-bold">{Math.min(listingPage * listingLimit, listingsQueue.total)}</strong> of{' '}
+                                 <strong className="text-slate-900 font-bold">{listingsQueue.total.toLocaleString()}</strong> SKUs
+                              </span>
+
+                              {/* Items per page selector */}
+                              <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                                 <span className="text-[11px] text-slate-400 font-semibold">Per page:</span>
+                                 <select
+                                    value={listingLimit}
+                                    onChange={(e) => {
+                                       setListingLimit(Number(e.target.value));
+                                       setListingPage(1);
+                                    }}
+                                    className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                 >
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                 </select>
+                              </div>
                            </div>
-                           <p className="text-sm font-bold text-slate-900">Inventory Moderation Queue Cleared</p>
-                           <p className="text-xs text-slate-400 mt-1">All catalog submissions have been published.</p>
-                        </div>
-                     ) : (
-                        <div className="space-y-3">
-                           {listingsQueue.listings.map((listing: any) => (
-                              <div key={listing.id} className="p-4 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-between gap-4 shadow-xs">
-                                 <div>
-                                    <h3 className="text-xs font-bold text-slate-900">{listing.title}</h3>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">{listing.category?.name || 'General B2B'}</p>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                    <button
-                                       onClick={() => handleApprove('listing', listing.id)}
-                                       className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
-                                    >
-                                       Publish SKU
-                                    </button>
-                                 </div>
-                              </div>
-                           ))}
+
+                           {/* Page Navigation Buttons */}
+                           <div className="flex items-center gap-1.5">
+                              {/* Previous Button */}
+                              <button
+                                 onClick={() => setListingPage((p) => Math.max(1, p - 1))}
+                                 disabled={listingPage <= 1}
+                                 className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                 Previous
+                              </button>
+
+                              {/* Page Number Buttons */}
+                              {(() => {
+                                 const totalPages = listingsQueue?.totalPages || Math.ceil(listingsQueue.total / listingLimit) || 1;
+                                 const pages: (number | string)[] = [];
+
+                                 if (totalPages <= 7) {
+                                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                 } else {
+                                    pages.push(1);
+                                    if (listingPage > 3) pages.push('...');
+
+                                    const start = Math.max(2, listingPage - 1);
+                                    const end = Math.min(totalPages - 1, listingPage + 1);
+                                    for (let i = start; i <= end; i++) {
+                                       if (!pages.includes(i)) pages.push(i);
+                                    }
+
+                                    if (listingPage < totalPages - 2) pages.push('...');
+                                    if (!pages.includes(totalPages)) pages.push(totalPages);
+                                 }
+
+                                 return pages.map((p, idx) => {
+                                    if (p === '...') {
+                                       return (
+                                          <span key={`dots-${idx}`} className="px-1.5 text-xs font-bold text-slate-400">
+                                             ...
+                                          </span>
+                                       );
+                                    }
+                                    const pageNum = Number(p);
+                                    const isActive = pageNum === listingPage;
+                                    return (
+                                       <button
+                                          key={pageNum}
+                                          onClick={() => setListingPage(pageNum)}
+                                          className={clsx(
+                                             'h-8 min-w-[32px] px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center',
+                                             isActive
+                                                ? 'bg-indigo-600 text-white font-black shadow-xs'
+                                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                                          )}
+                                       >
+                                          {pageNum}
+                                       </button>
+                                    );
+                                 });
+                              })()}
+
+                              {/* Next Button */}
+                              <button
+                                 onClick={() => setListingPage((p) => {
+                                    const totalPages = listingsQueue?.totalPages || Math.ceil(listingsQueue.total / listingLimit) || 1;
+                                    return Math.min(totalPages, p + 1);
+                                 })}
+                                 disabled={listingPage >= (listingsQueue?.totalPages || Math.ceil(listingsQueue.total / listingLimit) || 1)}
+                                 className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                 Next
+                              </button>
+                           </div>
                         </div>
                      )}
+
+                     {/* ────────────────── PRODUCT DETAIL INSPECTION MODAL ────────────────── */}
+                     <AnimatePresence>
+                        {selectedListingDetail && (
+                           <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                              <motion.div
+                                 initial={{ opacity: 0, scale: 0.95 }}
+                                 animate={{ opacity: 1, scale: 1 }}
+                                 exit={{ opacity: 0, scale: 0.95 }}
+                                 className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-slate-200"
+                              >
+                                 {/* Modal Header */}
+                                 <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                    <div>
+                                       <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">
+                                             {selectedListingDetail.category?.name || 'General B2B'}
+                                          </span>
+                                          <span className={clsx(
+                                             'text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full',
+                                             selectedListingDetail.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                          )}>
+                                             {selectedListingDetail.status}
+                                          </span>
+                                       </div>
+                                       <h2 className="text-base font-black text-slate-900 mt-1 line-clamp-1">{selectedListingDetail.title}</h2>
+                                    </div>
+                                    <button
+                                       onClick={() => setSelectedListingDetail(null)}
+                                       className="h-8 w-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition-colors"
+                                    >
+                                       <FaXmark className="h-4 w-4" />
+                                    </button>
+                                 </div>
+
+                                 {/* Modal Body */}
+                                 <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+                                    {/* Image Gallery */}
+                                    {selectedListingDetail.media?.length > 0 && (
+                                       <div>
+                                          <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Product Photos</h4>
+                                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                                             {selectedListingDetail.media.map((m: any, idx: number) => (
+                                                <div key={idx} className="relative aspect-square rounded-xl bg-slate-100 border border-slate-200 overflow-hidden">
+                                                   <img src={m.url} alt={`Photo ${idx + 1}`} className="h-full w-full object-cover" />
+                                                   {m.isPrimary && (
+                                                      <span className="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md">Primary</span>
+                                                   )}
+                                                </div>
+                                             ))}
+                                          </div>
+                                       </div>
+                                    )}
+
+                                    {/* Pricing & Commercial Slabs Table */}
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                                       <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">Pricing & Slabs Matrix</h4>
+                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                          <div>
+                                             <span className="text-[10px] text-slate-400 block font-medium">Base Unit Price</span>
+                                             <span className="text-sm font-black text-slate-900">
+                                                ₹{Number(selectedListingDetail.productDetail?.pricePerUnit ?? selectedListingDetail.pricePerUnit ?? 0).toLocaleString('en-IN')}
+                                             </span>
+                                          </div>
+                                          <div>
+                                             <span className="text-[10px] text-slate-400 block font-medium">Unit of Measure</span>
+                                             <span className="text-xs font-bold text-slate-800">
+                                                {selectedListingDetail.productDetail?.unitOfMeasure || 'Pieces'}
+                                             </span>
+                                          </div>
+                                          <div>
+                                             <span className="text-[10px] text-slate-400 block font-medium">Min Order Quantity</span>
+                                             <span className="text-xs font-bold text-slate-800">
+                                                {selectedListingDetail.productDetail?.minOrderQty || 1} units
+                                             </span>
+                                          </div>
+                                       </div>
+
+                                       {/* Volume Discount Slabs */}
+                                       {Array.isArray(selectedListingDetail.productDetail?.bulkPriceSlabs) && selectedListingDetail.productDetail.bulkPriceSlabs.length > 0 && (
+                                          <div className="pt-2 border-t border-slate-200">
+                                             <span className="text-[10px] text-slate-500 font-bold block mb-1.5">Tiered Volume Discounts</span>
+                                             <div className="flex flex-wrap gap-2">
+                                                {selectedListingDetail.productDetail.bulkPriceSlabs.map((slab: any, idx: number) => (
+                                                   <span key={idx} className="bg-white border border-emerald-200 px-2.5 py-1 rounded-lg text-emerald-800 text-[11px] font-bold">
+                                                      {slab.minQty}{slab.maxQty ? `–${slab.maxQty}` : '+'} units: <strong>₹{slab.price}</strong>
+                                                   </span>
+                                                ))}
+                                             </div>
+                                          </div>
+                                       )}
+                                    </div>
+
+                                    {/* Specifications Table */}
+                                    {selectedListingDetail.productDetail?.specifications && (
+                                       <div>
+                                          <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Technical Specifications</h4>
+                                          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
+                                             {Object.entries(selectedListingDetail.productDetail.specifications).map(([key, val]: [string, any]) => (
+                                                <div key={key} className="flex items-center justify-between p-2.5 px-4 text-xs">
+                                                   <span className="text-slate-500 font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                   <span className="text-slate-900 font-bold">{String(val)}</span>
+                                                </div>
+                                             ))}
+                                          </div>
+                                       </div>
+                                    )}
+
+                                    {/* Merchant / Company Info */}
+                                    {selectedListingDetail.seller && (
+                                       <div className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-2xl space-y-2">
+                                          <h4 className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">Merchant & Supplier Info</h4>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                             <div>
+                                                <span className="text-[10px] text-slate-400 block">Business Name</span>
+                                                <span className="font-bold text-slate-900">{selectedListingDetail.seller.businessProfile?.businessName || selectedListingDetail.seller.fullName}</span>
+                                             </div>
+                                             <div>
+                                                <span className="text-[10px] text-slate-400 block">GSTIN</span>
+                                                <span className="font-bold text-slate-900 font-mono">{selectedListingDetail.seller.businessProfile?.gstin || 'N/A'}</span>
+                                             </div>
+                                             <div>
+                                                <span className="text-[10px] text-slate-400 block">Contact Person</span>
+                                                <span className="font-bold text-slate-900">{selectedListingDetail.seller.fullName}</span>
+                                             </div>
+                                             <div>
+                                                <span className="text-[10px] text-slate-400 block">Mobile Phone</span>
+                                                <span className="font-bold text-slate-900">{selectedListingDetail.seller.phone}</span>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    )}
+                                 </div>
+
+                                 {/* Modal Footer */}
+                                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+                                    <a
+                                       href={`/listings/${selectedListingDetail.id}`}
+                                       target="_blank"
+                                       rel="noreferrer"
+                                       className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition-colors flex items-center gap-1.5"
+                                    >
+                                       <ExternalLink className="h-3.5 w-3.5" />
+                                       View Marketplace Page
+                                    </a>
+
+                                    <div className="flex items-center gap-2">
+                                       {selectedListingDetail.status !== 'ACTIVE' ? (
+                                          <button
+                                             onClick={() => {
+                                                handleApprove('listing', selectedListingDetail.id);
+                                                setSelectedListingDetail(null);
+                                             }}
+                                             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+                                          >
+                                             <FaCheck className="h-3.5 w-3.5" />
+                                             Publish to Marketplace
+                                          </button>
+                                       ) : (
+                                          <button
+                                             onClick={() => {
+                                                handleReject('listing', selectedListingDetail.id);
+                                                setSelectedListingDetail(null);
+                                             }}
+                                             className="px-4 py-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold transition-colors flex items-center gap-1.5"
+                                          >
+                                             <FaXmark className="h-3.5 w-3.5" />
+                                             Unpublish SKU
+                                          </button>
+                                       )}
+                                    </div>
+                                 </div>
+                              </motion.div>
+                           </div>
+                        )}
+                     </AnimatePresence>
                   </div>
                )}
 
@@ -2316,6 +3153,272 @@ function AdminDashboard() {
                         </button>
                      </div>
                   </motion.div>
+               </div>
+            )}
+
+            {/* Detailed KYC Merchant Inspection & Audit Modal */}
+            {selectedKycDetail && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+                  <motion.div
+                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                     className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl border border-slate-200/80 space-y-6"
+                  >
+                     {/* Modal Top Bar */}
+                     <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                        <div className="flex items-center gap-3.5">
+                           <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center p-1 relative">
+                              {selectedKycDetail.user?.avatarUrl ? (
+                                 <img src={selectedKycDetail.user.avatarUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                              ) : (
+                                 <FaStore className="h-6 w-6 text-slate-400" />
+                              )}
+                           </div>
+                           <div>
+                              <div className="flex items-center gap-2">
+                                 <h2 className="font-heading font-black text-slate-900 text-lg">
+                                    {selectedKycDetail.user?.businessProfile?.businessName || selectedKycDetail.user?.fullName}
+                                 </h2>
+                                 <Badge status={selectedKycDetail.user?.kycStatus || 'PENDING'} />
+                              </div>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                 Contact: <strong className="text-slate-800">{selectedKycDetail.user?.fullName}</strong> • Registered {formatDistanceToNow(new Date(selectedKycDetail.createdAt), { addSuffix: true })}
+                              </p>
+                           </div>
+                        </div>
+
+                        <button
+                           onClick={() => setSelectedKycDetail(null)}
+                           className="h-8 w-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs transition-colors cursor-pointer"
+                        >
+                           ✕
+                        </button>
+                     </div>
+
+                     {/* Bento Grid: Business Profile & KYC Docs */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        {/* Box 1: Compliance Identifiers */}
+                        <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaBuilding className="h-3.5 w-3.5 text-indigo-600" />
+                                 <span>Tax & Legal Profile</span>
+                              </span>
+                              <span className="font-bold text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                 {selectedKycDetail.user?.businessProfile?.businessType || 'Proprietorship'}
+                              </span>
+                           </div>
+
+                           <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                 <span className="text-slate-500">GSTIN:</span>
+                                 <button
+                                    onClick={() => handleCopy(selectedKycDetail.user?.businessProfile?.gstin, 'GSTIN')}
+                                    className="font-mono font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1.5"
+                                 >
+                                    <span>{selectedKycDetail.user?.businessProfile?.gstin || 'Not Provided'}</span>
+                                    {selectedKycDetail.user?.businessProfile?.gstin && <FaRegCopy className="h-2.5 w-2.5 text-slate-400" />}
+                                 </button>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                 <span className="text-slate-500">PAN:</span>
+                                 <button
+                                    onClick={() => handleCopy(selectedKycDetail.user?.businessProfile?.pan, 'PAN')}
+                                    className="font-mono font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1.5"
+                                 >
+                                    <span>{selectedKycDetail.user?.businessProfile?.pan || 'Not Provided'}</span>
+                                    {selectedKycDetail.user?.businessProfile?.pan && <FaRegCopy className="h-2.5 w-2.5 text-slate-400" />}
+                                 </button>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                 <span className="text-slate-500">Phone:</span>
+                                 <span className="font-mono font-bold text-slate-900">{selectedKycDetail.user?.phone || 'N/A'}</span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                 <span className="text-slate-500">Email:</span>
+                                 <span className="font-bold text-slate-900 truncate max-w-[180px]">{selectedKycDetail.user?.email || 'N/A'}</span>
+                              </div>
+
+                              {selectedKycDetail.user?.businessProfile?.annualTurnover && (
+                                 <div className="flex items-center justify-between">
+                                    <span className="text-slate-500">Annual Turnover:</span>
+                                    <span className="font-bold text-slate-900">{selectedKycDetail.user.businessProfile.annualTurnover}</span>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+
+                        {/* Box 2: Verification Details */}
+                        <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaShieldHalved className="h-3.5 w-3.5 text-emerald-600" />
+                                 <span>Audit Assessment</span>
+                              </span>
+                              <span className="font-bold text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                 🛡️ Score {selectedKycDetail.user?.trustScore || 85}/100
+                              </span>
+                           </div>
+
+                           <div className="space-y-2">
+                              <div>
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Field Inspector / Method</span>
+                                 <p className="font-bold text-slate-900 mt-0.5">
+                                    {selectedKycDetail.documents?.some((d: any) => d.verificationMethod === 'CAPTAIN_ONSITE')
+                                       ? 'Captain On-Site Physical Inspection'
+                                       : 'Direct Merchant Digital Upload'}
+                                 </p>
+                              </div>
+
+                              {selectedKycDetail.user?.businessProfile?.description && (
+                                 <div>
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Inspection Notes</span>
+                                    <p className="text-slate-700 leading-relaxed bg-white p-2.5 rounded-xl border border-slate-200 mt-0.5">
+                                       {selectedKycDetail.user.businessProfile.description}
+                                    </p>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     </div>
+
+                     {/* Uploaded Documents Gallery */}
+                     <div className="space-y-3">
+                        <h4 className="font-heading font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                           <FaFileLines className="h-3.5 w-3.5 text-indigo-600" />
+                           <span>Uploaded Identity & Business Documents ({selectedKycDetail.documents?.length || 0})</span>
+                        </h4>
+
+                        {!selectedKycDetail.documents?.length ? (
+                           <p className="text-slate-400 italic text-xs py-6 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                              No uploaded document files attached for this merchant.
+                           </p>
+                        ) : (
+                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                              {selectedKycDetail.documents.map((doc: any) => (
+                                 <div key={doc.id} className="bg-slate-50 rounded-2xl p-3 border border-slate-200 space-y-2 flex flex-col justify-between">
+                                    <div>
+                                       <div className="flex items-center justify-between mb-2">
+                                          <span className="font-black text-[10px] uppercase bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded-md border border-indigo-100">
+                                             {doc.documentType}
+                                          </span>
+                                          <Badge status={doc.status || 'VERIFIED'} />
+                                       </div>
+
+                                       {doc.documentNumber && (
+                                          <p className="font-mono text-[11px] text-slate-700 font-bold truncate">
+                                             {doc.documentNumber}
+                                          </p>
+                                       )}
+                                    </div>
+
+                                    {doc.documentUrl ? (
+                                       <div className="space-y-1.5">
+                                          <div
+                                             onClick={() => setPreviewDocUrl(doc.documentUrl)}
+                                             className="h-28 w-full rounded-xl bg-white border border-slate-200 overflow-hidden cursor-pointer group relative flex items-center justify-center"
+                                          >
+                                             <img
+                                                src={doc.documentUrl}
+                                                alt={doc.documentType}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                             />
+                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                                                <FaEye className="h-3 w-3" /> Click to Zoom
+                                             </div>
+                                          </div>
+
+                                          <a
+                                             href={doc.documentUrl}
+                                             target="_blank"
+                                             rel="noreferrer"
+                                             className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 py-1"
+                                          >
+                                             <span>Open Full Size</span>
+                                             <ExternalLink className="h-2.5 w-2.5" />
+                                          </a>
+                                       </div>
+                                    ) : (
+                                       <div className="h-20 rounded-xl bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-medium">
+                                          No Preview
+                                       </div>
+                                    )}
+
+                                    {doc.reviewNote && (
+                                       <p className="text-[10px] text-slate-500 italic bg-white p-2 rounded-lg border border-slate-100">
+                                          {doc.reviewNote}
+                                       </p>
+                                    )}
+                                 </div>
+                              ))}
+                           </div>
+                        )}
+                     </div>
+
+                     {/* Action Controls */}
+                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-2">
+                           {selectedKycDetail.user?.kycStatus !== 'VERIFIED' && (
+                              <button
+                                 onClick={async () => {
+                                    await handleApprove('kyc', selectedKycDetail.userId || selectedKycDetail.id);
+                                    setSelectedKycDetail(null);
+                                 }}
+                                 className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+                              >
+                                 <FaCheck className="h-3.5 w-3.5" />
+                                 <span>Approve & Verify Merchant</span>
+                              </button>
+                           )}
+
+                           {selectedKycDetail.user?.kycStatus !== 'REJECTED' && (
+                              <button
+                                 onClick={async () => {
+                                    await handleReject('kyc', selectedKycDetail.userId || selectedKycDetail.id);
+                                    setSelectedKycDetail(null);
+                                 }}
+                                 className="px-4 py-2.5 rounded-2xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                              >
+                                 <FaXmark className="h-3.5 w-3.5" />
+                                 <span>Reject / Revoke KYC</span>
+                              </button>
+                           )}
+                        </div>
+
+                        <button
+                           onClick={() => setSelectedKycDetail(null)}
+                           className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                        >
+                           Close Dossier
+                        </button>
+                     </div>
+                  </motion.div>
+               </div>
+            )}
+
+            {/* Full-Screen Document Zoom Lightbox */}
+            {previewDocUrl && (
+               <div
+                  onClick={() => setPreviewDocUrl(null)}
+                  className="fixed inset-0 z-60 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
+               >
+                  <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl p-2" onClick={(e) => e.stopPropagation()}>
+                     <button
+                        onClick={() => setPreviewDocUrl(null)}
+                        className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center text-sm transition-colors cursor-pointer"
+                     >
+                        ✕
+                     </button>
+                     <img
+                        src={previewDocUrl}
+                        alt="Document Preview"
+                        className="max-h-[85vh] max-w-full object-contain rounded-2xl"
+                     />
+                  </div>
                </div>
             )}
          </AnimatePresence>

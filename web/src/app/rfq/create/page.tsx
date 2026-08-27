@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button, Input, Textarea, Select, Card, Badge, Container } from '@/components/ui';
@@ -139,6 +139,14 @@ const CATEGORY_PROMPTS: Record<string, { unit: string; chips: string[] }> = {
 };
 
 export default function RfqPostPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-sm font-bold text-gray-500">Loading RFQ Form...</div>}>
+      <RfqPostContent />
+    </Suspense>
+  );
+}
+
+function RfqPostContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

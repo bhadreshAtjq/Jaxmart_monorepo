@@ -1,6 +1,7 @@
 const { prisma } = require('../config/database');
 const { logger } = require('../utils/logger');
 const { sendNotification } = require('../services/notificationService');
+const { cleanS3Url, signListingMedia } = require('../utils/s3');
 
 /**
  * POST /api/captain/onboard-seller
@@ -378,12 +379,15 @@ const createCaptainListing = async (req, res) => {
           },
         },
         media: {
-          create: normalizedImages.map((img, idx) => ({
-            url: typeof img === 'string' ? img : (img.url || img.uri || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80'),
-            mediaType: 'IMAGE',
-            isPrimary: typeof img === 'object' ? Boolean(img.isPrimary) : idx === 0,
-            sortOrder: idx,
-          })),
+          create: normalizedImages.map((img, idx) => {
+            const rawUrl = typeof img === 'string' ? img : (img.url || img.uri || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80');
+            return {
+              url: cleanS3Url(rawUrl),
+              mediaType: 'IMAGE',
+              isPrimary: typeof img === 'object' ? Boolean(img.isPrimary) : idx === 0,
+              sortOrder: idx,
+            };
+          }),
         },
       },
       include: {
@@ -403,10 +407,12 @@ const createCaptainListing = async (req, res) => {
 
     logger.info(`Captain cataloged SKU #${listing.id} (${listing.title}) for seller ${seller.id}`);
 
+    const signedListing = await signListingMedia(listing);
+
     res.status(201).json({
       success: true,
       message: 'Product SKU cataloged and published successfully',
-      listing,
+      listing: signedListing,
     });
   } catch (err) {
     logger.error('captain createCaptainListing error:', err);

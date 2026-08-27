@@ -11,8 +11,8 @@ export const getDefaultBaseUrl = (): string => {
   if (Platform.OS === 'web') {
     return 'http://localhost:4000/api';
   }
-  // Primary local network IP for physical device & emulator connectivity
-  return 'http://192.168.1.11:4000/api';
+  // Primary local network IP for physical device & emulator connectivity (Host IP: 192.168.1.33)
+  return 'http://192.168.1.33:4000/api';
 };
 
 export const getApiBaseUrl = async (): Promise<string> => {
@@ -29,7 +29,7 @@ export const setCustomApiBaseUrl = async (url: string): Promise<void> => {
 
 const api = axios.create({
   baseURL: getDefaultBaseUrl(),
-  timeout: 4000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

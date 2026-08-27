@@ -226,18 +226,34 @@ export function useAdminUsers(enabled: boolean, search?: string, userType?: stri
   );
 }
 
-export function useAdminKycQueue(enabled: boolean) {
+export function useAdminKycQueue(enabled: boolean, params?: { status?: string; search?: string; page?: number; limit?: number }) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  if (params?.search) query.set('search', params.search);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.limit) query.set('limit', String(params.limit || 20));
+  const queryString = query.toString();
+  const endpoint = `/admin/kyc/queue${queryString ? `?${queryString}` : ''}`;
+
   return useSWR(
-    isLoggedIn && enabled ? '/admin/kyc/queue' : null,
+    isLoggedIn && enabled ? endpoint : null,
     fetcher
   );
 }
 
-export function useAdminListingsQueue(enabled: boolean) {
+export function useAdminListingsQueue(enabled: boolean, params?: { status?: string; search?: string; page?: number; limit?: number }) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  if (params?.search) query.set('search', params.search);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.limit) query.set('limit', String(params.limit || 100));
+  const queryString = query.toString();
+  const endpoint = `/admin/listings/queue${queryString ? `?${queryString}` : ''}`;
+
   return useSWR(
-    isLoggedIn && enabled ? '/admin/listings/queue' : null,
+    isLoggedIn && enabled ? endpoint : null,
     fetcher
   );
 }

@@ -1,6 +1,7 @@
 // src/navigation/MainTabNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { MainTabParamList } from './types';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
 import { CompaniesNavigator } from './CompaniesNavigator';
@@ -30,6 +31,14 @@ export const MainTabNavigator: React.FC = () => {
       <Tab.Screen
         name="SkuWizardTab"
         component={SkuWizardNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'SkuDraftsList';
+          // Hide tab bar for wizard steps (anything other than list or company select)
+          if (routeName !== 'SkuDraftsList' && routeName !== 'CompanySelect') {
+            return { tabBarStyle: { display: 'none' } };
+          }
+          return { tabBarStyle: { display: 'flex' } };
+        }}
       />
       <Tab.Screen
         name="ProfileTab"

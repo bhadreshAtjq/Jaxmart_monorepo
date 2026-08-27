@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -31,7 +32,7 @@ interface AppInputProps extends TextInputProps {
   showCharCount?: boolean;
 }
 
-export const AppInput: React.FC<AppInputProps> = ({
+export const AppInput = React.forwardRef<TextInput, AppInputProps>(({
   label,
   error,
   helperText,
@@ -50,7 +51,7 @@ export const AppInput: React.FC<AppInputProps> = ({
   secureTextEntry,
   value,
   ...rest
-}) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
@@ -104,9 +105,11 @@ export const AppInput: React.FC<AppInputProps> = ({
         )}
 
         <TextInput
+          ref={ref}
           style={[
             styles.input,
             isMonospace && typography.monoMedium,
+            rest.multiline && { textAlignVertical: 'top', minHeight: rest.numberOfLines ? rest.numberOfLines * 24 : 80, paddingTop: 12, paddingBottom: 12 },
             inputStyle,
           ]}
           value={value ?? ''}
@@ -169,7 +172,8 @@ export const AppInput: React.FC<AppInputProps> = ({
       </View>
     </View>
   );
-};
+});
+AppInput.displayName = 'AppInput';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -190,17 +194,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.outline,
-    borderRadius: borderRadius.small, // 8dp M3 standard
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
     minHeight: 52,
     paddingHorizontal: spacing.md,
   },
   inputContainerFocused: {
     borderColor: colors.primary,
-    borderWidth: 2,
-    backgroundColor: colors.surfaceContainerLowest,
+    backgroundColor: '#FFFFFF',
   },
   inputContainerError: {
     borderColor: colors.error,
@@ -217,7 +220,8 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.bodyLarge,
     color: colors.onSurface,
-    paddingVertical: spacing.sm,
+    paddingVertical: Platform.OS === 'ios' ? spacing.sm : 0,
+    paddingHorizontal: 0,
   },
   affixText: {
     ...typography.bodyLarge,

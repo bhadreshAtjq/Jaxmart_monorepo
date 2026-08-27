@@ -70,7 +70,7 @@ function AdminDashboard() {
    const { data: eventsData, isLoading: eventsLoading } = useAdminEvents(tab === 'events');
    const { data: subscribersData, isLoading: subscribersLoading } = useAdminSubscribers(tab === 'subscriptions');
    const { data: depositsData, isLoading: depositsLoading } = useAdminDepositReceipts(tab === 'subscriptions');
-   
+
    // Captain Hooks
    const { data: captainsData, isLoading: captainsLoading } = useAdminCaptains(tab === 'captains');
    const { data: onboardingsData, isLoading: onboardingsLoading } = useAdminCaptainOnboardings(tab === 'captains');
@@ -521,7 +521,7 @@ function AdminDashboard() {
                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Field Captains</span>
-                           <p className="text-2xl font-black text-slate-900 mt-1">{captains.length || 2}</p>
+                           <p className="text-2xl font-black text-slate-900 mt-1">{captains.length}</p>
                            <p className="text-[11px] text-indigo-600 font-bold mt-0.5">Field sales force deployed</p>
                         </div>
                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
@@ -531,7 +531,7 @@ function AdminDashboard() {
                         </div>
                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Cataloged SKUs</span>
-                           <p className="text-2xl font-black text-slate-900 mt-1">{captainListings.length || 8}</p>
+                           <p className="text-2xl font-black text-slate-900 mt-1">{captainListings.length}</p>
                            <p className="text-[11px] text-blue-600 font-bold mt-0.5">Direct from factory floors</p>
                         </div>
                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
@@ -704,20 +704,35 @@ function AdminDashboard() {
                                                 <p className="text-[10px] text-slate-400">{cap.email || 'Mobile OTP Auth'}</p>
                                              </td>
                                              <td className="py-3.5 px-4">
-                                                <span className="font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                                   📍 {cap.territory || 'Surat / Mumbai Industrial Hub'}
-                                                </span>
+                                                <div className="flex flex-col">
+                                                   <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg w-fit text-xs">
+                                                      📍 {cap.city || cap.territory || 'Surat Industrial Hub'}
+                                                   </span>
+                                                   {cap.gps && (
+                                                      <span className="text-[10px] text-slate-400 font-mono mt-1">
+                                                         GPS: {cap.gps}
+                                                      </span>
+                                                   )}
+                                                </div>
                                              </td>
                                              <td className="py-3.5 px-4 font-bold text-slate-900">
-                                                {cap.totalOnboarded || 4} Suppliers
+                                                {cap.totalOnboarded ?? 0} Suppliers
                                              </td>
                                              <td className="py-3.5 px-4 font-bold text-indigo-700">
-                                                {cap.totalSkus || 8} SKUs
+                                                {cap.totalSkus ?? 0} SKUs
                                              </td>
                                              <td className="py-3.5 px-4">
-                                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                                                   Active on Field
-                                                </span>
+                                                {cap.isClockedIn || cap.status === 'PUNCHED_IN' ? (
+                                                   <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-200 shadow-2xs">
+                                                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                      Punched In (Active)
+                                                   </span>
+                                                ) : (
+                                                   <span className="bg-amber-50 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-200">
+                                                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                                                      Punched Out (Off Duty)
+                                                   </span>
+                                                )}
                                              </td>
                                           </tr>
                                        ))}
@@ -919,212 +934,212 @@ function AdminDashboard() {
                {/* ────────────────── TAB: INVOICES & REFUNDS ────────────────── */}
                {tab === 'invoices' && (
                   <div className="space-y-6">
-                      {/* Metric Strip */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Tax Invoices</span>
-                            <p className="text-2xl font-black text-slate-900 mt-1">{adminInvoices.length}</p>
-                            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">SaaS & Wholesale Cargo</p>
-                         </div>
-                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Pending Refund Claims</span>
-                            <p className="text-2xl font-black text-amber-600 mt-1">
-                               {adminRefunds.filter((r: any) => r.status === 'PENDING_REVIEW').length}
-                            </p>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">Escrow refund review queue</p>
-                         </div>
-                         <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Payment Gateway</span>
-                            <p className="text-2xl font-black text-indigo-600 mt-1">Razorpay</p>
-                            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Automated Refund Settlement</p>
-                         </div>
-                      </div>
+                     {/* Metric Strip */}
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
+                           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Tax Invoices</span>
+                           <p className="text-2xl font-black text-slate-900 mt-1">{adminInvoices.length}</p>
+                           <p className="text-[11px] text-emerald-600 font-bold mt-0.5">SaaS & Wholesale Cargo</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
+                           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Pending Refund Claims</span>
+                           <p className="text-2xl font-black text-amber-600 mt-1">
+                              {adminRefunds.filter((r: any) => r.status === 'PENDING_REVIEW').length}
+                           </p>
+                           <p className="text-[11px] text-slate-500 font-medium mt-0.5">Escrow refund review queue</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80">
+                           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Payment Gateway</span>
+                           <p className="text-2xl font-black text-indigo-600 mt-1">Razorpay</p>
+                           <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Automated Refund Settlement</p>
+                        </div>
+                     </div>
 
-                      {/* Subtab Toggle */}
-                      <div className="flex bg-slate-200/70 p-1.5 rounded-2xl w-fit">
-                         <button
-                            onClick={() => setInvoiceSubTab('invoices')}
-                            className={clsx(
-                               'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
-                               invoiceSubTab === 'invoices' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                            )}
-                         >
-                            <FaReceipt className="h-3.5 w-3.5 text-indigo-600" />
-                            <span>Master Invoices Ledger ({adminInvoices.length})</span>
-                         </button>
-                         <button
-                            onClick={() => setInvoiceSubTab('refunds')}
-                            className={clsx(
-                               'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
-                               invoiceSubTab === 'refunds' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                            )}
-                         >
-                            <FaArrowRotateLeft className="h-3.5 w-3.5 text-amber-600" />
-                            <span>Refund Claims Queue ({adminRefunds.length})</span>
-                         </button>
-                      </div>
+                     {/* Subtab Toggle */}
+                     <div className="flex bg-slate-200/70 p-1.5 rounded-2xl w-fit">
+                        <button
+                           onClick={() => setInvoiceSubTab('invoices')}
+                           className={clsx(
+                              'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+                              invoiceSubTab === 'invoices' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                           )}
+                        >
+                           <FaReceipt className="h-3.5 w-3.5 text-indigo-600" />
+                           <span>Master Invoices Ledger ({adminInvoices.length})</span>
+                        </button>
+                        <button
+                           onClick={() => setInvoiceSubTab('refunds')}
+                           className={clsx(
+                              'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+                              invoiceSubTab === 'refunds' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                           )}
+                        >
+                           <FaArrowRotateLeft className="h-3.5 w-3.5 text-amber-600" />
+                           <span>Refund Claims Queue ({adminRefunds.length})</span>
+                        </button>
+                     </div>
 
-                      {/* Subtab 1: Invoices Ledger */}
-                      {invoiceSubTab === 'invoices' && (
-                         <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-                            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                               <div>
-                                  <h3 className="text-sm font-bold text-slate-900">Platform Master Tax Invoices</h3>
-                                  <p className="text-xs text-slate-500 mt-0.5">Comprehensive audit trail of SaaS plans and wholesale trade invoices</p>
-                               </div>
-                            </div>
+                     {/* Subtab 1: Invoices Ledger */}
+                     {invoiceSubTab === 'invoices' && (
+                        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+                           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                              <div>
+                                 <h3 className="text-sm font-bold text-slate-900">Platform Master Tax Invoices</h3>
+                                 <p className="text-xs text-slate-500 mt-0.5">Comprehensive audit trail of SaaS plans and wholesale trade invoices</p>
+                              </div>
+                           </div>
 
-                            {!adminInvoices.length ? (
-                               <div className="p-12 text-center text-slate-400 text-xs font-medium">No invoices generated yet</div>
-                            ) : (
-                               <div className="overflow-x-auto">
-                                  <table className="w-full text-left text-xs">
-                                     <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
-                                        <tr>
-                                           <th className="py-3 px-4">Invoice #</th>
-                                           <th className="py-3 px-4">Category</th>
-                                           <th className="py-3 px-4">Customer / Buyer</th>
-                                           <th className="py-3 px-4">Amount</th>
-                                           <th className="py-3 px-4">Payment Method</th>
-                                           <th className="py-3 px-4">Status</th>
-                                           <th className="py-3 px-4">Date</th>
-                                           <th className="py-3 px-4 text-right">Tax Invoice</th>
-                                        </tr>
-                                     </thead>
-                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                        {adminInvoices.map((inv: any) => (
-                                           <tr key={inv.id} className="hover:bg-slate-50/60 transition-colors">
-                                              <td className="py-3.5 px-4 font-mono font-bold text-indigo-900">
-                                                 {inv.invoiceNumber}
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[10px] uppercase">
-                                                    {inv.category}
-                                                 </span>
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <p className="font-bold text-slate-900">{inv.customer}</p>
-                                                 {inv.customerPhone && <p className="text-[10px] text-slate-400">{inv.customerPhone}</p>}
-                                              </td>
-                                              <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
-                                                 ₹{inv.amount?.toLocaleString('en-IN')}
-                                              </td>
-                                              <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">
-                                                 {inv.paymentMethod}
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <span className={clsx(
-                                                    'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full',
-                                                    inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : inv.status === 'REFUNDED' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
-                                                 )}>
-                                                    {inv.status}
-                                                 </span>
-                                              </td>
-                                              <td className="py-3.5 px-4 text-slate-500">
-                                                 {new Date(inv.date).toLocaleDateString('en-IN')}
-                                              </td>
-                                              <td className="py-3.5 px-4 text-right">
-                                                 <button
-                                                    onClick={() => handleAdminDownloadInvoice(inv.id)}
-                                                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
-                                                 >
-                                                    <FaDownload className="h-3 w-3" /> Download PDF
-                                                 </button>
-                                              </td>
-                                           </tr>
-                                        ))}
-                                     </tbody>
-                                  </table>
-                               </div>
-                            )}
-                         </div>
-                      )}
+                           {!adminInvoices.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No invoices generated yet</div>
+                           ) : (
+                              <div className="overflow-x-auto">
+                                 <table className="w-full text-left text-xs">
+                                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
+                                       <tr>
+                                          <th className="py-3 px-4">Invoice #</th>
+                                          <th className="py-3 px-4">Category</th>
+                                          <th className="py-3 px-4">Customer / Buyer</th>
+                                          <th className="py-3 px-4">Amount</th>
+                                          <th className="py-3 px-4">Payment Method</th>
+                                          <th className="py-3 px-4">Status</th>
+                                          <th className="py-3 px-4">Date</th>
+                                          <th className="py-3 px-4 text-right">Tax Invoice</th>
+                                       </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                                       {adminInvoices.map((inv: any) => (
+                                          <tr key={inv.id} className="hover:bg-slate-50/60 transition-colors">
+                                             <td className="py-3.5 px-4 font-mono font-bold text-indigo-900">
+                                                {inv.invoiceNumber}
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[10px] uppercase">
+                                                   {inv.category}
+                                                </span>
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <p className="font-bold text-slate-900">{inv.customer}</p>
+                                                {inv.customerPhone && <p className="text-[10px] text-slate-400">{inv.customerPhone}</p>}
+                                             </td>
+                                             <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
+                                                ₹{inv.amount?.toLocaleString('en-IN')}
+                                             </td>
+                                             <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">
+                                                {inv.paymentMethod}
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <span className={clsx(
+                                                   'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full',
+                                                   inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : inv.status === 'REFUNDED' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                                                )}>
+                                                   {inv.status}
+                                                </span>
+                                             </td>
+                                             <td className="py-3.5 px-4 text-slate-500">
+                                                {new Date(inv.date).toLocaleDateString('en-IN')}
+                                             </td>
+                                             <td className="py-3.5 px-4 text-right">
+                                                <button
+                                                   onClick={() => handleAdminDownloadInvoice(inv.id)}
+                                                   className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+                                                >
+                                                   <FaDownload className="h-3 w-3" /> Download PDF
+                                                </button>
+                                             </td>
+                                          </tr>
+                                       ))}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           )}
+                        </div>
+                     )}
 
-                      {/* Subtab 2: Refund Claims Queue */}
-                      {invoiceSubTab === 'refunds' && (
-                         <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-                            <div className="p-5 border-b border-slate-100">
-                               <h3 className="text-sm font-bold text-slate-900">Escrow Refund Mediation Queue</h3>
-                               <p className="text-xs text-slate-500 mt-0.5">Review buyer refund claims and execute automated Razorpay escrow refunds</p>
-                            </div>
+                     {/* Subtab 2: Refund Claims Queue */}
+                     {invoiceSubTab === 'refunds' && (
+                        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+                           <div className="p-5 border-b border-slate-100">
+                              <h3 className="text-sm font-bold text-slate-900">Escrow Refund Mediation Queue</h3>
+                              <p className="text-xs text-slate-500 mt-0.5">Review buyer refund claims and execute automated Razorpay escrow refunds</p>
+                           </div>
 
-                            {!adminRefunds.length ? (
-                               <div className="p-12 text-center text-slate-400 text-xs font-medium">No refund requests in the queue</div>
-                            ) : (
-                               <div className="overflow-x-auto">
-                                  <table className="w-full text-left text-xs">
-                                     <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
-                                        <tr>
-                                           <th className="py-3 px-4">Order Ref</th>
-                                           <th className="py-3 px-4">Buyer & Supplier</th>
-                                           <th className="py-3 px-4">Claim Reason</th>
-                                           <th className="py-3 px-4">Claim Amount</th>
-                                           <th className="py-3 px-4">Status</th>
-                                           <th className="py-3 px-4 text-right">Mediation Actions</th>
-                                        </tr>
-                                     </thead>
-                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                        {adminRefunds.map((r: any) => (
-                                           <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
-                                              <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                                                 #{r.orderNumber}
-                                                 {r.razorpayPaymentId && (
-                                                    <p className="text-[10px] text-slate-400 font-mono">Ref: {r.razorpayPaymentId}</p>
-                                                 )}
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <p className="font-bold text-slate-900">Buyer: {r.buyerName}</p>
-                                                 <p className="text-[11px] text-slate-500">Seller: {r.sellerName}</p>
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <span className="font-bold text-slate-900 block">{r.reason.replace('_', ' ')}</span>
-                                                 <p className="text-[11px] text-slate-500 mt-0.5">{r.description || 'Full Escrow Refund Claim'}</p>
-                                              </td>
-                                              <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
-                                                 ₹{r.amount?.toLocaleString('en-IN')}
-                                              </td>
-                                              <td className="py-3.5 px-4">
-                                                 <span className={clsx(
-                                                    'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full',
-                                                    r.status === 'REFUNDED' ? 'bg-emerald-100 text-emerald-800' : r.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900'
-                                                 )}>
-                                                    {r.status}
-                                                 </span>
-                                              </td>
-                                              <td className="py-3.5 px-4 text-right">
-                                                 {r.status === 'PENDING_REVIEW' ? (
-                                                    <div className="flex items-center justify-end gap-2">
-                                                       <button
-                                                          onClick={() => handleProcessAdminRefund(r.orderId, r.amount)}
-                                                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-1"
-                                                       >
-                                                          <FaCheck className="h-3 w-3" /> Approve & Refund
-                                                       </button>
-                                                       <button
-                                                          onClick={() => handleRejectAdminRefund(r.orderId)}
-                                                          className="px-3.5 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors"
-                                                       >
-                                                          Decline
-                                                       </button>
-                                                    </div>
-                                                 ) : (
-                                                    <span className="text-[11px] text-slate-400 font-medium">
-                                                       {r.resolutionNote || 'Completed'}
-                                                    </span>
-                                                 )}
-                                              </td>
-                                           </tr>
-                                        ))}
-                                     </tbody>
-                                  </table>
-                               </div>
-                            )}
-                         </div>
-                      )}
-                   </div>
-                )}
+                           {!adminRefunds.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No refund requests in the queue</div>
+                           ) : (
+                              <div className="overflow-x-auto">
+                                 <table className="w-full text-left text-xs">
+                                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
+                                       <tr>
+                                          <th className="py-3 px-4">Order Ref</th>
+                                          <th className="py-3 px-4">Buyer & Supplier</th>
+                                          <th className="py-3 px-4">Claim Reason</th>
+                                          <th className="py-3 px-4">Claim Amount</th>
+                                          <th className="py-3 px-4">Status</th>
+                                          <th className="py-3 px-4 text-right">Mediation Actions</th>
+                                       </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                                       {adminRefunds.map((r: any) => (
+                                          <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
+                                             <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                                                #{r.orderNumber}
+                                                {r.razorpayPaymentId && (
+                                                   <p className="text-[10px] text-slate-400 font-mono">Ref: {r.razorpayPaymentId}</p>
+                                                )}
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <p className="font-bold text-slate-900">Buyer: {r.buyerName}</p>
+                                                <p className="text-[11px] text-slate-500">Seller: {r.sellerName}</p>
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <span className="font-bold text-slate-900 block">{r.reason.replace('_', ' ')}</span>
+                                                <p className="text-[11px] text-slate-500 mt-0.5">{r.description || 'Full Escrow Refund Claim'}</p>
+                                             </td>
+                                             <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
+                                                ₹{r.amount?.toLocaleString('en-IN')}
+                                             </td>
+                                             <td className="py-3.5 px-4">
+                                                <span className={clsx(
+                                                   'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full',
+                                                   r.status === 'REFUNDED' ? 'bg-emerald-100 text-emerald-800' : r.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900'
+                                                )}>
+                                                   {r.status}
+                                                </span>
+                                             </td>
+                                             <td className="py-3.5 px-4 text-right">
+                                                {r.status === 'PENDING_REVIEW' ? (
+                                                   <div className="flex items-center justify-end gap-2">
+                                                      <button
+                                                         onClick={() => handleProcessAdminRefund(r.orderId, r.amount)}
+                                                         className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-1"
+                                                      >
+                                                         <FaCheck className="h-3 w-3" /> Approve & Refund
+                                                      </button>
+                                                      <button
+                                                         onClick={() => handleRejectAdminRefund(r.orderId)}
+                                                         className="px-3.5 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors"
+                                                      >
+                                                         Decline
+                                                      </button>
+                                                   </div>
+                                                ) : (
+                                                   <span className="text-[11px] text-slate-400 font-medium">
+                                                      {r.resolutionNote || 'Completed'}
+                                                   </span>
+                                                )}
+                                             </td>
+                                          </tr>
+                                       ))}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           )}
+                        </div>
+                     )}
+                  </div>
+               )}
 
-                {/* ────────────────── TAB 4: KYC QUEUE ────────────────── */}
+               {/* ────────────────── TAB 4: KYC QUEUE ────────────────── */}
                {tab === 'kyc' && (
                   <div className="space-y-4">
                      {kycLoading ? (

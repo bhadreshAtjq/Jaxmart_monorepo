@@ -72,14 +72,19 @@ export const CompanyContextCard: React.FC<CompanyContextCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F4F8',
-    borderColor: colors.outlineVariant,
-    borderWidth: 1,
-    borderRadius: borderRadius.lg,
+    borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.md,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   emptyCard: {
     backgroundColor: '#FFFBEB',
@@ -87,12 +92,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9', // Very soft blue-grey
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

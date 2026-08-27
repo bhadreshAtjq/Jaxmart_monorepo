@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,11 +54,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     }
   };
 
-  const handleQuickDemo = (demoPhone: string) => {
-    setValue('phone', demoPhone);
-    onSubmit({ phone: demoPhone });
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <KeyboardAvoidingView
@@ -71,27 +65,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header Brand Hero */}
+          {/* Top Brand Header */}
           <View style={styles.heroSection}>
             <Image
               source={require('../../../assets/logo.png')}
               style={styles.logoImage}
               resizeMode="contain"
             />
-            <View style={styles.captainPill}>
-              <Text style={styles.captainPillText}>CAPTAINS FIELD OPERATIONS</Text>
-            </View>
-            <Text style={styles.heroSubtitle}>
-              On-ground seller onboarding, live KYC verification, and warehouse SKU cataloging platform
-            </Text>
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Captain Sign In</Text>
-            <Text style={styles.formSubtitle}>
-              Enter your registered mobile number to receive a 6-digit verification code
-            </Text>
+            <Text style={[styles.formTitle, { marginBottom: spacing.lg }]}>Captain Sign In</Text>
 
             <Controller
               control={control}
@@ -113,41 +98,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             />
 
             <AppButton
-              title={loading ? 'Sending OTP...' : 'Send Verification Code'}
+              title={loading ? 'Sending Code...' : 'Send Verification Code'}
               variant="primary"
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               fullWidth
-              style={{ marginTop: spacing.sm }}
+              icon="arrow-forward-outline"
+              iconPosition="right"
+              style={{ marginTop: spacing.xs }}
             />
-
-            {/* Quick Demo Login Preset */}
-            <View style={styles.demoSection}>
-              <Text style={styles.demoLabel}>Demo Field Accounts (Quick Fill):</Text>
-              <View style={styles.demoChipsRow}>
-                <TouchableOpacity
-                  style={styles.demoChip}
-                  onPress={() => handleQuickDemo('9820198201')}
-                >
-                  <Text style={styles.demoChipText}>Arjun Sharma (Lead Captain)</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.demoChip}
-                  onPress={() => handleQuickDemo('9820198202')}
-                >
-                  <Text style={styles.demoChipText}>Pooja Patel (BA)</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Security Footer Notice */}
-          <View style={styles.securityFooter}>
-            <Ionicons name="lock-closed" size={16} color={colors.textSecondary} style={{ marginRight: 6 }} />
-            <Text style={styles.securityText}>
-              256-Bit Encrypted Corporate Gateway · Authorized Personnel Only
-            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -162,100 +121,80 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
-    padding: spacing.xl,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xxl,
   },
   heroSection: {
     alignItems: 'center',
-    marginTop: spacing.xl,
-    marginBottom: spacing.xl,
+    marginBottom: 40,
   },
   logoImage: {
-    width: 200,
-    height: 55,
-    marginBottom: spacing.sm,
+    width: 240,
+    height: 70,
+    marginBottom: spacing.xl,
   },
   captainPill: {
-    backgroundColor: colors.secondary,
-    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 6,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   captainPillText: {
     ...typography.labelCaps,
     color: '#FFFFFF',
     fontWeight: '800',
     letterSpacing: 1,
-    fontSize: 10,
+    fontSize: 11,
   },
   heroSubtitle: {
     ...typography.bodySm,
     color: colors.primaryFixedDim,
     textAlign: 'center',
     lineHeight: 18,
-    maxWidth: 280,
+    maxWidth: 310,
   },
   formCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.modal,
+    borderRadius: 24,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
   },
   formTitle: {
     ...typography.headlineMd,
     color: colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '800',
+    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   formSubtitle: {
     ...typography.bodySm,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
     marginBottom: spacing.lg,
     lineHeight: 18,
-  },
-  demoSection: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  demoLabel: {
-    ...typography.labelCaps,
-    color: colors.textSecondary,
-    fontSize: 10,
-    marginBottom: spacing.xs,
-  },
-  demoChipsRow: {
-    flexDirection: 'column',
-  },
-  demoChip: {
-    backgroundColor: colors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.xs,
-  },
-  demoChipText: {
-    ...typography.bodySm,
-    color: colors.primaryDark,
-    fontWeight: '600',
-    fontSize: 12,
   },
   securityFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
   },
   securityText: {
     ...typography.bodySm,
     color: colors.primaryFixedDim,
     fontSize: 11,
+    textAlign: 'center',
   },
 });

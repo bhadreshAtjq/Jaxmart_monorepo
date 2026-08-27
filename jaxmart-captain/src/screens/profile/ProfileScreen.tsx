@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, spacing, elevation } from '../../theme/spacing';
+import { borderRadius, spacing, shadows } from '../../theme/spacing';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useShiftStore } from '../../store/useShiftStore';
@@ -28,7 +28,7 @@ interface ProfileScreenProps {
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuthStore();
   const { history } = useShiftStore();
-  const { savedCompanies } = useCompanyStore();
+  const { savedCompanies, totalSkus } = useCompanyStore();
   const { queue } = useOfflineSyncStore();
   const sellerDrafts = useSellerWizardStore((s) => s.drafts);
   const skuDrafts = useSkuWizardStore((s) => s.drafts);
@@ -58,17 +58,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top Header */}
+      {/* 🌟 Ultra-Clean App Header */}
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Captain Profile & Ops</Text>
-          <Text style={styles.headerSubtitle}>Field credentials, offline sync & attendance</Text>
+          <Text style={styles.headerSubtitle}>Field credentials, attendance & cloud sync</Text>
         </View>
+
         <TouchableOpacity
+          activeOpacity={0.8}
           onPress={() => navigation.navigate('SettingsScreen')}
-          style={styles.settingsTouch}
+          style={styles.settingsTouchBtn}
         >
-          <Ionicons name="settings-outline" size={22} color={colors.onSurface} />
+          <Ionicons name="settings-outline" size={20} color="#0F172A" />
         </TouchableOpacity>
       </View>
 
@@ -76,64 +78,87 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Identity Card */}
-        <AppCard variant="outlined" style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitials}>{getInitials(user?.fullName)}</Text>
+        {/* 🏢 Hero Profile Identity Card */}
+        <View style={styles.heroProfileCard}>
+          <View style={styles.avatarRing}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitials}>{getInitials(user?.fullName)}</Text>
+            </View>
           </View>
 
-          <Text style={styles.profileName}>{user?.fullName || 'Bhadresh S.'}</Text>
-          <Text style={styles.profileRole}>Field Operations Captain & Cataloging Lead</Text>
+          <Text style={styles.profileName}>{user?.fullName || 'pipaliya'}</Text>
+          
+          <View style={styles.verifiedOfficerBadge}>
+            <Ionicons name="checkmark-circle" size={13} color="#10B981" style={{ marginRight: 4 }} />
+            <Text style={styles.verifiedOfficerText}>Verified Field Officer</Text>
+          </View>
 
           <View style={styles.badgeRow}>
             <View style={styles.employeeBadge}>
-              <Text style={styles.employeeBadgeText}>{user?.employeeId || 'CAPT-849201'}</Text>
+              <Text style={styles.employeeBadgeText}>ID: {user?.employeeId || 'CAPT-849201'}</Text>
             </View>
-            <Text style={styles.territoryPill}>{user?.territory || 'Mumbai Industrial Hub'}</Text>
+            <View style={styles.territoryBadge}>
+              <Ionicons name="location" size={11} color="#64748B" style={{ marginRight: 3 }} />
+              <Text style={styles.territoryText}>{user?.territory || 'Surat Industrial Hub'}</Text>
+            </View>
           </View>
 
+          {/* Contact Details Sub-Box */}
           <View style={styles.contactDetailsBox}>
             <View style={styles.contactItem}>
-              <Ionicons name="call-outline" size={15} color={colors.primary} style={{ marginRight: 6 }} />
-              <Text style={styles.contactItemText}>+91 {user?.phone || '9820198201'}</Text>
+              <Ionicons name="call-outline" size={14} color="#0D9488" style={{ marginRight: 6 }} />
+              <Text style={styles.contactItemText}>+91 {user?.phone || '9979998797'}</Text>
             </View>
             <View style={styles.contactItem}>
-              <Ionicons name="mail-outline" size={15} color={colors.primary} style={{ marginRight: 6 }} />
+              <Ionicons name="mail-outline" size={14} color="#0D9488" style={{ marginRight: 6 }} />
               <Text style={styles.contactItemText}>{user?.email || 'captain@jaxmart.in'}</Text>
             </View>
           </View>
-        </AppCard>
-
-        {/* Lifetime Performance Metric Strip */}
-        <Text style={styles.sectionHeader}>Lifetime Performance</Text>
-        <View style={styles.metricsGrid}>
-          <AppCard variant="outlined" style={styles.metricCard}>
-            <Text style={styles.metricNumber}>{savedCompanies.length}</Text>
-            <Text style={styles.metricLabel}>Merchants</Text>
-          </AppCard>
-
-          <AppCard variant="outlined" style={styles.metricCard}>
-            <Text style={[styles.metricNumber, { color: colors.secondary }]}>
-              {savedCompanies.reduce((acc: number, c: any) => acc + (c.skuCount || 0), 0)}
-            </Text>
-            <Text style={styles.metricLabel}>Cataloged SKUs</Text>
-          </AppCard>
-
-          <AppCard variant="outlined" style={styles.metricCard}>
-            <Text style={[styles.metricNumber, { color: colors.tertiary }]}>{history.length}</Text>
-            <Text style={styles.metricLabel}>Shifts</Text>
-          </AppCard>
         </View>
 
-        {/* Operations Hub Navigation List */}
+        {/* 📊 3 Vibrant Color-Coded Performance Cards */}
+        <Text style={styles.sectionHeader}>Field Performance</Text>
+        <View style={styles.metricsGrid}>
+          {/* Card 1: Merchants */}
+          <View style={[styles.metricCard, { backgroundColor: '#EEF2FF', borderColor: '#C7D2FE' }]}>
+            <View style={[styles.metricIconWrap, { backgroundColor: '#4338CA' }]}>
+              <Ionicons name="business" size={16} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.metricNumber, { color: '#3730A3' }]}>{savedCompanies.length}</Text>
+            <Text style={[styles.metricLabel, { color: '#4338CA' }]}>Merchants</Text>
+          </View>
+
+          {/* Card 2: Cataloged SKUs */}
+          <View style={[styles.metricCard, { backgroundColor: '#F0FDFA', borderColor: '#99F6E4' }]}>
+            <View style={[styles.metricIconWrap, { backgroundColor: '#0D9488' }]}>
+              <Ionicons name="barcode" size={16} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.metricNumber, { color: '#115E59' }]}>
+              {totalSkus}
+            </Text>
+            <Text style={[styles.metricLabel, { color: '#0D9488' }]}>SKUs Uploaded</Text>
+          </View>
+
+          {/* Card 3: Shifts */}
+          <View style={[styles.metricCard, { backgroundColor: '#FAF5FF', borderColor: '#E9D5FF' }]}>
+            <View style={[styles.metricIconWrap, { backgroundColor: '#7E22CE' }]}>
+              <Ionicons name="time" size={16} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.metricNumber, { color: '#6B21A8' }]}>{history.length || 1}</Text>
+            <Text style={[styles.metricLabel, { color: '#7E22CE' }]}>Shifts</Text>
+          </View>
+        </View>
+
+        {/* ⚙️ Operations & Offline Tools List */}
         <Text style={styles.sectionHeader}>Operations & Offline Tools</Text>
-        <AppCard variant="outlined" style={styles.menuCard}>
+        <View style={styles.menuCard}>
           <TouchableOpacity
+            activeOpacity={0.75}
             style={styles.menuItem}
             onPress={() => navigation.navigate('OfflineDrafts')}
           >
-            <View style={[styles.menuIconCircle, { backgroundColor: colors.primaryContainer }]}>
-              <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+            <View style={[styles.menuIconCircle, { backgroundColor: '#EEF2FF' }]}>
+              <Ionicons name="document-text" size={18} color="#4338CA" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.menuItemText}>Offline Saved Drafts</Text>
@@ -144,23 +169,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <Text style={styles.badgePillText}>{totalDraftsCount}</Text>
               </View>
             )}
-            <Ionicons name="chevron-forward" size={16} color={colors.outline} />
+            <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
           </TouchableOpacity>
 
           <TouchableOpacity
+            activeOpacity={0.75}
             style={styles.menuItem}
             onPress={() => navigation.navigate('SyncManager')}
           >
             <View
               style={[
                 styles.menuIconCircle,
-                { backgroundColor: pendingSyncCount > 0 ? colors.errorContainer : colors.secondaryContainer },
+                { backgroundColor: pendingSyncCount > 0 ? '#FEE2E2' : '#CCFBF1' },
               ]}
             >
               <Ionicons
-                name="cloud-upload-outline"
+                name="cloud-upload"
                 size={18}
-                color={pendingSyncCount > 0 ? colors.onErrorContainer : colors.onSecondaryContainer}
+                color={pendingSyncCount > 0 ? '#DC2626' : '#0D9488'}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -170,47 +196,49 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               </Text>
             </View>
             {pendingSyncCount > 0 && (
-              <View style={[styles.badgePill, { backgroundColor: colors.errorContainer }]}>
-                <Text style={[styles.badgePillText, { color: colors.onErrorContainer }]}>
+              <View style={[styles.badgePill, { backgroundColor: '#FEE2E2' }]}>
+                <Text style={[styles.badgePillText, { color: '#991B1B' }]}>
                   {pendingSyncCount}
                 </Text>
               </View>
             )}
-            <Ionicons name="chevron-forward" size={16} color={colors.outline} />
+            <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
           </TouchableOpacity>
 
           <TouchableOpacity
+            activeOpacity={0.75}
             style={styles.menuItem}
             onPress={() => navigation.navigate('ShiftHistory')}
           >
-            <View style={[styles.menuIconCircle, { backgroundColor: colors.surfaceContainerHigh }]}>
-              <Ionicons name="calendar-outline" size={18} color={colors.onSurface} />
+            <View style={[styles.menuIconCircle, { backgroundColor: '#F1F5F9' }]}>
+              <Ionicons name="calendar-clear" size={18} color="#0F172A" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.menuItemText}>Shift Attendance Logs</Text>
               <Text style={styles.menuItemSub}>GPS clock-in durations & records</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.outline} />
+            <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
           </TouchableOpacity>
 
           <TouchableOpacity
+            activeOpacity={0.75}
             style={[styles.menuItem, { borderBottomWidth: 0 }]}
             onPress={() => navigation.navigate('SettingsScreen')}
           >
-            <View style={[styles.menuIconCircle, { backgroundColor: colors.surfaceContainerHigh }]}>
-              <Ionicons name="hardware-chip-outline" size={18} color={colors.onSurface} />
+            <View style={[styles.menuIconCircle, { backgroundColor: '#F1F5F9' }]}>
+              <Ionicons name="hardware-chip" size={18} color="#0F172A" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.menuItemText}>Hardware & Backend API</Text>
               <Text style={styles.menuItemSub}>Endpoint configuration & diagnostics</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.outline} />
+            <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
           </TouchableOpacity>
-        </AppCard>
+        </View>
 
-        {/* Sign Out Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={18} color={colors.error} style={{ marginRight: 6 }} />
+        {/* 🚪 Sign Out Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.85}>
+          <Ionicons name="log-out-outline" size={18} color="#DC2626" style={{ marginRight: 6 }} />
           <Text style={styles.logoutButtonText}>Sign Out of Captains App</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -221,203 +249,243 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md - 2,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
+    borderBottomColor: '#E2E8F0',
   },
   headerTitle: {
-    ...typography.titleMedium,
-    color: colors.onSurface,
-    fontWeight: '700',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.2,
   },
   headerSubtitle: {
-    ...typography.bodySmall,
-    color: colors.onSurfaceVariant,
-    fontSize: 11,
+    fontSize: 12,
+    color: '#64748B',
     marginTop: 1,
   },
-  settingsTouch: {
-    padding: 6,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surfaceContainerLow,
+  settingsTouchBtn: {
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   scrollContent: {
     padding: spacing.md,
     paddingBottom: 96,
   },
-  profileCard: {
-    alignItems: 'center',
+  heroProfileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: spacing.lg,
+    alignItems: 'center',
     marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...shadows.card,
+  },
+  avatarRing: {
+    padding: 3,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: '#0D9488',
+    marginBottom: 8,
   },
   avatarCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.primaryContainer,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xs + 2,
   },
   avatarInitials: {
-    ...typography.headlineSmall,
-    color: colors.onPrimaryContainer,
+    fontSize: 22,
+    color: '#FFFFFF',
     fontWeight: '800',
   },
   profileName: {
-    ...typography.titleMedium,
-    color: colors.onSurface,
-    fontWeight: '700',
-    fontSize: 18,
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  profileRole: {
-    ...typography.bodySmall,
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-    textAlign: 'center',
+  verifiedOfficerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  verifiedOfficerText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065F46',
   },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.xs + 2,
+    marginTop: 10,
   },
   employeeBadge: {
-    backgroundColor: colors.surfaceContainerHigh,
-    paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.extraSmall,
-    marginRight: spacing.xs,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 3,
+    paddingHorizontal: 9,
+    borderRadius: 8,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   employeeBadgeText: {
-    ...typography.labelSmall,
-    color: colors.onSurface,
-    fontWeight: '700',
     fontSize: 10,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  territoryPill: {
-    ...typography.bodySmall,
-    color: colors.onSurfaceVariant,
+  territoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 3,
+    paddingHorizontal: 9,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  territoryText: {
     fontSize: 11,
+    color: '#475569',
+    fontWeight: '600',
   },
   contactDetailsBox: {
     width: '100%',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: borderRadius.small,
-    padding: spacing.sm,
-    marginTop: spacing.md,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 14,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
+    borderColor: '#F1F5F9',
   },
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   contactItemText: {
-    ...typography.bodySmall,
-    color: colors.onSurface,
-    fontSize: 11.5,
+    fontSize: 12,
+    color: '#0F172A',
+    fontWeight: '600',
   },
   sectionHeader: {
-    ...typography.titleSmall,
-    color: colors.onSurface,
-    fontWeight: '700',
-    marginBottom: spacing.xs + 2,
-    marginTop: spacing.xs,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+    marginTop: 4,
+    letterSpacing: -0.1,
   },
   metricsGrid: {
     flexDirection: 'row',
-    gap: spacing.xs + 2,
+    gap: 10,
     marginBottom: spacing.md,
   },
   metricCard: {
     flex: 1,
-    padding: spacing.sm + 2,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    borderRadius: borderRadius.medium,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  metricIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
   metricNumber: {
-    ...typography.headlineSmall,
-    color: colors.onSurface,
-    fontWeight: '800',
     fontSize: 20,
+    fontWeight: '800',
   },
   metricLabel: {
-    ...typography.labelSmall,
-    color: colors.onSurfaceVariant,
-    textAlign: 'center',
     fontSize: 10,
-    marginTop: 2,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 1,
   },
   menuCard: {
-    padding: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     overflow: 'hidden',
     marginBottom: spacing.md,
+    ...shadows.card,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
+    padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
+    borderBottomColor: '#F1F5F9',
   },
   menuIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.sm + 2,
+    marginRight: 12,
   },
   menuItemText: {
-    ...typography.titleSmall,
-    color: colors.onSurface,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '700',
   },
   menuItemSub: {
-    ...typography.bodySmall,
-    color: colors.onSurfaceVariant,
     fontSize: 11,
+    color: '#64748B',
     marginTop: 1,
   },
   badgePill: {
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: '#EEF2FF',
     paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-    marginRight: spacing.xs,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginRight: 6,
   },
   badgePillText: {
-    ...typography.labelSmall,
-    color: colors.onPrimaryContainer,
-    fontWeight: '700',
     fontSize: 10,
+    color: '#4338CA',
+    fontWeight: '800',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.errorContainer,
+    backgroundColor: '#FEE2E2',
     borderWidth: 1,
-    borderColor: 'rgba(220, 38, 38, 0.15)',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.medium,
+    borderColor: '#FCA5A5',
+    paddingVertical: 14,
+    borderRadius: 14,
     marginBottom: spacing.xl,
   },
   logoutButtonText: {
-    ...typography.labelLarge,
-    color: colors.onErrorContainer,
-    fontWeight: '700',
     fontSize: 13,
+    color: '#DC2626',
+    fontWeight: '800',
   },
 });

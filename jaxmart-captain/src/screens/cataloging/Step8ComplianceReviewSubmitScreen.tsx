@@ -233,7 +233,7 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView

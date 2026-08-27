@@ -28,9 +28,38 @@ const generateOtp = async (phone) => {
 // POST /api/auth/send-otp
 const sendOtp = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, isCaptain } = req.body;
     if (!phone || !/^\d{7,15}$/.test(phone)) {
       return res.status(400).json({ error: 'Invalid phone number' });
+    }
+
+    if (isCaptain) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      const last10 = cleanPhone.slice(-10);
+      const captainUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { phone: cleanPhone },
+            { phone: last10 },
+            { phone: `+91${last10}` },
+            { phone: `91${last10}` },
+          ],
+          AND: [
+            {
+              OR: [
+                { isAdmin: true },
+                { userType: 'BOTH' },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (!captainUser) {
+        return res.status(403).json({
+          error: 'Mobile number is not registered as an authorized Field Captain. Please contact Admin to get deployed.',
+        });
+      }
     }
 
     try {
@@ -65,7 +94,36 @@ const sendOtp = async (req, res) => {
 // POST /api/auth/verify-otp
 const verifyOtp = async (req, res) => {
   try {
-    const { phone, otp, fullName, userType } = req.body;
+    const { phone, otp, fullName, userType, isCaptain } = req.body;
+
+    if (isCaptain) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      const last10 = cleanPhone.slice(-10);
+      const captainUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { phone: cleanPhone },
+            { phone: last10 },
+            { phone: `+91${last10}` },
+            { phone: `91${last10}` },
+          ],
+          AND: [
+            {
+              OR: [
+                { isAdmin: true },
+                { userType: 'BOTH' },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (!captainUser) {
+        return res.status(403).json({
+          error: 'Mobile number is not registered as an authorized Field Captain. Please contact Admin to get deployed.',
+        });
+      }
+    }
 
     let storedOtp;
     try {
@@ -95,7 +153,20 @@ const verifyOtp = async (req, res) => {
     }
 
     // Find or create user
-    let user = await prisma.user.findUnique({ where: { phone } });
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { phone: phone.replace(/[^0-9]/g, '') },
+          { phone: phone.replace(/[^0-9]/g, '').slice(-10) },
+          { phone },
+        ]
+      }
+    });
+
+    if (!user && isCaptain) {
+      return res.status(403).json({ error: 'Mobile number is not registered as an authorized Field Captain.' });
+    }
+
     const isNew = !user;
 
     if (!user) {

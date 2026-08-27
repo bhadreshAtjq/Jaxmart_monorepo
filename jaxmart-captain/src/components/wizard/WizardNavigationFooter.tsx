@@ -40,8 +40,8 @@ export const WizardNavigationFooter: React.FC<WizardNavigationFooterProps> = ({
   const isLastStep = currentStep === totalSteps;
 
   const defaultNextLabel = isLastStep
-    ? 'Submit for Approval'
-    : 'Continue to Step ' + (currentStep + 1);
+    ? 'Submit'
+    : 'Next Step';
 
   const handleNextPress = () => {
     try {
@@ -71,7 +71,7 @@ export const WizardNavigationFooter: React.FC<WizardNavigationFooterProps> = ({
       style={[
         styles.container,
         {
-          paddingBottom: Math.max(insets.bottom, 12) + 72,
+          paddingBottom: Math.max(insets.bottom, 8),
         },
       ]}
     >
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surfaceContainer,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm + 4,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.outlineVariant,
     ...elevation.level2,
@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.outline,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full, // M3 Full button pill
-    minHeight: 48,
+    paddingVertical: spacing.xs + 4,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    minHeight: 40,
   },
   backButtonText: {
-    ...typography.labelLarge,
+    ...typography.labelMedium,
     color: colors.primary,
     fontWeight: '700',
     marginLeft: 4,
@@ -164,18 +164,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.secondaryContainer,
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.xs + 4,
     paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full, // M3 Full button pill
+    borderRadius: borderRadius.full,
     marginHorizontal: spacing.xs,
-    minHeight: 48,
+    minHeight: 40,
   },
   draftButtonText: {
-    ...typography.labelLarge,
+    ...typography.labelMedium,
     color: colors.onSecondaryContainer,
     fontWeight: '700',
     marginLeft: 4,
-    fontSize: 12,
   },
   nextButton: {
     flex: 1,
@@ -183,11 +182,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.full, // M3 Full button pill
+    paddingVertical: spacing.xs + 4,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
     marginLeft: spacing.xs,
-    minHeight: 48,
+    minHeight: 40,
     ...elevation.level1,
   },
   submitButton: {
@@ -202,6 +201,6 @@ const styles = StyleSheet.create({
     ...typography.labelLarge,
     color: colors.onPrimary,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
   },
 });

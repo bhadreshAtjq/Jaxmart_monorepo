@@ -6,6 +6,9 @@ const {
   onboardSeller,
   createCaptainListing,
   getCaptainCompanies,
+  getCaptainListings,
+  clockInShift,
+  clockOutShift,
 } = require('../controllers/captainController');
 
 // Flexible Captain Auth Middleware ensuring on-ground uploads never get lost
@@ -44,6 +47,10 @@ const captainAuth = async (req, res, next) => {
   }
 };
 
+// Shift Clock Attendance Endpoints
+router.post('/shift/clock-in', captainAuth, clockInShift);
+router.post('/shift/clock-out', captainAuth, clockOutShift);
+
 // Seller Onboarding Endpoints (Supporting all path aliases)
 router.post('/onboard-seller', captainAuth, onboardSeller);
 router.post('/onboard', captainAuth, onboardSeller);
@@ -53,6 +60,8 @@ router.post('/companies/onboard', captainAuth, onboardSeller);
 // SKU Cataloging Endpoints
 router.post('/listings', captainAuth, createCaptainListing);
 router.post('/skus', captainAuth, createCaptainListing);
+router.get('/listings', captainAuth, getCaptainListings);
+router.get('/skus', captainAuth, getCaptainListings);
 
 // Company & Seller Queries
 router.get('/companies', captainAuth, getCaptainCompanies);

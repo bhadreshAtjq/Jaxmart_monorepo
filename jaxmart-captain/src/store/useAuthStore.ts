@@ -83,12 +83,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   sendOtp: async (phone: string) => {
+    const allowedCaptains = ['9820198201', '9820198202', '9999999999', '9106999252', '9876543210', '9111111111', '919998882221'];
+    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+
     try {
-      await authApi.sendOtp(phone);
+      set({ isLoading: true, error: null });
+      await authApi.sendOtp(phone, true);
+      set({ isLoading: false });
       return true;
     } catch (e: any) {
-      console.warn('sendOtp fallback:', e.message);
-      return true;
+      const serverErr = e.response?.data?.error;
+      if (serverErr) {
+        set({ isLoading: false, error: serverErr });
+        throw new Error(serverErr);
+      }
+
+      // If backend is unreachable over network/tunnel during local dev, allow registered captains to proceed offline
+      if (allowedCaptains.includes(cleanPhone)) {
+        console.warn('Backend server connection offline, using offline mode for registered Captain:', phone);
+        set({ isLoading: false, error: null });
+        return true;
+      }
+
+      const notRegMsg = 'Mobile number is not registered as an authorized Field Captain. Please contact Admin to get deployed.';
+      set({ isLoading: false, error: notRegMsg });
+      throw new Error(notRegMsg);
     }
   },
 
@@ -103,7 +122,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         phone,
         otp,
         fullName: fullName || 'Captain Field Officer',
-        userType: 'BOTH', // Authorized role for seller & admin actions
+        userType: 'BOTH',
+        isCaptain: true,
       });
 
       if (res.accessToken) {
@@ -137,32 +157,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: false, error: 'Authentication failed' });
       return false;
     } catch (err: any) {
-      // Demo fallback mode for offline/development testing
-      console.warn('Backend login fallback for testing:', err.message);
-      const demoUser: CaptainUser = {
-        id: 'capt_demo_' + Date.now().toString().slice(-4),
-        phone,
-        fullName: fullName || 'Captain Arjun Sharma',
-        userType: 'ADMIN',
-        role: 'CAPTAIN',
-        employeeId: 'CAPT-849201',
-        territory: 'Industrial Estate, Hubli-Dharwad',
-        kycStatus: 'VERIFIED',
-      };
-      const mockToken = 'demo_jwt_token_' + Date.now();
+      const serverErr = err.response?.data?.error;
+      if (serverErr) {
+        set({ isLoading: false, error: serverErr });
+        throw new Error(serverErr);
+      }
 
-      await secureStorage.setItem(SECURE_KEYS.ACCESS_TOKEN, mockToken);
-      await secureStorage.setItem(SECURE_KEYS.REFRESH_TOKEN, mockToken + '_refresh');
-      await secureStorage.setItem(SECURE_KEYS.USER_DATA, JSON.stringify(demoUser));
+      // Offline fallback only for valid pre-seeded demo captain numbers if network is unavailable
+      const allowedDemoNumbers = ['9820198201', '9820198202', '9999999999', '9106999252', '9876543210', '9111111111', '919998882221'];
+      const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+      if (allowedDemoNumbers.includes(cleanPhone)) {
+        const demoUser: CaptainUser = {
+          id: 'capt_demo_' + Date.now().toString().slice(-4),
+          phone,
+          fullName: fullName || 'Captain Field Officer',
+          userType: 'ADMIN',
+          role: 'CAPTAIN',
+          employeeId: 'CAPT-849201',
+          territory: 'Industrial Hub',
+          kycStatus: 'VERIFIED',
+        };
+        const mockToken = 'demo_jwt_token_' + Date.now();
 
-      set({
-        user: demoUser,
-        accessToken: mockToken,
-        refreshToken: mockToken + '_refresh',
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return true;
+        await secureStorage.setItem(SECURE_KEYS.ACCESS_TOKEN, mockToken);
+        await secureStorage.setItem(SECURE_KEYS.REFRESH_TOKEN, mockToken + '_refresh');
+        await secureStorage.setItem(SECURE_KEYS.USER_DATA, JSON.stringify(demoUser));
+
+        set({
+          user: demoUser,
+          accessToken: mockToken,
+          refreshToken: mockToken + '_refresh',
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return true;
+      }
+
+      const defaultMsg = 'Mobile number is not registered as an authorized Field Captain. Please contact Admin.';
+      set({ isLoading: false, error: defaultMsg });
+      throw new Error(defaultMsg);
     }
   },
 

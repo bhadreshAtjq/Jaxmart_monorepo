@@ -1,6 +1,7 @@
 // src/store/useShiftStore.ts
 import { create } from 'zustand';
 import { asyncStorage, ASYNC_KEYS } from '../utils/storage';
+import api from '../api/client';
 
 export interface ShiftLocation {
   latitude: number;
@@ -103,6 +104,7 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
       };
 
       await asyncStorage.setJSON(ASYNC_KEYS.ACTIVE_SHIFT, newShift);
+      await api.post('/captain/shift/clock-in', { location }).catch(() => {});
 
       set({
         isActive: true,
@@ -136,6 +138,7 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
 
       await asyncStorage.setJSON(ASYNC_KEYS.SHIFT_HISTORY, updatedHistory);
       await asyncStorage.removeItem(ASYNC_KEYS.ACTIVE_SHIFT);
+      await api.post('/captain/shift/clock-out', { location }).catch(() => {});
 
       set({
         isActive: false,

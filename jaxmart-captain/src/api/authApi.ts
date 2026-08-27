@@ -3,6 +3,7 @@ import api from './client';
 
 export interface SendOtpPayload {
   phone: string;
+  isCaptain?: boolean;
 }
 
 export interface VerifyOtpPayload {
@@ -10,6 +11,7 @@ export interface VerifyOtpPayload {
   otp: string;
   fullName?: string;
   userType?: string;
+  isCaptain?: boolean;
 }
 
 export interface AuthResponse {
@@ -29,13 +31,13 @@ export interface AuthResponse {
 }
 
 export const authApi = {
-  sendOtp: async (phone: string): Promise<{ success: boolean; message: string }> => {
-    const { data } = await api.post('/auth/send-otp', { phone });
+  sendOtp: async (phone: string, isCaptain: boolean = true): Promise<{ success: boolean; message: string }> => {
+    const { data } = await api.post('/auth/send-otp', { phone, isCaptain });
     return data;
   },
 
   verifyOtp: async (payload: VerifyOtpPayload): Promise<AuthResponse> => {
-    const { data } = await api.post('/auth/verify-otp', payload);
+    const { data } = await api.post('/auth/verify-otp', { ...payload, isCaptain: payload.isCaptain ?? true });
     return data;
   },
 

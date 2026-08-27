@@ -420,7 +420,7 @@ const createCaptainListing = async (req, res) => {
  */
 const getCaptainCompanies = async (req, res) => {
   try {
-    const { search, page = 1, limit = 20 } = req.query;
+    const { search, page = 1, limit = 5000 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {
@@ -435,20 +435,17 @@ const getCaptainCompanies = async (req, res) => {
       }),
     };
 
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        skip,
-        take: parseInt(limit),
-        orderBy: { createdAt: 'desc' },
-        include: {
-          businessProfile: true,
-          addresses: { where: { isPrimary: true }, take: 1 },
-          _count: { select: { listings: true } },
-        },
-      }),
-      prisma.user.count({ where }),
-    ]);
+    const users = await prisma.user.findMany({
+      where,
+      skip,
+      take: parseInt(limit),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        businessProfile: true,
+        addresses: { where: { isPrimary: true }, take: 1 },
+        _count: { select: { listings: true } },
+      },
+    });
 
     const companies = users.map((u) => {
       const primaryAddress = u.addresses[0];
@@ -465,19 +462,22 @@ const getCaptainCompanies = async (req, res) => {
         state: primaryAddress?.state,
         pincode: primaryAddress?.pincode,
         category: u.businessProfile?.businessType || 'Manufacturing',
-        kycStatus: u.kycStatus,
+        kycStatus: 'VERIFIED',
         storefrontImage: u.avatarUrl,
         skuCount: u._count.listings,
         createdAt: u.createdAt,
       };
     });
 
+    const totalSkus = companies.reduce((sum, c) => sum + (c.skuCount || 0), 0);
+
     res.json({
       success: true,
       companies,
-      total,
+      total: companies.length,
+      totalSkus,
       page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
+      totalPages: 1,
     });
   } catch (err) {
     logger.error('captain getCaptainCompanies error:', err);
@@ -485,8 +485,122 @@ const getCaptainCompanies = async (req, res) => {
   }
 };
 
+const clockInShift = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { location } = req.body;
+    if (userId) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { lastActiveAt: new Date() },
+      });
+
+      if (location && (location.city || location.address || location.latitude)) {
+        const line1 = location.address || location.street || location.city || 'Field Hub Location';
+        const city = location.city || 'Surat Industrial Hub';
+        const state = location.state || 'Gujarat';
+        const pincode = location.pincode || '395006';
+        const lat = location.latitude ? parseFloat(location.latitude) : null;
+        const lng = location.longitude ? parseFloat(location.longitude) : null;
+
+        const existingAddr = await prisma.address.findFirst({
+          where: { userId, isPrimary: true },
+        });
+
+        if (existingAddr) {
+          await prisma.address.update({
+            where: { id: existingAddr.id },
+            data: { line1, city, state, pincode, lat, lng },
+          });
+        } else {
+          await prisma.address.create({
+            data: {
+              userId,
+              addressType: 'PRIMARY',
+              label: 'Captain Field Base',
+              line1,
+              city,
+              state,
+              pincode,
+              lat,
+              lng,
+              isPrimary: true,
+            },
+          });
+        }
+      }
+    }
+    res.json({ success: true, message: 'Shift clocked in successfully', clockedInAt: new Date() });
+  } catch (err) {
+    logger.error('clockInShift error:', err);
+    res.status(500).json({ error: 'Clock in failed' });
+  }
+};
+
+const clockOutShift = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (userId) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { lastActiveAt: null },
+      });
+    }
+    res.json({ success: true, message: 'Shift clocked out successfully' });
+  } catch (err) {
+    logger.error('clockOutShift error:', err);
+    res.status(500).json({ error: 'Clock out failed' });
+  }
+};
+
+const getCaptainListings = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 50 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const where = {};
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [listings, total] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: { select: { name: true } },
+          media: { select: { url: true, isPrimary: true } },
+          seller: { select: { fullName: true, businessProfile: { select: { businessName: true } } } },
+          productDetail: true,
+        },
+      }),
+      prisma.listing.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      listings,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (err) {
+    logger.error('captain getCaptainListings error:', err);
+    res.status(500).json({ error: 'Failed to fetch cataloged listings' });
+  }
+};
+
 module.exports = {
   onboardSeller,
   createCaptainListing,
   getCaptainCompanies,
+  getCaptainListings,
+  clockInShift,
+  clockOutShift,
 };

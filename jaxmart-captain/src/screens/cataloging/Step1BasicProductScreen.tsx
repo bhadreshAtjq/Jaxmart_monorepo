@@ -131,7 +131,7 @@ export const Step1BasicProductScreen: React.FC<Step1BasicProductScreenProps> = (
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -148,8 +148,9 @@ export const Step1BasicProductScreen: React.FC<Step1BasicProductScreenProps> = (
           <Controller
             control={control}
             name="title"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, value, ref } }) => (
               <AppInput
+                ref={ref}
                 label="Product Title / Name (Max 150 chars)"
                 placeholder="e.g. High Tensile Hex Bolt Grade 8.8 (M12 x 50mm)"
                 value={value}
@@ -165,8 +166,9 @@ export const Step1BasicProductScreen: React.FC<Step1BasicProductScreenProps> = (
           <Controller
             control={control}
             name="brand"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, value, ref } }) => (
               <AppInput
+                ref={ref}
                 label="Brand Name / Manufacturer"
                 placeholder="e.g. Apex Industrial / Unbranded OEM"
                 value={value}
@@ -219,8 +221,9 @@ export const Step1BasicProductScreen: React.FC<Step1BasicProductScreenProps> = (
           <Controller
             control={control}
             name="shortDescription"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, value, ref } }) => (
               <AppInput
+                ref={ref}
                 label="Short Description (Summary for Search Index)"
                 placeholder="e.g. Grade 8.8 zinc plated heavy-duty hex bolt with standard ISO pitch"
                 value={value}
@@ -272,6 +275,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: 180,
+    paddingBottom: 280,
   },
 });

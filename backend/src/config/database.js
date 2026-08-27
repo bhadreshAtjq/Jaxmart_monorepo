@@ -1,9 +1,11 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const { logger } = require('../utils/logger');
 
+const dbUrl = process.env.DATABASE_URL;
 const basePrisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  datasources: { db: { url: process.env.DATABASE_URL } },
+  ...(dbUrl ? { datasources: { db: { url: dbUrl } } } : {}),
 });
 
 // Advanced Resiliency Extension: Automatically retries transient cloud proxy errors

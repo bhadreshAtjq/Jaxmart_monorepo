@@ -96,4 +96,14 @@ export const listingApi = {
     const { data } = await api.patch(`/listings/${id}/publish`);
     return data;
   },
+
+  getCaptainListings: async (params?: { page?: number; limit?: number; search?: string }): Promise<any> => {
+    try {
+      const { data } = await api.get('/captain/listings', { params });
+      return data;
+    } catch (err) {
+      // Fallback
+      return { success: false, listings: [], total: 0 };
+    }
+  },
 };

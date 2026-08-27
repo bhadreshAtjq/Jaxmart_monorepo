@@ -8,177 +8,128 @@ import {
   Platform,
 } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { borderRadius, spacing, elevation } from '../../theme/spacing';
+
+// Theme: primary=#1E293B (Navy), secondary=#0D9488 (Teal)
+const ACTIVE_COLOR = '#1E293B';   // primary navy for active icon+label
+const INACTIVE_COLOR = '#94A3B8'; // muted slate for inactive
+const ACCENT_LINE = '#0D9488';    // teal accent line on top
+
+const TABS: Record<string, {
+  label: string;
+  filled: keyof typeof Ionicons.glyphMap;
+  outlined: keyof typeof Ionicons.glyphMap;
+}> = {
+  DashboardTab: { label: 'Home',      filled: 'home',       outlined: 'home-outline'       },
+  CompaniesTab: { label: 'Merchants', filled: 'storefront', outlined: 'storefront-outline' },
+  SkuWizardTab: { label: 'Catalog',   filled: 'cube',       outlined: 'cube-outline'       },
+  ProfileTab:   { label: 'Me',        filled: 'person',     outlined: 'person-outline'     },
+};
 
 export const CustomFloatingTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
-  const getTabConfig = (routeName: string, isFocused: boolean) => {
-    switch (routeName) {
-      case 'DashboardTab':
-        return {
-          label: 'Dashboard',
-          icon: (isFocused ? 'speedometer' : 'speedometer-outline') as keyof typeof Ionicons.glyphMap,
-        };
-      case 'CompaniesTab':
-        return {
-          label: 'Merchants',
-          icon: (isFocused ? 'business' : 'business-outline') as keyof typeof Ionicons.glyphMap,
-        };
-      case 'SkuWizardTab':
-        return {
-          label: 'Catalog',
-          icon: (isFocused ? 'barcode' : 'barcode-outline') as keyof typeof Ionicons.glyphMap,
-        };
-      case 'ProfileTab':
-        return {
-          label: 'Profile',
-          icon: (isFocused ? 'person' : 'person-outline') as keyof typeof Ionicons.glyphMap,
-        };
-      default:
-        return {
-          label: routeName,
-          icon: 'grid-outline' as keyof typeof Ionicons.glyphMap,
-        };
-    }
-  };
+  const focusedRoute = state.routes[state.index];
+  const nestedRouteName = getFocusedRouteNameFromRoute(focusedRoute) ?? focusedRoute.name;
+
+  // Hide tab bar when inside the SkuWizard (except for the list and select screens)
+  if (focusedRoute.name === 'SkuWizardTab' && nestedRouteName !== 'SkuDraftsList' && nestedRouteName !== 'CompanySelect' && nestedRouteName !== 'SkuWizardTab') {
+    return null;
+  }
+
+  // Hide tab bar when inside the SellerWizard (except for the directory screen)
+  if (focusedRoute.name === 'CompaniesTab' && nestedRouteName !== 'CompanyDirectory' && nestedRouteName !== 'CompaniesTab') {
+    return null;
+  }
 
   return (
-    <View style={styles.floatingContainer}>
-      <View style={styles.capsuleBar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const config = getTabConfig(route.name, isFocused);
+    <View style={styles.safeWrap}>
+      <View style={styles.bar}>
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        const cfg = TABS[route.name] || { label: route.name, filled: 'ellipse' as any, outlined: 'ellipse-outline' as any };
+        const { options } = descriptors[route.key];
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarButtonTestID}
+            activeOpacity={0.7}
+            onPress={() => {
+              const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+              if (!isFocused && !event.defaultPrevented) {
+                try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+                navigation.navigate(route.name);
+              }
+            }}
+            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+            style={styles.tab}
+          >
+            {/* Teal accent line at top for active tab */}
+            {isFocused && <View style={styles.activeLine} />}
 
-            if (!isFocused && !event.defaultPrevented) {
-              try {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              } catch (e) {}
-              navigation.navigate(route.name);
-            }
-          };
+            {/* Icon — no background box, just the icon */}
+            <Ionicons
+              name={isFocused ? cfg.filled : cfg.outlined}
+              size={22}
+              color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+            />
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
-
-          return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarButtonTestID}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={[
-                styles.tabItem,
-                isFocused && styles.tabItemActive,
-              ]}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.iconWrap,
-                  isFocused && styles.iconWrapActive,
-                ]}
-              >
-                <Ionicons
-                  name={config.icon}
-                  size={20}
-                  color={isFocused ? colors.onPrimaryContainer : colors.onSurfaceVariant}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.label,
-                  isFocused ? styles.labelActive : styles.labelInactive,
-                ]}
-                numberOfLines={1}
-              >
-                {config.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+            {/* Label */}
+            <Text style={[
+              styles.label,
+              { color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR },
+              isFocused && { fontWeight: '700' },
+            ]}>
+              {cfg.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
+  </View>
   );
 };
 
 const styles = StyleSheet.create({
-  floatingContainer: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 24 : 14,
-    left: 16,
-    right: 16,
-    alignItems: 'center',
+  safeWrap: {
+    backgroundColor: '#FFFFFF',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 6,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
   },
-  capsuleBar: {
+  bar: {
     flexDirection: 'row',
+    height: 56,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.extraLarge, // 28dp capsule radius
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    ...elevation.level2,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    backgroundColor: '#FFFFFF',
   },
-  tabItem: {
+  tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
-    borderRadius: borderRadius.large,
-  },
-  tabItemActive: {
-    backgroundColor: 'transparent',
-  },
-  iconWrap: {
-    width: 44,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-  },
-  iconWrapActive: {
-    backgroundColor: colors.primaryContainer, // Material 3 Active Pill
+    gap: 4,
+    position: 'relative',
+    paddingTop: 8,
   },
   label: {
-    ...typography.labelSmall,
-    fontSize: 10.5,
-  },
-  labelActive: {
-    color: colors.onSurface,
-    fontWeight: '700',
-  },
-  labelInactive: {
-    color: colors.onSurfaceVariant,
+    fontSize: 11,
     fontWeight: '500',
+    letterSpacing: 0.15,
+  },
+  activeLine: {
+    position: 'absolute',
+    top: 0,
+    width: 28,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#0D9488',
   },
 });

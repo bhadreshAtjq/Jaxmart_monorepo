@@ -30,6 +30,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({ ro
   const { verifyOtp, sendOtp } = useAuthStore();
 
   const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
 
@@ -148,10 +149,13 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({ ro
                   style={[
                     styles.otpBox,
                     Boolean(digit) && styles.otpBoxFilled,
+                    focusedIndex === index && styles.otpBoxFocused,
                   ]}
                   value={digit}
                   onChangeText={(text) => handleOtpChange(text, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
+                  onFocus={() => setFocusedIndex(index)}
+                  onBlur={() => setFocusedIndex(-1)}
                   keyboardType="number-pad"
                   maxLength={1}
                   selectTextOnFocus
@@ -198,7 +202,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
   },
   backBtn: {
     width: 40,
@@ -240,18 +245,23 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
     ...shadows.modal,
   },
   otpInputsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: spacing.lg,
+    width: '100%',
   },
   otpBox: {
-    width: 44,
+    flex: 1,
+    maxWidth: 44,
     height: 52,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surfaceContainerLow,
@@ -260,10 +270,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: colors.primaryDark,
-    fontFamily: 'monospace',
+    textAlign: 'center',
+    padding: 0,
   },
   otpBoxFilled: {
     borderColor: colors.primary,
+    backgroundColor: colors.surface,
+  },
+  otpBoxFocused: {
+    borderColor: colors.primary,
+    borderWidth: 2,
     backgroundColor: colors.surface,
   },
   resendRow: {

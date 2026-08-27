@@ -218,10 +218,10 @@ export function useAdminStats() {
   });
 }
 
-export function useAdminUsers(enabled: boolean, search?: string) {
+export function useAdminUsers(enabled: boolean, search?: string, userType?: string, kycStatus?: string) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   return useSWR(
-    isLoggedIn && enabled ? ['/admin/users', { limit: 200, search }] : null,
+    isLoggedIn && enabled ? ['/admin/users', { limit: 200, search, userType, kycStatus }] : null,
     fetcherWithParams
   );
 }

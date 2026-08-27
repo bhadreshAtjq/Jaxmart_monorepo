@@ -181,8 +181,8 @@ const rejectListing = async (req, res) => {
 // GET /api/admin/users
 const getUsers = async (req, res) => {
   try {
-    const { search, limit } = req.query;
-    const parsedLimit = parseInt(limit, 10) || 100;
+    const { search, limit, userType, kycStatus } = req.query;
+    const parsedLimit = parseInt(limit, 10) || 200;
 
     const where = {};
     if (search && search.trim() !== '') {
@@ -192,7 +192,18 @@ const getUsers = async (req, res) => {
         { email: { contains: cleanSearch, mode: 'insensitive' } },
         { phone: { contains: cleanSearch, mode: 'insensitive' } },
         { businessProfile: { businessName: { contains: cleanSearch, mode: 'insensitive' } } },
+        { businessProfile: { tradeName: { contains: cleanSearch, mode: 'insensitive' } } },
+        { businessProfile: { gstin: { contains: cleanSearch, mode: 'insensitive' } } },
+        { businessProfile: { pan: { contains: cleanSearch, mode: 'insensitive' } } },
       ];
+    }
+
+    if (userType && userType !== 'ALL') {
+      where.userType = userType;
+    }
+
+    if (kycStatus && kycStatus !== 'ALL') {
+      where.kycStatus = kycStatus;
     }
 
     const users = await prisma.user.findMany({
@@ -200,11 +211,33 @@ const getUsers = async (req, res) => {
       take: parsedLimit,
       orderBy: { createdAt: 'desc' },
       include: {
-        businessProfile: true,
-        subscription: { include: { plan: true } },
+        businessProfile: {
+          include: {
+            certifications: true,
+          },
+        },
+        addresses: {
+          orderBy: { isPrimary: 'desc' },
+        },
+        kycDocuments: {
+          orderBy: { createdAt: 'desc' },
+        },
+        subscription: {
+          include: { plan: true },
+        },
         wallet: true,
+        _count: {
+          select: {
+            listings: true,
+            buyerOrders: true,
+            sellerOrders: true,
+            rfqRequests: true,
+            rfqQuotes: true,
+          },
+        },
       },
     });
+
     res.json({ users });
   } catch (err) {
     logger.error('getUsers error:', err);

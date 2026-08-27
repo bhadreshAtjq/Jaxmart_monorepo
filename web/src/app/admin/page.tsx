@@ -8,7 +8,8 @@ import {
    FaCalendarDays, FaPen, FaTrash, FaFileInvoiceDollar, FaCoins, FaHandshake,
    FaCheck, FaXmark, FaBuilding, FaUserPlus, FaStore, FaLocationDot,
    FaPhone, FaEnvelope, FaBriefcase, FaBoxOpen, FaQrcode, FaArrowUpRightFromSquare,
-   FaReceipt, FaCreditCard, FaRegCopy, FaPrint, FaArrowRotateLeft, FaDownload
+   FaReceipt, FaCreditCard, FaRegCopy, FaPrint, FaArrowRotateLeft, FaDownload,
+   FaWhatsapp
 } from 'react-icons/fa6';
 import { ShieldCheck, Award, TrendingUp, CheckCircle2, UserCheck, AlertTriangle, ExternalLink } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -52,8 +53,18 @@ function AdminDashboard() {
    };
 
    const [userSearch, setUserSearch] = useState('');
+   const [userTypeFilter, setUserTypeFilter] = useState('ALL');
+   const [kycFilter, setKycFilter] = useState('ALL');
+   const [selectedUserDetail, setSelectedUserDetail] = useState<any>(null);
+   const [copiedField, setCopiedField] = useState<string | null>(null);
+
    const { data: stats, isLoading: statsLoading } = useAdminStats();
-   const { data: users, isLoading: usersLoading } = useAdminUsers(tab === 'users', userSearch);
+   const { data: users, isLoading: usersLoading } = useAdminUsers(
+      tab === 'users',
+      userSearch,
+      userTypeFilter !== 'ALL' ? userTypeFilter : undefined,
+      kycFilter !== 'ALL' ? kycFilter : undefined
+   );
    const { data: kycQueue, isLoading: kycLoading } = useAdminKycQueue(tab === 'kyc');
    const { data: listingsQueue, isLoading: listingsLoading } = useAdminListingsQueue(tab === 'listings');
    const { data: eventsData, isLoading: eventsLoading } = useAdminEvents(tab === 'events');
@@ -198,6 +209,9 @@ function AdminDashboard() {
          else await adminApi.approveListing(id);
          revalidate.admin();
          toast.success('Approved and activated successfully');
+         if (selectedUserDetail?.id === id) {
+            setSelectedUserDetail((prev: any) => prev ? { ...prev, kycStatus: 'VERIFIED' } : null);
+         }
       } catch {
          toast.error('Action failed');
       }
@@ -212,9 +226,20 @@ function AdminDashboard() {
          else await adminApi.rejectListing(id, reason);
          revalidate.admin();
          toast.success('Rejected');
+         if (selectedUserDetail?.id === id) {
+            setSelectedUserDetail((prev: any) => prev ? { ...prev, kycStatus: 'REJECTED' } : null);
+         }
       } catch {
          toast.error('Action failed');
       }
+   };
+
+   const handleCopy = (text: string, label: string) => {
+      if (!text) return;
+      navigator.clipboard.writeText(text);
+      setCopiedField(`${label}-${text}`);
+      toast.success(`Copied ${label}: ${text}`);
+      setTimeout(() => setCopiedField(null), 2000);
    };
 
    const handleProcessAdminRefund = async (orderId: string, amount: number) => {
@@ -1209,47 +1234,353 @@ function AdminDashboard() {
                {/* ────────────────── TAB 7: USERS ────────────────── */}
                {tab === 'users' && (
                   <div className="space-y-4">
-                     <div className="flex items-center justify-between gap-4">
-                        <div className="relative w-full max-w-sm">
+                     {/* Search & Filter Toolbar */}
+                     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div className="relative flex-1 max-w-md">
                            <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
                            <input
                               type="text"
-                              placeholder="Search users by name, phone or company..."
+                              placeholder="Search by name, mobile, email, company, GSTIN, PAN..."
                               value={userSearch}
                               onChange={(e) => setUserSearch(e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
                            />
+                           {userSearch && (
+                              <button
+                                 onClick={() => setUserSearch('')}
+                                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-xs"
+                              >
+                                 <FaXmark className="h-3 w-3" />
+                              </button>
+                           )}
+                        </div>
+
+                        {/* Filter Buttons */}
+                        <div className="flex flex-wrap items-center gap-2">
+                           {/* User Type Filter */}
+                           <div className="flex items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                              {[
+                                 { id: 'ALL', label: 'All Roles' },
+                                 { id: 'SELLER', label: 'Sellers' },
+                                 { id: 'BUYER', label: 'Buyers' },
+                                 { id: 'BOTH', label: 'Both' },
+                              ].map((item) => (
+                                 <button
+                                    key={item.id}
+                                    onClick={() => setUserTypeFilter(item.id)}
+                                    className={clsx(
+                                       'px-2.5 py-1 rounded-lg transition-all',
+                                       userTypeFilter === item.id
+                                          ? 'bg-white text-indigo-600 shadow-xs font-black'
+                                          : 'text-slate-600 hover:text-slate-900'
+                                    )}
+                                 >
+                                    {item.label}
+                                 </button>
+                              ))}
+                           </div>
+
+                           {/* KYC Filter */}
+                           <div className="flex items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                              {[
+                                 { id: 'ALL', label: 'All KYC' },
+                                 { id: 'VERIFIED', label: 'Verified' },
+                                 { id: 'PENDING', label: 'Pending' },
+                                 { id: 'REJECTED', label: 'Rejected' },
+                              ].map((item) => (
+                                 <button
+                                    key={item.id}
+                                    onClick={() => setKycFilter(item.id)}
+                                    className={clsx(
+                                       'px-2.5 py-1 rounded-lg transition-all',
+                                       kycFilter === item.id
+                                          ? 'bg-white text-indigo-600 shadow-xs font-black'
+                                          : 'text-slate-600 hover:text-slate-900'
+                                    )}
+                                 >
+                                    {item.label}
+                                 </button>
+                              ))}
+                           </div>
+
+                           <button
+                              onClick={() => revalidate.admin()}
+                              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                              title="Refresh data"
+                           >
+                              <FaArrowRotateLeft className="h-3.5 w-3.5" />
+                           </button>
                         </div>
                      </div>
 
-                     <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-                        {!users?.users?.length ? (
-                           <div className="p-12 text-center text-slate-400 text-xs font-medium">No users match your search query.</div>
+                     {/* Results Header / Summary */}
+                     <div className="flex items-center justify-between px-1 text-xs text-slate-500 font-semibold">
+                        <span>
+                           Found <strong className="text-slate-900 font-bold">{users?.users?.length || 0}</strong> registered accounts
+                        </span>
+                        {(userTypeFilter !== 'ALL' || kycFilter !== 'ALL' || userSearch) && (
+                           <button
+                              onClick={() => {
+                                 setUserSearch('');
+                                 setUserTypeFilter('ALL');
+                                 setKycFilter('ALL');
+                              }}
+                              className="text-indigo-600 hover:underline text-[11px] font-bold"
+                           >
+                              Reset Filters
+                           </button>
+                        )}
+                     </div>
+
+                     {/* User Directory List */}
+                     <div className="space-y-3">
+                        {usersLoading ? (
+                           <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/80">
+                              <div className="animate-spin h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto mb-2" />
+                              <p className="text-xs font-bold">Loading User Master Directory...</p>
+                           </div>
+                        ) : !users?.users?.length ? (
+                           <div className="p-16 rounded-2xl bg-white border border-slate-200/80 text-center">
+                              <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                                 <FaUsers className="h-6 w-6" />
+                              </div>
+                              <p className="text-sm font-black text-slate-900">No Users Found</p>
+                              <p className="text-xs text-slate-400 mt-1">No user accounts matched your search criteria.</p>
+                           </div>
                         ) : (
-                           <div className="divide-y divide-slate-100 text-xs">
-                              {users.users.slice(0, 20).map((u: any) => (
-                                 <div key={u.id} className="p-4 flex items-center justify-between hover:bg-slate-50/60 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                       <Avatar name={u.fullName} size="sm" />
-                                       <div>
-                                          <p className="font-bold text-slate-900">{u.fullName}</p>
-                                          <p className="text-[11px] text-slate-400">{u.email || u.phone}</p>
+                           users.users.map((u: any) => {
+                              const primaryAddr = u.addresses?.[0];
+                              const hasGstin = u.businessProfile?.gstin;
+                              const hasPan = u.businessProfile?.pan;
+                              const cleanPhone = u.phone ? u.phone.replace(/[^0-9]/g, '') : '';
+                              const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`}` : null;
+
+                              return (
+                                 <div
+                                    key={u.id}
+                                    className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-indigo-200 hover:shadow-md transition-all space-y-4"
+                                 >
+                                    {/* Top Bar: Identity, Roles, Status, Joined */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                                       <div className="flex items-center gap-3.5">
+                                          <Avatar name={u.fullName} size="md" />
+                                          <div>
+                                             <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="text-sm font-black text-slate-900 tracking-tight">
+                                                   {u.fullName}
+                                                </h3>
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 uppercase">
+                                                   {u.accountType || 'INDIVIDUAL'}
+                                                </span>
+                                                <span className="text-[10px] font-mono text-slate-400">
+                                                   ID: {u.id.substring(0, 8)}
+                                                </span>
+                                             </div>
+                                             {u.businessProfile?.businessName && (
+                                                <p className="text-xs font-bold text-indigo-950 flex items-center gap-1.5 mt-0.5">
+                                                   <FaBuilding className="h-3 w-3 text-indigo-600" />
+                                                   <span>{u.businessProfile.businessName}</span>
+                                                   {u.businessProfile?.businessType && (
+                                                      <span className="text-[10px] font-normal text-slate-400">
+                                                         ({u.businessProfile.businessType})
+                                                      </span>
+                                                   )}
+                                                </p>
+                                             )}
+                                          </div>
+                                       </div>
+
+                                       {/* Status & Badges */}
+                                       <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                          <span className={clsx(
+                                             'text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider',
+                                             u.userType === 'SELLER' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
+                                             u.userType === 'BUYER' ? 'bg-sky-50 text-sky-700 border border-sky-200' :
+                                             'bg-purple-50 text-purple-700 border border-purple-200'
+                                          )}>
+                                             {u.userType}
+                                          </span>
+
+                                          <span className={clsx(
+                                             'text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1',
+                                             u.kycStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                             u.kycStatus === 'PENDING' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                                             u.kycStatus === 'UNDER_REVIEW' ? 'bg-blue-100 text-blue-900 border border-blue-300' :
+                                             'bg-rose-100 text-rose-800 border border-rose-300'
+                                          )}>
+                                             <FaShieldHalved className="h-3 w-3" />
+                                             {u.kycStatus}
+                                          </span>
+
+                                          <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-700 flex items-center gap-1">
+                                             <span>🛡️ Trust</span>
+                                             <strong className="text-slate-900">{u.trustScore || 0}/100</strong>
+                                          </span>
                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                       <span className="font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg text-[10px] uppercase">
-                                          {u.userType}
-                                       </span>
-                                       <span className={clsx(
-                                          'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                          u.kycStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
-                                       )}>
-                                          {u.kycStatus}
-                                       </span>
+
+                                    {/* Middle Grid: Phone, Email, Address, GST/PAN */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                                       {/* 1. Phone Number */}
+                                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                             Mobile Number
+                                          </span>
+                                          <div className="flex items-center justify-between gap-1">
+                                             <span className="font-mono font-black text-slate-900 text-xs">
+                                                {u.phone ? `+91 ${u.phone.replace(/^(\+91|91)/, '').trim()}` : 'No phone'}
+                                             </span>
+                                             {u.phone && (
+                                                <div className="flex items-center gap-1">
+                                                   <button
+                                                      onClick={() => handleCopy(u.phone, 'Phone')}
+                                                      className="p-1 hover:bg-slate-200 text-slate-500 rounded transition-colors"
+                                                      title="Copy Phone"
+                                                   >
+                                                      <FaRegCopy className="h-3 w-3" />
+                                                   </button>
+                                                   <a
+                                                      href={`tel:${u.phone}`}
+                                                      className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition-colors"
+                                                      title="Call Now"
+                                                   >
+                                                      <FaPhone className="h-3 w-3" />
+                                                   </a>
+                                                   {waLink && (
+                                                      <a
+                                                         href={waLink}
+                                                         target="_blank"
+                                                         rel="noreferrer"
+                                                         className="p-1 hover:bg-emerald-100 text-emerald-600 rounded transition-colors"
+                                                         title="WhatsApp Chat"
+                                                      >
+                                                         <FaWhatsapp className="h-3.5 w-3.5" />
+                                                      </a>
+                                                   )}
+                                                </div>
+                                             )}
+                                          </div>
+                                       </div>
+
+                                       {/* 2. Email Address */}
+                                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                             Email Address
+                                          </span>
+                                          <div className="flex items-center justify-between gap-1">
+                                             <span className="font-medium text-slate-800 text-xs truncate" title={u.email}>
+                                                {u.email || 'No email provided'}
+                                             </span>
+                                             {u.email && (
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                   <button
+                                                      onClick={() => handleCopy(u.email, 'Email')}
+                                                      className="p-1 hover:bg-slate-200 text-slate-500 rounded transition-colors"
+                                                      title="Copy Email"
+                                                   >
+                                                      <FaRegCopy className="h-3 w-3" />
+                                                   </button>
+                                                   <a
+                                                      href={`mailto:${u.email}`}
+                                                      className="p-1 hover:bg-blue-100 text-blue-700 rounded transition-colors"
+                                                      title="Send Email"
+                                                   >
+                                                      <FaEnvelope className="h-3 w-3" />
+                                                   </a>
+                                                </div>
+                                             )}
+                                          </div>
+                                       </div>
+
+                                       {/* 3. Location / Address */}
+                                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                             Facility / City Location
+                                          </span>
+                                          <p className="font-bold text-slate-900 text-xs truncate flex items-center gap-1" title={primaryAddr ? `${primaryAddr.line1 || ''}, ${primaryAddr.city}, ${primaryAddr.state} ${primaryAddr.pincode || ''}` : 'Location pending'}>
+                                             <FaLocationDot className="h-3 w-3 text-red-500 shrink-0" />
+                                             {primaryAddr ? `${primaryAddr.city}, ${primaryAddr.state || ''} ${primaryAddr.pincode ? `(${primaryAddr.pincode})` : ''}` : 'Location not submitted'}
+                                          </p>
+                                       </div>
+
+                                       {/* 4. GSTIN / PAN / Identifiers */}
+                                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                             Tax Identifiers (GSTIN / PAN)
+                                          </span>
+                                          <div className="flex items-center justify-between gap-1">
+                                             <span className="font-mono font-bold text-slate-900 text-xs truncate">
+                                                {hasGstin ? `GST: ${hasGstin}` : (hasPan ? `PAN: ${hasPan}` : 'Unregistered')}
+                                             </span>
+                                             {(hasGstin || hasPan) && (
+                                                <button
+                                                   onClick={() => handleCopy(hasGstin || hasPan, hasGstin ? 'GSTIN' : 'PAN')}
+                                                   className="p-1 hover:bg-slate-200 text-slate-500 rounded transition-colors shrink-0"
+                                                   title="Copy Tax ID"
+                                                >
+                                                   <FaRegCopy className="h-3 w-3" />
+                                                </button>
+                                             )}
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    {/* Bottom Bar: Stats, Subscription, Joined Date, Actions */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs">
+                                       {/* Commercial Stats */}
+                                       <div className="flex items-center gap-3 text-slate-500 flex-wrap">
+                                          <span className="flex items-center gap-1 font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-[11px]">
+                                             <FaBoxOpen className="h-3 w-3 text-indigo-600" />
+                                             <span>{u._count?.listings || 0} Catalog SKUs</span>
+                                          </span>
+                                          <span className="flex items-center gap-1 font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-[11px]">
+                                             <FaCoins className="h-3 w-3 text-amber-600" />
+                                             <span>{u.wallet?.balance ?? 5} Lead Credits</span>
+                                          </span>
+                                          <span className="flex items-center gap-1 font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-[11px]">
+                                             <FaCreditCard className="h-3 w-3 text-emerald-600" />
+                                             <span>{u.subscription?.plan?.name || 'Free Tier'}</span>
+                                          </span>
+                                          <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                             <FaCalendarDays className="h-3 w-3" />
+                                             <span>Joined {formatDistanceToNow(new Date(u.createdAt))} ago</span>
+                                          </span>
+                                       </div>
+
+                                       {/* Action CTA Buttons */}
+                                       <div className="flex items-center gap-2 shrink-0">
+                                          {u.kycStatus !== 'VERIFIED' && (
+                                             <button
+                                                onClick={() => handleApprove('kyc', u.id)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all"
+                                             >
+                                                <FaCircleCheck className="h-3.5 w-3.5" />
+                                                <span>Verify KYC</span>
+                                             </button>
+                                          )}
+
+                                          {u.kycStatus === 'PENDING' && (
+                                             <button
+                                                onClick={() => handleReject('kyc', u.id)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-all"
+                                             >
+                                                <FaCircleXmark className="h-3.5 w-3.5" />
+                                                <span>Reject</span>
+                                             </button>
+                                          )}
+
+                                          <button
+                                             onClick={() => setSelectedUserDetail(u)}
+                                             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition-all"
+                                          >
+                                             <FaEye className="h-3.5 w-3.5" />
+                                             <span>Inspect Full Dossier</span>
+                                          </button>
+                                       </div>
                                     </div>
                                  </div>
-                              ))}
-                           </div>
+                              );
+                           })
                         )}
                      </div>
                   </div>
@@ -1539,6 +1870,436 @@ function AdminDashboard() {
                            </button>
                         </div>
                      </form>
+                  </motion.div>
+               </div>
+            )}
+         </AnimatePresence>
+         {/* User Master Dossier Modal */}
+         <AnimatePresence>
+            {selectedUserDetail && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <motion.div
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     onClick={() => setSelectedUserDetail(null)}
+                     className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs"
+                  />
+                  <motion.div
+                     initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                     className="relative bg-white rounded-3xl border border-slate-100 shadow-2xl max-w-3xl w-full p-6 sm:p-8 z-10 max-h-[90vh] overflow-y-auto space-y-6"
+                  >
+                     {/* Modal Header */}
+                     <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+                        <div className="flex items-center gap-4">
+                           <Avatar name={selectedUserDetail.fullName} size="lg" />
+                           <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                 <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                                    {selectedUserDetail.fullName}
+                                 </h2>
+                                 <span className="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 uppercase">
+                                    {selectedUserDetail.accountType || 'INDIVIDUAL'}
+                                 </span>
+                                 <span className="text-xs font-mono text-slate-400">
+                                    ID: {selectedUserDetail.id}
+                                 </span>
+                              </div>
+                              {selectedUserDetail.businessProfile?.businessName && (
+                                 <p className="text-sm font-bold text-indigo-900 mt-1 flex items-center gap-1.5">
+                                    <FaBuilding className="h-3.5 w-3.5 text-indigo-600" />
+                                    <span>{selectedUserDetail.businessProfile.businessName}</span>
+                                    {selectedUserDetail.businessProfile?.businessType && (
+                                       <span className="text-xs font-normal text-slate-500">
+                                          • {selectedUserDetail.businessProfile.businessType}
+                                       </span>
+                                    )}
+                                 </p>
+                              )}
+                           </div>
+                        </div>
+
+                        <button
+                           onClick={() => setSelectedUserDetail(null)}
+                           className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                        >
+                           <FaXmark className="h-5 w-5" />
+                        </button>
+                     </div>
+
+                     {/* Quick Contact & Action Ribbon */}
+                     <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-4 flex-wrap">
+                           {selectedUserDetail.phone && (
+                              <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                                 <FaPhone className="h-3.5 w-3.5 text-emerald-600" />
+                                 <span className="font-mono text-xs">+91 {selectedUserDetail.phone.replace(/^(\+91|91)/, '').trim()}</span>
+                                 <button
+                                    onClick={() => handleCopy(selectedUserDetail.phone, 'Phone')}
+                                    className="p-1 text-slate-400 hover:text-slate-700"
+                                    title="Copy Phone"
+                                 >
+                                    <FaRegCopy className="h-3 w-3" />
+                                 </button>
+                              </div>
+                           )}
+
+                           {selectedUserDetail.email && (
+                              <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                                 <FaEnvelope className="h-3.5 w-3.5 text-blue-600" />
+                                 <span>{selectedUserDetail.email}</span>
+                                 <button
+                                    onClick={() => handleCopy(selectedUserDetail.email, 'Email')}
+                                    className="p-1 text-slate-400 hover:text-slate-700"
+                                    title="Copy Email"
+                                 >
+                                    <FaRegCopy className="h-3 w-3" />
+                                 </button>
+                              </div>
+                           )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                           {selectedUserDetail.phone && (
+                              <a
+                                 href={`tel:${selectedUserDetail.phone}`}
+                                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all text-xs"
+                              >
+                                 <FaPhone className="h-3 w-3" />
+                                 <span>Call</span>
+                              </a>
+                           )}
+                           {selectedUserDetail.phone && (
+                              <a
+                                 href={`https://wa.me/${selectedUserDetail.phone.replace(/[^0-9]/g, '').startsWith('91') ? selectedUserDetail.phone.replace(/[^0-9]/g, '') : `91${selectedUserDetail.phone.replace(/[^0-9]/g, '')}`}`}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all text-xs"
+                              >
+                                 <FaWhatsapp className="h-3.5 w-3.5" />
+                                 <span>WhatsApp</span>
+                              </a>
+                           )}
+                           {selectedUserDetail.email && (
+                              <a
+                                 href={`mailto:${selectedUserDetail.email}`}
+                                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all text-xs"
+                              >
+                                 <FaEnvelope className="h-3 w-3" />
+                                 <span>Email</span>
+                              </a>
+                           )}
+                        </div>
+                     </div>
+
+                     {/* 4-Card Bento Grid */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        {/* Section 1: Business & Tax Profile */}
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaBuilding className="h-3.5 w-3.5 text-indigo-600" />
+                                 <span>Business & Tax Profile</span>
+                              </span>
+                              <span className="font-bold text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                 {selectedUserDetail.businessProfile?.businessType || 'Wholesale'}
+                              </span>
+                           </div>
+
+                           <div className="space-y-2.5">
+                              <div>
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Legal / Trade Name</span>
+                                 <p className="font-bold text-slate-900 text-xs">
+                                    {selectedUserDetail.businessProfile?.businessName || selectedUserDetail.fullName}
+                                 </p>
+                                 {selectedUserDetail.businessProfile?.tradeName && (
+                                    <p className="text-[11px] text-slate-500">Trade: {selectedUserDetail.businessProfile.tradeName}</p>
+                                 )}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                 <div className="p-2.5 bg-slate-50 rounded-xl">
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">GSTIN</span>
+                                    <div className="flex items-center justify-between mt-0.5">
+                                       <span className="font-mono font-black text-slate-900 text-xs truncate">
+                                          {selectedUserDetail.businessProfile?.gstin || 'Unregistered'}
+                                       </span>
+                                       {selectedUserDetail.businessProfile?.gstin && (
+                                          <button
+                                             onClick={() => handleCopy(selectedUserDetail.businessProfile.gstin, 'GSTIN')}
+                                             className="p-0.5 text-slate-400 hover:text-slate-700"
+                                          >
+                                             <FaRegCopy className="h-2.5 w-2.5" />
+                                          </button>
+                                       )}
+                                    </div>
+                                 </div>
+
+                                 <div className="p-2.5 bg-slate-50 rounded-xl">
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">PAN</span>
+                                    <div className="flex items-center justify-between mt-0.5">
+                                       <span className="font-mono font-black text-slate-900 text-xs truncate">
+                                          {selectedUserDetail.businessProfile?.pan || 'N/A'}
+                                       </span>
+                                       {selectedUserDetail.businessProfile?.pan && (
+                                          <button
+                                             onClick={() => handleCopy(selectedUserDetail.businessProfile.pan, 'PAN')}
+                                             className="p-0.5 text-slate-400 hover:text-slate-700"
+                                          >
+                                             <FaRegCopy className="h-2.5 w-2.5" />
+                                          </button>
+                                       )}
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {selectedUserDetail.businessProfile?.udyamNumber && (
+                                 <div className="p-2.5 bg-slate-50 rounded-xl">
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">MSME Udyam</span>
+                                    <span className="font-mono font-bold text-slate-900 text-xs">
+                                       {selectedUserDetail.businessProfile.udyamNumber}
+                                    </span>
+                                 </div>
+                              )}
+
+                              {selectedUserDetail.businessProfile?.annualTurnover && (
+                                 <div>
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Annual Turnover</span>
+                                    <span className="font-bold text-slate-800 text-xs">
+                                       {selectedUserDetail.businessProfile.annualTurnover}
+                                    </span>
+                                 </div>
+                              )}
+
+                              {selectedUserDetail.businessProfile?.description && (
+                                 <div>
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Description / Note</span>
+                                    <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                       {selectedUserDetail.businessProfile.description}
+                                    </p>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+
+                        {/* Section 2: Physical Facilities & Addresses */}
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaLocationDot className="h-3.5 w-3.5 text-red-500" />
+                                 <span>Physical Facilities & Locations</span>
+                              </span>
+                              <span className="font-bold text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                 {selectedUserDetail.addresses?.length || 0} Registered
+                              </span>
+                           </div>
+
+                           {!selectedUserDetail.addresses?.length ? (
+                              <p className="text-slate-400 italic text-xs py-4 text-center">No physical address submitted yet.</p>
+                           ) : (
+                              <div className="space-y-3">
+                                 {selectedUserDetail.addresses.map((addr: any, idx: number) => (
+                                    <div key={addr.id || idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5">
+                                       <div className="flex items-center justify-between">
+                                          <span className="font-bold text-slate-900 text-xs">
+                                             {addr.label || (addr.isPrimary ? 'Primary Facility' : `Address #${idx + 1}`)}
+                                          </span>
+                                          {addr.isPrimary && (
+                                             <span className="text-[9px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
+                                                Primary
+                                             </span>
+                                          )}
+                                       </div>
+
+                                       <p className="text-xs text-slate-700">
+                                          {[addr.line1, addr.line2, addr.landmark].filter(Boolean).join(', ')}
+                                       </p>
+
+                                       <p className="font-bold text-slate-900 text-xs">
+                                          {addr.city}, {addr.state} - {addr.pincode}
+                                       </p>
+
+                                       {addr.contactName && (
+                                          <p className="text-[11px] text-slate-500">
+                                             Contact: <strong className="text-slate-800">{addr.contactName}</strong> {addr.contactPhone ? `(${addr.contactPhone})` : ''}
+                                          </p>
+                                       )}
+
+                                       {addr.lat && addr.lng && (
+                                          <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 mt-1">
+                                             <span className="text-[10px] font-mono text-slate-500">📍 {addr.lat}, {addr.lng}</span>
+                                             <a
+                                                href={`https://maps.google.com/?q=${addr.lat},${addr.lng}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                                             >
+                                                <span>Google Maps</span>
+                                                <ExternalLink className="h-3 w-3" />
+                                             </a>
+                                          </div>
+                                       )}
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Section 3: KYC Verification Documents */}
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaShieldHalved className="h-3.5 w-3.5 text-emerald-600" />
+                                 <span>KYC Compliance & Documents</span>
+                              </span>
+                              <span className={clsx(
+                                 'text-[10px] font-black px-2 py-0.5 rounded-md uppercase',
+                                 selectedUserDetail.kycStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
+                              )}>
+                                 {selectedUserDetail.kycStatus}
+                              </span>
+                           </div>
+
+                           {!selectedUserDetail.kycDocuments?.length ? (
+                              <p className="text-slate-400 italic text-xs py-4 text-center">No KYC document files attached.</p>
+                           ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                 {selectedUserDetail.kycDocuments.map((doc: any) => (
+                                    <div key={doc.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
+                                       <div className="flex items-center justify-between">
+                                          <span className="font-black text-[10px] uppercase text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded">
+                                             {doc.documentType}
+                                          </span>
+                                          <span className={clsx(
+                                             'text-[9px] font-bold px-1.5 py-0.5 rounded uppercase',
+                                             doc.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
+                                          )}>
+                                             {doc.status}
+                                          </span>
+                                       </div>
+
+                                       {doc.documentNumber && (
+                                          <p className="font-mono text-[11px] font-bold text-slate-800 truncate">
+                                             #{doc.documentNumber}
+                                          </p>
+                                       )}
+
+                                       {doc.documentUrl && (
+                                          <a
+                                             href={doc.documentUrl}
+                                             target="_blank"
+                                             rel="noreferrer"
+                                             className="block rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity"
+                                          >
+                                             <img
+                                                src={doc.documentUrl}
+                                                alt={doc.documentType}
+                                                className="w-full h-24 object-cover"
+                                             />
+                                          </a>
+                                       )}
+
+                                       {doc.reviewNote && (
+                                          <p className="text-[10px] text-slate-500 italic bg-white p-1.5 rounded border border-slate-100">
+                                             {doc.reviewNote}
+                                          </p>
+                                       )}
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Section 4: Platform Commercials & Activity */}
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
+                           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                              <span className="font-black uppercase tracking-wider text-[11px] text-slate-900 flex items-center gap-1.5">
+                                 <FaChartBar className="h-3.5 w-3.5 text-blue-600" />
+                                 <span>Commercials & Activity</span>
+                              </span>
+                              <span className="font-bold text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                 🛡️ Trust {selectedUserDetail.trustScore || 0}/100
+                              </span>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-2.5">
+                              <div className="p-3 bg-slate-50 rounded-xl">
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Subscription</span>
+                                 <span className="font-bold text-slate-900 text-xs block mt-0.5">
+                                    {selectedUserDetail.subscription?.plan?.name || 'Free Tier'}
+                                 </span>
+                                 <span className="text-[10px] text-emerald-600 font-bold uppercase">
+                                    {selectedUserDetail.subscription?.status || 'ACTIVE'}
+                                 </span>
+                              </div>
+
+                              <div className="p-3 bg-slate-50 rounded-xl">
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Lead Credits</span>
+                                 <span className="font-black text-amber-600 text-base block mt-0.5">
+                                    {selectedUserDetail.wallet?.balance ?? 5}
+                                 </span>
+                                 <span className="text-[10px] text-slate-500">Available Credits</span>
+                              </div>
+
+                              <div className="p-3 bg-slate-50 rounded-xl">
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Catalog SKUs</span>
+                                 <span className="font-black text-slate-900 text-base block mt-0.5">
+                                    {selectedUserDetail._count?.listings || 0}
+                                 </span>
+                                 <span className="text-[10px] text-slate-500">Active Listings</span>
+                              </div>
+
+                              <div className="p-3 bg-slate-50 rounded-xl">
+                                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Orders & RFQs</span>
+                                 <span className="font-black text-slate-900 text-base block mt-0.5">
+                                    {(selectedUserDetail._count?.buyerOrders || 0) + (selectedUserDetail._count?.sellerOrders || 0)}
+                                 </span>
+                                 <span className="text-[10px] text-slate-500">{selectedUserDetail._count?.rfqRequests || 0} RFQ Demand</span>
+                              </div>
+                           </div>
+
+                           <div className="p-2.5 bg-slate-50 rounded-xl text-[11px] text-slate-600 space-y-1">
+                              <p>🗓️ <strong>Registered On:</strong> {new Date(selectedUserDetail.createdAt).toLocaleString('en-IN')}</p>
+                              {selectedUserDetail.lastActiveAt && (
+                                 <p>⚡ <strong>Last Active:</strong> {formatDistanceToNow(new Date(selectedUserDetail.lastActiveAt))} ago</p>
+                              )}
+                           </div>
+                        </div>
+                     </div>
+
+                     {/* Modal Footer Actions */}
+                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-2">
+                           {selectedUserDetail.kycStatus !== 'VERIFIED' && (
+                              <button
+                                 onClick={() => handleApprove('kyc', selectedUserDetail.id)}
+                                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all"
+                              >
+                                 <FaCircleCheck className="h-3.5 w-3.5" />
+                                 <span>Approve & Verify KYC</span>
+                              </button>
+                           )}
+
+                           {selectedUserDetail.kycStatus === 'PENDING' && (
+                              <button
+                                 onClick={() => handleReject('kyc', selectedUserDetail.id)}
+                                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-all"
+                              >
+                                 <FaCircleXmark className="h-3.5 w-3.5" />
+                                 <span>Reject KYC</span>
+                              </button>
+                           )}
+                        </div>
+
+                        <button
+                           onClick={() => setSelectedUserDetail(null)}
+                           className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs"
+                        >
+                           Close Dossier
+                        </button>
+                     </div>
                   </motion.div>
                </div>
             )}

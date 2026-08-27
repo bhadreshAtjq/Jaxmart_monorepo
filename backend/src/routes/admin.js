@@ -5,6 +5,7 @@ const {
   getAnalytics,
   getKycQueue,
   approveKyc,
+  rejectKyc,
   getListingQueue,
   approveListing,
   rejectListing,
@@ -48,7 +49,7 @@ router.get('/analytics', getAnalytics);
 router.get('/stats', getAnalytics); // Alias for analytics
 router.get('/kyc/queue', getKycQueue);
 router.patch('/kyc/:userId/approve', approveKyc);
-router.patch('/kyc/:userId/reject', (req, res) => res.json({ message: 'Rejected' })); // Simple stub
+router.patch('/kyc/:userId/reject', rejectKyc);
 router.get('/listings/queue', getListingQueue);
 router.patch('/listings/:id/approve', approveListing);
 router.patch('/listings/:id/reject', rejectListing);

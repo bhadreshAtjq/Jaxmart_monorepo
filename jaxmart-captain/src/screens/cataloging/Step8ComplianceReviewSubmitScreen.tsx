@@ -163,7 +163,7 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
           countryOfOrigin: data.countryOfOrigin,
           certifications: data.certifications ? [data.certifications] : [],
           warranty: data.warrantyDetails,
-          status: 'UNDER_REVIEW',
+          status: 'ACTIVE',
         },
         photosToUpload: photosArray,
       });
@@ -184,7 +184,7 @@ export const Step8ComplianceReviewSubmitScreen: React.FC<Step8ComplianceReviewSu
         unitOfMeasure: step3.unitOfMeasure || 'Pieces (pcs)',
         stockQuantity: step5.stockQuantity || 100,
         bulkPriceSlabs: step3.bulkPriceSlabs,
-        status: 'PENDING',
+        status: 'ACTIVE',
         images: photosArray.map((p) => p.uri),
       });
 

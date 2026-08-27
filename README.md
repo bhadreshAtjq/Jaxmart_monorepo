@@ -6,11 +6,19 @@ escrow payments, logistics, and AI-powered matching.
 ## Project Structure
 
 ```
-b2b-platform/
-├── backend/          # Node.js + Express REST API
-├── mobile/           # Flutter iOS + Android app
-└── web/              # Next.js 14 web application
+jaxmart-monorepo/
+├── backend/          # Node.js + Express REST API (Prisma, PostgreSQL, Redis)
+├── web/              # Next.js 14 Web Application (App Router, Tailwind CSS)
+├── jaxmart-captain/  # React Native Expo App for Field Sales Reps (GPS, Barcode, KYC)
+└── mobile/           # Flutter Mobile App for Marketplace Buyers & Sellers
 ```
+
+## Key Documentation & Roadmaps
+
+- 📘 **[Master Plain English Platform Guide](file:///home/bhadresh/Desktop/jaxmart_monorepo/doc.md)**: Deep dive into the Lead Engine, In-Chat Deals, Captain Flow, and Admin governance.
+- 🚀 **[Production Readiness Audit & New Features Roadmap](file:///home/bhadresh/Desktop/jaxmart_monorepo/PRODUCTION_READINESS_AND_NEW_FEATURES_ROADMAP.md)**: Full breakdown of what is left for production launch and 10 high-value innovative features.
+- 🧪 **[Complete End-to-End App Testing Flow Guide](file:///home/bhadresh/Desktop/jaxmart_monorepo/APP_TESTING_FLOW_GUIDE.md)**: Step-by-step QA testing manual for Buyers, Sellers, Field Captains, and Admins with cURL scripts.
+- 📋 **[Master Functionalities & Features Matrix](file:///home/bhadresh/Desktop/jaxmart_monorepo/JAXMART_FUNCTIONALITIES_AND_FEATURES.md)**: Feature checklist and technical directory.
 
 ## Quick Start
 

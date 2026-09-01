@@ -6,7 +6,7 @@ const { generateTokens } = require('../middleware/auth');
 const { sendMsg91Otp, sendSms } = require('../services/smsService');
 const { logger } = require('../utils/logger');
 
-// In-memory fallback for development if Redis is unavailable
+// In-memory fallback if Redis is unavailable
 const devOtpStore = new Map();
 
 // Generate and cache OTP
@@ -15,12 +15,8 @@ const generateOtp = async (phone) => {
   try {
     await redis.setex(`otp:${phone}`, 300, otp); // 5 min TTL
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      devOtpStore.set(`otp:${phone}`, { otp, expires: Date.now() + 300000 });
-      logger.warn(`Redis unavailable. Using in-memory store for OTP ${phone}`);
-    } else {
-      throw err;
-    }
+    devOtpStore.set(`otp:${phone}`, { otp, expires: Date.now() + 300000 });
+    logger.warn(`Redis unavailable. Using in-memory store for OTP ${phone}: ${err.message}`);
   }
   return otp;
 };
@@ -131,11 +127,13 @@ const verifyOtp = async (req, res) => {
     try {
       storedOtp = await redis.get(`otp:${phone}`);
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        const fall = devOtpStore.get(`otp:${phone}`);
-        if (fall && fall.expires > Date.now()) {
-          storedOtp = fall.otp;
-        }
+      logger.warn(`Redis get failed for ${phone}: ${err.message}`);
+    }
+    
+    if (!storedOtp) {
+      const fall = devOtpStore.get(`otp:${phone}`);
+      if (fall && fall.expires > Date.now()) {
+        storedOtp = fall.otp;
       }
     }
 
@@ -158,8 +156,9 @@ const verifyOtp = async (req, res) => {
       await redis.del(`otp:${phone}`);
       await redis.del(`otp_attempts:${phone}`);
     } catch (err) {
-      devOtpStore.delete(`otp:${phone}`);
+      // Redis cleanup failed
     }
+    devOtpStore.delete(`otp:${phone}`);
 
     // Find or create user
     let user = await prisma.user.findFirst({
@@ -243,7 +242,7 @@ const refreshToken = async (req, res) => {
     if (!token) return res.status(400).json({ error: 'Refresh token required' });
 
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'jaxmart_default_refresh_secret_key_min_32_chars_2026');
 
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token },

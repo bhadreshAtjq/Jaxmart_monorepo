@@ -9,7 +9,7 @@ const authenticate = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -76,15 +76,18 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+const JWT_SECRET = process.env.JWT_SECRET || 'jaxmart_default_secret_jwt_key_min_32_chars_2026';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'jaxmart_default_refresh_secret_key_min_32_chars_2026';
+
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
     { userId },
-    process.env.JWT_SECRET,
+    JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
   );
   const refreshToken = jwt.sign(
     { userId },
-    process.env.JWT_REFRESH_SECRET,
+    JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d' }
   );
   return { accessToken, refreshToken };

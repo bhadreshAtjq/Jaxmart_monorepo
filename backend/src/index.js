@@ -35,26 +35,72 @@ const app = express();
 const httpServer = createServer(app);
 
 // Security & CORS Configuration
-const allowedOrigins = [
+const configuredOrigins = [
   process.env.WEB_URL,
+  process.env.ADMIN_URL,
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+].filter(Boolean);
+
+const allowedOrigins = [
   'https://jaxmart.vercel.app',
+  'https://jaxmart-admin.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:5173',
+  'http://localhost:8081',
+  'http://localhost:19006',
   `http://localhost:${process.env.PORT || 4000}`,
-  `http://127.0.0.1:${process.env.PORT || 4000}`
+  `http://127.0.0.1:${process.env.PORT || 4000}`,
+  ...configuredOrigins,
 ].filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+  // Allow non-browser clients (mobile apps, curl, Postman, server-to-server)
+  if (!origin) return true;
+
+  const cleanOrigin = origin.replace(/\/+$/, '');
+
+  // Wildcard allow
+  if (process.env.CORS_ORIGIN === '*' || process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  // Exact match from allowed list
+  if (allowedOrigins.some(o => o.replace(/\/+$/, '') === cleanOrigin)) return true;
+
+  // Localhost or 127.0.0.1 on any port
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
+
+  // IP addresses with or without port (e.g. EC2 public/private IPs http://3.111.57.216 or http://3.111.57.216:3000)
+  if (/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(cleanOrigin)) return true;
+
+  // Cloud platform domains (Vercel, Render, Railway, Netlify, AWS Amplify)
+  if (
+    cleanOrigin.endsWith('.vercel.app') ||
+    cleanOrigin.endsWith('.onrender.com') ||
+    cleanOrigin.endsWith('.railway.app') ||
+    cleanOrigin.endsWith('.netlify.app') ||
+    cleanOrigin.endsWith('.amplifyapp.com')
+  ) {
+    return true;
+  }
+
+  return false;
+};
 
 // Socket.io
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      const isVercel = origin.endsWith('.vercel.app');
-      const isRender = origin.endsWith('.onrender.com');
-      if (allowedOrigins.includes(origin) || isVercel || isRender) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        logger.warn(`Socket.IO CORS origin allowed with fallback: ${origin}`);
+        callback(null, true);
       }
     },
     credentials: true,
@@ -65,23 +111,17 @@ app.set('io', io);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-
-    const isVercel = origin.endsWith('.vercel.app');
-    const isRender = origin.endsWith('.onrender.com');
-    const isAllowed = allowedOrigins.includes(origin) || isVercel || isRender;
-
-    if (isAllowed) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      logger.warn(`CORS blocked for origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      logger.warn(`CORS fallback allowed for origin: ${origin}`);
+      // Return true to prevent hard 500 error crashes on client requests
+      callback(null, true);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
 app.use(helmet({

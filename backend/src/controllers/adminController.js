@@ -331,7 +331,6 @@ const getUsers = async (req, res) => {
         { email: { contains: cleanSearch, mode: 'insensitive' } },
         { phone: { contains: cleanSearch, mode: 'insensitive' } },
         { businessProfile: { businessName: { contains: cleanSearch, mode: 'insensitive' } } },
-        { businessProfile: { tradeName: { contains: cleanSearch, mode: 'insensitive' } } },
         { businessProfile: { gstin: { contains: cleanSearch, mode: 'insensitive' } } },
         { businessProfile: { pan: { contains: cleanSearch, mode: 'insensitive' } } },
       ];

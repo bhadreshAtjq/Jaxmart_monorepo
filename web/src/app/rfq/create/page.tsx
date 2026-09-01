@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button, Input, Textarea, Select, Card, Badge, Container } from '@/components/ui';
 import { rfqApi, categoryApi } from '@/lib/api';
-import { useCategories } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/store';
+import { DEFAULT_CATEGORIES, searchTaxonomy, MatchedCategoryResult } from '@/lib/taxonomy';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 import {
@@ -38,6 +39,38 @@ const STEPS = [
   { id: 1, title: 'Volume & Budget', subtitle: 'Quantity & price target' },
   { id: 2, title: 'Shipping & Specs', subtitle: 'Delivery location & terms' },
 ];
+
+export default function RfqPostPage() {
+  return (
+    <PublicLayout>
+      <Suspense fallback={<RfqPostPageFallback />}>
+        <RfqPostContent />
+      </Suspense>
+    </PublicLayout>
+  );
+}
+
+function RfqPostPageFallback() {
+  return (
+    <div className="bg-slate-50 min-h-screen pb-24 pt-6">
+      <Container size="xl">
+        <div className="max-w-4xl mx-auto mb-8 space-y-3">
+          <div className="h-6 bg-gray-200 rounded-full w-48 animate-pulse" />
+          <div className="h-10 bg-gray-200 rounded-xl w-3/4 animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
+        </div>
+        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-8 bg-white rounded-3xl p-8 border border-gray-200 space-y-6 animate-pulse">
+            <div className="h-12 bg-gray-100 rounded-xl" />
+            <div className="h-32 bg-gray-100 rounded-xl" />
+            <div className="h-12 bg-gray-100 rounded-xl" />
+          </div>
+          <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-gray-200 h-64 animate-pulse" />
+        </div>
+      </Container>
+    </div>
+  );
+}
 
 const UNIT_OPTIONS = [
   'Pieces',
@@ -138,17 +171,10 @@ const CATEGORY_PROMPTS: Record<string, { unit: string; chips: string[] }> = {
   },
 };
 
-export default function RfqPostPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-sm font-bold text-gray-500">Loading RFQ Form...</div>}>
-      <RfqPostContent />
-    </Suspense>
-  );
-}
-
 function RfqPostContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isLoggedIn } = useAuthStore();
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -180,10 +206,29 @@ function RfqPostContent() {
   // Combobox modal state
   const [showCombobox, setShowCombobox] = useState(false);
   const [comboboxQuery, setComboboxQuery] = useState('');
+  const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>('ALL');
   const [comboboxResults, setComboboxResults] = useState<any[]>([]);
-  const comboboxRef = useRef<HTMLDivElement>(null);
 
-  // Debounced live category auto-fetcher as buyer types
+  // Initial category resolution from query params if present
+  useEffect(() => {
+    const catIdParam = searchParams.get('categoryId');
+    const titleParam = searchParams.get('title');
+    if (catIdParam) {
+      const match = searchTaxonomy('').find((c) => c.id === catIdParam);
+      if (match) {
+        setSelectedCategoryObj(match);
+      }
+    } else if (titleParam) {
+      const matches = searchTaxonomy(titleParam);
+      if (matches.length > 0) {
+        setSelectedCategoryObj(matches[0]);
+        set('categoryId', matches[0].id);
+        setMatchedCategories(matches);
+      }
+    }
+  }, [searchParams]);
+
+  // Instant client-side + background API category matching as buyer types
   useEffect(() => {
     const query = form.title.trim();
     if (query.length < 2) {
@@ -192,66 +237,97 @@ function RfqPostContent() {
     }
 
     setIsSearchingCategory(true);
+
+    // 1. Zero-latency instant match from taxonomy
+    const localMatches = searchTaxonomy(query);
+    if (localMatches.length > 0) {
+      setMatchedCategories(localMatches);
+      const topMatch = localMatches[0];
+      setSelectedCategoryObj(topMatch);
+      set('categoryId', topMatch.id);
+
+      const rootSlug = topMatch.rootSlug || topMatch.parentSlug || topMatch.slug;
+      if (rootSlug && CATEGORY_PROMPTS[rootSlug]) {
+        set('unitOfMeasure', CATEGORY_PROMPTS[rootSlug].unit);
+      }
+    }
+
+    // 2. Also search backend API asynchronously to merge any custom database categories
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/categories?search=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setMatchedCategories(data);
-
-          // Auto-select the top match if no category has been manually selected yet or if title was changed
-          const topMatch = data[0];
-          setSelectedCategoryObj(topMatch);
-          set('categoryId', topMatch.id);
-
-          // Auto-set smart unit if category root matches
-          const rootSlug = topMatch.parent?.parent?.slug || topMatch.parent?.slug || topMatch.slug;
-          if (rootSlug && CATEGORY_PROMPTS[rootSlug]) {
-            set('unitOfMeasure', CATEGORY_PROMPTS[rootSlug].unit);
+        const res = await categoryApi.getAll({ search: query });
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setMatchedCategories((prev) => {
+            const combined = [...res.data];
+            return combined.length > 0 ? combined : prev;
+          });
+          if (!localMatches.length) {
+            const topMatch = res.data[0];
+            setSelectedCategoryObj(topMatch);
+            set('categoryId', topMatch.id);
+            const rootSlug = topMatch.parent?.parent?.slug || topMatch.parent?.slug || topMatch.slug;
+            if (rootSlug && CATEGORY_PROMPTS[rootSlug]) {
+              set('unitOfMeasure', CATEGORY_PROMPTS[rootSlug].unit);
+            }
           }
-        } else {
-          setMatchedCategories([]);
         }
       } catch (err) {
-        console.error('Failed to auto-fetch categories:', err);
+        // Keep local matches
       } finally {
         setIsSearchingCategory(false);
       }
-    }, 200);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, [form.title]);
 
-  // Handle combobox search
+  // Handle combobox / category explorer search
   useEffect(() => {
     if (!showCombobox) return;
     const q = comboboxQuery.trim();
-    const url = q ? `/api/categories?search=${encodeURIComponent(q)}` : `/api/categories?all=true`;
+    const localMatches = searchTaxonomy(q);
+    setComboboxResults(localMatches);
 
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setComboboxResults(data);
-        }
-      })
-      .catch(() => setComboboxResults([]));
+    if (q) {
+      categoryApi.getAll({ search: q })
+        .then((res) => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setComboboxResults(res.data);
+          }
+        })
+        .catch(() => {});
+    }
   }, [comboboxQuery, showCombobox]);
 
   // Helper to format breadcrumbs
   const getCategoryBreadcrumb = (cat: any) => {
     if (!cat) return '';
+    if (cat.parentName && cat.name) {
+      return `${cat.parentName} → ${cat.name}`;
+    }
     const parts = [];
-    if (cat.parent?.parent) parts.push(cat.parent.parent.name);
-    if (cat.parent) parts.push(cat.parent.name);
-    parts.push(cat.name);
-    return parts.join(' → ');
+    if (cat.parent?.parent?.name) parts.push(cat.parent.parent.name);
+    if (cat.parent?.name) parts.push(cat.parent.name);
+    if (cat.name) parts.push(cat.name);
+    return parts.length > 0 ? parts.join(' → ') : (cat.rootName || cat.name || '');
+  };
+
+  const handleSelectCategory = (cat: any) => {
+    setSelectedCategoryObj(cat);
+    set('categoryId', cat.id);
+    const rootSlug = cat.rootSlug || cat.parent?.parent?.slug || cat.parent?.slug || cat.slug;
+    if (rootSlug && CATEGORY_PROMPTS[rootSlug]) {
+      set('unitOfMeasure', CATEGORY_PROMPTS[rootSlug].unit);
+    }
+    setShowCombobox(false);
+    toast.success(`Category set to: ${cat.name}`);
   };
 
   // Helper to get active prompt chips based on selected category
   const activePromptGroup = useMemo(() => {
     if (!selectedCategoryObj) return CATEGORY_PROMPTS['industrial-supplies'];
     const rootSlug =
+      selectedCategoryObj.rootSlug ||
       selectedCategoryObj.parent?.parent?.slug ||
       selectedCategoryObj.parent?.slug ||
       selectedCategoryObj.slug;
@@ -309,15 +385,30 @@ function RfqPostContent() {
         title: form.title.trim(),
         description: form.description.trim(),
         categoryId: form.categoryId,
-        quantity: form.quantity ? parseFloat(form.quantity) : null,
-        unitOfMeasure: form.unitOfMeasure,
-        budgetMin: form.hasBudget && form.budgetMin ? parseFloat(form.budgetMin) : null,
-        budgetMax: form.hasBudget && form.budgetMax ? parseFloat(form.budgetMax) : null,
+        quantity: form.quantity && !isNaN(parseFloat(form.quantity)) ? parseFloat(form.quantity) : null,
+        unitOfMeasure: form.unitOfMeasure || 'Pieces',
+        budgetMin: form.hasBudget && form.budgetMin && !isNaN(parseFloat(form.budgetMin)) ? parseFloat(form.budgetMin) : null,
+        budgetMax: form.hasBudget && form.budgetMax && !isNaN(parseFloat(form.budgetMax)) ? parseFloat(form.budgetMax) : null,
         locationPreference: form.locationPreference || 'Pan India',
         preferredProviderType: form.preferredProviderType,
-        preferredDeliveryDate: form.preferredDeliveryDate ? new Date(form.preferredDeliveryDate) : null,
-        deadline: form.deadline ? new Date(form.deadline) : null,
+        preferredDeliveryDate:
+          form.preferredDeliveryDate && !isNaN(Date.parse(form.preferredDeliveryDate))
+            ? new Date(form.preferredDeliveryDate).toISOString()
+            : null,
+        deadline:
+          form.deadline && !isNaN(Date.parse(form.deadline))
+            ? new Date(form.deadline).toISOString()
+            : null,
       };
+
+      if (!isLoggedIn) {
+        toast.error('Please log in or create an account to post your requirement');
+        try {
+          sessionStorage.setItem('draft_rfq', JSON.stringify(payload));
+        } catch (e) {}
+        router.push('/auth/login?redirect=/rfq/create');
+        return;
+      }
 
       const res = await rfqApi.create(payload);
       toast.success('🎉 RFQ posted! Verified suppliers are preparing quotes.');
@@ -330,7 +421,7 @@ function RfqPostContent() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="bg-slate-50 min-h-screen pb-24 pt-6">
         <Container size="xl">
           {/* Header */}
@@ -475,20 +566,52 @@ function RfqPostContent() {
                     </div>
                   )}
 
-                  {/* If no title typed yet, allow manual selection */}
+                  {/* If no category selected yet, show prominent selector + popular category shortcuts */}
                   {!selectedCategoryObj && (
-                    <div>
-                      <label className="text-xs font-black uppercase tracking-wider text-gray-700 block mb-2">
-                        Industry Category *
-                      </label>
+                    <div className="bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-black uppercase tracking-wider text-gray-700">
+                          Industry Category *
+                        </label>
+                        <span className="text-[11px] text-gray-400 font-semibold">Auto-detects as you type or pick below</span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setShowCombobox(true)}
-                        className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm text-left font-medium text-gray-500 bg-white hover:border-jungle-green-600 flex items-center justify-between shadow-xs"
+                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-left font-medium text-gray-600 bg-white hover:border-jungle-green-600 hover:text-jungle-green-800 flex items-center justify-between shadow-xs transition-all mb-3"
                       >
-                        <span>Select or search category...</span>
+                        <div className="flex items-center gap-2.5">
+                          <Layers className="h-4 w-4 text-jungle-green-600" />
+                          <span>Browse & Search 200+ Categories...</span>
+                        </div>
                         <FaChevronDown className="h-3 w-3 text-gray-400" />
                       </button>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-1">Popular:</span>
+                        {[
+                          { name: 'TMT Steel Rebars', id: 'sub-tmt' },
+                          { name: 'Combed Cotton Fabrics', id: 'sub-fabrics' },
+                          { name: 'Corrugated Cartons', id: 'sub-cartons' },
+                          { name: 'Industrial Pumps', id: 'sub-pumps' },
+                          { name: 'Solar PV Panels', id: 'sub-solar' },
+                          { name: 'IPA Solvents', id: 'sub-solvents' },
+                        ].map((pop) => (
+                          <button
+                            type="button"
+                            key={pop.id}
+                            onClick={() => {
+                              const match = searchTaxonomy(pop.name)[0];
+                              if (match) {
+                                handleSelectCategory(match);
+                              }
+                            }}
+                            className="text-[11px] font-bold bg-white text-gray-700 border border-gray-200 hover:border-jungle-green-500 hover:text-jungle-green-700 hover:bg-jungle-green-50 px-2.5 py-1 rounded-lg transition-all"
+                          >
+                            + {pop.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -812,74 +935,165 @@ function RfqPostContent() {
       {/* Category Combobox Search Modal */}
       {showCombobox && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <Layers className="h-5 w-5 text-jungle-green-600" />
-                <h3 className="font-heading font-black text-gray-900 text-base">
-                  Browse & Search Categories
-                </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-jungle-green-100 text-jungle-green-700 flex items-center justify-center">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-black text-gray-900 text-base">
+                    Select Industry Category
+                  </h3>
+                  <p className="text-[11px] text-gray-400 font-medium">
+                    Choose from 200+ verified manufacturing sectors and subcategories
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setShowCombobox(false)}
-                className="text-gray-400 hover:text-gray-700 p-1"
+                className="text-gray-400 hover:text-gray-700 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 <FaXmark className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Search input in modal */}
-            <div className="pt-4 pb-2">
+            {/* Search Input Bar */}
+            <div className="pt-4 pb-3">
               <div className="relative">
-                <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
                   type="text"
                   autoFocus
-                  placeholder="Type to filter e.g. Shirt, Fasteners, Rebar, Bags..."
+                  placeholder="Search category, e.g. TMT, Rebar, Cotton, Cartons, Fasteners, Pumps, Solar..."
                   value={comboboxQuery}
                   onChange={(e) => setComboboxQuery(e.target.value)}
-                  className="w-full bg-slate-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:border-jungle-green-600 focus:bg-white"
+                  className="w-full bg-slate-50 border border-gray-200 rounded-2xl pl-10 pr-10 py-3 text-xs font-bold outline-none focus:border-jungle-green-600 focus:bg-white transition-all shadow-xs"
                 />
+                {comboboxQuery && (
+                  <button
+                    onClick={() => setComboboxQuery('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <FaXmark className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Results list */}
-            <div className="flex-1 overflow-y-auto space-y-1 py-2 divide-y divide-gray-50">
+            {/* Quick Sector Filter Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 pt-1 border-b border-gray-100 no-scrollbar">
+              {[
+                { id: 'ALL', label: 'All Categories' },
+                { id: 'construction', label: 'Construction & Steel' },
+                { id: 'textiles', label: 'Textiles & Garments' },
+                { id: 'industrial-supplies', label: 'Industrial Machinery' },
+                { id: 'packaging', label: 'Packaging & Cartons' },
+                { id: 'electronics', label: 'Electronics & Solar' },
+                { id: 'chemicals', label: 'Chemicals & Polymers' },
+                { id: 'agriculture', label: 'Agriculture & Food' },
+                { id: 'services', label: 'Industrial Services' },
+              ].map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  onClick={() => {
+                    setSelectedSectorFilter(tab.id);
+                    if (tab.id === 'ALL') {
+                      setComboboxResults(searchTaxonomy(comboboxQuery));
+                    } else {
+                      const root = DEFAULT_CATEGORIES.find((c) => c.slug === tab.id);
+                      if (root) {
+                        const items: MatchedCategoryResult[] = root.children.map((sub) => ({
+                          id: sub.id,
+                          name: sub.name,
+                          slug: sub.slug,
+                          parentName: root.name,
+                          parentSlug: root.slug,
+                          rootName: root.name,
+                          rootSlug: root.slug,
+                          score: 1,
+                        }));
+                        setComboboxResults(items);
+                      }
+                    }
+                  }}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all shrink-0',
+                    selectedSectorFilter === tab.id
+                      ? 'bg-jungle-green-700 text-white shadow-xs'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Results Grid / List */}
+            <div className="flex-1 overflow-y-auto space-y-1.5 py-3 pr-1">
               {comboboxResults.length === 0 ? (
-                <div className="py-12 text-center text-xs text-gray-400">
-                  No matching categories found.
+                <div className="py-12 text-center text-xs text-gray-400 space-y-2">
+                  <Layers className="h-8 w-8 text-gray-300 mx-auto" />
+                  <p className="font-bold">No categories matched &quot;{comboboxQuery}&quot;</p>
+                  <p className="text-[11px]">Try broader keywords like Steel, Machine, Fabric, Packaging, or Chemicals.</p>
                 </div>
               ) : (
-                comboboxResults.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategoryObj(cat);
-                      set('categoryId', cat.id);
-                      setShowCombobox(false);
-                    }}
-                    className={clsx(
-                      'w-full text-left p-3 rounded-xl hover:bg-jungle-green-50 transition-colors flex items-center justify-between text-xs font-bold',
-                      form.categoryId === cat.id
-                        ? 'bg-jungle-green-50 text-jungle-green-900'
-                        : 'text-gray-700'
-                    )}
-                  >
-                    <div>
-                      <p className="font-heading font-black text-gray-900">{cat.name}</p>
-                      <p className="text-[10px] text-gray-400 font-medium">{getCategoryBreadcrumb(cat)}</p>
-                    </div>
-                    {form.categoryId === cat.id && (
-                      <FaCheck className="h-3 w-3 text-jungle-green-600 shrink-0" />
-                    )}
-                  </button>
-                ))
+                comboboxResults.map((cat) => {
+                  const isSelected = form.categoryId === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleSelectCategory(cat)}
+                      className={clsx(
+                        'w-full text-left p-3.5 rounded-2xl transition-all flex items-center justify-between group border',
+                        isSelected
+                          ? 'bg-emerald-50/80 border-emerald-300 shadow-xs'
+                          : 'bg-white hover:bg-jungle-green-50/60 border-gray-100 hover:border-jungle-green-200'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={clsx(
+                            'h-8 w-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black transition-colors',
+                            isSelected
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-100 text-slate-700 group-hover:bg-jungle-green-600 group-hover:text-white'
+                          )}
+                        >
+                          <FaCheck className={clsx('h-3 w-3', !isSelected && 'hidden group-hover:block')} />
+                          {!isSelected && <span className="group-hover:hidden">•</span>}
+                        </div>
+                        <div>
+                          <p className="font-heading font-black text-gray-900 text-xs group-hover:text-jungle-green-800">
+                            {cat.name}
+                          </p>
+                          <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                            {getCategoryBreadcrumb(cat)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {isSelected && (
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                            Selected
+                          </span>
+                        )}
+                        <span className="text-[11px] font-bold text-jungle-green-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                          Select →
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>
         </div>
       )}
-    </AppLayout>
+    </>
   );
 }

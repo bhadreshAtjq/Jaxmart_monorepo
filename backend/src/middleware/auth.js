@@ -76,6 +76,41 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        phone: true,
+        email: true,
+        fullName: true,
+        userType: true,
+        accountType: true,
+        kycStatus: true,
+        trustScore: true,
+        isActive: true,
+        isAdmin: true,
+      },
+    });
+
+    if (user && user.isActive) {
+      req.user = user;
+    }
+    next();
+  } catch (err) {
+    next();
+  }
+};
+
 const JWT_SECRET = process.env.JWT_SECRET || 'jaxmart_default_secret_jwt_key_min_32_chars_2026';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'jaxmart_default_refresh_secret_key_min_32_chars_2026';
 
@@ -93,4 +128,4 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-module.exports = { authenticate, requireKyc, requireSeller, requireAdmin, generateTokens };
+module.exports = { authenticate, optionalAuth, requireKyc, requireSeller, requireAdmin, generateTokens };

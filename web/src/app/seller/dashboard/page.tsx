@@ -26,7 +26,7 @@ import Link from 'next/link';
 
 export default function SellerDashboardPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { isLoggedIn, user } = useAuthStore();
   const { data: listingsData, isLoading: listingsLoading } = useMyListings();
   const { data: entitlements, isLoading: entitlementsLoading } = useEntitlements();
   const { data: rfqData } = useRfqInbox({ limit: 5 });
@@ -42,6 +42,25 @@ export default function SellerDashboardPage() {
   const usedLeads = quota?.usedLeadQuota || 0;
   const totalQuota = quota?.totalLeadQuota || 10;
   const quotaPercent = isUnlimitedLeads ? 100 : Math.min(100, Math.round((usedLeads / (totalQuota || 1)) * 100));
+
+  if (!isLoggedIn) {
+    return (
+      <AppLayout>
+        <div className="min-h-[70vh] flex items-center justify-center p-6">
+          <div className="bg-white border border-gray-200 rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+            <div className="h-16 w-16 bg-jungle-green-50 text-jungle-green-600 rounded-3xl flex items-center justify-center mx-auto">
+              <FaStore className="h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-black font-heading text-gray-900">Seller Portal Login</h2>
+            <p className="text-xs text-gray-600">Please sign in with your supplier account to access your seller dashboard, manage listings, and view RFQ leads.</p>
+            <Button onClick={() => router.push('/auth/login?redirect=/seller/dashboard')} className="w-full bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl py-3 font-bold">
+              Sign In to Seller Account
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

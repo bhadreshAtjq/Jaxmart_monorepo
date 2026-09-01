@@ -103,7 +103,17 @@ export function useMyListings(params?: Record<string, any>) {
   );
 }
 
-// ─── RFQ ──────────────────────────────────────────────────────────────────────
+export function usePublicRfqs(params?: Record<string, any>) {
+  return useSWR(
+    ['/rfq', params || {}],
+    fetcherWithParams,
+    {
+      refreshInterval: 15_000,
+      revalidateOnFocus: true,
+      keepPreviousData: true,
+    }
+  );
+}
 
 export function useMyRfqs(status: string) {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);

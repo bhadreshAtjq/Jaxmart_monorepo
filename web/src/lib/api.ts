@@ -109,7 +109,10 @@ export const authApi = {
 
 // ── Categories ────────────────────────────────────────────────────────────────
 export const categoryApi = {
-  getAll: (parentId?: string) => api.get('/categories', { params: { parentId } }),
+  getAll: (params?: any) =>
+    api.get('/categories', {
+      params: typeof params === 'string' ? { parentId: params } : params,
+    }),
   getAttributes: (id: string) => api.get(`/categories/${id}/attributes`),
 };
 

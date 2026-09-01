@@ -89,9 +89,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <div className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8 text-[11px]">
           <div className="flex items-center gap-4 text-gray-400">
-            <span className="flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
+            <span className="hidden md:flex items-center gap-1"><FaCircleCheck className="h-3 w-3 text-emerald-400" /> Verified Suppliers</span>
             <span className="hidden md:inline">|</span>
-            <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Escrow Protection</span>
+            <span className="hidden md:flex items-center gap-1"><FaShieldHalved className="h-3 w-3 text-blue-400" /> Secure Payments</span>
             <span className="hidden md:inline">|</span>
             <span className="hidden md:flex items-center gap-1">
               {!isLoading && countryCode ? (
@@ -302,9 +302,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 © 2026 JaxMart. All rights reserved.
               </span>
               <div className="flex flex-wrap items-center justify-center gap-6">
-                <span className="hover:text-white transition-colors cursor-pointer">Terms of Use</span>
-                <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
-                <span className="hover:text-white transition-colors cursor-pointer">Contact Us</span>
+                <Link href="/terms" className="hover:text-[#36ADA3] transition-colors">Terms of Use</Link>
+                <Link href="/privacy" className="hover:text-[#36ADA3] transition-colors">Privacy Policy</Link>
+                <Link href="/contact" className="hover:text-[#36ADA3] transition-colors">Contact Us</Link>
               </div>
             </div>
           </div>

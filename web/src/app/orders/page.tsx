@@ -16,7 +16,7 @@ import { useOrders, useOrderCounts } from '@/lib/hooks';
 
 export default function OrdersPage() {
    const router = useRouter();
-   const { user } = useAuthStore();
+   const { isLoggedIn, user } = useAuthStore();
 
    const [role, setRole] = useState<'buyer' | 'seller'>(
       user?.userType === 'SELLER' ? 'seller' : 'buyer'
@@ -27,8 +27,6 @@ export default function OrdersPage() {
 
    const orders = orderData?.orders || [];
    const totalValue = useMemo(() => orders.reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0), [orders]);
-
-   if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
 
    return (
       <AppLayout>
@@ -91,7 +89,20 @@ export default function OrdersPage() {
          </div>
 
          <Container size="xl" className="pb-20">
-            {!orders?.length ? (
+            {!isLoggedIn ? (
+               <EmptyState
+                  icon={<FaBoxesStacked className="h-10 w-10 text-gray-300" />}
+                  title="Sign In to View Orders"
+                  description="Please log in to track your B2B purchase orders, escrow milestones, and invoices."
+                  action={<Button className="bg-jax-accent text-white border-none px-10 h-12 shadow-xl shadow-jax-accent/20" onClick={() => router.push('/auth/login?redirect=/orders')}>Log In to Account</Button>}
+               />
+            ) : isLoading ? (
+               <div className="space-y-4">
+                  {Array(3).fill(0).map((_, i) => (
+                     <div key={i} className="h-28 bg-white rounded-2xl border border-gray-200 animate-pulse" />
+                  ))}
+               </div>
+            ) : !orders?.length ? (
                <EmptyState
                   icon={<FaBoxesStacked className="h-10 w-10 text-gray-300" />}
                   title="No orders yet"

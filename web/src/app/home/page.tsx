@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 import { Sparkles, ShieldCheck, TrendingUp, Zap, Users, Award, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DEFAULT_CATEGORIES, TRENDING_DEALS_FALLBACK } from '@/lib/taxonomy';
 
 const CATEGORY_META: Record<string, { icon: any; color: string; bg: string; border: string }> = {
   'industrial-supplies': { icon: FaIndustry, color: 'text-blue-600', bg: 'bg-blue-50', border: 'hover:border-blue-300' },
@@ -73,12 +74,17 @@ const TRUST_PILLARS = [
 export default function HomePage() {
   const router = useRouter();
   const { isLoggedIn, user } = useAuthStore();
-  const { data: categories = [], isLoading: catsLoading } = useCategories();
-  const { data: featured, isLoading: featuredLoading } = useFeaturedListings();
-  const { data: globalRfqs, isLoading: rfqsLoading } = useRfqInbox({ matchOnly: false, limit: 6 });
+  const { data: serverCategories } = useCategories();
+  const { data: serverFeatured } = useFeaturedListings();
+  const categories = (serverCategories && serverCategories.length > 0) ? serverCategories : DEFAULT_CATEGORIES;
+  const featuredListings = (serverFeatured?.listings && serverFeatured.listings.length > 0)
+    ? serverFeatured.listings
+    : TRENDING_DEALS_FALLBACK;
+
+  const { data: globalRfqs } = useRfqInbox({ matchOnly: false, limit: 6 });
   const liveRfqs = globalRfqs?.rfqs ?? [];
 
-  const { data: newProductsRes, isLoading: newProductsLoading } = useNewProducts();
+  const { data: newProductsRes } = useNewProducts();
   const newProducts = newProductsRes?.data || [];
 
   const [searchTab, setSearchTab] = useState<'products' | 'suppliers'>('products');
@@ -166,22 +172,14 @@ export default function HomePage() {
                   className="flex-1 divide-y divide-gray-100 py-1.5"
                   onMouseLeave={() => setActiveHoverCategory(null)}
                 >
-                  {catsLoading ? (
-                    Array(8).fill(0).map((_, i) => (
-                      <div key={i} className="p-3.5 flex items-center gap-3">
-                        <Skeleton className="h-7 w-7 rounded-lg" />
-                        <Skeleton className="h-4 w-3/4" />
-                      </div>
-                    ))
-                  ) : (
-                    categories.slice(0, 8).map((cat: any) => {
-                      const meta = CATEGORY_META[cat.slug] || {
-                        icon: FaCubes,
-                        color: 'text-jungle-green-600',
-                        bg: 'bg-jungle-green-50',
-                        border: 'hover:border-jungle-green-300',
-                      };
-                      const Icon = meta.icon;
+                  {categories.slice(0, 8).map((cat: any) => {
+                    const meta = CATEGORY_META[cat.slug] || {
+                      icon: FaCubes,
+                      color: 'text-jungle-green-600',
+                      bg: 'bg-jungle-green-50',
+                      border: 'hover:border-jungle-green-300',
+                    };
+                    const Icon = meta.icon;
                       const isHovered = activeHoverCategory?.id === cat.id;
 
                       return (
@@ -211,8 +209,7 @@ export default function HomePage() {
                           <FaChevronRight className="h-2.5 w-2.5 text-gray-400 group-hover/item:text-jungle-green-600 shrink-0 ml-1" />
                         </div>
                       );
-                    })
-                  )}
+                    })}
                 </div>
 
                 <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
@@ -415,18 +412,15 @@ export default function HomePage() {
 
           {/* 8 Primary Industry Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {catsLoading ? (
-              Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-56 rounded-3xl" />)
-            ) : (
-              categories.slice(0, 8).map((cat: any) => {
-                const meta = CATEGORY_META[cat.slug] || {
-                  icon: FaCubes,
-                  color: 'text-jungle-green-600',
-                  bg: 'bg-jungle-green-50',
-                  border: 'hover:border-jungle-green-300',
-                };
-                const Icon = meta.icon;
-                const children = cat.children || [];
+            {categories.slice(0, 8).map((cat: any) => {
+              const meta = CATEGORY_META[cat.slug] || {
+                icon: FaCubes,
+                color: 'text-jungle-green-600',
+                bg: 'bg-jungle-green-50',
+                border: 'hover:border-jungle-green-300',
+              };
+              const Icon = meta.icon;
+              const children = cat.children || [];
 
                 return (
                   <div
@@ -480,8 +474,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 );
-              })
-            )}
+              })}
           </div>
         </Container>
       </section>
@@ -507,59 +500,55 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featuredLoading ? (
-              Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-64 rounded-3xl" />)
-            ) : (
-              featured?.listings?.slice(0, 8).map((product: any) => (
-                <div
-                  key={product.id}
-                  onClick={() => router.push(`/listings/${product.id}`)}
-                  className="bg-white border border-gray-200 rounded-3xl p-4 shadow-sm hover:shadow-xl hover:border-jungle-green-300 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
-                >
+            {featuredListings.slice(0, 8).map((product: any) => (
+              <div
+                key={product.id}
+                onClick={() => router.push(`/listings/${product.id}`)}
+                className="bg-white border border-gray-200 rounded-3xl p-4 shadow-sm hover:shadow-xl hover:border-jungle-green-300 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-3.5 border border-gray-100 flex items-center justify-center p-3">
+                    {product.media?.[0]?.url ? (
+                      <img
+                        src={product.media[0].url}
+                        alt={product.title}
+                        className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <FaBoxesStacked className="h-10 w-10 text-gray-300" />
+                    )}
+                  </div>
+
+                  <h4 className="font-bold text-sm text-gray-900 group-hover:text-jungle-green-700 transition-colors line-clamp-2 mb-1.5">
+                    {product.title}
+                  </h4>
+
+                  <p className="text-xs text-gray-500 truncate mb-3">
+                    {product.seller?.businessProfile?.businessName || product.seller?.fullName || 'Verified Supplier'}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-gray-100 flex items-end justify-between">
                   <div>
-                    <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-3.5 border border-gray-100 flex items-center justify-center p-3">
-                      {product.media?.[0]?.url ? (
-                        <img
-                          src={product.media[0].url}
-                          alt={product.title}
-                          className="object-contain h-full w-full group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <FaBoxesStacked className="h-10 w-10 text-gray-300" />
-                      )}
-                    </div>
-
-                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-jungle-green-700 transition-colors line-clamp-2 mb-1.5">
-                      {product.title}
-                    </h4>
-
-                    <p className="text-xs text-gray-500 truncate mb-3">
-                      {product.seller?.businessProfile?.businessName || product.seller?.fullName || 'Verified Supplier'}
+                    <p className="text-base font-heading font-black text-gray-900">
+                      {product.productDetail?.pricePerUnit
+                        ? `₹${product.productDetail.pricePerUnit.toLocaleString('en-IN')}`
+                        : 'Get Quote'}
+                    </p>
+                    <p className="text-[11px] text-gray-400">
+                      Min: {product.productDetail?.minOrderQty || 1} {product.productDetail?.unitOfMeasure || 'Units'}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-gray-100 flex items-end justify-between">
-                    <div>
-                      <p className="text-base font-heading font-black text-gray-900">
-                        {product.productDetail?.pricePerUnit
-                          ? `₹${product.productDetail.pricePerUnit.toLocaleString('en-IN')}`
-                          : 'Get Quote'}
-                      </p>
-                      <p className="text-[11px] text-gray-400">
-                        Min: {product.productDetail?.minOrderQty || 1} {product.productDetail?.unitOfMeasure || 'Units'}
-                      </p>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl text-xs font-bold px-3 py-1.5 shadow"
-                    >
-                      Inquire
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl text-xs font-bold px-3 py-1.5 shadow"
+                  >
+                    Inquire
+                  </Button>
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         </Container>
       </section>

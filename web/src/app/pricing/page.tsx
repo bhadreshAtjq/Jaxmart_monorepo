@@ -507,7 +507,7 @@ export default function PricingPage() {
                       onClick={() => handleSubscribe(plan)}
                       disabled={loadingAction === plan.id || isCurrent}
                       className={clsx(
-                        'w-full py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all',
+                        'w-full py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5',
                         isGold
                           ? 'bg-amber-400 hover:bg-amber-500 text-gray-950 shadow-lg'
                           : isCurrent
@@ -521,7 +521,7 @@ export default function PricingPage() {
                         ? 'Current Plan'
                         : plan.monthlyPrice === 0
                         ? 'Get Started Free'
-                        : `Upgrade to ${plan.name}`}
+                        : `Pay Online (UPI / Cards / Netbanking)`}
                     </Button>
 
                     {price > 0 && (
@@ -537,7 +537,7 @@ export default function PricingPage() {
                           isGold ? 'text-jungle-green-300' : 'text-gray-500'
                         )}
                       >
-                        Pay via NEFT / RTGS Bank Transfer
+                        Or Pay via Corporate NEFT / RTGS
                       </button>
                     )}
                   </div>
@@ -665,9 +665,9 @@ export default function PricingPage() {
               </div>
 
               <div className="bg-white border border-gray-200/80 rounded-2xl p-6">
-                <h4 className="font-bold text-gray-900 text-sm mb-2">Can I pay via NEFT / RTGS Bank Transfer?</h4>
+                <h4 className="font-bold text-gray-900 text-sm mb-2">What payment methods do you support?</h4>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Yes! We support instant online Razorpay (UPI, Netbanking, Cards) as well as direct corporate NEFT/RTGS bank transfers with invoice receipts.
+                  We support instant online checkout via Razorpay (UPI, Netbanking, Credit & Debit Cards) with instant plan activation, as well as direct corporate NEFT/RTGS bank transfers with official GST tax invoices.
                 </p>
               </div>
             </div>

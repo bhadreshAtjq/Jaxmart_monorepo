@@ -27,8 +27,11 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { PageLoader, EmptyState, Card, Badge, Avatar, Button, Input } from '@/components/ui';
 import toast from 'react-hot-toast';
 
+import { useAuthStore } from '@/lib/store';
+
 export default function SellerRfqInboxPage() {
   const router = useRouter();
+  const { isLoggedIn } = useAuthStore();
   const [matchOnly, setMatchOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -61,7 +64,22 @@ export default function SellerRfqInboxPage() {
     }
   };
 
-  if (isLoading) return <AppLayout><PageLoader /></AppLayout>;
+  if (!isLoggedIn) {
+    return (
+      <AppLayout>
+        <div className="max-w-md mx-auto py-20 px-6 text-center space-y-4">
+          <div className="h-16 w-16 bg-jungle-green-50 text-jungle-green-600 rounded-3xl flex items-center justify-center mx-auto">
+            <FaInbox className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-black font-heading text-gray-900">Sign In to View Leads</h2>
+          <p className="text-xs text-gray-600">Please log in to your seller account to view buyer contact details, lead notifications, and RFQ quotes.</p>
+          <Button onClick={() => router.push('/auth/login?redirect=/seller/rfq-inbox')} className="w-full bg-jungle-green-600 hover:bg-jungle-green-700 text-white rounded-xl py-3 font-bold">
+            Sign In to Seller Account
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const rfqs = (inbox as any)?.rfqs || [];
   const quota = entitlements?.usage;
@@ -144,7 +162,13 @@ export default function SellerRfqInboxPage() {
         </div>
 
         {/* RFQ List */}
-        {!rfqs.length ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            {Array(3).fill(0).map((_, i) => (
+              <div key={i} className="h-44 bg-white rounded-3xl border border-gray-200 animate-pulse" />
+            ))}
+          </div>
+        ) : !rfqs.length ? (
           <EmptyState
             icon={<FaInbox className="h-12 w-12 text-gray-300" />}
             title={search ? 'No requirements found' : 'Your Lead Inbox is Ready'}

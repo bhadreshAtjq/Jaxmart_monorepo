@@ -21,6 +21,7 @@ import {
   FaChevronRight,
 } from 'react-icons/fa6';
 import { clsx } from 'clsx';
+import { DEFAULT_CATEGORIES } from '@/lib/taxonomy';
 
 const CATEGORY_META: Record<string, { icon: any; color: string; bg: string; border: string }> = {
   'industrial-supplies': { icon: FaIndustry, color: 'text-blue-600', bg: 'bg-blue-50', border: 'hover:border-blue-300' },
@@ -35,7 +36,8 @@ const CATEGORY_META: Record<string, { icon: any; color: string; bg: string; bord
 
 export default function CategoriesDirectoryPage() {
   const router = useRouter();
-  const { data: categories = [], isLoading } = useCategories();
+  const { data: serverCategories } = useCategories();
+  const categories = (serverCategories && serverCategories.length > 0) ? serverCategories : DEFAULT_CATEGORIES;
   const [search, setSearch] = useState('');
 
   const filteredCategories = categories.filter((cat: any) => {
@@ -76,9 +78,7 @@ export default function CategoriesDirectoryPage() {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {isLoading ? (
-              Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-72 rounded-3xl" />)
-            ) : filteredCategories.length === 0 ? (
+            {filteredCategories.length === 0 ? (
               <div className="col-span-2 text-center py-20 text-gray-400">
                 No categories matched your search &quot;{search}&quot;.
               </div>

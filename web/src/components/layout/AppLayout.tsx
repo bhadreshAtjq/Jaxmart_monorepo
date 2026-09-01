@@ -133,12 +133,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     router.push('/auth/login');
   };
 
-  if (!mounted) return null;
-
-  if (syncing && isSellerView) {
-    return <PageLoader />;
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFB]">
       <AppTour />

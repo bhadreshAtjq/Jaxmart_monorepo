@@ -29,9 +29,30 @@ type SortOption = 'relevance' | 'rating' | 'newest' | 'featured' | 'popular';
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<ListingCardSkeleton />}>
-      <SearchPageContent />
-    </Suspense>
+    <PublicLayout>
+      <Suspense fallback={<SearchPageFallback />}>
+        <SearchPageContent />
+      </Suspense>
+    </PublicLayout>
+  );
+}
+
+function SearchPageFallback() {
+  return (
+    <div className="flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto min-h-[calc(100vh-64px)] items-stretch">
+      <aside className="hidden lg:block lg:w-[280px] shrink-0 border-r border-gray-200 bg-gray-50 p-5 space-y-6">
+        <div className="h-64 bg-white rounded-2xl border border-gray-200 animate-pulse" />
+        <div className="h-48 bg-white rounded-2xl border border-gray-200 animate-pulse" />
+      </aside>
+      <main className="flex-1 min-w-0 p-6 lg:p-10 space-y-6">
+        <div className="h-14 bg-white rounded-2xl border border-gray-200 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {Array(6).fill(0).map((_, i) => (
+            <div key={i} className="h-80 bg-white rounded-2xl border border-gray-200 animate-pulse" />
+          ))}
+        </div>
+      </main>
+    </div>
   );
 }
 
@@ -166,8 +187,7 @@ function SearchPageContent() {
   };
 
   return (
-    <PublicLayout>
-      <div className="flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto min-h-[calc(100vh-64px)] items-stretch">
+    <div className="flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto min-h-[calc(100vh-64px)] items-stretch">
         
         {/* 1. Left B2B Sidebar Filters (Full Height Connected) */}
         <aside className={clsx(
@@ -628,7 +648,6 @@ function SearchPageContent() {
             </div>
           </main>
       </div>
-    </PublicLayout>
   );
 }
 

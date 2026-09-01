@@ -101,13 +101,22 @@ const signContract = async (req, res) => {
     const isParty = [order.buyerId, order.sellerId].includes(req.user.id);
     if (!isParty) return res.status(403).json({ error: 'Not authorized' });
 
-    if (order.proposerId && order.proposerId === req.user.id) {
-      return res.status(400).json({ error: 'You proposed this deal. Waiting for the other party to accept.' });
+    const isBuyer = order.buyerId === req.user.id;
+    if (isBuyer && order.contractSignedByBuyer) {
+      return res.status(400).json({ error: 'You proposed/already signed this contract. Waiting for the other party to accept.' });
+    }
+    if (!isBuyer && order.contractSignedBySeller) {
+      return res.status(400).json({ error: 'You proposed/already signed this contract. Waiting for the other party to accept.' });
     }
 
     await prisma.order.update({
       where: { id },
-      data: { contractSignedAt: new Date(), status: 'ACTIVE' },
+      data: {
+        contractSignedAt: new Date(),
+        contractSignedByBuyer: isBuyer ? true : order.contractSignedByBuyer,
+        contractSignedBySeller: !isBuyer ? true : order.contractSignedBySeller,
+        status: 'ACTIVE',
+      },
     });
 
     const otherId = order.buyerId === req.user.id ? order.sellerId : order.buyerId;

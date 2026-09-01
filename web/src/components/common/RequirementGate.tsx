@@ -24,7 +24,7 @@ export function RequirementGate({
   const router = useRouter();
 
   if (!isLoggedIn) {
-    return null; // Layout should handle login redirect
+    return <>{children}</>;
   }
 
   const isKycVerified = allowedStatuses.includes(user?.kycStatus || 'PENDING');

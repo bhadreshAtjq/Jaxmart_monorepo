@@ -68,8 +68,61 @@ const createRfq = async (req, res) => {
       preferredDeliveryDate,
     } = req.body;
 
-    if (!title || !description || !categoryId) {
-      return res.status(400).json({ error: 'Title, description, and category are required' });
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required' });
+    }
+
+    // Resilient Category Resolution
+    let resolvedCategory = null;
+    if (categoryId) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
+      if (isUUID) {
+        resolvedCategory = await prisma.category.findUnique({ where: { id: categoryId } });
+      }
+
+      if (!resolvedCategory) {
+        // Search by slug or name
+        const cleanSlug = categoryId.replace(/^(sub-|cat-)/, '').toLowerCase();
+        resolvedCategory = await prisma.category.findFirst({
+          where: {
+            OR: [
+              { slug: categoryId },
+              { slug: cleanSlug },
+              { name: { contains: cleanSlug.replace(/-/g, ' '), mode: 'insensitive' } },
+            ],
+          },
+        });
+      }
+    }
+
+    // If still not resolved, match by title keywords
+    if (!resolvedCategory && title) {
+      const words = title.split(/\s+/).filter((w) => w.length > 2);
+      for (const word of words) {
+        resolvedCategory = await prisma.category.findFirst({
+          where: {
+            OR: [
+              { name: { contains: word, mode: 'insensitive' } },
+              { slug: { contains: word.toLowerCase() } },
+            ],
+          },
+        });
+        if (resolvedCategory) break;
+      }
+    }
+
+    // Default fallback to an active category
+    if (!resolvedCategory) {
+      resolvedCategory = await prisma.category.findFirst({
+        where: { isActive: true, parentId: null },
+      });
+    }
+    if (!resolvedCategory) {
+      resolvedCategory = await prisma.category.findFirst({ where: { isActive: true } });
+    }
+
+    if (!resolvedCategory) {
+      return res.status(400).json({ error: 'Valid category is required' });
     }
 
     const buyer = await prisma.user.findUnique({
@@ -77,24 +130,37 @@ const createRfq = async (req, res) => {
       include: { addresses: { where: { isPrimary: true }, take: 1 } },
     });
 
+    const parsedQty = !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0 ? parseFloat(quantity) : null;
+    const parsedBudgetMin = !isNaN(parseFloat(budgetMin)) ? parseFloat(budgetMin) : null;
+    const parsedBudgetMax = !isNaN(parseFloat(budgetMax)) ? parseFloat(budgetMax) : null;
+    const parsedDeadline = deadline && !isNaN(Date.parse(deadline)) ? new Date(deadline) : null;
+    const parsedDeliveryDate =
+      preferredDeliveryDate && !isNaN(Date.parse(preferredDeliveryDate))
+        ? new Date(preferredDeliveryDate)
+        : null;
+
     const rfq = await prisma.rfqRequest.create({
       data: {
         buyerId: req.user.id,
-        rfqType: rfqType.toUpperCase(),
+        rfqType: ['PRODUCT', 'SERVICE'].includes(rfqType?.toUpperCase()) ? rfqType.toUpperCase() : 'PRODUCT',
         title,
         description,
-        categoryId,
-        quantity: quantity ? parseFloat(quantity) : null,
-        unitOfMeasure: unitOfMeasure || 'units',
+        categoryId: resolvedCategory.id,
+        quantity: parsedQty,
+        unitOfMeasure: unitOfMeasure || 'Pieces',
         specifications: specifications || {},
         locationId: buyer?.addresses[0]?.id || null,
-        budgetMin: budgetMin ? parseFloat(budgetMin) : null,
-        budgetMax: budgetMax ? parseFloat(budgetMax) : null,
-        deadline: deadline ? new Date(deadline) : null,
-        preferredDeliveryDate: preferredDeliveryDate ? new Date(preferredDeliveryDate) : null,
+        budgetMin: parsedBudgetMin,
+        budgetMax: parsedBudgetMax,
+        deadline: parsedDeadline,
+        preferredDeliveryDate: parsedDeliveryDate,
         locationPreference: locationPreference || buyer?.addresses[0]?.city || 'Pan India',
-        preferredProviderType: preferredProviderType ? preferredProviderType.toUpperCase() : null,
-        visibility: visibility.toUpperCase(),
+        preferredProviderType: ['INDIVIDUAL', 'BUSINESS'].includes(preferredProviderType?.toUpperCase())
+          ? preferredProviderType.toUpperCase()
+          : null,
+        visibility: ['PUBLIC', 'INVITE_ONLY'].includes(visibility?.toUpperCase())
+          ? visibility.toUpperCase()
+          : 'PUBLIC',
         attachments: attachments || [],
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
       },
@@ -117,7 +183,7 @@ const createRfq = async (req, res) => {
     });
   } catch (err) {
     logger.error('createRfq error:', err);
-    res.status(500).json({ error: 'Failed to create RFQ' });
+    res.status(500).json({ error: err.message || 'Failed to create RFQ' });
   }
 };
 
@@ -277,13 +343,108 @@ const getSellerRfqInbox = async (req, res) => {
 };
 
 /**
+ * GET /api/rfq
+ * Public feed of active open buyer RFQs for the Live RFQ Board / Marketplace
+ */
+const getPublicRfqs = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, rfqType, search, categoryId, status = 'OPEN' } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const userId = req.user?.id;
+
+    const where = {
+      status: status.toUpperCase() === 'ALL' ? undefined : status.toUpperCase(),
+      ...(status.toUpperCase() === 'OPEN' && { expiresAt: { gt: new Date() } }),
+      ...(categoryId && { categoryId }),
+      ...(rfqType && { rfqType: rfqType.toUpperCase() }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [rfqs, total] = await Promise.all([
+      prisma.rfqRequest.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          location: { select: { city: true, state: true } },
+          buyer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              phone: true,
+              trustScore: true,
+              kycStatus: true,
+              avatarUrl: true,
+              businessProfile: { select: { businessName: true, businessType: true } },
+            },
+          },
+          _count: { select: { quotes: true } },
+        },
+      }),
+      prisma.rfqRequest.count({ where }),
+    ]);
+
+    const formattedRfqs = await Promise.all(
+      rfqs.map(async (rfq) => {
+        const isOwner = userId && rfq.buyerId === userId;
+        let isUnlocked = isOwner;
+
+        if (!isUnlocked && userId) {
+          const access = await checkLeadAccess(userId, rfq.id);
+          if (access.isUnlocked) isUnlocked = true;
+        }
+
+        if (isUnlocked) {
+          return {
+            ...rfq,
+            isUnlocked: true,
+            isOwner,
+            buyer: {
+              ...rfq.buyer,
+              isMasked: false,
+              businessName: rfq.buyer.businessProfile?.businessName || rfq.buyer.fullName,
+            },
+          };
+        } else {
+          return {
+            ...rfq,
+            isUnlocked: false,
+            isOwner: false,
+            buyer: maskContactInfo(rfq.buyer, rfq.location),
+          };
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+      rfqs: formattedRfqs,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (err) {
+    logger.error('getPublicRfqs error:', err);
+    res.status(500).json({ error: 'Failed to fetch RFQ board' });
+  }
+};
+
+/**
  * GET /api/rfq/:id
  * Retrieve single RFQ details
  */
 const getRfq = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     const rfq = await prisma.rfqRequest.findUnique({
       where: { id },
@@ -322,6 +483,12 @@ const getRfq = async (req, res) => {
     });
 
     if (!rfq) return res.status(404).json({ error: 'RFQ not found' });
+
+    if (!userId) {
+      rfq.buyer = maskContactInfo(rfq.buyer, rfq.location);
+      rfq.quotes = [];
+      return res.json({ ...rfq, isUnlocked: false, isOwner: false });
+    }
 
     const isBuyer = rfq.buyerId === userId;
     const hasQuote = rfq.quotes.some(q => q.sellerId === userId);
@@ -609,6 +776,7 @@ module.exports = {
   createRfq,
   getMyRfqs,
   getSellerRfqInbox,
+  getPublicRfqs,
   getRfq,
   submitQuote,
   awardQuote,

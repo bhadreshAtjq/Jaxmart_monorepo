@@ -15,7 +15,7 @@ async function main() {
 
   users.forEach(u => {
     console.log(`${u.fullName} (ID: ${u.id})`);
-    console.log(`  Purchases: ${u._count.buyerOrders}`);
+    console.log(`  Purchases: ${u._counts.buyerOrders}`);
     console.log(`  Sales:     ${u._count.sellerOrders}`);
   });
 }

@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa6';
 import { useAdminStats, useAdminDepositReceipts, useAdminKycQueue, useAdminListingsQueue, useAdminRefunds, revalidate } from '@/lib/hooks';
 import Link from 'next/link';
+import Image from 'next/image';
 import { clsx } from 'clsx';
 import toast from 'react-hot-toast';
 
@@ -116,22 +117,19 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
       >
         {/* Brand Header */}
         <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <FaShieldHalved className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-white text-base tracking-tight">JaxMart</span>
-                <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">
-                  Admin
-                </span>
+          <Link href="/admin" className="flex flex-col gap-2 group">
+            <div className="flex items-center gap-3">
+              <div className="group-hover:scale-105 transition-transform">
+                <Image src="/jaxmart-logo.svg" alt="JaxMart" width={140} height={60} className="h-10 w-auto object-contain" priority />
               </div>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Control Center
-              </p>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">
+                Admin
+              </span>
             </div>
+            <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 ml-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Control Center
+            </p>
           </Link>
           <button
             onClick={() => setMobileSidebarOpen(false)}

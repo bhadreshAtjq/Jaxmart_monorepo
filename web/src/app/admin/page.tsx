@@ -122,10 +122,18 @@ function AdminDashboard() {
 
    // Invoices & Refunds State
    const [invoiceSubTab, setInvoiceSubTab] = useState<'invoices' | 'refunds'>('invoices');
+   const [invoiceSearch, setInvoiceSearch] = useState('');
+   const [invoiceFilter, setInvoiceFilter] = useState('ALL');
    const [selectedAdminInvoice, setSelectedAdminInvoice] = useState<any>(null);
+
+   // Subscriptions state
+   const [subscriptionSearch, setSubscriptionSearch] = useState('');
+   const [subscriptionFilter, setSubscriptionFilter] = useState('ALL');
 
    // Captain state
    const [captainSubTab, setCaptainSubTab] = useState<'onboardings' | 'captains' | 'listings'>('onboardings');
+   const [captainSearch, setCaptainSearch] = useState('');
+   const [captainFilter, setCaptainFilter] = useState('ALL');
    const [isCaptainModalOpen, setIsCaptainModalOpen] = useState(false);
    const [captainForm, setCaptainForm] = useState({
       fullName: '',
@@ -308,6 +316,91 @@ function AdminDashboard() {
          toast.error('Failed to load invoice');
       }
    };
+
+   const filteredCaptains = captains.filter((c: any) => {
+      const matchSearch = !captainSearch || 
+         c.fullName?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.phone?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.city?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.territory?.toLowerCase().includes(captainSearch.toLowerCase());
+      const matchFilter = captainFilter === 'ALL' || 
+         (captainFilter === 'PUNCHED_IN' && (c.isClockedIn || c.status === 'PUNCHED_IN')) ||
+         (captainFilter === 'PUNCHED_OUT' && !c.isClockedIn && c.status !== 'PUNCHED_IN');
+      return matchSearch && matchFilter;
+   });
+
+   const filteredOnboardings = onboardings.filter((c: any) => {
+      const matchSearch = !captainSearch ||
+         c.legalName?.toLowerCase().includes(captainSearch.toLowerCase()) || 
+         c.ownerName?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.city?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.state?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.gstin?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.pan?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         c.phone?.toLowerCase().includes(captainSearch.toLowerCase());
+      const matchFilter = captainFilter === 'ALL' || 
+         (captainFilter === 'VERIFIED' && (c.kycStatus === 'VERIFIED' || !c.kycStatus)) ||
+         (captainFilter === 'PENDING' && c.kycStatus === 'PENDING');
+      return matchSearch && matchFilter;
+   });
+
+   const filteredCaptainListings = captainListings.filter((l: any) => {
+      const matchSearch = !captainSearch ||
+         l.title?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         l.skuCode?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         l.category?.name?.toLowerCase().includes(captainSearch.toLowerCase()) ||
+         (typeof l.category === 'string' && l.category.toLowerCase().includes(captainSearch.toLowerCase()));
+      const matchFilter = captainFilter === 'ALL' ||
+         (captainFilter === 'ACTIVE' && l.status !== 'DRAFT') ||
+         (captainFilter === 'DRAFT' && l.status === 'DRAFT');
+      return matchSearch && matchFilter;
+   });
+
+   const filteredSubscribers = subscribers.filter((sub: any) => {
+      const matchSearch = !subscriptionSearch ||
+         sub.user?.fullName?.toLowerCase().includes(subscriptionSearch.toLowerCase()) ||
+         sub.user?.email?.toLowerCase().includes(subscriptionSearch.toLowerCase()) ||
+         sub.user?.businessProfile?.businessName?.toLowerCase().includes(subscriptionSearch.toLowerCase());
+         
+      const matchFilter = subscriptionFilter === 'ALL' ||
+         (subscriptionFilter === 'ACTIVE' && sub.status === 'ACTIVE') ||
+         (subscriptionFilter === 'EXPIRED' && sub.status === 'EXPIRED') ||
+         (subscriptionFilter === 'FREE' && sub.plan?.name?.toUpperCase() === 'FREE') ||
+         (subscriptionFilter === 'PAID' && sub.plan?.name?.toUpperCase() !== 'FREE');
+         
+      return matchSearch && matchFilter;
+   });
+
+   const filteredAdminInvoices = adminInvoices.filter((inv: any) => {
+      const searchLower = invoiceSearch.toLowerCase();
+      const matchSearch = !invoiceSearch ||
+         inv.invoiceNumber?.toLowerCase().includes(searchLower) ||
+         inv.user?.fullName?.toLowerCase().includes(searchLower) ||
+         inv.user?.businessProfile?.businessName?.toLowerCase().includes(searchLower) ||
+         inv.category?.toLowerCase().includes(searchLower);
+         
+      const matchFilter = invoiceFilter === 'ALL' ||
+         (invoiceFilter === 'PAID' && inv.status === 'PAID') ||
+         (invoiceFilter === 'PENDING' && inv.status !== 'PAID');
+         
+      return matchSearch && matchFilter;
+   });
+
+   const filteredAdminRefunds = adminRefunds.filter((ref: any) => {
+      const searchLower = invoiceSearch.toLowerCase();
+      const matchSearch = !invoiceSearch ||
+         ref.orderId?.toLowerCase().includes(searchLower) ||
+         ref.user?.fullName?.toLowerCase().includes(searchLower) ||
+         ref.user?.businessProfile?.businessName?.toLowerCase().includes(searchLower) ||
+         ref.refundReason?.toLowerCase().includes(searchLower);
+         
+      const matchFilter = invoiceFilter === 'ALL' ||
+         (invoiceFilter === 'PENDING' && ref.status === 'PENDING') ||
+         (invoiceFilter === 'PROCESSED' && ref.status === 'PROCESSED') ||
+         (invoiceFilter === 'FAILED' && ref.status === 'FAILED');
+         
+      return matchSearch && matchFilter;
+   });
 
    return (
       <AdminLayout activeTab={tab} onTabChange={handleTabChange}>
@@ -572,35 +665,83 @@ function AdminDashboard() {
                         </div>
                      </div>
 
-                     {/* Subtab Toggle Buttons */}
-                     <div className="flex bg-slate-200/70 p-1 rounded-2xl w-fit">
-                        <button
-                           onClick={() => setCaptainSubTab('onboardings')}
-                           className={clsx(
-                              'px-4 py-2 rounded-xl text-xs font-bold transition-all',
-                              captainSubTab === 'onboardings' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                           )}
-                        >
-                           Onboarded Companies ({onboardings.length})
-                        </button>
-                        <button
-                           onClick={() => setCaptainSubTab('captains')}
-                           className={clsx(
-                              'px-4 py-2 rounded-xl text-xs font-bold transition-all',
-                              captainSubTab === 'captains' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                           )}
-                        >
-                           Field Captains ({captains.length})
-                        </button>
-                        <button
-                           onClick={() => setCaptainSubTab('listings')}
-                           className={clsx(
-                              'px-4 py-2 rounded-xl text-xs font-bold transition-all',
-                              captainSubTab === 'listings' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                           )}
-                        >
-                           Cataloged SKUs ({captainListings.length})
-                        </button>
+                     {/* Subtabs and Search */}
+                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex bg-slate-200/70 p-1 rounded-2xl w-fit shrink-0">
+                           <button
+                              onClick={() => { setCaptainSubTab('onboardings'); setCaptainFilter('ALL'); }}
+                              className={clsx(
+                                 'px-4 py-2 rounded-xl text-xs font-bold transition-all',
+                                 captainSubTab === 'onboardings' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                              )}
+                           >
+                              Onboarded Companies ({onboardings.length})
+                           </button>
+                           <button
+                              onClick={() => { setCaptainSubTab('captains'); setCaptainFilter('ALL'); }}
+                              className={clsx(
+                                 'px-4 py-2 rounded-xl text-xs font-bold transition-all',
+                                 captainSubTab === 'captains' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                              )}
+                           >
+                              Field Captains ({captains.length})
+                           </button>
+                           <button
+                              onClick={() => { setCaptainSubTab('listings'); setCaptainFilter('ALL'); }}
+                              className={clsx(
+                                 'px-4 py-2 rounded-xl text-xs font-bold transition-all',
+                                 captainSubTab === 'listings' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                              )}
+                           >
+                              Cataloged SKUs ({captainListings.length})
+                           </button>
+                        </div>
+                        
+                        <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full sm:w-auto gap-1">
+                           <div className="relative w-full sm:w-64">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                 <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                              </div>
+                              <input
+                                 type="text"
+                                 placeholder={`Search ${captainSubTab === 'onboardings' ? 'companies, location' : captainSubTab === 'captains' ? 'captains, phone' : 'SKUs, titles'}...`}
+                                 value={captainSearch}
+                                 onChange={(e) => setCaptainSearch(e.target.value)}
+                                 className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                              />
+                           </div>
+                           
+                           <div className="relative shrink-0">
+                              <select
+                                 value={captainFilter}
+                                 onChange={(e) => setCaptainFilter(e.target.value)}
+                                 className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
+                              >
+                                 <option value="ALL">All {captainSubTab === 'onboardings' ? 'Statuses' : captainSubTab === 'captains' ? 'Statuses' : 'Items'}</option>
+                                 {captainSubTab === 'onboardings' && (
+                                    <>
+                                       <option value="VERIFIED">Verified</option>
+                                       <option value="PENDING">Pending</option>
+                                    </>
+                                 )}
+                                 {captainSubTab === 'captains' && (
+                                    <>
+                                       <option value="PUNCHED_IN">Punched In</option>
+                                       <option value="PUNCHED_OUT">Punched Out</option>
+                                    </>
+                                 )}
+                                 {captainSubTab === 'listings' && (
+                                    <>
+                                       <option value="ACTIVE">Live</option>
+                                       <option value="DRAFT">Draft</option>
+                                    </>
+                                 )}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                 <FaFilter className="h-3 w-3 text-slate-500" />
+                              </div>
+                           </div>
+                        </div>
                      </div>
 
                      {/* Subtab Content 1: Onboarded Companies */}
@@ -613,8 +754,8 @@ function AdminDashboard() {
                               </div>
                            </div>
 
-                           {!onboardings.length ? (
-                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No companies onboarded yet.</div>
+                           {!filteredOnboardings.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No companies found.</div>
                            ) : (
                               <div className="overflow-x-auto">
                                  <table className="w-full text-left text-xs">
@@ -630,7 +771,7 @@ function AdminDashboard() {
                                        </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                       {onboardings.map((c: any) => (
+                                       {filteredOnboardings.map((c: any) => (
                                           <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
                                              <td className="py-3.5 px-4">
                                                 <div className="flex items-center gap-3">
@@ -703,8 +844,8 @@ function AdminDashboard() {
                               </button>
                            </div>
 
-                           {!captains.length ? (
-                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No captains deployed yet.</div>
+                           {!filteredCaptains.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No captains found.</div>
                            ) : (
                               <div className="overflow-x-auto">
                                  <table className="w-full text-left text-xs">
@@ -719,7 +860,7 @@ function AdminDashboard() {
                                        </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                       {captains.map((cap: any) => (
+                                       {filteredCaptains.map((cap: any) => (
                                           <tr key={cap.id} className="hover:bg-slate-50/60 transition-colors">
                                              <td className="py-3.5 px-4">
                                                 <div className="flex items-center gap-3">
@@ -782,8 +923,8 @@ function AdminDashboard() {
                               <p className="text-xs text-slate-500 mt-0.5">Wholesale items uploaded directly from factory premises by Field Captains</p>
                            </div>
 
-                           {!captainListings.length ? (
-                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No listings cataloged yet.</div>
+                           {!filteredCaptainListings.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No listings found.</div>
                            ) : (
                               <div className="overflow-x-auto">
                                  <table className="w-full text-left text-xs">
@@ -797,7 +938,7 @@ function AdminDashboard() {
                                        </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                       {captainListings.map((l: any) => (
+                                       {filteredCaptainListings.map((l: any) => (
                                           <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
                                              <td className="py-3.5 px-4">
                                                 <p className="font-bold text-slate-900 text-xs">{l.title}</p>
@@ -908,12 +1049,46 @@ function AdminDashboard() {
 
                      {/* Active Subscribers Table */}
                      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-                        <div className="p-5 border-b border-slate-100">
-                           <h3 className="text-sm font-bold text-slate-900">Active Paid Subscribers Directory</h3>
-                           <p className="text-xs text-slate-500 mt-0.5">Suppliers subscribed to recurring growth plans & RFQ unlock quotas</p>
+                        <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                           <div>
+                              <h3 className="text-sm font-bold text-slate-900">Active Paid Subscribers Directory</h3>
+                              <p className="text-xs text-slate-500 mt-0.5">Suppliers subscribed to recurring growth plans & RFQ unlock quotas</p>
+                           </div>
+                           
+                           <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full lg:w-auto gap-1">
+                              <div className="relative w-full sm:w-64">
+                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                                 </div>
+                                 <input
+                                    type="text"
+                                    placeholder="Search by name, email, company..."
+                                    value={subscriptionSearch}
+                                    onChange={(e) => setSubscriptionSearch(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                                 />
+                              </div>
+                              
+                              <div className="relative shrink-0">
+                                 <select
+                                    value={subscriptionFilter}
+                                    onChange={(e) => setSubscriptionFilter(e.target.value)}
+                                    className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
+                                 >
+                                    <option value="ALL">All Subscribers</option>
+                                    <option value="ACTIVE">Active Only</option>
+                                    <option value="EXPIRED">Expired</option>
+                                    <option value="FREE">Free Tier</option>
+                                    <option value="PAID">Paid Tiers</option>
+                                 </select>
+                                 <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                    <FaFilter className="h-3 w-3 text-slate-500" />
+                                 </div>
+                              </div>
+                           </div>
                         </div>
 
-                        {!subscribers.length ? (
+                        {!filteredSubscribers.length ? (
                            <div className="p-12 text-center text-slate-400 text-xs font-medium">No active subscribers found</div>
                         ) : (
                            <div className="overflow-x-auto">
@@ -929,7 +1104,7 @@ function AdminDashboard() {
                                     </tr>
                                  </thead>
                                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                    {subscribers.map((sub: any) => (
+                                    {filteredSubscribers.map((sub: any) => (
                                        <tr key={sub.id} className="hover:bg-slate-50/60 transition-colors">
                                           <td className="py-3.5 px-4">
                                              <p className="font-bold text-slate-900">{sub.user?.businessProfile?.businessName || sub.user?.fullName}</p>
@@ -986,28 +1161,71 @@ function AdminDashboard() {
                         </div>
                      </div>
 
-                     {/* Subtab Toggle */}
-                     <div className="flex bg-slate-200/70 p-1.5 rounded-2xl w-fit">
-                        <button
-                           onClick={() => setInvoiceSubTab('invoices')}
-                           className={clsx(
-                              'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
-                              invoiceSubTab === 'invoices' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                           )}
-                        >
-                           <FaReceipt className="h-3.5 w-3.5 text-indigo-600" />
-                           <span>Master Invoices Ledger ({adminInvoices.length})</span>
-                        </button>
-                        <button
-                           onClick={() => setInvoiceSubTab('refunds')}
-                           className={clsx(
-                              'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
-                              invoiceSubTab === 'refunds' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                           )}
-                        >
-                           <FaArrowRotateLeft className="h-3.5 w-3.5 text-amber-600" />
-                           <span>Refund Claims Queue ({adminRefunds.length})</span>
-                        </button>
+                     {/* Subtabs and Search */}
+                     <div className="flex flex-col sm:flex-row justify-between items-start xl:items-center gap-4">
+                        <div className="flex bg-slate-200/70 p-1.5 rounded-2xl w-fit">
+                           <button
+                              onClick={() => { setInvoiceSubTab('invoices'); setInvoiceFilter('ALL'); }}
+                              className={clsx(
+                                 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+                                 invoiceSubTab === 'invoices' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                              )}
+                           >
+                              <FaReceipt className="h-3.5 w-3.5 text-indigo-600" />
+                              <span>Master Invoices Ledger ({adminInvoices.length})</span>
+                           </button>
+                           <button
+                              onClick={() => { setInvoiceSubTab('refunds'); setInvoiceFilter('ALL'); }}
+                              className={clsx(
+                                 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+                                 invoiceSubTab === 'refunds' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                              )}
+                           >
+                              <FaArrowRotateLeft className="h-3.5 w-3.5 text-amber-600" />
+                              <span>Refund Claims Queue ({adminRefunds.length})</span>
+                           </button>
+                        </div>
+                        
+                        <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full xl:w-auto gap-1">
+                           <div className="relative w-full sm:w-64">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                 <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                              </div>
+                              <input
+                                 type="text"
+                                 placeholder={invoiceSubTab === 'invoices' ? 'Search invoice #, customer...' : 'Search order ID, customer...'}
+                                 value={invoiceSearch}
+                                 onChange={(e) => setInvoiceSearch(e.target.value)}
+                                 className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                              />
+                           </div>
+                           
+                           <div className="relative shrink-0">
+                              <select
+                                 value={invoiceFilter}
+                                 onChange={(e) => setInvoiceFilter(e.target.value)}
+                                 className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
+                              >
+                                 <option value="ALL">All {invoiceSubTab === 'invoices' ? 'Invoices' : 'Refunds'}</option>
+                                 {invoiceSubTab === 'invoices' && (
+                                    <>
+                                       <option value="PAID">Paid</option>
+                                       <option value="PENDING">Pending</option>
+                                    </>
+                                 )}
+                                 {invoiceSubTab === 'refunds' && (
+                                    <>
+                                       <option value="PENDING">Pending Review</option>
+                                       <option value="PROCESSED">Processed</option>
+                                       <option value="FAILED">Failed</option>
+                                    </>
+                                 )}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                 <FaFilter className="h-3 w-3 text-slate-500" />
+                              </div>
+                           </div>
+                        </div>
                      </div>
 
                      {/* Subtab 1: Invoices Ledger */}
@@ -1020,8 +1238,8 @@ function AdminDashboard() {
                               </div>
                            </div>
 
-                           {!adminInvoices.length ? (
-                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No invoices generated yet</div>
+                           {!filteredAdminInvoices.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No invoices found matching your criteria</div>
                            ) : (
                               <div className="overflow-x-auto">
                                  <table className="w-full text-left text-xs">
@@ -1038,7 +1256,7 @@ function AdminDashboard() {
                                        </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                       {adminInvoices.map((inv: any) => (
+                                       {filteredAdminInvoices.map((inv: any) => (
                                           <tr key={inv.id} className="hover:bg-slate-50/60 transition-colors">
                                              <td className="py-3.5 px-4 font-mono font-bold text-indigo-900">
                                                 {inv.invoiceNumber}
@@ -1094,8 +1312,8 @@ function AdminDashboard() {
                               <p className="text-xs text-slate-500 mt-0.5">Review buyer refund claims and execute automated Razorpay escrow refunds</p>
                            </div>
 
-                           {!adminRefunds.length ? (
-                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No refund requests in the queue</div>
+                           {!filteredAdminRefunds.length ? (
+                              <div className="p-12 text-center text-slate-400 text-xs font-medium">No refund requests found matching your criteria</div>
                            ) : (
                               <div className="overflow-x-auto">
                                  <table className="w-full text-left text-xs">
@@ -1110,7 +1328,7 @@ function AdminDashboard() {
                                        </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                                       {adminRefunds.map((r: any) => (
+                                       {filteredAdminRefunds.map((r: any) => (
                                           <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
                                              <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
                                                 #{r.orderNumber}
@@ -1222,50 +1440,54 @@ function AdminDashboard() {
                       </div>
 
                       {/* Search & Status Filters */}
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
-                         <div className="relative w-full md:w-96">
-                            <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
-                            <input
-                               type="text"
-                               placeholder="Search trade name, owner, GSTIN, PAN, phone..."
-                               value={kycSearch}
-                               onChange={(e) => {
-                                  setKycSearch(e.target.value);
-                                  setKycPage(1);
-                               }}
-                               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium"
-                            />
+                      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                         <div>
+                            <h3 className="text-sm font-bold text-slate-900">KYC Verification Queue</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">Audit on-site and digital merchant KYC identity submissions and compliance docs</p>
                          </div>
-
-                         {/* Status Filter Tabs */}
-                         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto p-1 bg-slate-100/80 rounded-xl">
-                            {[
-                               { id: 'ALL', label: 'All Merchants' },
-                               { id: 'PENDING', label: 'Pending Review Queue', count: kycQueue?.pendingCount },
-                               { id: 'VERIFIED', label: 'Verified Badges' },
-                               { id: 'REJECTED', label: 'Rejected' },
-                            ].map((f) => (
-                               <button
-                                  key={f.id}
-                                  onClick={() => {
-                                     setKycStatusFilter(f.id as any);
+                         <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full xl:w-auto gap-1">
+                            <div className="relative w-full sm:w-64">
+                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                               </div>
+                               <input
+                                  type="text"
+                                  placeholder="Search trade name, owner, GSTIN, PAN, phone..."
+                                  value={kycSearch}
+                                  onChange={(e) => {
+                                     setKycSearch(e.target.value);
                                      setKycPage(1);
                                   }}
-                                  className={clsx(
-                                     'px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer',
-                                     kycStatusFilter === f.id
-                                        ? 'bg-white text-slate-900 shadow-xs'
-                                        : 'text-slate-500 hover:text-slate-900'
-                                  )}
+                                  className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                               />
+                            </div>
+                            
+                            <div className="relative shrink-0">
+                               <select
+                                  value={kycStatusFilter}
+                                  onChange={(e) => {
+                                     setKycStatusFilter(e.target.value as any);
+                                     setKycPage(1);
+                                  }}
+                                  className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
                                >
-                                  <span>{f.label}</span>
-                                  {f.count !== undefined && f.count > 0 && (
-                                     <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-black">
-                                        {f.count}
-                                     </span>
-                                  )}
-                               </button>
-                            ))}
+                                  <option value="ALL">All Merchants</option>
+                                  <option value="PENDING">Pending Review {kycQueue?.pendingCount ? `(${kycQueue.pendingCount})` : ''}</option>
+                                  <option value="VERIFIED">Verified</option>
+                                  <option value="REJECTED">Rejected</option>
+                               </select>
+                               <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                  <FaFilter className="h-3 w-3 text-slate-500" />
+                               </div>
+                            </div>
+                            
+                            <button
+                               onClick={() => mutateKyc()}
+                               className="p-1.5 bg-white hover:bg-slate-50 text-slate-600 rounded-xl shadow-xs transition-all flex items-center"
+                               title="Refresh data"
+                            >
+                               <FaArrowRotateLeft className="h-3.5 w-3.5 mx-1" />
+                            </button>
                          </div>
                       </div>
 
@@ -1556,66 +1778,46 @@ function AdminDashboard() {
                      </div>
 
                      {/* Search & Status Filter Toolbar */}
-                     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-                        <div className="relative flex-1 max-w-md">
-                           <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
-                           <input
-                              type="text"
-                              placeholder="Search by SKU title, category, brand, HSN, merchant name..."
-                              value={listingSearch}
-                              onChange={(e) => {
-                                 setListingSearch(e.target.value);
-                                 setListingPage(1);
-                              }}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
-                           />
-                           {listingSearch && (
-                              <button
-                                 onClick={() => {
-                                    setListingSearch('');
-                                    setListingPage(1);
-                                 }}
-                                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-xs"
-                              >
-                                 <FaXmark className="h-3 w-3" />
-                              </button>
-                           )}
+                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                        <div>
+                           <h3 className="text-sm font-bold text-slate-900">Inventory Moderation</h3>
+                           <p className="text-xs text-slate-500 mt-0.5">Inspect wholesale catalog items before indexing into the public marketplace</p>
                         </div>
-
-                        {/* Status Tabs Filter */}
-                        <div className="flex flex-wrap items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
-                           {[
-                              { id: 'ALL', label: 'All Catalog', count: listingsQueue?.total },
-                              { id: 'DRAFT', label: 'Pending Review', count: listingsQueue?.draftCount },
-                              { id: 'ACTIVE', label: 'Live Marketplace', count: listingsQueue?.activeCount },
-                              { id: 'REJECTED', label: 'Rejected', count: listingsQueue?.rejectedCount },
-                           ].map((item) => (
-                              <button
-                                 key={item.id}
-                                 onClick={() => {
-                                    setListingStatusFilter(item.id as any);
+                        <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full xl:w-auto gap-1">
+                           <div className="relative w-full sm:w-64">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                 <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                              </div>
+                              <input
+                                 type="text"
+                                 placeholder="Search SKU, brand, merchant..."
+                                 value={listingSearch}
+                                 onChange={(e) => {
+                                    setListingSearch(e.target.value);
                                     setListingPage(1);
                                  }}
-                                 className={clsx(
-                                    'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5',
-                                    listingStatusFilter === item.id
-                                       ? 'bg-white text-indigo-600 shadow-xs font-black'
-                                       : 'text-slate-600 hover:text-slate-900'
-                                 )}
+                                 className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                              />
+                           </div>
+                           
+                           <div className="relative shrink-0">
+                              <select
+                                 value={listingStatusFilter}
+                                 onChange={(e) => {
+                                    setListingStatusFilter(e.target.value as any);
+                                    setListingPage(1);
+                                 }}
+                                 className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
                               >
-                                 <span>{item.label}</span>
-                                 {typeof item.count === 'number' && (
-                                    <span className={clsx(
-                                       'text-[10px] px-1.5 py-0.5 rounded-full',
-                                       listingStatusFilter === item.id
-                                          ? 'bg-indigo-50 text-indigo-700 font-black'
-                                          : 'bg-slate-200 text-slate-600'
-                                    )}>
-                                       {item.count}
-                                    </span>
-                                 )}
-                              </button>
-                           ))}
+                                 <option value="ALL">All Catalog {listingsQueue?.total ? `(${listingsQueue.total})` : ''}</option>
+                                 <option value="DRAFT">Pending Review {listingsQueue?.draftCount ? `(${listingsQueue.draftCount})` : ''}</option>
+                                 <option value="ACTIVE">Live Marketplace {listingsQueue?.activeCount ? `(${listingsQueue.activeCount})` : ''}</option>
+                                 <option value="REJECTED">Rejected {listingsQueue?.rejectedCount ? `(${listingsQueue.rejectedCount})` : ''}</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                 <FaFilter className="h-3 w-3 text-slate-500" />
+                              </div>
+                           </div>
                         </div>
                      </div>
 
@@ -2087,77 +2289,56 @@ function AdminDashboard() {
                {tab === 'users' && (
                   <div className="space-y-4">
                      {/* Search & Filter Toolbar */}
-                     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-                        <div className="relative flex-1 max-w-md">
-                           <FaMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-3.5 w-3.5" />
-                           <input
-                              type="text"
-                              placeholder="Search by name, mobile, email, company, GSTIN, PAN..."
-                              value={userSearch}
-                              onChange={(e) => setUserSearch(e.target.value)}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
-                           />
-                           {userSearch && (
-                              <button
-                                 onClick={() => setUserSearch('')}
-                                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-xs"
+                     <div className="flex flex-col xl:flex-row justify-end items-start xl:items-center gap-4 mb-4">
+                        <div className="flex items-center bg-slate-200/70 p-1 rounded-2xl w-full xl:w-auto gap-1">
+                           <div className="relative w-full sm:w-64">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                 <FaMagnifyingGlass className="h-3.5 w-3.5 text-slate-500" />
+                              </div>
+                              <input
+                                 type="text"
+                                 placeholder="Search by name, mobile, email..."
+                                 value={userSearch}
+                                 onChange={(e) => setUserSearch(e.target.value)}
+                                 className="w-full pl-9 pr-3 py-1.5 bg-white rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 shadow-xs"
+                              />
+                           </div>
+                           
+                           <div className="relative shrink-0">
+                              <select
+                                 value={userTypeFilter}
+                                 onChange={(e) => setUserTypeFilter(e.target.value)}
+                                 className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
                               >
-                                 <FaXmark className="h-3 w-3" />
-                              </button>
-                           )}
-                        </div>
-
-                        {/* Filter Buttons */}
-                        <div className="flex flex-wrap items-center gap-2">
-                           {/* User Type Filter */}
-                           <div className="flex items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
-                              {[
-                                 { id: 'ALL', label: 'All Roles' },
-                                 { id: 'SELLER', label: 'Sellers' },
-                                 { id: 'BUYER', label: 'Buyers' },
-                                 { id: 'BOTH', label: 'Both' },
-                              ].map((item) => (
-                                 <button
-                                    key={item.id}
-                                    onClick={() => setUserTypeFilter(item.id)}
-                                    className={clsx(
-                                       'px-2.5 py-1 rounded-lg transition-all',
-                                       userTypeFilter === item.id
-                                          ? 'bg-white text-indigo-600 shadow-xs font-black'
-                                          : 'text-slate-600 hover:text-slate-900'
-                                    )}
-                                 >
-                                    {item.label}
-                                 </button>
-                              ))}
+                                 <option value="ALL">All Roles</option>
+                                 <option value="SELLER">Sellers</option>
+                                 <option value="BUYER">Buyers</option>
+                                 <option value="BOTH">Both</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                 <FaFilter className="h-3 w-3 text-slate-500" />
+                              </div>
                            </div>
 
-                           {/* KYC Filter */}
-                           <div className="flex items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
-                              {[
-                                 { id: 'ALL', label: 'All KYC' },
-                                 { id: 'VERIFIED', label: 'Verified' },
-                                 { id: 'PENDING', label: 'Pending' },
-                                 { id: 'REJECTED', label: 'Rejected' },
-                              ].map((item) => (
-                                 <button
-                                    key={item.id}
-                                    onClick={() => setKycFilter(item.id)}
-                                    className={clsx(
-                                       'px-2.5 py-1 rounded-lg transition-all',
-                                       kycFilter === item.id
-                                          ? 'bg-white text-indigo-600 shadow-xs font-black'
-                                          : 'text-slate-600 hover:text-slate-900'
-                                    )}
-                                 >
-                                    {item.label}
-                                 </button>
-                              ))}
+                           <div className="relative shrink-0">
+                              <select
+                                 value={kycFilter}
+                                 onChange={(e) => setKycFilter(e.target.value)}
+                                 className="appearance-none pl-3 pr-8 py-1.5 bg-white rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer"
+                              >
+                                 <option value="ALL">All KYC</option>
+                                 <option value="VERIFIED">Verified</option>
+                                 <option value="PENDING">Pending</option>
+                                 <option value="REJECTED">Rejected</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                 <FaFilter className="h-3 w-3 text-slate-500" />
+                              </div>
                            </div>
-
+                           
                            <button
                               onClick={() => revalidate.admin()}
-                              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                              className="p-2 bg-white hover:bg-slate-50 text-slate-600 rounded-xl shadow-xs transition-all flex items-center"
                               title="Refresh data"
                            >
                               <FaArrowRotateLeft className="h-3.5 w-3.5" />

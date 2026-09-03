@@ -31,10 +31,10 @@ const uploadSingle = async (req, res) => {
     logger.warn('[DEBUG] uploadSingle: no file received');
     return res.status(400).json({ error: 'No file uploaded' });
   }
-  
+
   const signedUrl = await getPresignedUrl(req.file.location);
   logger.info(`[DEBUG] uploadSingle: success, signedUrl generated`);
-  
+
   res.json({
     url: signedUrl,
     key: req.file.key,
@@ -49,14 +49,14 @@ const uploadMultiple = async (req, res) => {
     logger.warn('[DEBUG] uploadMultiple: no files received');
     return res.status(400).json({ error: 'No files uploaded' });
   }
-  
+
   const files = await Promise.all(req.files.map(async f => ({
     url: await getPresignedUrl(f.location),
     key: f.key,
     mimetype: f.mimetype,
     size: f.size
   })));
-  
+
   logger.info(`[DEBUG] uploadMultiple: success, uploaded ${files.length} files with signed URLs`);
   res.json(files);
 };
